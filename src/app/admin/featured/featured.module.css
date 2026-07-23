@@ -1,0 +1,355 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  width: 100%;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.titleArea {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.titleArea h2 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin: 0;
+}
+
+.titleArea p {
+  font-size: 0.9rem;
+  color: var(--foreground-secondary);
+  margin-top: 0.25rem;
+}
+
+.iconBox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  background: var(--surface-hover);
+  border: 1px solid var(--border);
+  color: var(--primary);
+}
+
+.saveBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--primary);
+  color: #ffffff;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 30px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.25);
+}
+
+.saveBtn:hover:not(:disabled) {
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+}
+
+.saveBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.alert {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+
+.alertSuccess {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+}
+
+.alertError {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+.columnCard {
+  border-radius: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  height: 620px;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.cardHeader h3 {
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.badgeCount {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+  background: var(--surface-hover);
+  border: 1px solid var(--border);
+  color: var(--foreground-secondary);
+}
+
+.searchRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--surface-hover);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.5rem 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.searchIcon {
+  color: var(--foreground-muted);
+}
+
+.searchInput {
+  border: none;
+  background: transparent;
+  color: var(--foreground-primary);
+  outline: none;
+  width: 100%;
+  font-size: 0.9rem;
+}
+
+.seriesList {
+  flex-grow: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding-right: 0.5rem;
+}
+
+.seriesList::-webkit-scrollbar {
+  width: 6px;
+}
+
+.seriesList::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+.seriesRow {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem;
+  border-radius: 12px;
+  background: var(--surface-hover);
+  border: 1px solid var(--border);
+  transition: all 0.2s ease;
+}
+
+.seriesRow:hover {
+  border-color: var(--primary);
+  box-shadow: 0 0 10px var(--border-glow);
+}
+
+.featuredRow {
+  background: var(--surface);
+}
+
+.orderNumber {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--primary);
+  width: 20px;
+  text-align: center;
+}
+
+.seriesPoster {
+  position: relative;
+  width: 40px;
+  height: 56px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.2);
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+}
+
+.seriesPoster img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.seriesInfo {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.seriesTitle {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--foreground-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.seriesSlug {
+  font-size: 0.75rem;
+  color: var(--foreground-muted);
+  font-family: monospace;
+}
+
+.actionBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.addBtn {
+  background: var(--primary);
+  color: #ffffff;
+}
+
+.addBtn:hover {
+  background: var(--primary-hover);
+}
+
+.addedBtn {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  color: #10b981;
+  cursor: not-allowed;
+}
+
+.orderActions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.iconBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: var(--surface-hover);
+  border: 1px solid var(--border);
+  color: var(--foreground-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.iconBtn:hover:not(:disabled) {
+  background: var(--primary);
+  color: #ffffff;
+  border-color: transparent;
+}
+
+.iconBtn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.removeBtn {
+  color: #ef4444;
+}
+
+.removeBtn:hover:not(:disabled) {
+  background: #ef4444 !important;
+  color: #ffffff !important;
+}
+
+.emptyState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  height: 100%;
+  padding: 2rem;
+  color: var(--foreground-muted);
+  font-size: 0.9rem;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+}
+
+.loaderWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+}
+
+.loadingSpinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(var(--primary-rgb), 0.2);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 1024px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .columnCard {
+    height: auto;
+    max-height: 500px;
+  }
+}

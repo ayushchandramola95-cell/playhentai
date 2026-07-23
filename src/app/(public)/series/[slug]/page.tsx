@@ -1,0 +1,750 @@
+import React from 'react';
+import { Metadata } from 'next';
+import WatchlistToggle from '@/components/WatchlistToggle/WatchlistToggle';
+import CommentSection from '@/components/CommentSection/CommentSection';
+import RateSeriesButton from '@/components/RateSeriesButton/RateSeriesButton';
+import SimilarTitles from '@/components/SimilarTitles/SimilarTitles';
+import Link from 'next/link';
+import Image from 'next/image';
+import { Compass, Play, Clock, Layers, Star, Eye, MessageSquare, Flame } from 'lucide-react';
+import { createClient } from '@/utils/supabase/server';
+export const dynamic = 'force-dynamic';
+import { getR2Url } from '@/utils/r2';
+import { getEpisodeWatchUrl } from '@/utils/episodeUrl';
+import styles from './series.module.css';
+
+import { MOCK_SERIES, MOCK_EPISODES, MOCK_SERIES_DETAILS } from '@/utils/mockData';
+import { convertStudioNameToSlug } from '@/utils/studiosData';
+
+interface SeriesPageProps {
+  params: Promise<{ slug: string }>;
+}
+
+export async function generateMetadata({ params }: SeriesPageProps): Promise<Metadata> {
+  const resolvedParams = await params;
+  const slug = resolvedParams.slug;
+  const supabase = await createClient();
+
+  let title = 'Series Details - PlayHentai';
+  let description = 'View details and watch episodes of this series on PlayHentai.';
+  let ogImage = '';
+  let keywords: string[] = [];
+
+  try {
+    const { data } = await supabase
+      .from('series')
+      .select('*')
+      .eq('slug', slug)
+      .eq('is_published', true)
+      .single();
+
+    if (data) {
+      const isDubbed = data.tags ? data.tags.some((t: string) => t.toLowerCase() === 'dub' || t.toLowerCase() === 'dubbed') : false;
+      title = data.meta_title || `${data.title} - Watch Online with English ${isDubbed ? 'Dubbed' : 'Subtitles'} | PlayHentai`;
+      description = data.meta_description || `Watch ${data.title} online in HD with English ${isDubbed ? 'dubbed and subtitled' : 'subtitles'}. Browse ${isDubbed ? 'series' : 'all episodes, series'} information, release details, genres, and stream the latest updates on PlayHentai.`;
+      ogImage = data.cover_image_key || data.poster_image_key || '';
+      
+      const keywordsList = [
+        `${data.title} watch`,
+        `${data.title} stream`,
+        `${data.title} online`,
+        `${data.title} uncensored`,
+        `${data.title} subbed`,
+        `${data.title} episodes`,
+        `${data.title} hentai`,
+        data.studio ? `${data.studio} anime` : '',
+        data.studio ? `${data.studio} hentai` : '',
+        ...(data.alt_title_japanese ? [data.alt_title_japanese] : []),
+        ...(data.alt_title_romaji ? [data.alt_title_romaji] : []),
+        ...(data.alt_title_english ? [data.alt_title_english] : []),
+        ...(data.tags || [])
+      ].filter(Boolean);
+      keywords = Array.from(new Set(keywordsList));
+    } else if (MOCK_SERIES_DETAILS[slug]) {
+      const mock = MOCK_SERIES_DETAILS[slug];
+      const isDubbed = mock.tags ? mock.tags.some((t: string) => t.toLowerCase() === 'dub' || t.toLowerCase() === 'dubbed') : false;
+      title = `${mock.title} - Watch Online with English ${isDubbed ? 'Dubbed' : 'Subtitles'} | StreamNexus`;
+      description = `Watch ${mock.title} online in HD with English ${isDubbed ? 'dubbed and subtitled' : 'subtitles'}. Browse ${isDubbed ? 'series' : 'all episodes, series'} information, release details, genres, and stream the latest updates on StreamNexus.`;
+      ogImage = mock.cover_image_key || mock.poster_image_key || '';
+      
+      const keywordsList = [
+        `${mock.title} watch`,
+        `${mock.title} stream`,
+        `${mock.title} online`,
+        `${mock.title} uncensored`,
+        `${mock.title} subbed`,
+        `${mock.title} episodes`,
+        `${mock.title} hentai`,
+        mock.studio ? `${mock.studio} anime` : '',
+        ...(mock.tags || [])
+      ].filter(Boolean);
+      keywords = Array.from(new Set(keywordsList));
+    }
+  } catch (err) {
+    console.error('Error generating metadata:', err);
+  }
+
+  const images = ogImage ? [{ url: getR2Url(ogImage, 'cover') }] : [];
+
+  return {
+    title,
+    description,
+    keywords,
+    alternates: {
+      canonical: `/series/${slug}`,
+    },
+    openGraph: {
+      title,
+      description,
+      images,
+      type: 'video.tv_show',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images,
+    },
+  };
+}
+
+function getStableViews(id: string): number {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    hash = id.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const min = 5000;
+  const max = 150000;
+  const range = max - min;
+  const val = Math.abs(hash % range);
+  return min + val;
+}
+
+function getStableStatus(id: string): string {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    hash = id.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return Math.abs(hash) % 2 === 0 ? 'airing' : 'finalized';
+}
+
+function getStableRating(id: string): number {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    hash = id.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const min = 60; // 6.0
+  const max = 98; // 9.8
+  const val = Math.abs(hash % (max - min));
+  return parseFloat(((min + val) / 10).toFixed(1));
+}
+
+function getStableReleaseDate(id: string): string {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    hash = id.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const daysOffset = Math.abs(hash % 45) + 1;
+  const date = new Date(Date.now() - daysOffset * 24 * 60 * 60 * 1000);
+  return date.toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  });
+}
+
+function getFirstEpisodeId(series: any, isDbEmpty: boolean): string | null {
+  if (isDbEmpty) {
+    const details = MOCK_SERIES_DETAILS[series.slug];
+    if (details && details.seasons?.[0]?.episodes?.[0]) {
+      return details.seasons[0].episodes[0].id;
+    }
+    const ep = MOCK_EPISODES.find(e => e.showSlug === series.slug);
+    return ep ? ep.id : null;
+  } else {
+    if (series.seasons) {
+      const activeSeasons = [...series.seasons]
+        .filter((sea: any) => sea.is_published)
+        .sort((a: any, b: any) => a.season_number - b.season_number);
+      for (const season of activeSeasons) {
+        if (season.episodes && season.episodes.length > 0) {
+          const activeEps = [...season.episodes]
+            .filter((ep: any) => ep.is_published)
+            .sort((a: any, b: any) => a.episode_number - b.episode_number);
+          if (activeEps.length > 0) {
+            return activeEps[0].id;
+          }
+        }
+      }
+    }
+  }
+  return null;
+}
+
+export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
+  const resolvedParams = await params;
+  const slug = resolvedParams.slug;
+  
+  const supabase = await createClient();
+  let dbSeries: any = null;
+  let dbSeasons: any[] = [];
+  let isDbEmpty = true;
+  let allSeriesList: any[] = [];
+
+  try {
+    // 1. Fetch all series list for similar carousel
+    const { data: allSeriesData } = await supabase
+      .from('series')
+      .select('*')
+      .eq('is_published', true);
+    if (allSeriesData) {
+      allSeriesList = allSeriesData;
+    }
+
+    // 2. Fetch series details
+    const { data: seriesData } = await supabase
+      .from('series')
+      .select('*')
+      .eq('slug', slug)
+      .eq('is_published', true)
+      .single();
+
+    if (seriesData) {
+      dbSeries = seriesData;
+      isDbEmpty = false;
+
+      // 3. Fetch seasons under this series
+      const { data: seasonsData } = await supabase
+        .from('seasons')
+        .select('*')
+        .eq('series_id', seriesData.id)
+        .eq('is_published', true)
+        .order('season_number');
+
+      if (seasonsData) {
+        // 4. Fetch episodes for each season
+        const seasonsWithEpisodes = await Promise.all(
+          seasonsData.map(async (season) => {
+            const { data: eps } = await supabase
+              .from('episodes')
+              .select('*')
+              .eq('season_id', season.id)
+              .eq('is_published', true)
+              .order('episode_number');
+            return {
+              ...season,
+              episodes: eps || []
+            };
+          })
+        );
+        dbSeasons = seasonsWithEpisodes;
+      }
+    }
+  } catch (err) {
+    console.error('Error fetching series details:', err);
+  }
+
+  // Load fallback if not found in database
+  let activeSeries = isDbEmpty ? MOCK_SERIES_DETAILS[slug] : { ...dbSeries, seasons: dbSeasons };
+
+  if (isDbEmpty && !activeSeries) {
+    const baseSeries = MOCK_SERIES.find(s => s.slug === slug);
+    if (baseSeries) {
+      const relatedEps = MOCK_EPISODES.filter(e => e.showSlug === slug).map((e, index) => ({
+        id: e.id,
+        episode_number: index + 1,
+        title: `${baseSeries.title} - Episode ${index + 1}`,
+        description: `This is the detailed description for episode ${index + 1} of ${baseSeries.title}.`,
+        duration_seconds: 1440,
+        thumbnail_key: e.thumbnail || baseSeries.cover_image_key,
+        video_key: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4'
+      }));
+      
+      if (relatedEps.length === 0) {
+        relatedEps.push({
+          id: `mock-ep-${baseSeries.id}-1`,
+          episode_number: 1,
+          title: `Episode 1`,
+          description: `This is the detailed description for episode 1 of ${baseSeries.title}.`,
+          duration_seconds: 1440,
+          thumbnail_key: baseSeries.cover_image_key,
+          video_key: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4'
+        });
+      }
+      
+      activeSeries = {
+        ...baseSeries,
+        seasons: [
+          {
+            id: `mock-season-${baseSeries.id}`,
+            season_number: 1,
+            title: 'Season 1',
+            episodes: relatedEps
+          }
+        ]
+      };
+    }
+  }
+
+  if (!activeSeries) {
+    return (
+      <div className={styles.container}>
+        <div className={`${styles.notFound} glass`}>
+          <h2>Series Not Found</h2>
+          <p>The series "{slug}" does not exist in our catalog. Try searching for a different title.</p>
+          <Link href="/" className={styles.backBtn}>Back to Home</Link>
+        </div>
+      </div>
+    );
+  }
+
+  const activeSeason = activeSeries.seasons?.[0]; // Default to Season 1
+  const currentEpCount = (activeSeries.seasons || []).reduce((acc: number, s: any) => acc + (s.episodes?.length || 0), 0);
+  const totalEpisodesText = activeSeries.episode_count_override !== undefined && activeSeries.episode_count_override !== null
+    ? `${currentEpCount} / ${activeSeries.episode_count_override}`
+    : `${currentEpCount}`;
+  const rating = activeSeries.rating || getStableRating(activeSeries.id || activeSeries.title);
+  const status = (activeSeries.status || getStableStatus(activeSeries.id || activeSeries.title)).toLowerCase();
+  const views = activeSeries.views || getStableViews(activeSeries.id || activeSeries.title);
+  const studio = activeSeries.studio || 'Juicymango';
+  const releaseYear = activeSeries.release_year || activeSeries.releaseYear || 2026;
+  
+  // Find Episode 1 to check if it's a preview trailer
+  let firstEpisode: any = null;
+  if (activeSeries.seasons) {
+    const activeSeasons = [...activeSeries.seasons]
+      .filter((sea: any) => sea.is_published)
+      .sort((a: any, b: any) => a.season_number - b.season_number);
+    for (const season of activeSeasons) {
+      if (season.episodes && season.episodes.length > 0) {
+        const sortedEps = [...season.episodes]
+          .filter((ep: any) => ep.is_published)
+          .sort((a: any, b: any) => a.episode_number - b.episode_number);
+        if (sortedEps.length > 0) {
+          firstEpisode = sortedEps[0];
+          break;
+        }
+      }
+    }
+  }
+
+  // Assemble episodes list
+  let episodesToRender = activeSeason && activeSeason.episodes ? [...activeSeason.episodes] : [];
+  
+  if (episodesToRender.length === 0 && activeSeries.meta_title) {
+    const virtualEp = {
+      id: `trailer-${activeSeries.id}`,
+      episode_number: 1,
+      title: '[Preview] Trailer / Preview',
+      description: 'Official trailer/preview for the upcoming release.',
+      duration_seconds: 180,
+      thumbnail_key: activeSeries.poster_image_key || activeSeries.cover_image_key,
+      release_date: activeSeries.created_at
+    };
+    episodesToRender.push(virtualEp);
+    if (!firstEpisode) {
+      firstEpisode = virtualEp;
+    }
+  }
+
+  const firstEpisodeId = getFirstEpisodeId(activeSeries, isDbEmpty) || (firstEpisode ? firstEpisode.id : null);
+
+  const formatDateString = (dateStr?: string) => {
+    if (!dateStr) return null;
+    try {
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return null;
+      return d.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      });
+    } catch {
+      return null;
+    }
+  };
+
+  const firstAirDateFormatted = formatDateString(activeSeries.first_air_date);
+  const lastAirDateFormatted = formatDateString(activeSeries.last_air_date);
+
+  // Compute similar series (5 items)
+  const sourceList = isDbEmpty ? MOCK_SERIES : allSeriesList;
+  const similarSeries = sourceList
+    .filter((s: any) => s.slug !== slug)
+    .slice(0, 5);
+
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'TVSeries',
+    'name': activeSeries.title,
+    'description': activeSeries.description,
+    'image': getR2Url(activeSeries.cover_image_key || activeSeries.poster_image_key, 'cover'),
+    'genre': activeSeries.tags || [],
+    'numberOfSeasons': activeSeries.seasons?.length || 0,
+    'numberOfEpisodes': activeSeries.episode_count_override || currentEpCount
+  };
+
+  return (
+    <div className={styles.container}>
+      {/* Schema.org Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      
+      {/* Premium Ambient Backdrop */}
+      <div className={styles.bannerContainer}>
+        <Image
+          src={getR2Url(activeSeries.banner_image_key || activeSeries.cover_image_key || activeSeries.poster_image_key, 'banner')}
+          alt={activeSeries.title}
+          fill
+          priority
+          className={styles.bannerImage}
+          style={{ objectPosition: activeSeries.banner_position || 'center' }}
+        />
+        <div className={styles.bannerOverlay} />
+      </div>
+
+      {/* Main Details Wrapper */}
+      <div className={styles.contentWrapper}>
+        <div className={styles.metaGrid}>
+          
+          {/* Left Column: Poster, Favorites & Ratings */}
+          <div className={styles.leftCol}>
+            <div className={styles.posterWrapper}>
+              <Image
+                src={getR2Url(activeSeries.poster_image_key || activeSeries.cover_image_key, 'poster')}
+                alt={activeSeries.title}
+                fill
+                sizes="(max-width: 768px) 100vw, 300px"
+                className={styles.posterImage}
+                style={{ objectPosition: activeSeries.poster_position || 'center' }}
+              />
+            </div>
+            
+            {/* Watchlist Toggle */}
+            <WatchlistToggle seriesId={activeSeries.id} />
+            
+            {/* Secondary Rate Action */}
+            <RateSeriesButton seriesId={activeSeries.id} seriesTitle={activeSeries.title} />
+          </div>
+
+          {/* Right Column: Title, Ratings Block, Description, Details Table */}
+          <div className={styles.rightCol}>
+            {isDbEmpty && (
+              <span className={styles.dbAlert}>
+                💡 Displaying catalog mock data for demo.
+              </span>
+            )}
+            
+            {/* Colorful Translucent Badges */}
+            <div className={styles.categoryBadgeRow}>
+              <Link href={`/categories?genre=${encodeURIComponent(activeSeries.category || 'Anime')}`} className={styles.categoryBadge}>
+                {activeSeries.category || 'Anime'}
+              </Link>
+              {activeSeries.tags && activeSeries.tags
+                .filter((t: string) => t.toLowerCase() !== 'featured' && !t.toLowerCase().startsWith('featured:'))
+                .map((tag: string) => (
+                  <Link key={tag} href={`/categories?genre=${encodeURIComponent(tag)}`} className={styles.tagBadge}>
+                    #{tag}
+                  </Link>
+                ))}
+            </div>
+
+            <h1 className={styles.seriesTitle}>{activeSeries.title}</h1>
+
+            {status === 'upcoming' && (
+              <div style={{
+                background: 'rgba(59, 130, 246, 0.08)',
+                border: '1px solid rgba(59, 130, 246, 0.3)',
+                padding: '0.8rem 1rem',
+                borderRadius: '8px',
+                color: '#60a5fa',
+                fontSize: '0.82rem',
+                fontWeight: 700,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                marginTop: '0.5rem',
+                marginBottom: '1rem',
+                maxWidth: '600px'
+              }}>
+                <span>📢</span>
+                <span>Upcoming Series — This title is scheduled to air soon. Stay tuned for previews and the official release!</span>
+              </div>
+            )}
+
+            {/* Ratings Summary Block */}
+            <div className={styles.ratingsBlock}>
+              <div className={styles.ratingsCard}>
+                <span className={styles.ratingScore}>{rating.toFixed(1)}</span>
+                <span className={styles.ratingMax}>/10</span>
+                <div className={styles.ratingStars}>
+                  {Array.from({ length: 5 }).map((_, i) => {
+                    const filled = rating / 2 > i;
+                    return (
+                      <Star 
+                        key={i} 
+                        size={14} 
+                        fill={filled ? '#eab308' : 'transparent'} 
+                        color={filled ? '#eab308' : 'rgba(255,255,255,0.2)'} 
+                      />
+                    );
+                  })}
+                </div>
+                <span className={styles.ratingVotes}>({(views / 15).toFixed(0)} votes)</span>
+              </div>
+              <span className={styles.viewsCounter}>
+                <Eye size={14} />
+                <span>{views.toLocaleString()} views</span>
+              </span>
+            </div>
+
+            {/* Premium Synopsis Card */}
+            <div className={styles.synopsisBox}>
+              <h3 className={styles.synopsisLabel}>Synopsis</h3>
+              <p className={styles.synopsisText}>{activeSeries.description}</p>
+            </div>
+
+            {/* Details Meta Table */}
+            <div className={styles.detailsTable}>
+              <div className={styles.detailsRow}>
+                <span className={styles.detailsKey}>Studio</span>
+                <span className={styles.detailsVal} style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap' }}>
+                  {studio.split(',').map((sName: string, index: number) => {
+                    const cleanName = sName.trim();
+                    const studioSlug = convertStudioNameToSlug(cleanName);
+                    return (
+                      <React.Fragment key={cleanName}>
+                        <Link href={`/studios/${studioSlug}`} style={{ color: 'var(--primary)', fontWeight: 700, textDecoration: 'none' }}>
+                          {cleanName}
+                        </Link>
+                        {index < studio.split(',').length - 1 && <span style={{ color: 'var(--foreground-secondary)' }}>,</span>}
+                      </React.Fragment>
+                    );
+                  })}
+                </span>
+              </div>
+              
+              {activeSeries.alt_title_japanese && (
+                <div className={styles.detailsRow}>
+                  <span className={styles.detailsKey}>Japanese Title</span>
+                  <span className={styles.detailsVal}>{activeSeries.alt_title_japanese}</span>
+                </div>
+              )}
+              {activeSeries.alt_title_romaji && (
+                <div className={styles.detailsRow}>
+                  <span className={styles.detailsKey}>Romaji Title</span>
+                  <span className={styles.detailsVal}>{activeSeries.alt_title_romaji}</span>
+                </div>
+              )}
+              {activeSeries.alt_title_english && (
+                <div className={styles.detailsRow}>
+                  <span className={styles.detailsKey}>English Title</span>
+                  <span className={styles.detailsVal}>{activeSeries.alt_title_english}</span>
+                </div>
+              )}
+
+              <div className={styles.detailsRow}>
+                <span className={styles.detailsKey}>Status</span>
+                <span className={`${styles.detailsVal} ${styles.statusVal}`}>
+                  <span 
+                    className={styles.statusDot} 
+                    style={{ 
+                      background: status === 'completed' ? '#94a3b8' : status === 'upcoming' ? '#3b82f6' : '#22c55e',
+                      boxShadow: status === 'ongoing' || status === 'airing' ? '0 0 8px #22c55e' : status === 'upcoming' ? '0 0 8px #3b82f6' : 'none'
+                    }} 
+                  />
+                  <span className={styles.statusText}>{status.toUpperCase()}</span>
+                </span>
+              </div>
+              <div className={styles.detailsRow}>
+                <span className={styles.detailsKey}>Release Year</span>
+                <span className={styles.detailsVal}>{releaseYear}</span>
+              </div>
+              {firstAirDateFormatted && (
+                <div className={styles.detailsRow}>
+                  <span className={styles.detailsKey}>First air date</span>
+                  <span className={styles.detailsVal}>{firstAirDateFormatted}</span>
+                </div>
+              )}
+              {lastAirDateFormatted && (
+                <div className={styles.detailsRow}>
+                  <span className={styles.detailsKey}>Last air date</span>
+                  <span className={styles.detailsVal}>{lastAirDateFormatted}</span>
+                </div>
+              )}
+              <div className={styles.detailsRow}>
+                <span className={styles.detailsKey}>Original Language</span>
+                <span className={styles.detailsVal}>{activeSeries.original_language || 'Japanese'}</span>
+              </div>
+              <div className={styles.detailsRow}>
+                <span className={styles.detailsKey}>Country of Origin</span>
+                <span className={styles.detailsVal}>{activeSeries.country || 'Japan'}</span>
+              </div>
+              <div className={styles.detailsRow}>
+                <span className={styles.detailsKey}>Content Rating</span>
+                <span className={styles.detailsVal} style={{ textTransform: 'capitalize' }}>{activeSeries.content_rating || 'Explicit'}</span>
+              </div>
+              <div className={styles.detailsRow}>
+                <span className={styles.detailsKey}>Age Rating</span>
+                <span className={styles.detailsVal}>{activeSeries.age_rating || '18+'}</span>
+              </div>
+              <div className={styles.detailsRow}>
+                <span className={styles.detailsKey}>Avg Runtime</span>
+                <span className={styles.detailsVal}>{activeSeries.runtime !== undefined && activeSeries.runtime !== null ? activeSeries.runtime : 24} min</span>
+              </div>
+              <div className={styles.detailsRow}>
+                <span className={styles.detailsKey}>Seasons</span>
+                <span className={styles.detailsVal}>{activeSeries.seasons?.length || 0}</span>
+              </div>
+              <div className={styles.detailsRow}>
+                <span className={styles.detailsKey}>Total Episodes</span>
+                <span className={styles.detailsVal}>{totalEpisodesText}</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        {/* Episodes Section - Grid of 16:9 Thumbnails */}
+        <section className={styles.episodesSectionContainer}>
+          <div className={styles.sectionHeader}>
+            <div className={styles.sectionHeaderTitle}>
+              <Flame size={22} className={styles.headerIcon} />
+              <h2>Episodes</h2>
+            </div>
+            
+            {/* Season Selector */}
+            <div className={styles.seasonSelector}>
+              {activeSeries.seasons && activeSeries.seasons.map((s: any) => (
+                <button 
+                  key={s.id} 
+                  className={`${styles.seasonTab} ${s.id === activeSeason?.id ? styles.activeSeasonTab : ''}`}
+                >
+                  {s.title}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {episodesToRender.length > 0 ? (
+            <div className={styles.episodeGrid}>
+              {[...episodesToRender]
+                .sort((a: any, b: any) => b.episode_number - a.episode_number)
+                .map((ep: any) => {
+                const epRating = rating - 0.2 - (ep.episode_number % 5) * 0.1;
+                const releaseDate = ep.release_date ? new Date(ep.release_date).toLocaleDateString(undefined, {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric'
+                }) : getStableReleaseDate(ep.id);
+
+                const cleanTitle = (ep.title || '')
+                  .replace(/^\[Preview\]\s*/i, '')
+                  .replace(/^\[Trailer\]\s*/i, '')
+                  .replace(/^.*-\s*/, '')
+                  .trim();
+
+                const isGenericEpTitle =
+                  !cleanTitle ||
+                  cleanTitle.toLowerCase() === `episode ${ep.episode_number}`.toLowerCase() ||
+                  cleanTitle.toLowerCase() === `ep ${ep.episode_number}`.toLowerCase() ||
+                  cleanTitle.toLowerCase() === `${ep.episode_number}`;
+
+                return (
+                  <div key={ep.id} className={`${styles.episodeCard} card-hover`}>
+                    <Link href={getEpisodeWatchUrl(ep.id, ep.episode_number, slug)} className={styles.epImageLink}>
+                      <div className={styles.epImageWrapper}>
+                        <Image
+                          src={getR2Url(ep.thumbnail_key || activeSeries.cover_image_key, 'thumbnail')}
+                          alt={ep.title}
+                          fill
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 360px"
+                          className={styles.epThumbnailImage}
+                        />
+                        
+                        {/* SUB Badge (Top Left) */}
+                        <div 
+                          className={styles.subBadge}
+                          style={ep.title.startsWith('[Preview]') || ep.title.startsWith('[Trailer]') ? { background: '#3b82f6', color: 'white' } : {}}
+                        >
+                          {ep.title.startsWith('[Preview]') || ep.title.startsWith('[Trailer]') ? 'PREVIEW' : 'SUB'}
+                        </div>
+
+                        {/* Episode Rating Badge (Top Right) */}
+                        <div className={styles.epRatingBadge}>
+                          <Star size={10} fill="#eab308" color="#eab308" />
+                          <span>{epRating.toFixed(1)}</span>
+                        </div>
+
+                        {/* Title Overlay strip */}
+                        <div className={styles.epTitleOverlay}>
+                          <span className={styles.epTitleName}>
+                            {cleanTitle || `Episode ${ep.episode_number}`}
+                          </span>
+                        </div>
+
+                        {/* Hover Play icon overlay */}
+                        <div className={styles.epPlayOverlay}>
+                          <Play size={28} fill="white" className={styles.epPlayIcon} />
+                        </div>
+                      </div>
+                    </Link>
+
+                    {/* Metadata details underneath */}
+                    <div className={styles.epMetadataRow}>
+                      <span className={styles.epReleaseDate}>{releaseDate}</span>
+                      <span className={styles.epDurationText}>
+                        <Clock size={11} />
+                        <span>{Math.floor((ep.duration_seconds || 1440) / 60)} min</span>
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className={`${styles.emptyGridState} glass`}>
+              <HelpCircle size={48} />
+              <h3>No episodes available</h3>
+              <p>No episodes have been published for this season yet. Check back later!</p>
+            </div>
+          )}
+        </section>
+
+        {/* Similar Titles Section */}
+        {similarSeries.length > 0 && (
+          <SimilarTitles list={similarSeries} />
+        )}
+
+        {/* Discussion / Comments Section */}
+        {firstEpisodeId && (
+          <section className={styles.discussionSection}>
+            <div className={styles.sectionHeader} style={{ marginBottom: '1.8rem' }}>
+              <div className={styles.sectionHeaderTitle}>
+                <MessageSquare size={22} className={styles.headerIcon} />
+                <h2>Discussion</h2>
+              </div>
+            </div>
+            <div className={`${styles.commentsCardWrapper} glass`}>
+              <CommentSection episodeId={firstEpisodeId} />
+            </div>
+          </section>
+        )}
+
+      </div>
+    </div>
+  );
+}
+
+// Simple fallback icon helper for empty states
+function HelpCircle(props: any) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <circle cx="12" cy="12" r="10" />
+      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+      <path d="M12 17h.01" />
+    </svg>
+  );
+}

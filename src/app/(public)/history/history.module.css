@@ -1,0 +1,317 @@
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 4rem 2rem;
+  width: 100%;
+  position: relative;
+  min-height: 70vh;
+}
+
+.headerSection {
+  margin-bottom: 3rem;
+  text-align: left;
+  animation: fade-in 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin-bottom: 0.5rem;
+}
+
+.headerIcon {
+  color: var(--primary);
+}
+
+.headerSection h1 {
+  font-size: 2.2rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.subtext {
+  color: var(--foreground-secondary);
+  font-size: 1.05rem;
+}
+
+.listSection {
+  animation: fade-in 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* History List Layout */
+.historyList {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.historyItem {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  padding: 1.5rem;
+  border-radius: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.historyItem::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--primary);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.historyItem:hover::before {
+  opacity: 1;
+}
+
+/* Thumbnail */
+.thumbnailWrapper {
+  position: relative;
+  width: 200px;
+  aspect-ratio: 16 / 9;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--surface-hover);
+}
+
+.thumbnailImage {
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.historyItem:hover .thumbnailImage {
+  transform: scale(1.05);
+}
+
+.playOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 2;
+}
+
+.thumbnailWrapper:hover .playOverlay {
+  opacity: 1;
+}
+
+/* Content */
+.contentCol {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0; /* Ensures text-overflow ellipsis works if needed */
+}
+
+.seriesMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.metaDivider {
+  color: var(--foreground-muted);
+}
+
+.seasonTitle {
+  color: var(--foreground-secondary);
+}
+
+.episodeTitle {
+  font-size: 1.25rem;
+  font-weight: 750;
+  line-height: 1.3;
+}
+
+.episodeTitle a {
+  color: var(--foreground-primary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.episodeTitle a:hover {
+  color: var(--primary);
+}
+
+/* Progress bar container */
+.progressContainer {
+  margin-top: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-width: 400px;
+}
+
+.track {
+  width: 100%;
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.bar {
+  height: 100%;
+  background: var(--primary);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.progressDetails {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+  color: var(--foreground-secondary);
+}
+
+.completedLabel {
+  color: #10b981; /* Success Green */
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+}
+
+.percentLabel {
+  font-weight: 600;
+}
+
+/* Action Col */
+.actionCol {
+  flex-shrink: 0;
+}
+
+.resumeBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--primary);
+  color: #ffffff;
+  padding: 0.65rem 1.2rem;
+  border-radius: 30px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+  box-shadow: 0 4px 10px rgba(var(--primary-rgb), 0.2);
+}
+
+.resumeBtn:hover {
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+}
+
+/* Auth Restricted Shell & Empty States */
+.cardShell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 5rem 2rem;
+  border-radius: 24px;
+  max-width: 600px;
+  margin: 4rem auto;
+  gap: 1.2rem;
+}
+
+.iconMuted {
+  color: var(--foreground-muted);
+}
+
+.cardShell h2 {
+  font-size: 1.6rem;
+  font-weight: 800;
+}
+
+.cardShell h3 {
+  font-size: 1.3rem;
+  font-weight: 800;
+}
+
+.cardShell p {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--foreground-secondary);
+  max-width: 440px;
+}
+
+.actionBtn {
+  background: var(--primary);
+  color: #ffffff;
+  padding: 0.75rem 1.8rem;
+  border-radius: 30px;
+  font-weight: 700;
+  text-decoration: none;
+  font-size: 0.9rem;
+  box-shadow: 0 4px 10px rgba(var(--primary-rgb), 0.25);
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.actionBtn:hover {
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive Rules */
+@media (max-width: 768px) {
+  .historyItem {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.2rem;
+  }
+  
+  .thumbnailWrapper {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+  }
+  
+  .progressContainer {
+    max-width: 100%;
+  }
+
+  .actionCol {
+    width: 100%;
+  }
+
+  .resumeBtn {
+    width: 100%;
+    justify-content: center;
+  }
+}

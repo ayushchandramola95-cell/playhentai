@@ -1,0 +1,288 @@
+.playerContainer {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #000000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  cursor: pointer;
+}
+
+.theaterMode {
+  border-radius: 20px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 35px rgba(255, 94, 0, 0.25);
+}
+
+.videoElement {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  cursor: pointer;
+}
+
+/* Controls Overlay */
+.controlsOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.85) 0%, transparent 40%, transparent 60%, rgba(0, 0, 0, 0.65) 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  z-index: 10;
+}
+
+.visible {
+  opacity: 1;
+}
+
+.topHeader,
+.bigPlayTrigger,
+.bottomControls {
+  pointer-events: auto;
+}
+
+/* Top Header */
+.topHeader {
+  padding: 1.25rem 1.5rem;
+  text-align: left;
+}
+
+.titleInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  color: #ffffff;
+}
+
+.badge {
+  background: var(--primary);
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  letter-spacing: 0.05em;
+  box-shadow: 0 2px 8px rgba(255, 94, 0, 0.4);
+}
+
+.titleInfo h3 {
+  font-size: 1.1rem;
+  font-weight: 800;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
+  color: #ffffff;
+}
+
+/* Big Play Trigger */
+.bigPlayTrigger {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.9);
+  background: rgba(255, 94, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
+  opacity: 0;
+}
+
+.visible .bigPlayTrigger {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.bigPlayTrigger:hover {
+  background: rgba(255, 94, 0, 0.5);
+  transform: translate(-50%, -50%) scale(1.08);
+}
+
+/* Bottom Controls */
+.bottomControls {
+  padding: 1rem 1.5rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.progressBarRow {
+  width: 100%;
+}
+
+.seekSlider {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+  transition: height 0.1s ease;
+}
+
+.seekSlider:hover {
+  height: 6px;
+}
+
+.seekSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: #ffffff;
+  cursor: pointer;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.6);
+  border: 2px solid var(--primary);
+  transition: transform 0.1s ease;
+}
+
+.seekSlider:hover::-webkit-slider-thumb {
+  transform: scale(1.25);
+}
+
+/* Controls Buttons Row */
+.controlsRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #ffffff;
+}
+
+.leftControls, .rightControls {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+}
+
+.controlBtn {
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.4rem;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.controlBtn:hover {
+  background: rgba(255, 255, 255, 0.18);
+  color: #ff5e00;
+}
+
+.timeDisplay {
+  font-size: 0.85rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: #e2e8f0;
+}
+
+.timeDivider {
+  color: #64748b;
+}
+
+/* Volume Group */
+.volumeGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.volumeSlider {
+  -webkit-appearance: none;
+  width: 70px;
+  height: 4px;
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+
+.volumeSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ffffff;
+  cursor: pointer;
+}
+
+/* Speed Dropdown Menu */
+.speedSelectorContainer {
+  position: relative;
+}
+
+.speedLabel {
+  font-size: 0.75rem;
+  font-weight: 800;
+  margin-left: 0.3rem;
+}
+
+.speedDropdown {
+  position: absolute;
+  bottom: calc(100% + 12px);
+  right: 0;
+  width: 95px;
+  border-radius: 12px;
+  padding: 0.35rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  animation: slide-up-dropdown 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  background: rgba(18, 14, 32, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(16px);
+}
+
+@keyframes slide-up-dropdown {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.speedOption {
+  background: transparent;
+  border: none;
+  color: #cbd5e1;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.speedOption:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+}
+
+.activeSpeed {
+  color: #ff5e00;
+  background: rgba(255, 94, 0, 0.15) !important;
+}

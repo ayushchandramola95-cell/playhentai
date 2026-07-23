@@ -1,0 +1,66 @@
+.watchlistBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 0.75rem 1.6rem;
+  border-radius: 30px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid var(--border);
+  outline: none;
+  background: var(--surface);
+  color: var(--foreground-primary);
+}
+
+.watchlistBtn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: var(--surface-hover);
+  border-color: var(--primary);
+}
+
+.active {
+  background: var(--primary);
+  color: #ffffff;
+  border-color: transparent;
+  box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.25);
+}
+
+.active:hover:not(:disabled) {
+  background: var(--primary-hover);
+}
+
+.watchlistBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.loadingSpinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  border-top-color: transparent;
+  animation: spin 0.8s linear infinite;
+}
+
+.heroVariant {
+  background: var(--hero-watchlist-bg);
+  border-color: var(--hero-watchlist-border);
+  color: var(--hero-watchlist-color);
+  backdrop-filter: blur(8px);
+}
+
+.heroVariant:hover:not(:disabled) {
+  background: rgba(var(--primary-rgb), 0.15);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

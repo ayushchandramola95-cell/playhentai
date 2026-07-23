@@ -1,0 +1,208 @@
+.rateWrapper {
+  position: relative;
+  width: 100%;
+}
+
+.rateBtn {
+  background: rgba(234, 179, 8, 0.1);
+  border: 1px solid rgba(234, 179, 8, 0.25);
+  color: #eab308;
+  padding: 0.8rem;
+  border-radius: 30px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  outline: none;
+  font-family: inherit;
+  width: 100%;
+}
+
+.rateBtn:hover {
+  background: rgba(234, 179, 8, 0.18);
+  border-color: #eab308;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(234, 179, 8, 0.15);
+}
+
+.activeRateBtn {
+  background: #eab308;
+  border-color: transparent;
+  color: #090d16;
+  box-shadow: 0 4px 12px rgba(234, 179, 8, 0.3);
+}
+
+.activeRateBtn:hover {
+  background: #f59e0b;
+  color: #090d16;
+  box-shadow: 0 6px 16px rgba(234, 179, 8, 0.4);
+}
+
+/* Glassmorphic Popover */
+.ratePopover {
+  position: absolute;
+  bottom: calc(100% + 12px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 290px;
+  padding: 1.25rem;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  z-index: 110;
+  text-align: center;
+  animation: fade-in-up 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ratePopover::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 6px;
+  border-style: solid;
+  border-color: rgba(17, 23, 38, 0.9) transparent transparent transparent;
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 8px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+.popoverTitle {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--foreground-primary);
+  margin-bottom: 0.75rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.starsRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  margin-bottom: 0.75rem;
+}
+
+.starBtn {
+  background: transparent;
+  border: none;
+  padding: 0.1rem;
+  cursor: pointer;
+  outline: none;
+  transition: transform 0.15s ease;
+}
+
+.starBtn:hover {
+  transform: scale(1.22);
+}
+
+.starIcon {
+  transition: fill 0.15s ease, color 0.15s ease;
+}
+
+.ratingCaption {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--foreground-secondary);
+  min-height: 1.2rem;
+}
+
+.mutedText {
+  color: var(--foreground-muted);
+}
+
+.clearBtn {
+  margin-top: 0.75rem;
+  background: transparent;
+  border: none;
+  color: #ef4444;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: underline;
+  transition: opacity 0.2s ease;
+}
+
+.clearBtn:hover {
+  opacity: 0.8;
+}
+
+/* Loading & Success States */
+.loadingState,
+.successState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 0;
+}
+
+.spinner {
+  color: var(--primary);
+  animation: spin 1s linear infinite;
+  margin-bottom: 0.75rem;
+}
+
+.loadingText {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--foreground-secondary);
+}
+
+.checkmarkCircle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(34, 197, 94, 0.1);
+  border: 2px solid #22c55e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.75rem;
+  animation: scale-up-bounce 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.checkmarkIcon {
+  color: #22c55e;
+}
+
+.successText {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--foreground-primary);
+  margin-bottom: 0.2rem;
+}
+
+.successSubtext {
+  font-size: 0.75rem;
+  color: var(--foreground-muted);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes scale-up-bounce {
+  from {
+    transform: scale(0);
+  }
+  to {
+    transform: scale(1);
+  }
+}

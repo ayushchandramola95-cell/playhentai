@@ -1,0 +1,407 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding-bottom: 3rem;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 1.5rem;
+}
+
+.subtitle {
+  color: var(--foreground-secondary);
+  font-size: 0.9rem;
+  margin-top: 0.25rem;
+}
+
+/* Toast alert notification */
+.toast {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 999;
+  background: #10b981;
+  color: #fff;
+  padding: 0.8rem 1.5rem;
+  border-radius: 30px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4);
+  font-size: 0.85rem;
+  font-weight: 700;
+  animation: slideInUp 0.3s ease;
+}
+
+@keyframes slideInUp {
+  0% {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Metrics Overview Row */
+.statsOverview {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .statsOverview {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.metricCard {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  padding: 1.5rem;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.metricIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.metricInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.metricLabel {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--foreground-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.metricValue {
+  font-size: 1.6rem;
+  font-weight: 850;
+  color: #fff;
+}
+
+/* Charts Section */
+.chartsGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 900px) {
+  .chartsGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.chartCard {
+  border-radius: 20px;
+  padding: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.fullWidth {
+  grid-column: 1 / -1;
+}
+
+.chartHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.chartTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.chartTitleRow h3 {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #fff;
+}
+
+.chartIcon {
+  color: var(--primary);
+}
+
+.badgeTrend {
+  font-size: 0.75rem;
+  font-weight: 800;
+  background: rgba(168, 85, 247, 0.15);
+  color: var(--primary);
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+}
+
+.badgeCount {
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--foreground-secondary);
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+}
+
+.svgWrapper {
+  width: 100%;
+  aspect-ratio: 2.7 / 1;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 12px;
+  padding: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.02);
+}
+
+/* Donut Genre Share Block */
+.genreFlexRow {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 1rem;
+}
+
+@media (min-width: 580px) {
+  .genreFlexRow {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 960px) {
+  .genreFlexRow {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+.genreBlock {
+  background: rgba(255, 255, 255, 0.01);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  border-radius: 14px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.genreHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.genreDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.genreName {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--foreground-secondary);
+  flex: 1;
+}
+
+.genrePercent {
+  font-size: 0.85rem;
+  font-weight: 850;
+  color: #fff;
+}
+
+.genreBarTrack {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 2px;
+  width: 100%;
+  overflow: hidden;
+}
+
+.genreBarFill {
+  height: 100%;
+  border-radius: 2px;
+}
+
+.genreCountText {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--foreground-muted);
+}
+
+/* Moderation Log Table */
+.moderationSection {
+  margin-top: 1rem;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.sectionHeader h3 {
+  font-size: 1.2rem;
+  font-weight: 850;
+  color: #fff;
+}
+
+.modIcon {
+  color: #ef4444;
+}
+
+.tableWrapper {
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.table th {
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--foreground-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 1.2rem 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.table td {
+  padding: 1.2rem 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  vertical-align: middle;
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.table tr:hover td {
+  background: rgba(255, 255, 255, 0.01);
+}
+
+.usernameText {
+  font-weight: 700;
+  color: #fff;
+  font-size: 0.9rem;
+}
+
+.adminBadge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--primary);
+  background: rgba(var(--primary-rgb), 0.15);
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  display: inline-block;
+  margin-top: 0.2rem;
+  align-self: flex-start;
+}
+
+.commentContentText {
+  color: var(--foreground-secondary);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  max-width: 500px;
+}
+
+.showTitleText {
+  font-weight: 700;
+  color: #fff;
+  font-size: 0.85rem;
+}
+
+.epTitleText {
+  font-size: 0.75rem;
+  color: var(--foreground-muted);
+  margin-top: 0.15rem;
+}
+
+.deleteBtn {
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: all 0.2s ease;
+}
+
+.deleteBtn:hover {
+  background: #ef4444;
+  color: #fff;
+  border-color: #ef4444;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);
+}
+
+.deleteBtn:active {
+  transform: translateY(0);
+}
+
+.loadingSpinnerWrapper {
+  padding: 4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loadingSpinner {
+  width: 28px;
+  height: 28px;
+  border: 2px solid rgba(255, 255, 255, 0.05);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem;
+  text-align: center;
+  color: var(--foreground-muted);
+}

@@ -1,0 +1,414 @@
+.header {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  height: 64px; /* Reduced navbar height by 6px for a sleek, premium layout */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.6rem;
+  z-index: 100;
+  border-bottom: 1px solid var(--border);
+  transition: all 0.3s ease;
+  background: var(--header-bg);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+}
+
+.leftSection {
+  display: flex;
+  align-items: center;
+  gap: 2.2rem;
+}
+
+.logoContainer {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  text-decoration: none;
+  transition: transform 0.2s ease;
+}
+
+.logoContainer:hover {
+  transform: scale(1.02);
+}
+
+.logoBadge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 2px 8px rgba(234, 179, 8, 0.25));
+}
+
+.tvIconSvg {
+  display: block;
+}
+
+.logoText {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 1.35rem;
+  letter-spacing: -0.02em;
+  font-style: italic;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+}
+
+.logoTextPlay {
+  font-weight: 600; /* Lighter font weight for PLAY so focus stays on HENTAI */
+  color: #ffffff;
+  opacity: 0.95;
+}
+
+.logoTextGold {
+  font-weight: 900; /* Extra bold focus on HENTAI */
+  color: #eab308;
+  text-shadow: 0 0 14px rgba(234, 179, 8, 0.35);
+  margin-left: 2px;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 1;
+  visibility: visible;
+  max-width: 500px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.navHidden {
+  opacity: 0;
+  visibility: hidden;
+  max-width: 0;
+  gap: 0;
+  pointer-events: none;
+}
+
+.navLink {
+  position: relative;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--foreground-secondary);
+  text-decoration: none;
+  padding: 0.4rem 0;
+  transition: color 180ms ease;
+}
+
+.navLink::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0%;
+  height: 2px;
+  background: var(--primary);
+  border-radius: 2px;
+  transition: width 180ms cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 8px rgba(139, 92, 246, 0.6);
+}
+
+.navLink:hover {
+  color: #ffffff;
+}
+
+.navLink:hover::after {
+  width: 100%;
+}
+
+.activeLink {
+  color: var(--primary) !important;
+  font-weight: 700 !important;
+}
+
+.activeLink::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 100% !important;
+  height: 2px;
+  background: var(--primary);
+  border-radius: 2px;
+  box-shadow: 0 0 10px rgba(139, 92, 246, 0.8);
+  animation: active-bar 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes active-bar {
+  from {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+  to {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+.centerSection {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  max-width: 500px;
+  padding: 0 1rem;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.centerSectionFocused {
+  max-width: 800px;
+}
+
+.rightSection {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+}
+
+.themeToggle {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--foreground-primary);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.themeToggle:hover {
+  background: var(--surface-hover);
+  border-color: var(--primary);
+}
+
+.signInBtn {
+  background: var(--foreground-primary);
+  color: var(--background);
+  padding: 0.5rem 1.2rem;
+  border-radius: 30px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.signInBtn:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+/* User Profile & Dropdown */
+.profileContainer {
+  position: relative;
+}
+
+.profileBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  cursor: pointer;
+  color: var(--foreground-primary);
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.profileBtn:hover {
+  border-color: var(--primary);
+  background: var(--surface-hover);
+}
+
+.avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(var(--primary-rgb), 0.1);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.username {
+  font-size: 0.85rem;
+  font-weight: 600;
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chevron {
+  color: var(--foreground-muted);
+  transition: transform 0.2s ease;
+}
+
+.chevronRotate {
+  transform: rotate(180deg);
+}
+
+.dropdownMenu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 220px;
+  border-radius: 12px;
+  padding: 0.5rem;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  animation: slide-in 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdownHeader {
+  padding: 0.6rem 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.dropdownEmail {
+  font-size: 0.75rem;
+  color: var(--foreground-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.adminBadge {
+  background: rgba(var(--accent-rgb), 0.1);
+  border: 1px solid rgba(var(--accent-rgb), 0.2);
+  color: var(--accent);
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  width: fit-content;
+  text-transform: uppercase;
+}
+
+.divider {
+  border: 0;
+  height: 1px;
+  background: var(--border);
+  margin: 0.2rem 0;
+}
+
+.dropdownItem {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.6rem 0.8rem;
+  border-radius: 8px;
+  color: var(--foreground-secondary);
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-decoration: none;
+  background: transparent;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.dropdownItem:hover {
+  background: var(--surface-hover);
+  color: var(--foreground-primary);
+}
+
+.signOutBtn {
+  color: #ef4444;
+}
+
+.signOutBtn:hover {
+  background: rgba(239, 68, 68, 0.08);
+  color: #ef4444;
+}
+
+.skeletonUser {
+  width: 120px;
+  height: 36px;
+  border-radius: 20px;
+  background: var(--border);
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+.watchlistShortcut {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--foreground-secondary);
+  text-decoration: none;
+  transition: all 0.2s ease;
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.watchlistShortcut:hover {
+  border-color: var(--primary);
+  color: var(--foreground-primary);
+  background: var(--surface-hover);
+}
+
+.watchlistShortcutIcon {
+  color: var(--primary);
+}
+
+@media (max-width: 768px) {
+  .logoContainer span,
+  .username,
+  .chevron,
+  .watchlistShortcut span {
+    display: none;
+  }
+  .watchlistShortcut {
+    padding: 0.5rem;
+    border-radius: 50%;
+  }
+  .leftSection {
+    gap: 1.5rem;
+  }
+  .centerSection {
+    max-width: 260px;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav {
+    display: none;
+  }
+  .centerSection {
+    padding: 0;
+  }
+}

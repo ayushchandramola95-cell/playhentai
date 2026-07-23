@@ -1,0 +1,119 @@
+.similarSection {
+  margin-top: 4.5rem;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding-bottom: 0.8rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.sectionHeaderTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.sectionHeaderTitle h2 {
+  font-size: 1.5rem;
+  font-weight: 850;
+  color: var(--foreground-primary);
+  letter-spacing: -0.02em;
+}
+
+.headerIcon {
+  color: var(--primary);
+}
+
+.similarGridWrapper {
+  position: relative;
+  width: 100%;
+}
+
+.similarGrid {
+  display: flex;
+  overflow-x: auto;
+  gap: 1.5rem;
+  padding: 0.5rem 0.2rem 1.5rem;
+  scroll-behavior: smooth;
+  /* hide scrollbars */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.similarGrid::-webkit-scrollbar {
+  display: none;
+}
+
+.similarGrid > div {
+  flex: 0 0 190px;
+  width: 190px;
+}
+
+/* Disable hover popovers inside the horizontally scrollable track to prevent overflow-x boundary clipping */
+.similarGrid :global(.popover) {
+  display: none !important;
+}
+
+/* Floating Navigation Scroll Arrows */
+.scrollArrow {
+  position: absolute;
+  top: calc(50% - 16px);
+  transform: translateY(-50%);
+  z-index: 20;
+  background: rgba(17, 23, 38, 0.75);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+
+.similarGridWrapper:hover .scrollArrow {
+  opacity: 1;
+}
+
+.scrollArrow:hover {
+  background: var(--primary);
+  border-color: transparent;
+  color: #ffffff;
+  transform: translateY(-50%) scale(1.1);
+  box-shadow: 0 0 15px rgba(var(--primary-rgb), 0.4);
+}
+
+.leftArrow {
+  left: -22px;
+}
+
+.rightArrow {
+  right: -22px;
+}
+
+@media (max-width: 1024px) {
+  .leftArrow {
+    left: -10px;
+  }
+  .rightArrow {
+    right: -10px;
+  }
+}
+
+@media (max-width: 768px) {
+  /* On touch devices, hide arrows and allow native swipe */
+  .scrollArrow {
+    display: none !important;
+  }
+}

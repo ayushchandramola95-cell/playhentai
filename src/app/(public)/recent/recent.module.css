@@ -1,0 +1,437 @@
+.container {
+  width: 100%;
+  padding-bottom: 5rem;
+}
+
+.section {
+  max-width: 1320px;
+  margin: 3.5rem auto 0;
+  padding: 0 1.6rem;
+  width: 100%;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 1rem;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.sectionIcon {
+  color: var(--primary);
+}
+
+.sectionHeader h1 {
+  font-size: 1.8rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--foreground-primary);
+  margin: 0;
+}
+
+.demoBadge {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: var(--accent);
+  background: rgba(var(--accent-rgb), 0.1);
+  border: 1px solid rgba(var(--accent-rgb), 0.2);
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+}
+
+/* Series Grid: 5 columns on desktop */
+.seriesGrid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1.5rem;
+}
+
+.seriesGrid > div:nth-child(5n) :global(.popover)::before,
+.seriesGrid > div:nth-child(5n-1) :global(.popover)::before {
+  left: auto;
+  right: -15px;
+}
+
+@media (min-width: 1201px) {
+  .seriesGrid > div:nth-child(5n) :global(.popover),
+  .seriesGrid > div:nth-child(5n-1) :global(.popover) {
+    left: auto;
+    right: 105%;
+  }
+}
+
+@media (max-width: 1200px) and (min-width: 993px) {
+  .seriesGrid > div:nth-child(4n) :global(.popover),
+  .seriesGrid > div:nth-child(4n-1) :global(.popover) {
+    left: auto;
+    right: 105%;
+  }
+  .seriesGrid > div:nth-child(4n) :global(.popover)::before,
+  .seriesGrid > div:nth-child(4n-1) :global(.popover)::before {
+    left: auto;
+    right: -15px;
+  }
+}
+
+@media (max-width: 992px) and (min-width: 769px) {
+  .seriesGrid > div:nth-child(3n) :global(.popover),
+  .seriesGrid > div:nth-child(3n-1) :global(.popover) {
+    left: auto;
+    right: 105%;
+  }
+  .seriesGrid > div:nth-child(3n) :global(.popover)::before,
+  .seriesGrid > div:nth-child(3n-1) :global(.popover)::before {
+    left: auto;
+    right: -15px;
+  }
+}
+
+@media (max-width: 768px) and (min-width: 481px) {
+  .seriesGrid > div:nth-child(2n) :global(.popover) {
+    left: auto;
+    right: 105%;
+  }
+  .seriesGrid > div:nth-child(2n) :global(.popover)::before {
+    left: auto;
+    right: -15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .seriesGrid > div:nth-child(1n) :global(.popover) {
+    left: auto;
+    right: 105%;
+  }
+  .seriesGrid > div:nth-child(1n) :global(.popover)::before {
+    left: auto;
+    right: -15px;
+  }
+}
+
+/* Episodes Grid: 4 columns on desktop (same as home page) */
+.episodeGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.25rem;
+}
+
+.episodeCard {
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  position: relative;
+  transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.episodeImageWrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: var(--surface-hover);
+}
+
+.episodeCard:hover .cardImage {
+  transform: scale(1.05);
+}
+
+.episodeCard:hover .cardImageOverlay {
+  opacity: 1;
+}
+
+.episodeCard:hover .cardPlayIcon {
+  transform: scale(1);
+}
+
+.newBadge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: #22c55e;
+  color: #ffffff;
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  box-shadow: 0 2px 6px rgba(34, 197, 94, 0.3);
+  z-index: 6;
+}
+
+.uncensoredBadge {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  background: rgba(15, 23, 42, 0.85);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  backdrop-filter: blur(4px);
+  z-index: 6;
+}
+
+.episodeCardContent {
+  padding: 0.85rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.episodeTitle {
+  font-size: 0.92rem;
+  font-weight: 700;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.episodeTitle a {
+  color: var(--foreground-primary);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.episodeTitle a:hover {
+  color: var(--primary);
+}
+
+.episodeMeta {
+  font-size: 0.78rem;
+  color: var(--foreground-muted);
+  font-weight: 500;
+}
+
+/* Responsive Breakpoints */
+@media (max-width: 1200px) {
+  .seriesGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .episodeGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 992px) {
+  .seriesGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .episodeGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .section {
+    padding: 0 1.5rem;
+  }
+  .sectionHeader h1 {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .seriesGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .episodeGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .seriesGrid {
+    grid-template-columns: 1fr;
+  }
+  .episodeGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Pagination Styling */
+.paginationContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 3.5rem;
+  padding: 1rem;
+}
+
+.pageBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-width: 40px;
+  height: 40px;
+  padding: 0 0.8rem;
+  border-radius: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--foreground-primary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.pageBtn:hover:not(.pageBtnDisabled) {
+  background: var(--surface-hover);
+  border-color: var(--primary);
+  color: var(--primary);
+  transform: translateY(-1px);
+}
+
+.pageBtnActive {
+  background: linear-gradient(135deg, #ff5e00 0%, #f97316 100%);
+  border-color: transparent;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(255, 94, 0, 0.35);
+}
+
+.pageBtnDisabled {
+  opacity: 0.4;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+.pageInfo {
+  font-size: 0.85rem;
+  color: var(--foreground-muted);
+  margin: 0 0.5rem;
+}
+
+/* Filter Controls Bar */
+.filterControlsBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.filterSearchWrapper {
+  position: relative;
+  flex: 1;
+  min-width: 260px;
+  max-width: 450px;
+  display: flex;
+  align-items: center;
+}
+
+.filterSearchIcon {
+  position: absolute;
+  left: 1rem;
+  color: var(--foreground-muted);
+  pointer-events: none;
+}
+
+.filterSearchInput {
+  width: 100%;
+  padding: 0.65rem 2.4rem 0.65rem 2.5rem;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--foreground-primary);
+  font-size: 0.9rem;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.filterSearchInput:focus {
+  border-color: var(--primary);
+  background: var(--surface-hover);
+  box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.15);
+}
+
+.clearSearchBtn {
+  position: absolute;
+  right: 0.8rem;
+  background: transparent;
+  border: none;
+  color: var(--foreground-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.2rem;
+  border-radius: 50%;
+}
+
+.clearSearchBtn:hover {
+  color: var(--foreground-primary);
+}
+
+.filterSelectsGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.selectWrapper {
+  position: relative;
+}
+
+.filterSelect {
+  padding: 0.65rem 1rem;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--foreground-primary);
+  font-size: 0.88rem;
+  font-weight: 500;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filterSelect:hover, .filterSelect:focus {
+  border-color: var(--primary);
+  background: var(--surface-hover);
+}
+
+.clearAllBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.65rem 1rem;
+  border-radius: 12px;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: #ef4444;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.clearAllBtn:hover {
+  background: rgba(239, 68, 68, 0.22);
+  transform: translateY(-1px);
+}
