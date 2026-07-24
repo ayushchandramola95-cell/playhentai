@@ -172,6 +172,32 @@
   }
 }
 
+.removeBtn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 20;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #ef4444;
+  border-radius: 20px;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  backdrop-filter: blur(8px);
+  transition: all 0.2s ease;
+}
+
+.removeBtn:hover {
+  background: #ef4444;
+  color: #ffffff;
+  border-color: #ef4444;
+}
+
 /* Responsive Rules */
 @media (max-width: 1200px) {
   .seriesGrid {
@@ -186,13 +212,43 @@
 }
 
 @media (max-width: 768px) {
+  .container {
+    padding: 1.25rem 0.85rem 3rem;
+  }
+
+  .headerSection {
+    margin-bottom: 1.5rem;
+  }
+
+  .titleRow h1 {
+    font-size: 1.5rem;
+  }
+
+  .subtext {
+    font-size: 0.85rem;
+  }
+
   .seriesGrid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0.75rem !important;
+  }
+
+  .removeBtn {
+    top: 6px;
+    right: 6px;
+    padding: 0.22rem 0.5rem;
+    font-size: 0.68rem;
+    border-radius: 16px;
   }
 }
 
 @media (max-width: 480px) {
+  .container {
+    padding: 1rem 0.65rem 2.5rem;
+  }
+
   .seriesGrid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0.65rem !important;
   }
 }

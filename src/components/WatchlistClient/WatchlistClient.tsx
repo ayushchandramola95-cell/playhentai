@@ -96,25 +96,7 @@ export default function WatchlistClient({ initialSeries, user }: WatchlistClient
                   type="button"
                   onClick={(e) => handleRemove(item.id, e)}
                   disabled={removingId === item.id}
-                  style={{
-                    position: 'absolute',
-                    top: '8px',
-                    right: '8px',
-                    zIndex: 20,
-                    background: 'rgba(15, 23, 42, 0.85)',
-                    border: '1px solid rgba(239, 68, 68, 0.4)',
-                    color: '#ef4444',
-                    borderRadius: '20px',
-                    padding: '0.35rem 0.65rem',
-                    fontSize: '0.75rem',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.3rem',
-                    backdropFilter: 'blur(8px)',
-                    transition: 'all 0.2s ease',
-                  }}
+                  className={styles.removeBtn}
                   title="Remove from Watchlist"
                 >
                   <Trash2 size={13} />
