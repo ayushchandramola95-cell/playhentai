@@ -139,12 +139,15 @@
 }
 
 .itemTitle {
-  font-size: 0.88rem;
+  font-size: 0.92rem;
   font-weight: 700;
   color: #f8fafc;
-  white-space: nowrap;
+  white-space: normal;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .itemMeta {
@@ -181,10 +184,11 @@
     width: 130px;
   }
   .searchForm:focus-within {
-    width: 220px;
+    width: 100% !important;
+    max-width: 100% !important;
   }
   .searchInput {
-    font-size: 0.82rem;
+    font-size: 0.88rem;
   }
 }
 
@@ -193,7 +197,8 @@
     width: 110px;
   }
   .searchForm:focus-within {
-    width: 180px;
+    width: 100% !important;
+    max-width: 100% !important;
   }
 }
 
