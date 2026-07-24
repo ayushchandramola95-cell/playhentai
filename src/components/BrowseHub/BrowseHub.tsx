@@ -386,6 +386,8 @@ function BrowseHubContent({ initialSeries, isDbEmpty }: BrowseHubProps) {
         )}
       </div>
 
+      {/* Catalog Results Grid */}
+      <section className={styles.catalogSection} ref={catalogRef}>
         <div className={styles.catalogHeader}>
           <div className={styles.catalogTitle}>
             <Grid size={20} className={styles.headerIcon} />
