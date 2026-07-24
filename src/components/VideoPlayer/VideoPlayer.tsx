@@ -361,7 +361,7 @@ export default function VideoPlayer({
           className={styles.bigPlayTrigger} 
           aria-label={isPlaying ? 'Pause' : 'Play'}
         >
-          {isPlaying ? <Pause size={48} fill="white" /> : <Play size={48} fill="white" />}
+          {isPlaying ? <Pause size={38} fill="white" /> : <Play size={38} fill="white" style={{ marginLeft: '3px' }} />}
         </button>
 
         {/* Bottom Panel */}

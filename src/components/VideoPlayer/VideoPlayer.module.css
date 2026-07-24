@@ -291,4 +291,45 @@
   .theaterBtn {
     display: none !important;
   }
+
+  .topHeader {
+    padding: 0.6rem 0.85rem;
+  }
+
+  .titleInfo h3 {
+    font-size: 0.85rem;
+  }
+
+  .badge {
+    font-size: 0.68rem;
+    padding: 0.15rem 0.45rem;
+  }
+
+  .bigPlayTrigger {
+    width: 52px;
+    height: 52px;
+  }
+
+  .bottomControls {
+    padding: 0.45rem 0.65rem 0.65rem;
+    gap: 0.4rem;
+  }
+
+  .leftControls,
+  .rightControls {
+    gap: 0.45rem;
+  }
+
+  .volumeSlider {
+    display: none;
+  }
+
+  .timeDisplay {
+    font-size: 0.75rem;
+    gap: 0.15rem;
+  }
+
+  .controlBtn {
+    padding: 0.25rem;
+  }
 }
