@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import { Tv, User, LogOut, Heart, History, Settings, ChevronDown, Menu, X, Home, Layers, Eye, Film, Dices } from 'lucide-react';
+import { Tv, User, LogOut, Heart, History, Settings, ShieldCheck, ChevronDown, Menu, X, Home, Layers, Eye, Film, Dices } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import SearchBar from '../SearchBar/SearchBar';
 import styles from './Header.module.css';
@@ -178,13 +178,22 @@ export default function Header() {
                   <span>Watch History</span>
                 </Link>
 
+                <Link 
+                  href="/settings" 
+                  onClick={() => setDropdownOpen(false)} 
+                  className={styles.dropdownItem}
+                >
+                  <Settings size={16} />
+                  <span>Account & Security</span>
+                </Link>
+
                 {profile?.role === 'admin' && (
                   <Link 
                     href="/admin" 
                     onClick={() => setDropdownOpen(false)} 
                     className={styles.dropdownItem}
                   >
-                    <Settings size={16} />
+                    <ShieldCheck size={16} />
                     <span>Admin Dashboard</span>
                   </Link>
                 )}
