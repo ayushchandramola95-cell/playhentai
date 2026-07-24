@@ -1,11 +1,13 @@
 .searchForm {
   position: relative;
   width: 220px;
-  transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  max-width: 100%;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .searchForm:focus-within {
-  width: 480px;
+  width: 100%;
+  max-width: 100%;
 }
 
 .inputWrapper {

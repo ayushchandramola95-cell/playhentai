@@ -96,7 +96,7 @@ export default function Header() {
 
   return (
     <header className={styles.header}>
-      <div className={styles.leftSection}>
+      <div className={`${styles.leftSection} ${searchFocused ? styles.leftSectionHidden : ''}`}>
         <Link href="/" className={styles.logoContainer}>
           <LogoIcon />
           <span className={styles.logoText}>
@@ -127,7 +127,7 @@ export default function Header() {
       <div className={`${styles.centerSection} ${searchFocused ? styles.centerSectionFocused : ''}`}>
         <SearchBar onFocusChange={setSearchFocused} />
       </div>
-      <div className={styles.rightSection}>
+      <div className={`${styles.rightSection} ${searchFocused ? styles.rightSectionHidden : ''}`}>
         {/* Watchlist Shortcut */}
         {user && (
           <Link href="/watchlist" className={`${styles.watchlistShortcut} ${pathname === '/watchlist' ? styles.activeLink : ''}`} title="My Watchlist">

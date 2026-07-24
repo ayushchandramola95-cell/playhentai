@@ -19,6 +19,42 @@
   display: flex;
   align-items: center;
   gap: 2.2rem;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.leftSectionHidden,
+.rightSectionHidden {
+  opacity: 0 !important;
+  max-width: 0 !important;
+  width: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  pointer-events: none !important;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.centerSection {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  max-width: 500px;
+  padding: 0 1rem;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.centerSectionFocused {
+  max-width: 100% !important;
+  width: 100% !important;
+  flex: 1 !important;
+  padding: 0 !important;
+}
+
+.rightSection {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .logoContainer {
