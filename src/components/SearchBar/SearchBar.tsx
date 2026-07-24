@@ -16,6 +16,7 @@ export default function SearchBar({ onFocusChange }: SearchBarProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const containerRef = useRef<HTMLFormElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState<any[]>([]);
@@ -63,11 +64,12 @@ export default function SearchBar({ onFocusChange }: SearchBarProps) {
     const handleClickOutside = (event: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setShowDropdown(false);
+        onFocusChange?.(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  }, [onFocusChange]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,10 +87,13 @@ export default function SearchBar({ onFocusChange }: SearchBarProps) {
     router.push(`/series/${series.slug}`);
   };
 
-  const handleClear = () => {
+  const handleClear = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     setQuery('');
     setSuggestions([]);
-    router.push('/search');
+    setShowDropdown(false);
+    inputRef.current?.focus();
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -116,6 +121,7 @@ export default function SearchBar({ onFocusChange }: SearchBarProps) {
       <div className={styles.inputWrapper}>
         <Search size={18} className={styles.searchIcon} />
         <input
+          ref={inputRef}
           type="text"
           placeholder="Search series, categories, tags..."
           value={query}
@@ -128,16 +134,19 @@ export default function SearchBar({ onFocusChange }: SearchBarProps) {
             setShowDropdown(true);
             onFocusChange?.(true);
           }}
-          onBlur={() => {
-            onFocusChange?.(false);
-          }}
           className={styles.searchInput}
         />
         {isLoading && (
           <Loader2 size={16} className={`${styles.clearBtn} animate-spin`} />
         )}
         {query && !isLoading && (
-          <button type="button" onClick={handleClear} className={styles.clearBtn} aria-label="Clear search">
+          <button
+            type="button"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={handleClear}
+            className={styles.clearBtn}
+            aria-label="Clear search"
+          >
             <X size={16} />
           </button>
         )}
