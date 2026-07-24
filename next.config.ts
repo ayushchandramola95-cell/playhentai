@@ -5,6 +5,18 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
+        hostname: "media.playhentai.live",
+      },
+      {
+        protocol: "https",
+        hostname: "*.playhentai.live",
+      },
+      {
+        protocol: "https",
+        hostname: "playhentai.live",
+      },
+      {
+        protocol: "https",
         hostname: "images.unsplash.com",
       },
       {
