@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import { Tv, User, LogOut, Heart, History, Settings, ChevronDown } from 'lucide-react';
+import { Tv, User, LogOut, Heart, History, Settings, ChevronDown, Menu, X, Home, Layers, Eye, Film, Dices } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import SearchBar from '../SearchBar/SearchBar';
 import styles from './Header.module.css';
@@ -25,6 +25,7 @@ export default function Header() {
   
   const [mounted, setMounted] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [currentGenre, setCurrentGenre] = useState<string | null>(null);
   const [searchFocused, setSearchFocused] = useState(false);
@@ -32,6 +33,23 @@ export default function Header() {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Close mobile drawer on route changes
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [pathname]);
+
+  // Prevent scrolling when mobile drawer is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [mobileMenuOpen]);
 
   // Update current genre client-side to avoid hydration mismatch
   useEffect(() => {
@@ -187,7 +205,100 @@ export default function Header() {
             Sign In
           </Link>
         )}
+
+        {/* Mobile Hamburger Toggle Button */}
+        <button
+          type="button"
+          onClick={() => setMobileMenuOpen(prev => !prev)}
+          className={styles.hamburgerBtn}
+          aria-label="Toggle navigation menu"
+        >
+          {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+        </button>
       </div>
+
+      {/* Mobile Drawer Overlay */}
+      {mobileMenuOpen && (
+        <div className={styles.mobileDrawerOverlay} onClick={() => setMobileMenuOpen(false)}>
+          <div className={styles.mobileDrawerContent} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.mobileDrawerHeader}>
+              <Link href="/" onClick={() => setMobileMenuOpen(false)} className={styles.logoContainer}>
+                <LogoIcon />
+                <span className={styles.logoText}>
+                  <span className={styles.logoTextPlay}>PLAY</span>
+                  <span className={styles.logoTextGold}>HENTAI</span>
+                </span>
+              </Link>
+              <button
+                type="button"
+                onClick={() => setMobileMenuOpen(false)}
+                className={styles.drawerCloseBtn}
+              >
+                <X size={22} />
+              </button>
+            </div>
+
+            <nav className={styles.mobileNavList}>
+              <Link href="/" onClick={() => setMobileMenuOpen(false)} className={`${styles.mobileNavLink} ${pathname === '/' ? styles.activeLink : ''}`}>
+                <Home size={18} />
+                <span>Home</span>
+              </Link>
+
+              <Link href="/categories" onClick={() => setMobileMenuOpen(false)} className={`${styles.mobileNavLink} ${pathname === '/categories' && !currentGenre ? styles.activeLink : ''}`}>
+                <Layers size={18} />
+                <span>Series Library</span>
+              </Link>
+
+              <Link href="/categories?genre=uncensored" onClick={() => setMobileMenuOpen(false)} className={`${styles.mobileNavLink} ${pathname === '/categories' && currentGenre === 'uncensored' ? styles.activeLink : ''}`}>
+                <Eye size={18} />
+                <span>Uncensored</span>
+              </Link>
+
+              <Link href="/collections" onClick={() => setMobileMenuOpen(false)} className={`${styles.mobileNavLink} ${pathname.startsWith('/collections') ? styles.activeLink : ''}`}>
+                <Film size={18} />
+                <span>Playlists</span>
+              </Link>
+
+              <Link href="/random" onClick={() => setMobileMenuOpen(false)} className={`${styles.mobileNavLink} ${pathname === '/random' ? styles.activeLink : ''}`}>
+                <Dices size={18} />
+                <span>Surprise Me</span>
+              </Link>
+
+              <hr className={styles.drawerDivider} />
+
+              {user ? (
+                <>
+                  <Link href="/watchlist" onClick={() => setMobileMenuOpen(false)} className={styles.mobileNavLink}>
+                    <Heart size={18} />
+                    <span>My Watchlist</span>
+                  </Link>
+
+                  <Link href="/history" onClick={() => setMobileMenuOpen(false)} className={styles.mobileNavLink}>
+                    <History size={18} />
+                    <span>Watch History</span>
+                  </Link>
+
+                  {profile?.role === 'admin' && (
+                    <Link href="/admin" onClick={() => setMobileMenuOpen(false)} className={styles.mobileNavLink}>
+                      <Settings size={18} />
+                      <span>Admin Dashboard</span>
+                    </Link>
+                  )}
+
+                  <button onClick={() => { handleSignOut(); setMobileMenuOpen(false); }} className={`${styles.mobileNavLink} ${styles.mobileSignOut}`}>
+                    <LogOut size={18} />
+                    <span>Sign Out</span>
+                  </button>
+                </>
+              ) : (
+                <Link href="/login" onClick={() => setMobileMenuOpen(false)} className={styles.mobileSignInBtn}>
+                  Sign In / Register
+                </Link>
+              )}
+            </nav>
+          </div>
+        </div>
+      )}
     </header>
   );
 }
