@@ -10,11 +10,10 @@ interface SynopsisBoxProps {
 
 export default function SynopsisBox({ description }: SynopsisBoxProps) {
   const [expanded, setExpanded] = useState(false);
-  const isLong = (description || '').length > 200;
+  const isLong = (description || '').length > 180;
 
   return (
-    <div className={styles.synopsisBox}>
-      <h3 className={styles.synopsisLabel}>Synopsis</h3>
+    <div className={styles.synopsisBoxCard}>
       <p className={`${styles.synopsisText} ${!expanded && isLong ? styles.synopsisCollapsed : ''}`}>
         {description}
       </p>
