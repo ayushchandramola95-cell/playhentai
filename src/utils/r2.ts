@@ -45,7 +45,7 @@ export function getR2Url(
     return cleanKey;
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL || '';
+  const baseUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL || 'https://media.playhentai.live';
 
   if (baseUrl) {
     const sanitizedBase = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
