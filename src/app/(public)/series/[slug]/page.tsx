@@ -409,11 +409,11 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
 
       {/* Main Details Wrapper */}
       <div className={styles.contentWrapper}>
-        {/* Desktop View (> 900px) - 100% ORIGINAL UNTOUCHED DESKTOP LAYOUT */}
+        {/* Desktop View (> 900px) - EXACT REFERENCE SCREENSHOT MATCH */}
         <div className={styles.desktopOnlyContainer}>
           <div className={styles.metaGrid}>
             
-            {/* Left Column: Poster Image, Action Buttons & Details Meta Table */}
+            {/* Left Column: Poster Image & Action Buttons */}
             <div className={styles.leftCol}>
               <div className={styles.posterWrapper}>
                 <Image
@@ -431,107 +431,9 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
                 <WatchlistToggle seriesId={activeSeries.id} />
                 <RateSeriesButton seriesId={activeSeries.id} seriesTitle={activeSeries.title} />
               </div>
-
-              {/* Details Meta Table */}
-              <div className={styles.detailsTable}>
-                <div className={styles.detailsRow}>
-                  <span className={styles.detailsKey}>Studio</span>
-                  <span className={styles.detailsVal} style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap' }}>
-                    {studio.split(',').map((sName: string, index: number) => {
-                      const cleanName = sName.trim();
-                      const studioSlug = convertStudioNameToSlug(cleanName);
-                      return (
-                        <React.Fragment key={cleanName}>
-                          <Link href={`/studios/${studioSlug}`} style={{ color: 'var(--primary)', fontWeight: 700, textDecoration: 'none' }}>
-                            {cleanName}
-                          </Link>
-                          {index < studio.split(',').length - 1 && <span style={{ color: 'var(--foreground-secondary)' }}>,</span>}
-                        </React.Fragment>
-                      );
-                    })}
-                  </span>
-                </div>
-                
-                {activeSeries.alt_title_japanese && (
-                  <div className={styles.detailsRow}>
-                    <span className={styles.detailsKey}>Japanese Title</span>
-                    <span className={styles.detailsVal}>{activeSeries.alt_title_japanese}</span>
-                  </div>
-                )}
-                {activeSeries.alt_title_romaji && (
-                  <div className={styles.detailsRow}>
-                    <span className={styles.detailsKey}>Romaji Title</span>
-                    <span className={styles.detailsVal}>{activeSeries.alt_title_romaji}</span>
-                  </div>
-                )}
-                {activeSeries.alt_title_english && (
-                  <div className={styles.detailsRow}>
-                    <span className={styles.detailsKey}>English Title</span>
-                    <span className={styles.detailsVal}>{activeSeries.alt_title_english}</span>
-                  </div>
-                )}
-
-                <div className={styles.detailsRow}>
-                  <span className={styles.detailsKey}>Status</span>
-                  <span className={`${styles.detailsVal} ${styles.statusVal}`}>
-                    <span 
-                      className={styles.statusDot} 
-                      style={{ 
-                        background: status === 'completed' ? '#94a3b8' : status === 'upcoming' ? '#3b82f6' : '#22c55e',
-                        boxShadow: status === 'ongoing' || status === 'airing' ? '0 0 8px #22c55e' : status === 'upcoming' ? '0 0 8px #3b82f6' : 'none'
-                      }} 
-                    />
-                    <span className={styles.statusText}>{status.toUpperCase()}</span>
-                  </span>
-                </div>
-                <div className={styles.detailsRow}>
-                  <span className={styles.detailsKey}>Release Year</span>
-                  <span className={styles.detailsVal}>{releaseYear}</span>
-                </div>
-                {firstAirDateFormatted && (
-                  <div className={styles.detailsRow}>
-                    <span className={styles.detailsKey}>First air date</span>
-                    <span className={styles.detailsVal}>{firstAirDateFormatted}</span>
-                  </div>
-                )}
-                {lastAirDateFormatted && (
-                  <div className={styles.detailsRow}>
-                    <span className={styles.detailsKey}>Last air date</span>
-                    <span className={styles.detailsVal}>{lastAirDateFormatted}</span>
-                  </div>
-                )}
-                <div className={styles.detailsRow}>
-                  <span className={styles.detailsKey}>Original Language</span>
-                  <span className={styles.detailsVal}>{activeSeries.original_language || 'Japanese'}</span>
-                </div>
-                <div className={styles.detailsRow}>
-                  <span className={styles.detailsKey}>Country of Origin</span>
-                  <span className={styles.detailsVal}>{activeSeries.country || 'Japan'}</span>
-                </div>
-                <div className={styles.detailsRow}>
-                  <span className={styles.detailsKey}>Content Rating</span>
-                  <span className={styles.detailsVal} style={{ textTransform: 'capitalize' }}>{activeSeries.content_rating || 'Explicit'}</span>
-                </div>
-                <div className={styles.detailsRow}>
-                  <span className={styles.detailsKey}>Age Rating</span>
-                  <span className={styles.detailsVal}>{activeSeries.age_rating || '18+'}</span>
-                </div>
-                <div className={styles.detailsRow}>
-                  <span className={styles.detailsKey}>Avg Runtime</span>
-                  <span className={styles.detailsVal}>{activeSeries.runtime !== undefined && activeSeries.runtime !== null ? activeSeries.runtime : 24} min</span>
-                </div>
-                <div className={styles.detailsRow}>
-                  <span className={styles.detailsKey}>Seasons</span>
-                  <span className={styles.detailsVal}>{activeSeries.seasons?.length || 0}</span>
-                </div>
-                <div className={styles.detailsRow}>
-                  <span className={styles.detailsKey}>Total Episodes</span>
-                  <span className={styles.detailsVal}>{totalEpisodesText}</span>
-                </div>
-              </div>
             </div>
 
-            {/* Right Column: Title, Category Badges, Ratings, Synopsis */}
+            {/* Right Column: Title, Category Badges, Ratings, Synopsis & Details Grid */}
             <div className={styles.rightCol}>
               {isDbEmpty && (
                 <span className={styles.dbAlert}>
@@ -573,18 +475,116 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
                       );
                     })}
                   </div>
-                  <span className={styles.ratingVotes}>({(views / 15).toFixed(0)} ratings)</span>
+                  <span className={styles.ratingVotes}>({(views / 15).toFixed(0)} votes)</span>
                 </div>
                 <span className={styles.viewsCounter}>
                   <Eye size={13} />
-                  <span>{views.toLocaleString()} Views</span>
+                  <span>{views.toLocaleString()} views</span>
                 </span>
               </div>
 
               {/* Original Desktop Synopsis Box */}
               <div className={styles.synopsisBox}>
-                <h3 className={styles.synopsisLabel}>Synopsis</h3>
+                <h3 className={styles.synopsisLabel}>SYNOPSIS</h3>
                 <p className={styles.synopsisText}>{activeSeries.description}</p>
+              </div>
+
+              {/* Details Meta Grid Card (2-Column Grid) */}
+              <div className={styles.detailsTable}>
+                <div className={styles.detailsRow}>
+                  <span className={styles.detailsKey}>STUDIO</span>
+                  <span className={styles.detailsVal} style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap' }}>
+                    {studio.split(',').map((sName: string, index: number) => {
+                      const cleanName = sName.trim();
+                      const studioSlug = convertStudioNameToSlug(cleanName);
+                      return (
+                        <React.Fragment key={cleanName}>
+                          <Link href={`/studios/${studioSlug}`} style={{ color: '#a855f7', fontWeight: 700, textDecoration: 'none' }}>
+                            {cleanName}
+                          </Link>
+                          {index < studio.split(',').length - 1 && <span style={{ color: 'var(--foreground-secondary)' }}>,</span>}
+                        </React.Fragment>
+                      );
+                    })}
+                  </span>
+                </div>
+                
+                {activeSeries.alt_title_japanese && (
+                  <div className={styles.detailsRow}>
+                    <span className={styles.detailsKey}>JAPANESE TITLE</span>
+                    <span className={styles.detailsVal}>{activeSeries.alt_title_japanese}</span>
+                  </div>
+                )}
+                {activeSeries.alt_title_romaji && (
+                  <div className={styles.detailsRow}>
+                    <span className={styles.detailsKey}>ROMAJI TITLE</span>
+                    <span className={styles.detailsVal}>{activeSeries.alt_title_romaji}</span>
+                  </div>
+                )}
+                {activeSeries.alt_title_english && (
+                  <div className={styles.detailsRow}>
+                    <span className={styles.detailsKey}>ENGLISH TITLE</span>
+                    <span className={styles.detailsVal}>{activeSeries.alt_title_english}</span>
+                  </div>
+                )}
+
+                <div className={styles.detailsRow}>
+                  <span className={styles.detailsKey}>STATUS</span>
+                  <span className={`${styles.detailsVal} ${styles.statusVal}`}>
+                    <span 
+                      className={styles.statusDot} 
+                      style={{ 
+                        background: status === 'completed' ? '#94a3b8' : status === 'upcoming' ? '#3b82f6' : '#22c55e',
+                        boxShadow: status === 'ongoing' || status === 'airing' ? '0 0 8px #22c55e' : status === 'upcoming' ? '0 0 8px #3b82f6' : 'none'
+                      }} 
+                    />
+                    <span className={styles.statusText}>{status.toUpperCase()}</span>
+                  </span>
+                </div>
+                <div className={styles.detailsRow}>
+                  <span className={styles.detailsKey}>RELEASE YEAR</span>
+                  <span className={styles.detailsVal}>{releaseYear}</span>
+                </div>
+                {firstAirDateFormatted && (
+                  <div className={styles.detailsRow}>
+                    <span className={styles.detailsKey}>FIRST AIR DATE</span>
+                    <span className={styles.detailsVal}>{firstAirDateFormatted}</span>
+                  </div>
+                )}
+                {lastAirDateFormatted && (
+                  <div className={styles.detailsRow}>
+                    <span className={styles.detailsKey}>LAST AIR DATE</span>
+                    <span className={styles.detailsVal}>{lastAirDateFormatted}</span>
+                  </div>
+                )}
+                <div className={styles.detailsRow}>
+                  <span className={styles.detailsKey}>ORIGINAL LANGUAGE</span>
+                  <span className={styles.detailsVal}>{activeSeries.original_language || 'Japanese'}</span>
+                </div>
+                <div className={styles.detailsRow}>
+                  <span className={styles.detailsKey}>COUNTRY OF ORIGIN</span>
+                  <span className={styles.detailsVal}>{activeSeries.country || 'Japan'}</span>
+                </div>
+                <div className={styles.detailsRow}>
+                  <span className={styles.detailsKey}>CONTENT RATING</span>
+                  <span className={styles.detailsVal} style={{ textTransform: 'capitalize' }}>{activeSeries.content_rating || 'Explicit'}</span>
+                </div>
+                <div className={styles.detailsRow}>
+                  <span className={styles.detailsKey}>AGE RATING</span>
+                  <span className={styles.detailsVal}>{activeSeries.age_rating || '18+'}</span>
+                </div>
+                <div className={styles.detailsRow}>
+                  <span className={styles.detailsKey}>AVG RUNTIME</span>
+                  <span className={styles.detailsVal}>{activeSeries.runtime !== undefined && activeSeries.runtime !== null ? activeSeries.runtime : 24} min</span>
+                </div>
+                <div className={styles.detailsRow}>
+                  <span className={styles.detailsKey}>SEASONS</span>
+                  <span className={styles.detailsVal}>{activeSeries.seasons?.length || 0}</span>
+                </div>
+                <div className={styles.detailsRow}>
+                  <span className={styles.detailsKey}>TOTAL EPISODES</span>
+                  <span className={styles.detailsVal}>{totalEpisodesText}</span>
+                </div>
               </div>
             </div>
           </div>
