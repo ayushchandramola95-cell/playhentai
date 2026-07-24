@@ -409,134 +409,294 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
 
       {/* Main Details Wrapper */}
       <div className={styles.contentWrapper}>
-        {/* Top Hero Section: Side-by-Side Poster & Main Details */}
-        <div className={styles.mobileHeroSection}>
-          <div className={styles.posterWrapper}>
-            <Image
-              src={getR2Url(activeSeries.poster_image_key || activeSeries.cover_image_key, 'poster')}
-              alt={activeSeries.title}
-              fill
-              sizes="(max-width: 768px) 130px, 300px"
-              className={styles.posterImage}
-              style={{ objectPosition: activeSeries.poster_position || 'center' }}
-            />
-          </div>
-
-          <div className={styles.heroInfoRight}>
-            <h1 className={styles.seriesTitle}>{activeSeries.title}</h1>
-
-            {/* Rating Row */}
-            <div className={styles.ratingRow}>
-              <span className={styles.ratingScoreGold}>{rating.toFixed(1)}</span>
-              <RateSeriesButton seriesId={activeSeries.id} seriesTitle={activeSeries.title} iconOnly />
+        {/* Desktop View (> 900px) */}
+        <div className={styles.desktopOnlyContainer}>
+          <div className={styles.metaGrid}>
+            <div className={styles.leftCol}>
+              <div className={styles.posterWrapper}>
+                <Image
+                  src={getR2Url(activeSeries.poster_image_key || activeSeries.cover_image_key, 'poster')}
+                  alt={activeSeries.title}
+                  fill
+                  sizes="300px"
+                  className={styles.posterImage}
+                  style={{ objectPosition: activeSeries.poster_position || 'center' }}
+                />
+              </div>
+              <div className={styles.secondaryButtonsRow}>
+                <WatchlistToggle seriesId={activeSeries.id} />
+                <RateSeriesButton seriesId={activeSeries.id} seriesTitle={activeSeries.title} />
+              </div>
             </div>
 
-            {/* Status & Censorship Badges Row */}
-            <div className={styles.statusBadgesRow}>
-              <span className={styles.statusPillPink}>{status.toUpperCase()}</span>
-              <span className={styles.censoredPillPink}>{activeSeries.content_rating || 'Censored'}</span>
-            </div>
+            <div className={styles.heroRightCol}>
+              {isDbEmpty && (
+                <span className={styles.dbAlert}>
+                  💡 Catalog Mock
+                </span>
+              )}
 
-            {/* Compact Inline Genre Tags Row */}
-            {activeSeries.tags && activeSeries.tags.length > 0 && (
-              <div className={styles.inlineTagsRow}>
-                {activeSeries.tags
-                  .filter((t: string) => t.toLowerCase() !== 'featured' && !t.toLowerCase().startsWith('featured:'))
-                  .slice(0, 3)
-                  .map((tag: string) => (
-                    <Link key={tag} href={`/categories?genre=${encodeURIComponent(tag)}`} className={styles.tagPillGold}>
-                      {tag}
-                    </Link>
-                  ))}
-                {activeSeries.tags.filter((t: string) => t.toLowerCase() !== 'featured' && !t.toLowerCase().startsWith('featured:')).length > 3 && (
-                  <span className={styles.tagPlusCount}>
-                    +{activeSeries.tags.filter((t: string) => t.toLowerCase() !== 'featured' && !t.toLowerCase().startsWith('featured:')).length - 3}
-                  </span>
+              <h1 className={styles.seriesTitleDesktop}>{activeSeries.title}</h1>
+
+              <div className={styles.subtitleMetaRow}>
+                <span className={styles.metaStudioText}>{studio.split(',')[0]}</span>
+                <span className={styles.metaDot}>•</span>
+                <span>{releaseYear}</span>
+                <span className={styles.metaDot}>•</span>
+                <span>{activeSeries.category || 'Anime'}</span>
+                <span className={styles.metaDot}>•</span>
+                <span>{activeSeries.runtime !== undefined && activeSeries.runtime !== null ? activeSeries.runtime : 24} min</span>
+              </div>
+
+              <div className={styles.ratingsBlock}>
+                <div className={styles.ratingsCard}>
+                  <Star size={16} fill="#eab308" color="#eab308" />
+                  <span className={styles.ratingScore}>{rating.toFixed(1)}</span>
+                  <span className={styles.ratingVotes}>({(views / 15).toFixed(0)} ratings)</span>
+                </div>
+                <span className={styles.viewsCounter}>
+                  <Eye size={14} />
+                  <span>{views.toLocaleString()} Views</span>
+                </span>
+              </div>
+
+              <div className={styles.watchNowWrapper}>
+                {firstEpisodeId ? (
+                  <Link href={getEpisodeWatchUrl(firstEpisodeId, 1, slug)} className={styles.watchNowBtn}>
+                    <Play size={20} fill="currentColor" />
+                    <span>Watch Now</span>
+                  </Link>
+                ) : (
+                  <button disabled className={styles.watchNowBtn}>
+                    <span>Upcoming Release</span>
+                  </button>
                 )}
               </div>
-            )}
-          </div>
-        </div>
-
-        {/* Synopsis Box with Left Yellow Accent Border */}
-        <SynopsisBox description={activeSeries.description} />
-
-        {/* Action Buttons Row (Add to Favorites & Watchlist) */}
-        <div className={styles.actionButtonsRow}>
-          <WatchlistToggle seriesId={activeSeries.id} />
-          {firstEpisodeId ? (
-            <Link href={getEpisodeWatchUrl(firstEpisodeId, 1, slug)} className={styles.watchLaterBtn}>
-              <Clock size={16} />
-              <span>Add to watch later</span>
-            </Link>
-          ) : null}
-        </div>
-
-        {/* Studio Meta Line */}
-        <div className={styles.studioMetaLine}>
-          <Camera size={18} className={styles.studioIcon} />
-          <span className={styles.studioLabel}>Studio</span>
-          <Link href={`/studios/${convertStudioNameToSlug(studio.split(',')[0].trim())}`} className={styles.studioValueGold}>
-            {studio.split(',')[0]}
-          </Link>
-        </div>
-
-        {/* Episodes Section - Sleek List Cards */}
-        <section className={styles.episodesSectionContainer}>
-          <div className={styles.sectionHeader}>
-            <div className={styles.sectionHeaderTitle}>
-              <h2>Episodes</h2>
-            </div>
-            
-            {/* Season Selector */}
-            <div className={styles.seasonSelector}>
-              {activeSeries.seasons && activeSeries.seasons.map((s: any) => (
-                <button 
-                  key={s.id} 
-                  className={`${styles.seasonTab} ${s.id === activeSeason?.id ? styles.activeSeasonTab : ''}`}
-                >
-                  {s.title}
-                </button>
-              ))}
             </div>
           </div>
 
-          {episodesToRender.length > 0 ? (
-            <div className={styles.episodesStackList}>
+          <SynopsisBox description={activeSeries.description} />
+
+          {/* Grouped Metadata Grid (3 Cards) */}
+          <div className={styles.groupedMetadataGrid}>
+            <div className={styles.metaCard}>
+              <h4 className={styles.metaCardTitle}>Basic Info</h4>
+              <div className={styles.metaCardList}>
+                <div className={styles.metaItem}>
+                  <span className={styles.metaKey}>Studio</span>
+                  <span className={styles.metaVal}>{studio}</span>
+                </div>
+                <div className={styles.metaItem}>
+                  <span className={styles.metaKey}>Release Date</span>
+                  <span className={styles.metaVal}>{firstAirDateFormatted || releaseYear}</span>
+                </div>
+                <div className={styles.metaItem}>
+                  <span className={styles.metaKey}>Status</span>
+                  <span className={styles.metaVal} style={{ textTransform: 'uppercase' }}>{status}</span>
+                </div>
+                <div className={styles.metaItem}>
+                  <span className={styles.metaKey}>Runtime</span>
+                  <span className={styles.metaVal}>{activeSeries.runtime || 24} min</span>
+                </div>
+                <div className={styles.metaItem}>
+                  <span className={styles.metaKey}>Episodes</span>
+                  <span className={styles.metaVal}>{totalEpisodesText}</span>
+                </div>
+              </div>
+            </div>
+            <div className={styles.metaCard}>
+              <h4 className={styles.metaCardTitle}>Titles</h4>
+              <div className={styles.metaCardList}>
+                <div className={styles.metaItem}>
+                  <span className={styles.metaKey}>English</span>
+                  <span className={styles.metaVal}>{activeSeries.alt_title_english || activeSeries.title}</span>
+                </div>
+                {activeSeries.alt_title_japanese && (
+                  <div className={styles.metaItem}>
+                    <span className={styles.metaKey}>Japanese</span>
+                    <span className={styles.metaVal}>{activeSeries.alt_title_japanese}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className={styles.metaCard}>
+              <h4 className={styles.metaCardTitle}>Content Info</h4>
+              <div className={styles.metaCardList}>
+                <div className={styles.metaItem}>
+                  <span className={styles.metaKey}>Language</span>
+                  <span className={styles.metaVal}>{activeSeries.original_language || 'Japanese'}</span>
+                </div>
+                <div className={styles.metaItem}>
+                  <span className={styles.metaKey}>Country</span>
+                  <span className={styles.metaVal}>{activeSeries.country || 'Japan'}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Tags */}
+          {activeSeries.tags && activeSeries.tags.length > 0 && (
+            <div className={styles.tagsContainerCard}>
+              <h3 className={styles.tagsGroupHeading}>Tags & Genres</h3>
+              <div className={styles.tagsGrid}>
+                {activeSeries.tags
+                  .filter((t: string) => t.toLowerCase() !== 'featured' && !t.toLowerCase().startsWith('featured:'))
+                  .map((tag: string) => (
+                    <Link key={tag} href={`/categories?genre=${encodeURIComponent(tag)}`} className={styles.tagBadge}>
+                      #{tag}
+                    </Link>
+                  ))}
+              </div>
+            </div>
+          )}
+
+          {/* Desktop 16:9 Episodes Grid */}
+          <section className={styles.episodesSectionContainer}>
+            <div className={styles.sectionHeader}>
+              <div className={styles.sectionHeaderTitle}>
+                <Flame size={22} className={styles.headerIcon} />
+                <h2>Episodes</h2>
+              </div>
+            </div>
+            <div className={styles.episodeGridDesktop}>
               {[...episodesToRender]
                 .sort((a: any, b: any) => b.episode_number - a.episode_number)
                 .map((ep: any) => {
-                const cleanTitle = (ep.title || '')
-                  .replace(/^\[Preview\]\s*/i, '')
-                  .replace(/^\[Trailer\]\s*/i, '')
-                  .replace(/^.*-\s*/, '')
-                  .trim();
+                const epRating = rating - 0.2 - (ep.episode_number % 5) * 0.1;
+                const releaseDate = ep.release_date ? new Date(ep.release_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : getStableReleaseDate(ep.id);
+                const cleanTitle = (ep.title || '').replace(/^\[Preview\]\s*/i, '').replace(/^\[Trailer\]\s*/i, '').replace(/^.*-\s*/, '').trim();
 
                 return (
-                  <Link key={ep.id} href={getEpisodeWatchUrl(ep.id, ep.episode_number, slug)} className={styles.epListItemCard}>
-                    <div className={styles.epPlayBtnCircle}>
-                      <Play size={18} fill="#090d16" color="#090d16" />
+                  <div key={ep.id} className={`${styles.episodeCard} card-hover`}>
+                    <Link href={getEpisodeWatchUrl(ep.id, ep.episode_number, slug)} className={styles.epImageLink}>
+                      <div className={styles.epImageWrapper}>
+                        <Image src={getR2Url(ep.thumbnail_key || activeSeries.cover_image_key, 'thumbnail')} alt={ep.title} fill sizes="360px" className={styles.epThumbnailImage} />
+                        <div className={styles.subBadge}>{ep.title.startsWith('[Preview]') ? 'PREVIEW' : 'SUB'}</div>
+                        <div className={styles.epRatingBadge}><Star size={10} fill="#eab308" color="#eab308" /><span>{epRating.toFixed(1)}</span></div>
+                        <div className={styles.epTitleOverlay}><span className={styles.epTitleName}>{cleanTitle || `Episode ${ep.episode_number}`}</span></div>
+                        <div className={styles.epPlayOverlay}><Play size={28} fill="white" className={styles.epPlayIcon} /></div>
+                      </div>
+                    </Link>
+                    <div className={styles.epMetadataRow}>
+                      <div className={styles.epMetaLeft}><span className={styles.epReleaseDate}>{releaseDate}</span><span className={styles.metaDot}>•</span><span className={styles.epDurationText}><Clock size={11} /><span>{Math.floor((ep.duration_seconds || 1440) / 60)} min</span></span></div>
+                      <Link href={getEpisodeWatchUrl(ep.id, ep.episode_number, slug)} className={styles.epWatchLink}><span>WATCH</span><Play size={10} fill="currentColor" /></Link>
                     </div>
-                    <div className={styles.epListTitleCol}>
-                      <span className={styles.epSeriesSubname}>{activeSeries.title}</span>
-                      <span className={styles.epTitleMain}>{cleanTitle || `Episode ${ep.episode_number}`}</span>
-                    </div>
-                    <div className={styles.epListRightCol}>
-                      <span className={styles.epNewBadge}>NEW</span>
-                      <ChevronRight size={18} className={styles.epChevronIcon} />
-                    </div>
-                  </Link>
+                  </div>
                 );
               })}
             </div>
-          ) : (
-            <div className={`${styles.emptyGridState} glass`}>
-              <HelpCircle size={48} />
-              <h3>No episodes available</h3>
-              <p>No episodes have been published for this season yet. Check back later!</p>
+          </section>
+        </div>
+
+        {/* Mobile View (<= 900px) */}
+        <div className={styles.mobileOnlyContainer}>
+          {/* Top Hero Section */}
+          <div className={styles.mobileHeroSection}>
+            <div className={styles.posterWrapperMobile}>
+              <Image
+                src={getR2Url(activeSeries.poster_image_key || activeSeries.cover_image_key, 'poster')}
+                alt={activeSeries.title}
+                fill
+                sizes="150px"
+                className={styles.posterImage}
+                style={{ objectPosition: activeSeries.poster_position || 'center' }}
+              />
             </div>
-          )}
-        </section>
+
+            <div className={styles.heroInfoRight}>
+              <h1 className={styles.seriesTitleMobile}>{activeSeries.title}</h1>
+
+              {/* Rating Row */}
+              <div className={styles.ratingRow}>
+                <span className={styles.ratingScoreGoldMobile}>{rating.toFixed(1)}</span>
+                <RateSeriesButton seriesId={activeSeries.id} seriesTitle={activeSeries.title} iconOnly />
+              </div>
+
+              {/* Status & Censorship Badges Row */}
+              <div className={styles.statusBadgesRow}>
+                <span className={styles.statusPillPinkMobile}>{status.toUpperCase()}</span>
+                <span className={styles.censoredPillPinkMobile}>{activeSeries.content_rating || 'Censored'}</span>
+              </div>
+
+              {/* Compact Inline Genre Tags Row */}
+              {activeSeries.tags && activeSeries.tags.length > 0 && (
+                <div className={styles.inlineTagsRow}>
+                  {activeSeries.tags
+                    .filter((t: string) => t.toLowerCase() !== 'featured' && !t.toLowerCase().startsWith('featured:'))
+                    .slice(0, 3)
+                    .map((tag: string) => (
+                      <Link key={tag} href={`/categories?genre=${encodeURIComponent(tag)}`} className={styles.tagPillGoldMobile}>
+                        {tag}
+                      </Link>
+                    ))}
+                  {activeSeries.tags.filter((t: string) => t.toLowerCase() !== 'featured' && !t.toLowerCase().startsWith('featured:')).length > 3 && (
+                    <span className={styles.tagPlusCountMobile}>
+                      +{activeSeries.tags.filter((t: string) => t.toLowerCase() !== 'featured' && !t.toLowerCase().startsWith('featured:')).length - 3}
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Synopsis Box */}
+          <SynopsisBox description={activeSeries.description} />
+
+          {/* Action Buttons Row */}
+          <div className={styles.actionButtonsRow}>
+            <WatchlistToggle seriesId={activeSeries.id} />
+            {firstEpisodeId ? (
+              <Link href={getEpisodeWatchUrl(firstEpisodeId, 1, slug)} className={styles.watchLaterBtn}>
+                <Clock size={16} />
+                <span>Add to watch later</span>
+              </Link>
+            ) : null}
+          </div>
+
+          {/* Studio Meta Line */}
+          <div className={styles.studioMetaLine}>
+            <Camera size={18} className={styles.studioIcon} />
+            <span className={styles.studioLabel}>Studio</span>
+            <Link href={`/studios/${convertStudioNameToSlug(studio.split(',')[0].trim())}`} className={styles.studioValueGold}>
+              {studio.split(',')[0]}
+            </Link>
+          </div>
+
+          {/* Mobile Episodes List Stack */}
+          <section className={styles.episodesSectionContainer}>
+            <div className={styles.sectionHeader}>
+              <div className={styles.sectionHeaderTitle}>
+                <h2>Episodes</h2>
+              </div>
+            </div>
+
+            {episodesToRender.length > 0 ? (
+              <div className={styles.episodesStackList}>
+                {[...episodesToRender]
+                  .sort((a: any, b: any) => b.episode_number - a.episode_number)
+                  .map((ep: any) => {
+                  const cleanTitle = (ep.title || '').replace(/^\[Preview\]\s*/i, '').replace(/^\[Trailer\]\s*/i, '').replace(/^.*-\s*/, '').trim();
+
+                  return (
+                    <Link key={ep.id} href={getEpisodeWatchUrl(ep.id, ep.episode_number, slug)} className={styles.epListItemCard}>
+                      <div className={styles.epPlayBtnCircle}>
+                        <Play size={18} fill="#090d16" color="#090d16" />
+                      </div>
+                      <div className={styles.epListTitleCol}>
+                        <span className={styles.epSeriesSubname}>{activeSeries.title}</span>
+                        <span className={styles.epTitleMain}>{cleanTitle || `Episode ${ep.episode_number}`}</span>
+                      </div>
+                      <div className={styles.epListRightCol}>
+                        <span className={styles.epNewBadge}>NEW</span>
+                        <ChevronRight size={18} className={styles.epChevronIcon} />
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            ) : null}
+          </section>
+        </div>
 
         {/* Similar Titles Section */}
         {similarSeries.length > 0 && (

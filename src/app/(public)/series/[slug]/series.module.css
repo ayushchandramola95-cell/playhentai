@@ -85,94 +85,136 @@
 }
 
 .posterWrapper:hover .posterImage {
-  transform: scale(1.02);
+/* Desktop vs Mobile Scoping Containers */
+.desktopOnlyContainer {
+  display: block;
+}
+
+.mobileOnlyContainer {
+  display: none;
+}
+
+.seriesTitleDesktop {
+  font-size: 2.8rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--foreground-primary);
+  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  margin: 0;
+}
+
+.episodeGridDesktop {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
 }
 
 /* Mobile Hero Section & Screenshot Layout */
 .mobileHeroSection {
   display: flex;
-  gap: 1.15rem;
+  gap: 1rem;
   align-items: flex-start;
   margin-bottom: 1.25rem;
+}
+
+.posterWrapperMobile {
+  position: relative;
+  width: 145px;
+  max-width: 145px;
+  aspect-ratio: 2 / 3;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  background: var(--surface);
+  flex-shrink: 0;
 }
 
 .heroInfoRight {
   display: flex;
   flex-direction: column;
-  gap: 0.45rem;
+  gap: 0.4rem;
   flex: 1;
   min-width: 0;
   text-align: left;
 }
 
+.seriesTitleMobile {
+  font-size: 1.35rem;
+  font-weight: 850;
+  color: #ffffff;
+  line-height: 1.25;
+  margin: 0;
+}
+
 .ratingRow {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.5rem;
   margin-top: 0.1rem;
 }
 
-.ratingScoreGold {
-  font-size: 1.45rem;
-  font-weight: 900;
+.ratingScoreGoldMobile {
+  font-size: 1.05rem;
+  font-weight: 850;
   color: #eab308;
 }
 
 .statusBadgesRow {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.35rem;
   flex-wrap: wrap;
-  margin-top: 0.15rem;
+  margin-top: 0.1rem;
 }
 
-.statusPillPink {
+.statusPillPinkMobile {
   border: 1px solid #f43f5e;
   color: #f43f5e;
-  font-size: 0.68rem;
+  font-size: 0.62rem;
   font-weight: 700;
-  padding: 0.18rem 0.55rem;
-  border-radius: 6px;
+  padding: 0.15rem 0.45rem;
+  border-radius: 5px;
   text-transform: capitalize;
 }
 
-.censoredPillPink {
+.censoredPillPinkMobile {
   background: rgba(244, 63, 94, 0.2);
   color: #f43f5e;
-  font-size: 0.68rem;
+  font-size: 0.62rem;
   font-weight: 700;
-  padding: 0.18rem 0.55rem;
-  border-radius: 6px;
+  padding: 0.15rem 0.45rem;
+  border-radius: 5px;
   text-transform: capitalize;
 }
 
 .inlineTagsRow {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.3rem;
   flex-wrap: wrap;
-  margin-top: 0.2rem;
+  margin-top: 0.15rem;
 }
 
-.tagPillGold {
+.tagPillGoldMobile {
   border: 1px solid #eab308;
   color: #eab308;
-  font-size: 0.68rem;
+  font-size: 0.62rem;
   font-weight: 700;
-  padding: 0.18rem 0.5rem;
-  border-radius: 6px;
+  padding: 0.15rem 0.45rem;
+  border-radius: 5px;
   text-decoration: none !important;
   transition: all 0.2s ease;
 }
 
-.tagPillGold:hover {
+.tagPillGoldMobile:hover {
   background: rgba(234, 179, 8, 0.15);
   color: #ffffff;
 }
 
-.tagPlusCount {
+.tagPlusCountMobile {
   color: #94a3b8;
-  font-size: 0.72rem;
+  font-size: 0.65rem;
   font-weight: 700;
 }
 
@@ -880,12 +922,18 @@
 }
 
 @media (max-width: 900px) {
+  .desktopOnlyContainer {
+    display: none !important;
+  }
+  .mobileOnlyContainer {
+    display: block !important;
+  }
   .bannerContainer {
-    height: 150px;
+    height: 140px;
   }
   .contentWrapper {
-    margin-top: -110px;
-    padding: 0 1.25rem;
+    margin-top: -105px;
+    padding: 0 1rem;
   }
   .metaGrid {
     display: flex;
