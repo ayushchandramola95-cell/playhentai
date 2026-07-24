@@ -143,17 +143,44 @@ export default function VideoPlayer({
     }
   };
 
-  // Toggle play/pause when clicking anywhere on the video area
+  // Handle container tap/click: On mobile, tapping outside control buttons toggles/closes controls & settings without pausing video
   const handleContainerClick = (e: React.MouseEvent) => {
     const target = e.target as HTMLElement;
-    // Don't toggle if user clicked inside bottom controls or speed menu
+
+    // Ignore clicks directly inside interactive control buttons or speed menu
     if (
       target.closest(`.${styles.bottomControls}`) || 
-      target.closest(`.${styles.speedSelectorContainer}`)
+      target.closest(`.${styles.speedSelectorContainer}`) ||
+      target.closest(`.${styles.bigPlayTrigger}`)
     ) {
       return;
     }
-    togglePlay();
+
+    const isMobileScreen = typeof window !== 'undefined' && window.innerWidth <= 768;
+
+    if (isMobileScreen) {
+      // MOBILE ONLY: Tapping outside closes settings & toggles controls WITHOUT pausing video!
+      if (showSpeedMenu) {
+        setShowSpeedMenu(false);
+        return;
+      }
+
+      if (showControls && isPlaying) {
+        setShowControls(false);
+      } else {
+        setShowControls(true);
+        if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+        controlsTimeoutRef.current = setTimeout(() => {
+          if (isPlaying) {
+            setShowControls(false);
+            setShowSpeedMenu(false);
+          }
+        }, 3000);
+      }
+    } else {
+      // DESKTOP: Clicking video area toggles play/pause
+      togglePlay();
+    }
   };
 
   const handleTimeUpdate = () => {
