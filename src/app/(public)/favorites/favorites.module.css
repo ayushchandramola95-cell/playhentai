@@ -1,0 +1,284 @@
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2.5rem 1.25rem 5rem;
+  min-height: 80vh;
+  position: relative;
+  width: 100%;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--foreground-secondary);
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  transition: color 0.2s ease;
+}
+
+.backLink:hover {
+  color: var(--primary);
+}
+
+.headerSection {
+  margin-bottom: 2.2rem;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.4rem;
+}
+
+.titleRow h1 {
+  font-size: 2.2rem;
+  font-weight: 850;
+  color: #fff;
+  letter-spacing: -0.02em;
+}
+
+.headerIcon {
+  color: #ec4899;
+}
+
+.subtext {
+  color: var(--foreground-secondary);
+  font-size: 1.02rem;
+  max-width: 600px;
+}
+
+/* Series Grid */
+.seriesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 1.2rem;
+  width: 100%;
+}
+
+.seriesCard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+  min-width: 0;
+}
+
+.seriesCard:hover {
+  transform: translateY(-4px);
+  border-color: rgba(236, 72, 153, 0.4);
+}
+
+.posterWrapper {
+  position: relative;
+  aspect-ratio: 2 / 3;
+  width: 100%;
+  background: #0f172a;
+  overflow: hidden;
+}
+
+.posterImage {
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.seriesCard:hover .posterImage {
+  transform: scale(1.05);
+}
+
+.noPoster {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  text-align: center;
+  color: var(--foreground-muted);
+  font-size: 0.85rem;
+}
+
+.removeBtn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ef4444;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.2s ease;
+}
+
+.removeBtn:hover:not(:disabled) {
+  background: #ef4444;
+  color: #ffffff;
+  transform: scale(1.1);
+}
+
+.badgeOverlay {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  display: flex;
+  gap: 0.35rem;
+}
+
+.ratingBadge {
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(6px);
+  color: #f59e0b;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+}
+
+.seriesMeta {
+  padding: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.seriesTitle {
+  font-size: 0.95rem;
+  font-weight: 750;
+  line-height: 1.35;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.seriesTitle a {
+  color: #ffffff;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.seriesTitle a:hover {
+  color: #ec4899;
+}
+
+.tagsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.tagPill {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--foreground-secondary);
+  background: rgba(255, 255, 255, 0.06);
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.watchNowLink {
+  margin-top: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  background: rgba(236, 72, 153, 0.15);
+  border: 1px solid rgba(236, 72, 153, 0.3);
+  color: #ec4899;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.45rem;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.watchNowLink:hover {
+  background: #ec4899;
+  color: #ffffff;
+}
+
+.loadingBox {
+  text-align: center;
+  padding: 4rem;
+  color: var(--foreground-muted);
+}
+
+.cardShell,
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 4rem 2rem;
+  border-radius: 24px;
+  max-width: 500px;
+  margin: 3rem auto;
+  gap: 1.2rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.emptyIcon {
+  color: #ec4899;
+}
+
+.actionBtn {
+  background: #ec4899;
+  color: #ffffff;
+  padding: 0.75rem 1.8rem;
+  border-radius: 30px;
+  font-weight: 700;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+/* Mobile Screens (< 768px): 2 Column Grid */
+@media (max-width: 768px) {
+  .container {
+    padding: 1.5rem 0.85rem 4rem !important;
+  }
+
+  .seriesGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0.75rem !important;
+  }
+
+  .seriesMeta {
+    padding: 0.65rem !important;
+    gap: 0.35rem !important;
+  }
+
+  .seriesTitle {
+    font-size: 0.85rem !important;
+  }
+
+  .removeBtn {
+    width: 28px !important;
+    height: 28px !important;
+    top: 6px !important;
+    right: 6px !important;
+  }
+
+  .watchNowLink {
+    font-size: 0.72rem !important;
+    padding: 0.38rem !important;
+  }
+}

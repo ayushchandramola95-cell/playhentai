@@ -162,6 +162,15 @@ export default function Header() {
                 <hr className={styles.divider} />
 
                 <Link 
+                  href="/favorites" 
+                  onClick={() => setDropdownOpen(false)} 
+                  className={styles.dropdownItem}
+                >
+                  <Heart size={16} style={{ color: '#ec4899' }} />
+                  <span>My Favorites</span>
+                </Link>
+
+                <Link 
                   href="/watchlist" 
                   onClick={() => setDropdownOpen(false)} 
                   className={styles.dropdownItem}

@@ -11,22 +11,35 @@ export async function GET(request: Request) {
 
     const { searchParams } = new URL(request.url);
     const seriesId = searchParams.get('series_id');
-    if (!seriesId) return NextResponse.json({ error: 'Missing series_id' }, { status: 400 });
+    if (seriesId) {
+      const { data, error } = await supabase
+        .from('favorites')
+        .select('id')
+        .eq('profile_id', user.id)
+        .eq('series_id', seriesId)
+        .maybeSingle();
 
-    const { data, error } = await supabase
-      .from('favorites')
-      .select('id')
-      .eq('profile_id', user.id)
-      .eq('series_id', seriesId)
-      .maybeSingle();
+      if (error) {
+        return NextResponse.json({ isFavorite: false });
+      }
 
-    if (error) {
-      return NextResponse.json({ isFavorite: false });
+      return NextResponse.json({ isFavorite: !!data });
     }
 
-    return NextResponse.json({ isFavorite: !!data });
+    // Fetch full user favorites list
+    const { data: favorites, error } = await supabase
+      .from('favorites')
+      .select('id, created_at, series(*)')
+      .eq('profile_id', user.id)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      return NextResponse.json({ favorites: [] });
+    }
+
+    return NextResponse.json({ favorites });
   } catch (err: any) {
-    return NextResponse.json({ isFavorite: false });
+    return NextResponse.json({ isFavorite: false, favorites: [] });
   }
 }
 
