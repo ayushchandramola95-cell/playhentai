@@ -385,53 +385,97 @@
 
 @media (max-width: 768px) {
   .heroSection {
-    min-height: 380px;
+    min-height: auto;
     height: auto;
-    padding: 2.2rem 0 3.5rem 0;
+    padding: 1.5rem 0 3.2rem 0;
+    overflow: hidden;
   }
+
   .posterCardWrapper {
     display: none;
   }
+
   .heroContentWrapper {
     padding: 0 1.2rem;
   }
+
   .navBtn {
     display: none;
   }
+
   .heroTitle {
-    font-size: 1.8rem;
+    font-size: 1.35rem;
+    line-height: 1.25;
+    margin-bottom: 0.2rem;
   }
+
+  .genreSubLine {
+    font-size: 0.78rem;
+    margin-bottom: 0.25rem;
+  }
+
   .heroDescription {
-    font-size: 0.9rem;
-    -webkit-line-clamp: 3;
+    font-size: 0.82rem;
+    line-height: 1.45;
+    -webkit-line-clamp: 2;
+    margin: 0.2rem 0 0.75rem 0;
+  }
+
+  .heroButtons {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.45rem;
+    width: 100%;
+  }
+
+  .heroButtons > * {
+    flex: 1;
+    min-width: 0;
+    justify-content: center;
+    font-size: 0.8rem !important;
+    padding: 0.55rem 0.45rem !important;
+    border-radius: 8px !important;
+  }
+
+  .playBtn {
+    flex: 1.1;
+    gap: 0.35rem;
+  }
+
+  .detailsBtn {
+    gap: 0.3rem;
+  }
+
+  .capsuleDotsContainer {
+    bottom: 0.6rem;
+    padding: 0.25rem 0.6rem;
+    gap: 0.4rem;
   }
 }
 
 @media (max-width: 480px) {
   .heroSection {
-    min-height: 340px;
-    padding: 1.8rem 0 3rem 0;
+    min-height: auto;
+    padding: 1.25rem 0 3rem 0;
   }
+
   .heroContentWrapper {
-    padding: 0 1rem;
+    padding: 0 0.85rem;
   }
+
   .heroTitle {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
   }
+
   .heroDescription {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     -webkit-line-clamp: 2;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.65rem;
   }
-  .heroButtons {
-    gap: 0.5rem;
-  }
-  .playBtn, .detailsBtn {
-    padding: 0.65rem 1.1rem;
-    font-size: 0.85rem;
-  }
-  .capsuleDotsContainer {
-    bottom: 0.8rem;
-    padding: 0.3rem 0.6rem;
+
+  .heroButtons > * {
+    font-size: 0.76rem !important;
+    padding: 0.5rem 0.3rem !important;
   }
 }
