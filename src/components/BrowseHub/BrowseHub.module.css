@@ -345,26 +345,48 @@
   }
 }
 
-@media (max-width: 768px) and (min-width: 481px) {
+@media (max-width: 768px) {
   .seriesGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .seriesGrid > div:nth-child(2n) :global(.popover) {
-    left: auto !important;
-    right: 105% !important;
-  }
-  .seriesGrid > div:nth-child(2n) :global(.popover)::before {
-    left: auto !important;
-    right: -15px !important;
-  }
-}
-
-@media (max-width: 480px) {
-  .seriesGrid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0.75rem !important;
   }
   .seriesGrid > div :global(.popover) {
     display: none !important;
+  }
+
+  .catalogHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .sortControls {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .sortSelect {
+    flex: 1;
+    max-width: 200px;
+  }
+
+  .filterBar {
+    padding: 0.6rem 0.85rem;
+  }
+
+  .searchInput {
+    height: 38px;
+    font-size: 0.85rem;
+  }
+
+  .selectorSection {
+    padding: 0.75rem 0.85rem;
+    max-height: 140px;
+  }
+
+  .pillBtn {
+    font-size: 0.76rem;
+    padding: 0.3rem 0.65rem;
   }
 }
 

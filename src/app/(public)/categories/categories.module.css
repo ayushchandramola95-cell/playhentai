@@ -270,13 +270,27 @@
 }
 
 @media (max-width: 768px) {
+  .container {
+    padding: 1rem 1rem 3rem;
+  }
+
+  .headerSection h1 {
+    font-size: 1.5rem;
+  }
+
+  .subtext {
+    font-size: 0.85rem;
+  }
+
   .seriesGrid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0.75rem !important;
   }
 }
 
 @media (max-width: 480px) {
   .seriesGrid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0.65rem !important;
   }
 }
