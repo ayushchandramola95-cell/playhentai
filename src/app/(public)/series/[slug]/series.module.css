@@ -85,6 +85,9 @@
 }
 
 .posterWrapper:hover .posterImage {
+  transform: scale(1.02);
+}
+
 /* Desktop vs Mobile Scoping Containers */
 .desktopOnlyContainer {
   display: block;
