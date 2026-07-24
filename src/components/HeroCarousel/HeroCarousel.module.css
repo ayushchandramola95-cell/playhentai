@@ -1,10 +1,11 @@
 .heroSection {
   position: relative;
   width: 100%;
+  max-width: 100%;
   min-height: 600px;
   height: 75vh;
   max-height: 720px;
-  overflow: hidden;
+  overflow: hidden !important;
   display: flex;
   align-items: center;
   background: #090d16;
