@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Search, X, Loader2 } from 'lucide-react';
@@ -15,6 +15,7 @@ interface SearchBarProps {
 export default function SearchBar({ onFocusChange }: SearchBarProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const pathname = usePathname();
   const containerRef = useRef<HTMLFormElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   
@@ -33,6 +34,13 @@ export default function SearchBar({ onFocusChange }: SearchBarProps) {
       setQuery('');
     }
   }, [searchParams]);
+
+  // Reset focus state, close dropdown, and blur input on route change
+  useEffect(() => {
+    setShowDropdown(false);
+    inputRef.current?.blur();
+    onFocusChange?.(false);
+  }, [pathname, searchParams, onFocusChange]);
 
   // Debounced suggestion fetcher
   useEffect(() => {
@@ -64,6 +72,7 @@ export default function SearchBar({ onFocusChange }: SearchBarProps) {
     const handleClickOutside = (event: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setShowDropdown(false);
+        inputRef.current?.blur();
         onFocusChange?.(false);
       }
     };
@@ -77,12 +86,16 @@ export default function SearchBar({ onFocusChange }: SearchBarProps) {
       handleSelectSuggestion(suggestions[focusedIndex]);
     } else if (query.trim()) {
       setShowDropdown(false);
+      inputRef.current?.blur();
+      onFocusChange?.(false);
       router.push(`/search?q=${encodeURIComponent(query.trim())}`);
     }
   };
 
   const handleSelectSuggestion = (series: any) => {
     setShowDropdown(false);
+    inputRef.current?.blur();
+    onFocusChange?.(false);
     setQuery(series.title);
     router.push(`/series/${series.slug}`);
   };

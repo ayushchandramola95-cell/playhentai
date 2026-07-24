@@ -34,9 +34,10 @@ export default function Header() {
     setMounted(true);
   }, []);
 
-  // Close mobile drawer on route changes
+  // Close mobile drawer and reset search focus on route changes
   useEffect(() => {
     setMobileMenuOpen(false);
+    setSearchFocused(false);
   }, [pathname]);
 
   // Prevent scrolling when mobile drawer is open
