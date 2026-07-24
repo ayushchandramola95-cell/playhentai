@@ -89,13 +89,13 @@ export default function WatchlistToggle({ seriesId, variant = 'default' }: Watch
         <div className={styles.loadingSpinner} />
       ) : inWatchlist ? (
         <>
-          <Check size={18} />
-          <span>Saved List</span>
+          <Check size={16} />
+          <span>Saved</span>
         </>
       ) : (
         <>
-          <Plus size={18} />
-          <span>Add List</span>
+          <Plus size={16} />
+          <span>Watchlist</span>
         </>
       )}
     </button>

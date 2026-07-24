@@ -1,6 +1,7 @@
 import React from 'react';
 import { Metadata } from 'next';
 import WatchlistToggle from '@/components/WatchlistToggle/WatchlistToggle';
+import FavoriteToggle from '@/components/FavoriteToggle/FavoriteToggle';
 import CommentSection from '@/components/CommentSection/CommentSection';
 import RateSeriesButton from '@/components/RateSeriesButton/RateSeriesButton';
 import SimilarTitles from '@/components/SimilarTitles/SimilarTitles';
@@ -427,10 +428,10 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
                 />
               </div>
 
-              {/* Watchlist & Rate Action Buttons Row */}
+              {/* Watchlist & Favorite Action Buttons Row */}
               <div className={styles.actionButtonsRow}>
                 <WatchlistToggle seriesId={activeSeries.id} />
-                <RateSeriesButton seriesId={activeSeries.id} seriesTitle={activeSeries.title} />
+                <FavoriteToggle seriesId={activeSeries.id} />
               </div>
             </div>
 
@@ -696,12 +697,7 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
           {/* Action Buttons Row */}
           <div className={styles.actionButtonsRow}>
             <WatchlistToggle seriesId={activeSeries.id} />
-            {firstEpisodeId ? (
-              <Link href={getEpisodeWatchUrl(firstEpisodeId, 1, slug)} className={styles.watchLaterBtn}>
-                <Clock size={16} />
-                <span>Add to watch later</span>
-              </Link>
-            ) : null}
+            <FavoriteToggle seriesId={activeSeries.id} />
           </div>
 
           {/* Mobile Episodes Section - 2 Column Image Box Grid */}
