@@ -261,6 +261,37 @@
   letter-spacing: 0.05em;
 }
 
+.sortControls {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.sortLabel {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--foreground-secondary);
+}
+
+.sortSelect {
+  height: 38px;
+  padding: 0 0.8rem;
+  border-radius: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--foreground-primary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sortSelect:focus, .sortSelect:hover {
+  border-color: var(--primary);
+  background: var(--surface-hover);
+}
+
 /* Card Grid Layout: 5 columns on desktop */
 .seriesGrid {
   display: grid;

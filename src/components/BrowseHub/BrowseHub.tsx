@@ -47,6 +47,7 @@ function BrowseHubContent({ initialSeries, isDbEmpty }: BrowseHubProps) {
   const [selectedStudio, setSelectedStudio] = useState<string | null>(null);
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [sortMode, setSortMode] = useState<string>('a_z'); // DEFAULT: A to Z
   const [currentPage, setCurrentPage] = useState<number>(1);
 
   const ITEMS_PER_PAGE = 20; // 4 rows of 5 cards
@@ -66,7 +67,7 @@ function BrowseHubContent({ initialSeries, isDbEmpty }: BrowseHubProps) {
   // Reset to page 1 whenever filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedGenre, selectedStudio, selectedYear, searchQuery]);
+  }, [selectedGenre, selectedStudio, selectedYear, searchQuery, sortMode]);
 
   // Dynamically compute unique genres list by combining static GENRES + any dynamic tags in initialSeries
   const dynamicGenres = useMemo(() => {
@@ -88,6 +89,11 @@ function BrowseHubContent({ initialSeries, isDbEmpty }: BrowseHubProps) {
     const genreParam = searchParams.get('genre');
     const studioParam = searchParams.get('studio');
     const yearParam = searchParams.get('year');
+    const sortParam = searchParams.get('sort');
+
+    if (sortParam) {
+      setSortMode(sortParam);
+    }
 
     if (genreParam) {
       if (genreParam.toLowerCase() === 'all' || genreParam.toLowerCase() === 'all genres') {
@@ -158,13 +164,14 @@ function BrowseHubContent({ initialSeries, isDbEmpty }: BrowseHubProps) {
     setSelectedStudio(null);
     setSelectedYear(null);
     setSearchQuery('');
+    setSortMode('a_z');
     setCurrentPage(1);
     router.push('/categories');
   };
 
-  // Computed filtered list of series
+  // Computed filtered & sorted list of series
   const filteredSeries = useMemo(() => {
-    return initialSeries.filter(series => {
+    const list = initialSeries.filter(series => {
       // 1. Text Search matching title, alternative titles, aliases, description, and tags
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
@@ -204,7 +211,33 @@ function BrowseHubContent({ initialSeries, isDbEmpty }: BrowseHubProps) {
 
       return true;
     });
-  }, [initialSeries, searchQuery, selectedGenre, selectedStudio, selectedYear]);
+
+    // 5. Apply Sorting (DEFAULT: A-Z)
+    const sorted = [...list];
+    if (sortMode === 'a_z') {
+      sorted.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+    } else if (sortMode === 'z_a') {
+      sorted.sort((a, b) => (b.title || '').localeCompare(a.title || ''));
+    } else if (sortMode === 'newest') {
+      sorted.sort((a, b) => {
+        const dateA = new Date((a as any).release_date || (a as any).created_at || a.releaseYear || 0).getTime();
+        const dateB = new Date((b as any).release_date || (b as any).created_at || b.releaseYear || 0).getTime();
+        return dateB - dateA;
+      });
+    } else if (sortMode === 'oldest') {
+      sorted.sort((a, b) => {
+        const dateA = new Date((a as any).release_date || (a as any).created_at || a.releaseYear || 0).getTime();
+        const dateB = new Date((b as any).release_date || (b as any).created_at || b.releaseYear || 0).getTime();
+        return dateA - dateB;
+      });
+    } else if (sortMode === 'most_viewed') {
+      sorted.sort((a, b) => ((b as any).views || 0) - ((a as any).views || 0));
+    } else if (sortMode === 'rating') {
+      sorted.sort((a, b) => ((b as any).rating || 0) - ((a as any).rating || 0));
+    }
+
+    return sorted;
+  }, [initialSeries, searchQuery, selectedGenre, selectedStudio, selectedYear, sortMode]);
 
   // Calculate Pagination
   const totalItems = filteredSeries.length;
@@ -353,14 +386,28 @@ function BrowseHubContent({ initialSeries, isDbEmpty }: BrowseHubProps) {
         )}
       </div>
 
-      {/* Catalog Results Grid */}
-      <section className={styles.catalogSection} ref={catalogRef}>
         <div className={styles.catalogHeader}>
           <div className={styles.catalogTitle}>
             <Grid size={20} className={styles.headerIcon} />
             <h2>Filtered Releases</h2>
+            {isDbEmpty && <span className={styles.demoBadge}>DEMO DATA</span>}
           </div>
-          {isDbEmpty && <span className={styles.demoBadge}>DEMO DATA</span>}
+
+          <div className={styles.sortControls}>
+            <span className={styles.sortLabel}>Sort By:</span>
+            <select
+              value={sortMode}
+              onChange={(e) => setSortMode(e.target.value)}
+              className={styles.sortSelect}
+            >
+              <option value="a_z">Name: A to Z (Default)</option>
+              <option value="z_a">Name: Z to A</option>
+              <option value="newest">Newest Releases</option>
+              <option value="oldest">Oldest Releases</option>
+              <option value="most_viewed">Most Viewed</option>
+              <option value="rating">Highest Rated</option>
+            </select>
+          </div>
         </div>
 
         {currentSeries.length > 0 ? (
