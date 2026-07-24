@@ -409,120 +409,90 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
       <div className={styles.contentWrapper}>
         <div className={styles.metaGrid}>
           
-          {/* Top Hero Section: Poster Left, Info & Actions Right */}
-          <div className={styles.mobileTopRow}>
-            {/* Left Column: Poster Image */}
-            <div className={styles.leftCol}>
-              <div className={styles.posterWrapper}>
-                <Image
-                  src={getR2Url(activeSeries.poster_image_key || activeSeries.cover_image_key, 'poster')}
-                  alt={activeSeries.title}
-                  fill
-                  sizes="(max-width: 768px) 130px, 300px"
-                  className={styles.posterImage}
-                  style={{ objectPosition: activeSeries.poster_position || 'center' }}
-                />
-              </div>
+          {/* Left Column: Poster Image */}
+          <div className={styles.leftCol}>
+            <div className={styles.posterWrapper}>
+              <Image
+                src={getR2Url(activeSeries.poster_image_key || activeSeries.cover_image_key, 'poster')}
+                alt={activeSeries.title}
+                fill
+                sizes="(max-width: 768px) 140px, 300px"
+                className={styles.posterImage}
+                style={{ objectPosition: activeSeries.poster_position || 'center' }}
+              />
+            </div>
+          </div>
+
+          {/* Right Column: Title, Subtitle Meta, Ratings, Steam-style Action Buttons */}
+          <div className={styles.heroRightCol}>
+            {isDbEmpty && (
+              <span className={styles.dbAlert}>
+                💡 Catalog Mock
+              </span>
+            )}
+
+            <h1 className={styles.seriesTitle}>{activeSeries.title}</h1>
+
+            {/* Subtitle Row: Studio • Release Year • Category/Format • Avg Runtime */}
+            <div className={styles.subtitleMetaRow}>
+              <span className={styles.metaStudioText}>{studio.split(',')[0]}</span>
+              <span className={styles.metaDot}>•</span>
+              <span>{releaseYear}</span>
+              <span className={styles.metaDot}>•</span>
+              <span>{activeSeries.category || 'Anime'}</span>
+              <span className={styles.metaDot}>•</span>
+              <span>{activeSeries.runtime !== undefined && activeSeries.runtime !== null ? activeSeries.runtime : 24} min</span>
             </div>
 
-            {/* Header Info Column: Category, Title, Ratings, Actions */}
-            <div className={styles.headerInfoCol}>
-              {isDbEmpty && (
-                <span className={styles.dbAlert}>
-                  💡 Catalog Mock
-                </span>
+            {/* Ratings Summary & Views Block */}
+            <div className={styles.ratingsBlock}>
+              <div className={styles.ratingsCard}>
+                <Star size={16} fill="#eab308" color="#eab308" />
+                <span className={styles.ratingScore}>{rating.toFixed(1)}</span>
+                <span className={styles.ratingVotes}>({(views / 15).toFixed(0)} ratings)</span>
+              </div>
+              <span className={styles.viewsCounter}>
+                <Eye size={14} />
+                <span>{views.toLocaleString()} Views</span>
+              </span>
+            </div>
+
+            {/* Action Buttons Stack (Steam-style hierarchy) */}
+            <div className={styles.actionButtonsStack}>
+              {firstEpisodeId ? (
+                <Link href={getEpisodeWatchUrl(firstEpisodeId, 1, slug)} className={styles.watchNowBtn}>
+                  <Play size={18} fill="currentColor" />
+                  <span>Watch Now</span>
+                </Link>
+              ) : (
+                <button disabled className={styles.watchNowBtn}>
+                  <span>Upcoming Release</span>
+                </button>
               )}
               
-              {/* Category & Studio Badge */}
-              <div className={styles.categoryBadgeRow}>
-                <Link href={`/categories?genre=${encodeURIComponent(activeSeries.category || 'Anime')}`} className={styles.categoryBadge}>
-                  {activeSeries.category || 'Anime'}
-                </Link>
-                {studio && (
-                  <span className={styles.studioSubtitle}>
-                    {studio.split(',')[0]}
-                  </span>
-                )}
-              </div>
-
-              <h1 className={styles.seriesTitle}>{activeSeries.title}</h1>
-
-              {status === 'upcoming' && (
-                <div style={{
-                  background: 'rgba(59, 130, 246, 0.08)',
-                  border: '1px solid rgba(59, 130, 246, 0.3)',
-                  padding: '0.35rem 0.6rem',
-                  borderRadius: '6px',
-                  color: '#60a5fa',
-                  fontSize: '0.72rem',
-                  fontWeight: 700,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.3rem'
-                }}>
-                  <span>📢 Airing Soon</span>
-                </div>
-              )}
-
-              {/* Ratings Summary Block */}
-              <div className={styles.ratingsBlock}>
-                <div className={styles.ratingsCard}>
-                  <span className={styles.ratingScore}>{rating.toFixed(1)}</span>
-                  <span className={styles.ratingMax}>/10</span>
-                  <div className={styles.ratingStars}>
-                    {Array.from({ length: 5 }).map((_, i) => {
-                      const filled = rating / 2 > i;
-                      return (
-                        <Star 
-                          key={i} 
-                          size={12} 
-                          fill={filled ? '#eab308' : 'transparent'} 
-                          color={filled ? '#eab308' : 'rgba(255,255,255,0.2)'} 
-                        />
-                      );
-                    })}
-                  </div>
-                </div>
-                <span className={styles.viewsCounter}>
-                  <Eye size={12} />
-                  <span>{views.toLocaleString()}</span>
-                </span>
-              </div>
-
-              {/* Watchlist & Rate Action Buttons Row */}
-              <div className={styles.actionButtonsRow}>
+              <div className={styles.secondaryButtonsRow}>
                 <WatchlistToggle seriesId={activeSeries.id} />
                 <RateSeriesButton seriesId={activeSeries.id} seriesTitle={activeSeries.title} />
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Genre Tags Row Below Header */}
-          {activeSeries.tags && activeSeries.tags.length > 0 && (
-            <div className={styles.tagsSectionRow}>
-              {activeSeries.tags
-                .filter((t: string) => t.toLowerCase() !== 'featured' && !t.toLowerCase().startsWith('featured:'))
-                .map((tag: string) => (
-                  <Link key={tag} href={`/categories?genre=${encodeURIComponent(tag)}`} className={styles.tagBadge}>
-                    #{tag}
-                  </Link>
-                ))}
-            </div>
-          )}
+        {/* Premium Synopsis Card */}
+        <div className={styles.synopsisBox}>
+          <h3 className={styles.synopsisLabel}>Synopsis</h3>
+          <p className={styles.synopsisText}>{activeSeries.description}</p>
+        </div>
 
-          {/* Right Column / Full Width Bottom: Synopsis & Details Table */}
-          <div className={styles.rightCol}>
-            {/* Premium Synopsis Card */}
-            <div className={styles.synopsisBox}>
-              <h3 className={styles.synopsisLabel}>Synopsis</h3>
-              <p className={styles.synopsisText}>{activeSeries.description}</p>
-            </div>
-
-            {/* Details Meta Table */}
-            <div className={styles.detailsTable}>
-              <div className={styles.detailsRow}>
-                <span className={styles.detailsKey}>Studio</span>
-                <span className={styles.detailsVal} style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap' }}>
+        {/* Grouped Metadata Grid (3 Distinct Cards to reduce scrolling) */}
+        <div className={styles.groupedMetadataGrid}>
+          {/* Card 1: Basic Info */}
+          <div className={styles.metaCard}>
+            <h4 className={styles.metaCardTitle}>Basic Info</h4>
+            <div className={styles.metaCardList}>
+              <div className={styles.metaItem}>
+                <span className={styles.metaKey}>Studio</span>
+                <span className={styles.metaVal}>
                   {studio.split(',').map((sName: string, index: number) => {
                     const cleanName = sName.trim();
                     const studioSlug = convertStudioNameToSlug(cleanName);
@@ -531,93 +501,95 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
                         <Link href={`/studios/${studioSlug}`} style={{ color: 'var(--primary)', fontWeight: 700, textDecoration: 'none' }}>
                           {cleanName}
                         </Link>
-                        {index < studio.split(',').length - 1 && <span style={{ color: 'var(--foreground-secondary)' }}>,</span>}
+                        {index < studio.split(',').length - 1 && <span>, </span>}
                       </React.Fragment>
                     );
                   })}
                 </span>
               </div>
-              
+              <div className={styles.metaItem}>
+                <span className={styles.metaKey}>Release Date</span>
+                <span className={styles.metaVal}>{firstAirDateFormatted || releaseYear}</span>
+              </div>
+              <div className={styles.metaItem}>
+                <span className={styles.metaKey}>Status</span>
+                <span className={styles.metaVal} style={{ textTransform: 'uppercase', color: status === 'completed' ? '#94a3b8' : '#22c55e' }}>
+                  {status}
+                </span>
+              </div>
+              <div className={styles.metaItem}>
+                <span className={styles.metaKey}>Runtime</span>
+                <span className={styles.metaVal}>{activeSeries.runtime || 24} min</span>
+              </div>
+              <div className={styles.metaItem}>
+                <span className={styles.metaKey}>Episodes</span>
+                <span className={styles.metaVal}>{totalEpisodesText}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 2: Titles */}
+          <div className={styles.metaCard}>
+            <h4 className={styles.metaCardTitle}>Titles</h4>
+            <div className={styles.metaCardList}>
+              <div className={styles.metaItem}>
+                <span className={styles.metaKey}>English</span>
+                <span className={styles.metaVal}>{activeSeries.alt_title_english || activeSeries.title}</span>
+              </div>
               {activeSeries.alt_title_japanese && (
-                <div className={styles.detailsRow}>
-                  <span className={styles.detailsKey}>Japanese Title</span>
-                  <span className={styles.detailsVal}>{activeSeries.alt_title_japanese}</span>
+                <div className={styles.metaItem}>
+                  <span className={styles.metaKey}>Japanese</span>
+                  <span className={styles.metaVal}>{activeSeries.alt_title_japanese}</span>
                 </div>
               )}
               {activeSeries.alt_title_romaji && (
-                <div className={styles.detailsRow}>
-                  <span className={styles.detailsKey}>Romaji Title</span>
-                  <span className={styles.detailsVal}>{activeSeries.alt_title_romaji}</span>
+                <div className={styles.metaItem}>
+                  <span className={styles.metaKey}>Romaji</span>
+                  <span className={styles.metaVal}>{activeSeries.alt_title_romaji}</span>
                 </div>
               )}
-              {activeSeries.alt_title_english && (
-                <div className={styles.detailsRow}>
-                  <span className={styles.detailsKey}>English Title</span>
-                  <span className={styles.detailsVal}>{activeSeries.alt_title_english}</span>
-                </div>
-              )}
+            </div>
+          </div>
 
-              <div className={styles.detailsRow}>
-                <span className={styles.detailsKey}>Status</span>
-                <span className={`${styles.detailsVal} ${styles.statusVal}`}>
-                  <span 
-                    className={styles.statusDot} 
-                    style={{ 
-                      background: status === 'completed' ? '#94a3b8' : status === 'upcoming' ? '#3b82f6' : '#22c55e',
-                      boxShadow: status === 'ongoing' || status === 'airing' ? '0 0 8px #22c55e' : status === 'upcoming' ? '0 0 8px #3b82f6' : 'none'
-                    }} 
-                  />
-                  <span className={styles.statusText}>{status.toUpperCase()}</span>
-                </span>
+          {/* Card 3: Content Info */}
+          <div className={styles.metaCard}>
+            <h4 className={styles.metaCardTitle}>Content Info</h4>
+            <div className={styles.metaCardList}>
+              <div className={styles.metaItem}>
+                <span className={styles.metaKey}>Language</span>
+                <span className={styles.metaVal}>{activeSeries.original_language || 'Japanese'}</span>
               </div>
-              <div className={styles.detailsRow}>
-                <span className={styles.detailsKey}>Release Year</span>
-                <span className={styles.detailsVal}>{releaseYear}</span>
+              <div className={styles.metaItem}>
+                <span className={styles.metaKey}>Country</span>
+                <span className={styles.metaVal}>{activeSeries.country || 'Japan'}</span>
               </div>
-              {firstAirDateFormatted && (
-                <div className={styles.detailsRow}>
-                  <span className={styles.detailsKey}>First air date</span>
-                  <span className={styles.detailsVal}>{firstAirDateFormatted}</span>
-                </div>
-              )}
-              {lastAirDateFormatted && (
-                <div className={styles.detailsRow}>
-                  <span className={styles.detailsKey}>Last air date</span>
-                  <span className={styles.detailsVal}>{lastAirDateFormatted}</span>
-                </div>
-              )}
-              <div className={styles.detailsRow}>
-                <span className={styles.detailsKey}>Original Language</span>
-                <span className={styles.detailsVal}>{activeSeries.original_language || 'Japanese'}</span>
+              <div className={styles.metaItem}>
+                <span className={styles.metaKey}>Rating</span>
+                <span className={styles.metaVal}>{activeSeries.content_rating || 'Explicit'}</span>
               </div>
-              <div className={styles.detailsRow}>
-                <span className={styles.detailsKey}>Country of Origin</span>
-                <span className={styles.detailsVal}>{activeSeries.country || 'Japan'}</span>
-              </div>
-              <div className={styles.detailsRow}>
-                <span className={styles.detailsKey}>Content Rating</span>
-                <span className={styles.detailsVal} style={{ textTransform: 'capitalize' }}>{activeSeries.content_rating || 'Explicit'}</span>
-              </div>
-              <div className={styles.detailsRow}>
-                <span className={styles.detailsKey}>Age Rating</span>
-                <span className={styles.detailsVal}>{activeSeries.age_rating || '18+'}</span>
-              </div>
-              <div className={styles.detailsRow}>
-                <span className={styles.detailsKey}>Avg Runtime</span>
-                <span className={styles.detailsVal}>{activeSeries.runtime !== undefined && activeSeries.runtime !== null ? activeSeries.runtime : 24} min</span>
-              </div>
-              <div className={styles.detailsRow}>
-                <span className={styles.detailsKey}>Seasons</span>
-                <span className={styles.detailsVal}>{activeSeries.seasons?.length || 0}</span>
-              </div>
-              <div className={styles.detailsRow}>
-                <span className={styles.detailsKey}>Total Episodes</span>
-                <span className={styles.detailsVal}>{totalEpisodesText}</span>
+              <div className={styles.metaItem}>
+                <span className={styles.metaKey}>Age</span>
+                <span className={styles.metaVal}>{activeSeries.age_rating || '18+'}</span>
               </div>
             </div>
-
           </div>
         </div>
+
+        {/* Organized Tags & Genres Container */}
+        {activeSeries.tags && activeSeries.tags.length > 0 && (
+          <div className={styles.tagsContainerCard}>
+            <h3 className={styles.tagsGroupHeading}>Tags & Genres</h3>
+            <div className={styles.tagsGrid}>
+              {activeSeries.tags
+                .filter((t: string) => t.toLowerCase() !== 'featured' && !t.toLowerCase().startsWith('featured:'))
+                .map((tag: string) => (
+                  <Link key={tag} href={`/categories?genre=${encodeURIComponent(tag)}`} className={styles.tagBadge}>
+                    #{tag}
+                  </Link>
+                ))}
+            </div>
+          </div>
+        )}
 
         {/* Episodes Section - Grid of 16:9 Thumbnails */}
         <section className={styles.episodesSectionContainer}>
@@ -657,12 +629,6 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
                   .replace(/^\[Trailer\]\s*/i, '')
                   .replace(/^.*-\s*/, '')
                   .trim();
-
-                const isGenericEpTitle =
-                  !cleanTitle ||
-                  cleanTitle.toLowerCase() === `episode ${ep.episode_number}`.toLowerCase() ||
-                  cleanTitle.toLowerCase() === `ep ${ep.episode_number}`.toLowerCase() ||
-                  cleanTitle.toLowerCase() === `${ep.episode_number}`;
 
                 return (
                   <div key={ep.id} className={`${styles.episodeCard} card-hover`}>
@@ -704,13 +670,20 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
                       </div>
                     </Link>
 
-                    {/* Metadata details underneath */}
+                    {/* Metadata details underneath with WATCH ➔ link */}
                     <div className={styles.epMetadataRow}>
-                      <span className={styles.epReleaseDate}>{releaseDate}</span>
-                      <span className={styles.epDurationText}>
-                        <Clock size={11} />
-                        <span>{Math.floor((ep.duration_seconds || 1440) / 60)} min</span>
-                      </span>
+                      <div className={styles.epMetaLeft}>
+                        <span className={styles.epReleaseDate}>{releaseDate}</span>
+                        <span className={styles.metaDot}>•</span>
+                        <span className={styles.epDurationText}>
+                          <Clock size={11} />
+                          <span>{Math.floor((ep.duration_seconds || 1440) / 60)} min</span>
+                        </span>
+                      </div>
+                      <Link href={getEpisodeWatchUrl(ep.id, ep.episode_number, slug)} className={styles.epWatchLink}>
+                        <span>WATCH</span>
+                        <Play size={10} fill="currentColor" />
+                      </Link>
                     </div>
                   </div>
                 );

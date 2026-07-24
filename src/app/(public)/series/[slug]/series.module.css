@@ -88,13 +88,182 @@
   transform: scale(1.02);
 }
 
-/* Right Column: Title, Ratings, Details */
-.rightCol {
+/* Right Column: Hero Info & Steam-style Action Buttons */
+.heroRightCol {
   text-align: left;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1rem;
   animation: slide-up 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.subtitleMetaRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--foreground-secondary);
+}
+
+.metaStudioText {
+  color: var(--primary-light, #a855f7);
+  font-weight: 700;
+}
+
+.metaDot {
+  color: var(--foreground-muted);
+  opacity: 0.6;
+}
+
+/* Action Buttons Stack (Steam-style hierarchy) */
+.actionButtonsStack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  max-width: 420px;
+}
+
+.watchNowBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 0.85rem 1.8rem;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--primary) 0%, #9333ea 100%);
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 800;
+  text-decoration: none !important;
+  box-shadow: 0 6px 20px rgba(var(--primary-rgb), 0.35);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  border: none;
+}
+
+.watchNowBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(var(--primary-rgb), 0.5);
+  opacity: 0.95;
+}
+
+.secondaryButtonsRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.secondaryButtonsRow > * {
+  flex: 1;
+}
+
+/* Grouped Metadata Grid (3 Cards to reduce scrolling) */
+.groupedMetadataGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+  margin-top: 2rem;
+  width: 100%;
+}
+
+.metaCard {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  backdrop-filter: blur(8px);
+}
+
+.metaCardTitle {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--primary);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.08);
+}
+
+.metaCardList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.metaItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.metaKey {
+  color: var(--foreground-muted);
+  font-weight: 600;
+}
+
+.metaVal {
+  color: var(--foreground-primary);
+  font-weight: 700;
+  text-align: right;
+}
+
+/* Tags Container Card */
+.tagsContainerCard {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  padding: 1.25rem;
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.tagsGroupHeading {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--foreground-secondary);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.tagsGrid {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem 0.55rem;
+  flex-wrap: wrap;
+}
+
+.epMetaLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.epWatchLink {
+  color: var(--primary);
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-decoration: none !important;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  transition: all 0.2s ease;
+}
+
+.epWatchLink:hover {
+  color: #ffffff;
+  transform: translateX(2px);
 }
 
 @keyframes slide-up {
@@ -566,22 +735,14 @@
   }
   .metaGrid {
     display: flex;
-    flex-direction: column;
-    gap: 1.25rem;
-  }
-  .mobileTopRow {
-    display: flex;
+    flex-direction: row;
     gap: 1rem;
     align-items: flex-start;
-    width: 100%;
   }
   .leftCol {
-    position: static;
     width: 120px;
     flex-shrink: 0;
-    margin: 0;
-    gap: 0.5rem;
-    align-items: flex-start;
+    position: static;
   }
   .posterWrapper {
     width: 120px;
@@ -589,68 +750,30 @@
     border-radius: 12px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
   }
-  .headerInfoCol {
+  .heroRightCol {
     flex: 1;
     min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0.45rem;
-    text-align: left;
+    gap: 0.55rem;
   }
   .seriesTitle {
     font-size: 1.3rem;
-    font-weight: 850;
     line-height: 1.25;
-    text-align: left;
-    margin: 0;
   }
-  .categoryBadgeRow {
-    justify-content: flex-start;
-    gap: 0.35rem 0.4rem;
+  .subtitleMetaRow {
+    font-size: 0.78rem;
+    gap: 0.35rem;
   }
-  .categoryBadge, .tagBadge {
-    font-size: 0.68rem;
-    padding: 0.18rem 0.45rem;
+  .actionButtonsStack {
+    max-width: 100%;
+    gap: 0.45rem;
   }
-  .ratingsBlock {
-    justify-content: flex-start;
-    gap: 0.4rem;
+  .watchNowBtn {
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
   }
-  .ratingsCard {
-    padding: 0.3rem 0.55rem;
-  }
-  .ratingScore {
-    font-size: 0.95rem;
-  }
-  .viewsCounter {
-    padding: 0.3rem 0.55rem;
-    font-size: 0.72rem;
-  }
-  .actionButtonsRow {
-    display: flex;
-    flex-direction: row;
-    gap: 0.5rem;
-    width: 100%;
-    margin-top: 0.2rem;
-  }
-  .actionButtonsRow > * {
-    flex: 1;
-    font-size: 0.75rem;
-    padding: 0.45rem 0.4rem;
-    white-space: nowrap;
-  }
-  .detailsTable {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.75rem 1rem;
-    padding: 1rem;
-    border-radius: 12px;
-  }
-  .episodesSectionContainer,
-  .discussionSection {
-    margin-top: 2.2rem;
-  }
-  .sectionHeaderTitle h2 {
-    font-size: 1.25rem;
+  .groupedMetadataGrid {
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
   }
   .episodeGrid {
     grid-template-columns: repeat(2, 1fr);
@@ -663,11 +786,8 @@
     height: 130px;
   }
   .contentWrapper {
-    padding: 0 0.85rem;
     margin-top: -95px;
-  }
-  .mobileTopRow {
-    gap: 0.75rem;
+    padding: 0 0.85rem;
   }
   .leftCol {
     width: 105px;
@@ -680,11 +800,17 @@
     font-size: 1.15rem;
     line-height: 1.25;
   }
-  .actionButtonsRow {
-    flex-direction: flex-row;
-    gap: 0.35rem;
+  .subtitleMetaRow {
+    font-size: 0.72rem;
   }
-  .actionButtonsRow > * {
+  .watchNowBtn {
+    padding: 0.5rem 0.85rem;
+    font-size: 0.8rem;
+  }
+  .secondaryButtonsRow {
+    gap: 0.4rem;
+  }
+  .secondaryButtonsRow > * {
     font-size: 0.72rem;
     padding: 0.4rem 0.3rem;
   }
@@ -692,35 +818,15 @@
     padding: 0.85rem;
     border-radius: 10px;
   }
-  .synopsisLabel {
-    font-size: 0.82rem;
-    margin-bottom: 0.35rem;
+  .groupedMetadataGrid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
   }
-  .synopsisText {
-    font-size: 0.85rem;
-    line-height: 1.45;
-  }
-  .detailsTable {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.65rem 0.85rem;
+  .metaCard {
     padding: 0.85rem;
-    border-radius: 10px;
-  }
-  .detailsKey {
-    font-size: 0.68rem;
-  }
-  .detailsVal {
-    font-size: 0.82rem;
-  }
-  .statusText {
-    font-size: 0.72rem;
   }
   .episodeGrid {
     grid-template-columns: repeat(2, 1fr);
     gap: 0.65rem;
-  }
-  .commentsCardWrapper {
-    padding: 1rem 0.75rem;
-    border-radius: 14px;
   }
 }
