@@ -518,13 +518,27 @@
 
 @media (max-width: 768px) {
   .section {
-    padding: 0 1.5rem;
+    padding: 0 1rem;
+    margin: 2.2rem auto 0;
+  }
+  .seriesSectionHeader {
+    margin-bottom: 1rem;
+  }
+  .headerLeftCol h2 {
+    font-size: 1.3rem;
+  }
+  .seriesSubtitle {
+    font-size: 0.6rem;
+  }
+  .viewAllLink {
+    font-size: 0.78rem;
+    padding: 0.3rem 0.75rem;
   }
   .recommendationBanner {
     flex-direction: column;
     text-align: center;
-    padding: 2rem;
-    gap: 1.5rem;
+    padding: 1.8rem 1.2rem;
+    gap: 1.2rem;
   }
   .recContent {
     text-align: center;
@@ -541,6 +555,10 @@
 @media (max-width: 640px) {
   .episodeGrid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 0.85rem;
+  }
+  .headerLeftCol h2 {
+    font-size: 1.2rem;
   }
   .categoriesGrid {
     grid-template-columns: repeat(3, 1fr);
@@ -552,7 +570,18 @@
 
 @media (max-width: 480px) {
   .episodeGrid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+  .headerLeftCol h2 {
+    font-size: 1.15rem;
+  }
+  .seriesSubtitle {
+    font-size: 0.58rem;
+  }
+  .viewAllLink {
+    font-size: 0.72rem;
+    padding: 0.25rem 0.6rem;
   }
   .categoriesGrid {
     grid-template-columns: repeat(2, 1fr);
