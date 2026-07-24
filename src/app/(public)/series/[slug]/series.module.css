@@ -524,26 +524,125 @@
   background: rgba(18, 14, 32, 0.6);
 }
 
+.actionButtonsRow {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+}
+
 @media (max-width: 900px) {
+  .contentWrapper {
+    margin-top: -100px;
+    padding: 0 1.25rem;
+  }
   .metaGrid {
     grid-template-columns: 1fr;
-    gap: 2rem;
+    gap: 1.5rem;
   }
   .leftCol {
     position: static;
-    max-width: 240px;
+    max-width: 100%;
+    margin: 0 auto;
+    align-items: center;
+    width: 100%;
+  }
+  .posterWrapper {
+    max-width: 170px;
+    margin: 0 auto;
+    border-radius: 12px;
+  }
+  .actionButtonsRow {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    width: 100%;
+    max-width: 360px;
     margin: 0 auto;
   }
+  .actionButtonsRow > * {
+    flex: 1;
+    min-width: 0;
+  }
+  .seriesTitle {
+    font-size: 1.75rem;
+    text-align: center;
+  }
+  .categoryBadgeRow {
+    justify-content: center;
+  }
+  .ratingsBlock {
+    justify-content: center;
+  }
   .detailsTable {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem 1rem;
+    padding: 1rem;
+    border-radius: 12px;
+  }
+  .episodesSectionContainer,
+  .discussionSection {
+    margin-top: 2.5rem;
+  }
+  .sectionHeaderTitle h2 {
+    font-size: 1.25rem;
   }
   .episodeGrid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 0.85rem;
   }
 }
 
 @media (max-width: 600px) {
+  .contentWrapper {
+    padding: 0 0.85rem;
+    margin-top: -80px;
+  }
+  .posterWrapper {
+    max-width: 140px;
+  }
+  .actionButtonsRow {
+    gap: 0.5rem;
+    max-width: 100%;
+  }
+  .seriesTitle {
+    font-size: 1.45rem;
+    line-height: 1.25;
+  }
+  .synopsisBox {
+    padding: 0.85rem;
+    border-radius: 10px;
+  }
+  .synopsisLabel {
+    font-size: 0.82rem;
+    margin-bottom: 0.35rem;
+  }
+  .synopsisText {
+    font-size: 0.85rem;
+    line-height: 1.45;
+  }
+  .detailsTable {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.65rem 0.85rem;
+    padding: 0.85rem;
+    border-radius: 10px;
+  }
+  .detailsKey {
+    font-size: 0.68rem;
+  }
+  .detailsVal {
+    font-size: 0.82rem;
+  }
+  .statusText {
+    font-size: 0.72rem;
+  }
   .episodeGrid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.65rem;
+  }
+  .commentsCardWrapper {
+    padding: 1rem 0.75rem;
+    border-radius: 14px;
   }
 }

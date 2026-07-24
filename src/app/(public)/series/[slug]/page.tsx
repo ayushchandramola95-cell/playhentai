@@ -422,11 +422,11 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
               />
             </div>
             
-            {/* Watchlist Toggle */}
-            <WatchlistToggle seriesId={activeSeries.id} />
-            
-            {/* Secondary Rate Action */}
-            <RateSeriesButton seriesId={activeSeries.id} seriesTitle={activeSeries.title} />
+            {/* Watchlist & Rate Action Buttons Row */}
+            <div className={styles.actionButtonsRow}>
+              <WatchlistToggle seriesId={activeSeries.id} />
+              <RateSeriesButton seriesId={activeSeries.id} seriesTitle={activeSeries.title} />
+            </div>
           </div>
 
           {/* Right Column: Title, Ratings Block, Description, Details Table */}
@@ -721,12 +721,6 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
         {/* Discussion / Comments Section */}
         {firstEpisodeId && (
           <section className={styles.discussionSection}>
-            <div className={styles.sectionHeader} style={{ marginBottom: '1.8rem' }}>
-              <div className={styles.sectionHeaderTitle}>
-                <MessageSquare size={22} className={styles.headerIcon} />
-                <h2>Discussion</h2>
-              </div>
-            </div>
             <div className={`${styles.commentsCardWrapper} glass`}>
               <CommentSection episodeId={firstEpisodeId} />
             </div>
