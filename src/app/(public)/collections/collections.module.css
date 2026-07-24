@@ -450,12 +450,12 @@
 
   .collectionCard {
     padding: 1rem 0.85rem;
-    min-height: 180px;
+    min-height: 135px;
+    border-radius: 16px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    gap: 0.6rem;
-    position: relative;
+    gap: 0.5rem;
   }
 
   .infoCol {
@@ -468,49 +468,30 @@
   }
 
   .cardHeader {
-    padding-right: 3rem;
+    padding-right: 0;
+  }
+
+  .categoryBadge,
+  .description,
+  .previewCol {
+    display: none !important;
   }
 
   .cardHeader h2 {
     font-size: 1.02rem;
     line-height: 1.25;
+    margin-top: 0.2rem;
   }
 
-  .description {
-    font-size: 0.75rem;
-    line-height: 1.35;
-    -webkit-line-clamp: 2;
-    margin: 0.35rem 0 0.6rem 0;
+  .countBadge {
+    font-size: 0.65rem;
+    padding: 0.18rem 0.5rem;
+    font-weight: 800;
   }
 
   .viewBtn {
     font-size: 0.78rem;
-    margin-top: 0.4rem;
-  }
-
-  .previewCol {
-    position: absolute;
-    top: 0.75rem;
-    right: 0.75rem;
-    width: 50px;
-    height: 75px;
-    z-index: 3;
-    pointer-events: none;
-  }
-
-  .posterStack,
-  .stackedPoster,
-  .emptyPreview {
-    width: 48px;
-    height: 72px;
-    border-radius: 6px;
-  }
-
-  .stackedPoster {
-    transform: 
-      translate(calc(var(--index) * 5px), calc(var(--index) * -3px)) 
-      rotate(calc((var(--index) - 1) * 3deg)) 
-      scale(calc(1 - var(--index) * 0.04));
+    margin-top: 0.6rem;
   }
 
   .seriesGrid {
@@ -527,7 +508,8 @@
 
   .collectionCard {
     padding: 0.85rem 0.75rem;
-    min-height: 170px;
+    min-height: 130px;
+    border-radius: 14px;
   }
 
   .cardHeader h2 {
@@ -535,30 +517,12 @@
   }
 
   .countBadge {
-    font-size: 0.62rem;
-    padding: 0.12rem 0.4rem;
+    font-size: 0.6rem;
+    padding: 0.15rem 0.4rem;
   }
 
-  .categoryBadge {
-    font-size: 0.58rem;
-  }
-
-  .description {
-    font-size: 0.72rem;
-  }
-
-  .previewCol {
-    width: 42px;
-    height: 63px;
-    top: 0.65rem;
-    right: 0.65rem;
-  }
-
-  .posterStack,
-  .stackedPoster,
-  .emptyPreview {
-    width: 42px;
-    height: 63px;
+  .viewBtn {
+    font-size: 0.76rem;
   }
 
   .seriesGrid {
