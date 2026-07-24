@@ -412,121 +412,191 @@
 /* Responsive Mobile Rules */
 @media (max-width: 768px) {
   .container {
-    padding: 1rem 1rem 3rem;
+    padding: 1rem 0.75rem 3rem;
+    max-width: 100%;
+    overflow-x: hidden;
+    box-sizing: border-box;
   }
 
   .headerSection {
-    margin-bottom: 1.25rem;
+    margin-bottom: 1rem;
   }
 
   .titleRow h1 {
-    font-size: 1.5rem;
+    font-size: 1.45rem;
   }
 
   .subtext {
-    font-size: 0.85rem;
+    font-size: 0.82rem;
   }
 
   .categoryTabs {
     gap: 0.4rem;
-    margin-bottom: 1.5rem;
-    padding-bottom: 0.5rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.4rem;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     width: 100%;
+    box-sizing: border-box;
   }
 
   .tabBtn {
-    padding: 0.45rem 0.95rem;
-    font-size: 0.82rem;
+    padding: 0.4rem 0.85rem;
+    font-size: 0.8rem;
     flex-shrink: 0;
     white-space: nowrap;
   }
 
   .collectionsGrid {
+    display: grid !important;
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 0.75rem !important;
+    gap: 0.65rem !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
   }
 
   .collectionCard {
-    padding: 1rem 0.85rem;
-    min-height: 135px;
-    border-radius: 16px;
+    padding: 0 !important;
+    min-height: auto;
+    border-radius: 12px;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    gap: 0.5rem;
+    justify-content: flex-start;
+    gap: 0;
+    position: relative;
+    min-width: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
   }
 
+  /* Top Image Banner on Mobile Cards */
+  .previewCol {
+    order: -1;
+    display: flex !important;
+    width: 100% !important;
+    height: 110px !important;
+    position: relative !important;
+    overflow: hidden !important;
+    background: rgba(0, 0, 0, 0.4);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .posterStack {
+    width: 100% !important;
+    height: 100% !important;
+    perspective: none !important;
+    position: absolute !important;
+    inset: 0 !important;
+  }
+
+  .stackedPoster {
+    position: absolute !important;
+    width: 60px !important;
+    height: 90px !important;
+    top: 10px !important;
+    left: calc(50% - 30px + (var(--index) - 1) * 16px) !important;
+    transform: rotate(calc((var(--index) - 1) * 4deg)) !important;
+    border-radius: 6px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6) !important;
+  }
+
+  .emptyPreview {
+    width: 100% !important;
+    height: 100% !important;
+    border-radius: 0 !important;
+    border: none !important;
+  }
+
+  /* Bottom Content Box */
   .infoCol {
-    padding-right: 0;
-    width: 100%;
-    flex: 1;
+    padding: 0.75rem 0.65rem 0.85rem 0.65rem !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    flex: 1;
   }
 
   .cardHeader {
-    padding-right: 0;
+    padding-right: 0 !important;
+    width: 100%;
+    min-width: 0;
   }
 
   .categoryBadge,
-  .description,
-  .previewCol {
+  .description {
     display: none !important;
   }
 
   .cardHeader h2 {
-    font-size: 1.02rem;
-    line-height: 1.25;
-    margin-top: 0.2rem;
+    font-size: 0.9rem !important;
+    line-height: 1.25 !important;
+    margin-top: 0.25rem !important;
+    white-space: normal !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2 !important;
+    -webkit-box-orient: vertical !important;
   }
 
   .countBadge {
-    font-size: 0.65rem;
-    padding: 0.18rem 0.5rem;
-    font-weight: 800;
+    font-size: 0.6rem !important;
+    padding: 0.12rem 0.45rem !important;
+    font-weight: 800 !important;
   }
 
   .viewBtn {
-    font-size: 0.78rem;
-    margin-top: 0.6rem;
+    font-size: 0.74rem !important;
+    margin-top: 0.5rem !important;
+    gap: 0.25rem !important;
   }
 
   .seriesGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 0.75rem !important;
+    gap: 0.65rem !important;
   }
 }
 
 @media (max-width: 480px) {
-  .collectionsGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 0.65rem !important;
+  .container {
+    padding: 0.85rem 0.5rem 2.5rem;
   }
 
-  .collectionCard {
-    padding: 0.85rem 0.75rem;
-    min-height: 130px;
-    border-radius: 14px;
+  .collectionsGrid {
+    gap: 0.55rem !important;
+  }
+
+  .previewCol {
+    height: 100px !important;
+  }
+
+  .stackedPoster {
+    width: 54px !important;
+    height: 82px !important;
+    top: 9px !important;
+    left: calc(50% - 27px + (var(--index) - 1) * 14px) !important;
+  }
+
+  .infoCol {
+    padding: 0.65rem 0.55rem 0.75rem 0.55rem !important;
   }
 
   .cardHeader h2 {
-    font-size: 0.95rem;
+    font-size: 0.85rem !important;
   }
 
   .countBadge {
-    font-size: 0.6rem;
-    padding: 0.15rem 0.4rem;
+    font-size: 0.58rem !important;
+    padding: 0.1rem 0.38rem !important;
   }
 
   .viewBtn {
-    font-size: 0.76rem;
-  }
-
-  .seriesGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 0.65rem !important;
+    font-size: 0.72rem !important;
   }
 }
