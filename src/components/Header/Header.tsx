@@ -128,13 +128,11 @@ export default function Header() {
         <SearchBar onFocusChange={setSearchFocused} />
       </div>
       <div className={`${styles.rightSection} ${searchFocused ? styles.rightSectionHidden : ''}`}>
-        {/* Watchlist Shortcut */}
-        {user && (
-          <Link href="/watchlist" className={`${styles.watchlistShortcut} ${pathname === '/watchlist' ? styles.activeLink : ''}`} title="My Watchlist">
-            <Heart size={16} className={styles.watchlistShortcutIcon} />
-            <span>Watchlist</span>
-          </Link>
-        )}
+        {/* Watchlist Shortcut - Always Visible */}
+        <Link href="/watchlist" className={`${styles.watchlistShortcut} ${pathname === '/watchlist' ? styles.activeLink : ''}`} title="My Watchlist">
+          <Heart size={16} className={styles.watchlistShortcutIcon} />
+          <span>Watchlist</span>
+        </Link>
 
         {/* User Account Controls */}
         {loading ? (
