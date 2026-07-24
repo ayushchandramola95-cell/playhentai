@@ -534,41 +534,57 @@
 }
 
 @media (max-width: 900px) {
+  .header {
+    padding: 0 1rem;
+  }
   .nav {
-    display: none;
+    display: none !important;
   }
   .hamburgerBtn {
-    display: flex;
+    display: flex !important;
+    margin-left: 0.3rem;
+    flex-shrink: 0;
   }
   .leftSection {
-    gap: 1rem;
+    gap: 0.8rem;
+    flex-shrink: 0;
   }
   .centerSection {
     max-width: 280px;
   }
 }
 
-@media (max-width: 600px) {
-  .logoTextPlay {
-    font-size: 1.1rem;
-  }
-  .logoTextGold {
-    font-size: 1.1rem;
-  }
-  .watchlistShortcut span {
-    display: none;
-  }
+@media (max-width: 768px) {
   .watchlistShortcut {
-    padding: 0.5rem;
-    border-radius: 50%;
+    display: none !important;
+  }
+  .profileContainer {
+    display: none !important;
+  }
+  .signInBtn {
+    display: none !important;
+  }
+  .leftSection {
+    gap: 0.5rem;
+  }
+  .logoTextPlay, .logoTextGold {
+    font-size: 1.15rem;
   }
   .centerSection {
-    max-width: 180px;
+    flex: 1;
+    max-width: 100%;
+    padding: 0 0.2rem;
   }
 }
 
-@media (max-width: 420px) {
-  .centerSection {
-    max-width: 140px;
+@media (max-width: 480px) {
+  .header {
+    padding: 0 0.6rem;
+  }
+  .logoText {
+    font-size: 1rem;
+  }
+  .logoTextPlay, .logoTextGold {
+    font-size: 1.05rem;
   }
 }
