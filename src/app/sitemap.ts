@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next';
 import { createClient } from '@supabase/supabase-js';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3004';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
   
   // 1. Static Pages
   const staticPages = [
