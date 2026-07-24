@@ -168,12 +168,12 @@ export default function HeroCarousel({ activeSeries, isDbEmpty }: HeroCarouselPr
                     <span>Watch Now</span>
                   </Link>
 
+                  <WatchlistToggle seriesId={series.id} />
+
                   <Link href={`/series/${series.slug}`} className={styles.detailsBtn}>
                     <Info size={18} />
                     <span>Details</span>
                   </Link>
-
-                  <WatchlistToggle seriesId={series.id} />
                 </div>
               </div>
             </div>
