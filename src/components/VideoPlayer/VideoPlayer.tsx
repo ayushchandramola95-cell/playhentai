@@ -165,7 +165,7 @@ export default function VideoPlayer({
         return;
       }
 
-      if (showControls && isPlaying) {
+      if (showControls) {
         setShowControls(false);
       } else {
         setShowControls(true);
