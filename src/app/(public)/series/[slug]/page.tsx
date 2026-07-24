@@ -624,15 +624,12 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
                       <Link href={getEpisodeWatchUrl(ep.id, ep.episode_number, slug)} className={styles.epImageLink}>
                         <div className={styles.epImageWrapper}>
                           <Image src={getR2Url(ep.thumbnail_key || activeSeries.cover_image_key, 'thumbnail')} alt={ep.title} fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 360px" className={styles.epThumbnailImage} />
-                          <div className={styles.subBadge} style={ep.title.startsWith('[Preview]') || ep.title.startsWith('[Trailer]') ? { background: '#3b82f6', color: 'white' } : {}}>{ep.title.startsWith('[Preview]') || ep.title.startsWith('[Trailer]') ? 'PREVIEW' : 'SUB'}</div>
-                          <div className={styles.epRatingBadge}><Star size={10} fill="#eab308" color="#eab308" /><span>{epRating.toFixed(1)}</span></div>
                           <div className={styles.epTitleOverlay}><span className={styles.epTitleName}>{cleanTitle || `Episode ${ep.episode_number}`}</span></div>
                           <div className={styles.epPlayOverlay}><Play size={28} fill="white" className={styles.epPlayIcon} /></div>
                         </div>
                       </Link>
                       <div className={styles.epMetadataRow}>
                         <span className={styles.epReleaseDate}>{releaseDate}</span>
-                        <span className={styles.epDurationText}><Clock size={11} /><span>{Math.floor((ep.duration_seconds || 1440) / 60)} min</span></span>
                       </div>
                     </div>
                   );
@@ -714,7 +711,6 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
                 {[...episodesToRender]
                   .sort((a: any, b: any) => b.episode_number - a.episode_number)
                   .map((ep: any) => {
-                  const epRating = rating - 0.2 - (ep.episode_number % 5) * 0.1;
                   const releaseDate = ep.release_date ? new Date(ep.release_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : getStableReleaseDate(ep.id);
                   const cleanTitle = (ep.title || '').replace(/^\[Preview\]\s*/i, '').replace(/^\[Trailer\]\s*/i, '').replace(/^.*-\s*/, '').trim();
 
@@ -723,15 +719,12 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
                       <Link href={getEpisodeWatchUrl(ep.id, ep.episode_number, slug)} className={styles.epImageLink}>
                         <div className={styles.epImageWrapper}>
                           <Image src={getR2Url(ep.thumbnail_key || activeSeries.cover_image_key, 'thumbnail')} alt={ep.title} fill sizes="(max-width: 768px) 50vw, 360px" className={styles.epThumbnailImage} />
-                          <div className={styles.subBadge} style={ep.title.startsWith('[Preview]') || ep.title.startsWith('[Trailer]') ? { background: '#3b82f6', color: 'white' } : {}}>{ep.title.startsWith('[Preview]') || ep.title.startsWith('[Trailer]') ? 'PREVIEW' : 'SUB'}</div>
-                          <div className={styles.epRatingBadge}><Star size={10} fill="#eab308" color="#eab308" /><span>{epRating.toFixed(1)}</span></div>
                           <div className={styles.epTitleOverlay}><span className={styles.epTitleName}>{cleanTitle || `Episode ${ep.episode_number}`}</span></div>
                           <div className={styles.epPlayOverlay}><Play size={28} fill="white" className={styles.epPlayIcon} /></div>
                         </div>
                       </Link>
                       <div className={styles.epMetadataRow}>
                         <span className={styles.epReleaseDate}>{releaseDate}</span>
-                        <span className={styles.epDurationText}><Clock size={11} /><span>{Math.floor((ep.duration_seconds || 1440) / 60)} min</span></span>
                       </div>
                     </div>
                   );
