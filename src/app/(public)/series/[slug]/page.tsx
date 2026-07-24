@@ -409,48 +409,40 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
       <div className={styles.contentWrapper}>
         <div className={styles.metaGrid}>
           
-          {/* Top Hero Section: Side-by-Side on Mobile (Poster Left, Title & Ratings Right) */}
+          {/* Top Hero Section: Poster Left, Info & Actions Right */}
           <div className={styles.mobileTopRow}>
-            {/* Left Column: Poster, Favorites & Ratings */}
+            {/* Left Column: Poster Image */}
             <div className={styles.leftCol}>
               <div className={styles.posterWrapper}>
                 <Image
                   src={getR2Url(activeSeries.poster_image_key || activeSeries.cover_image_key, 'poster')}
                   alt={activeSeries.title}
                   fill
-                  sizes="(max-width: 768px) 140px, 300px"
+                  sizes="(max-width: 768px) 130px, 300px"
                   className={styles.posterImage}
                   style={{ objectPosition: activeSeries.poster_position || 'center' }}
                 />
               </div>
-              
-              {/* Watchlist & Rate Action Buttons Row */}
-              <div className={styles.actionButtonsRow}>
-                <WatchlistToggle seriesId={activeSeries.id} />
-                <RateSeriesButton seriesId={activeSeries.id} seriesTitle={activeSeries.title} />
-              </div>
             </div>
 
-            {/* Header Info Column: Category Badges, Title, Ratings */}
+            {/* Header Info Column: Category, Title, Ratings, Actions */}
             <div className={styles.headerInfoCol}>
               {isDbEmpty && (
                 <span className={styles.dbAlert}>
-                  💡 Displaying catalog mock data for demo.
+                  💡 Catalog Mock
                 </span>
               )}
               
-              {/* Colorful Translucent Badges */}
+              {/* Category & Studio Badge */}
               <div className={styles.categoryBadgeRow}>
                 <Link href={`/categories?genre=${encodeURIComponent(activeSeries.category || 'Anime')}`} className={styles.categoryBadge}>
                   {activeSeries.category || 'Anime'}
                 </Link>
-                {activeSeries.tags && activeSeries.tags
-                  .filter((t: string) => t.toLowerCase() !== 'featured' && !t.toLowerCase().startsWith('featured:'))
-                  .map((tag: string) => (
-                    <Link key={tag} href={`/categories?genre=${encodeURIComponent(tag)}`} className={styles.tagBadge}>
-                      #{tag}
-                    </Link>
-                  ))}
+                {studio && (
+                  <span className={styles.studioSubtitle}>
+                    {studio.split(',')[0]}
+                  </span>
+                )}
               </div>
 
               <h1 className={styles.seriesTitle}>{activeSeries.title}</h1>
@@ -459,19 +451,16 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
                 <div style={{
                   background: 'rgba(59, 130, 246, 0.08)',
                   border: '1px solid rgba(59, 130, 246, 0.3)',
-                  padding: '0.5rem 0.75rem',
-                  borderRadius: '8px',
+                  padding: '0.35rem 0.6rem',
+                  borderRadius: '6px',
                   color: '#60a5fa',
-                  fontSize: '0.75rem',
+                  fontSize: '0.72rem',
                   fontWeight: 700,
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '0.4rem',
-                  marginTop: '0.2rem',
-                  marginBottom: '0.4rem'
+                  gap: '0.3rem'
                 }}>
-                  <span>📢</span>
-                  <span>Upcoming Series — Airing soon!</span>
+                  <span>📢 Airing Soon</span>
                 </div>
               )}
 
@@ -486,22 +475,40 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
                       return (
                         <Star 
                           key={i} 
-                          size={13} 
+                          size={12} 
                           fill={filled ? '#eab308' : 'transparent'} 
                           color={filled ? '#eab308' : 'rgba(255,255,255,0.2)'} 
                         />
                       );
                     })}
                   </div>
-                  <span className={styles.ratingVotes}>({(views / 15).toFixed(0)})</span>
                 </div>
                 <span className={styles.viewsCounter}>
-                  <Eye size={13} />
+                  <Eye size={12} />
                   <span>{views.toLocaleString()}</span>
                 </span>
               </div>
+
+              {/* Watchlist & Rate Action Buttons Row */}
+              <div className={styles.actionButtonsRow}>
+                <WatchlistToggle seriesId={activeSeries.id} />
+                <RateSeriesButton seriesId={activeSeries.id} seriesTitle={activeSeries.title} />
+              </div>
             </div>
           </div>
+
+          {/* Genre Tags Row Below Header */}
+          {activeSeries.tags && activeSeries.tags.length > 0 && (
+            <div className={styles.tagsSectionRow}>
+              {activeSeries.tags
+                .filter((t: string) => t.toLowerCase() !== 'featured' && !t.toLowerCase().startsWith('featured:'))
+                .map((tag: string) => (
+                  <Link key={tag} href={`/categories?genre=${encodeURIComponent(tag)}`} className={styles.tagBadge}>
+                    #{tag}
+                  </Link>
+                ))}
+            </div>
+          )}
 
           {/* Right Column / Full Width Bottom: Synopsis & Details Table */}
           <div className={styles.rightCol}>
