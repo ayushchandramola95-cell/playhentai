@@ -63,6 +63,35 @@ export default function HeroCarousel({ activeSeries, isDbEmpty }: HeroCarouselPr
     setCurrentIndex(index);
   };
 
+  // Touch Swipe State for Mobile Screens
+  const touchStartX = useRef<number | null>(null);
+  const touchEndX = useRef<number | null>(null);
+  const minSwipeDistance = 35; // minimum px distance for swipe trigger
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setIsPaused(true);
+    touchEndX.current = null;
+    touchStartX.current = e.targetTouches[0].clientX;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.targetTouches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    setIsPaused(false);
+    if (!touchStartX.current || !touchEndX.current) return;
+    const distance = touchStartX.current - touchEndX.current;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe) {
+      handleNext();
+    } else if (isRightSwipe) {
+      handlePrev();
+    }
+  };
+
   if (!activeSeries || activeSeries.length === 0) return null;
 
   return (
@@ -70,6 +99,9 @@ export default function HeroCarousel({ activeSeries, isDbEmpty }: HeroCarouselPr
       className={styles.heroSection}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
       aria-label="Featured Series Carousel"
     >
       {/* Background Banner Slides with Vignette Overlay */}

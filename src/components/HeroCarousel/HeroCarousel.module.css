@@ -10,6 +10,7 @@
   align-items: center;
   background: #090d16;
   color: #ffffff;
+  touch-action: pan-y;
 }
 
 .slidesContainer {
