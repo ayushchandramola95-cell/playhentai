@@ -47,13 +47,15 @@ export default function WatchPageClient({
 
   // Auto-scroll page to top & active playing episode into view inside queue
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // 1. Instantly scroll main browser window to top
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
 
+    // 2. Scroll active playing episode item inside sidebar queue box (without scrolling main window)
     if (activeItemRef.current) {
-      activeItemRef.current.scrollIntoView({
-        behavior: 'smooth',
-        block: 'nearest',
-      });
+      const queueListElement = activeItemRef.current.parentElement;
+      if (queueListElement) {
+        queueListElement.scrollTop = activeItemRef.current.offsetTop - queueListElement.offsetTop;
+      }
     }
   }, [activeEpisode.id]);
 

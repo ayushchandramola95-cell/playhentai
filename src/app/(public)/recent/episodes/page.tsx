@@ -75,7 +75,8 @@ export default async function RecentEpisodesPage({
         return {
           id: ep.id,
           episode_number: ep.episode_number,
-          title: series?.title || ep.title,
+          title: series?.title ? `${series.title} - ${ep.title || `Episode ${ep.episode_number}`}` : ep.title,
+          rawTitle: ep.title || '',
           showSlug: series?.slug || '',
           tags: series?.tags || [],
           isNew: false, // Will calculate dynamically below
@@ -86,7 +87,15 @@ export default async function RecentEpisodesPage({
           seriesStatus: series?.status || ''
         };
       })
-      .filter((ep: any) => ep.seriesStatus !== 'upcoming');
+      .filter((ep: any) => {
+        const titleLower = (ep.rawTitle || '').toLowerCase();
+        const isPreviewOrTrailer = 
+          titleLower.includes('preview') || 
+          titleLower.includes('[preview]') ||
+          titleLower.includes('trailer') || 
+          titleLower.includes('[pv]');
+        return ep.seriesStatus !== 'upcoming' && !isPreviewOrTrailer;
+      });
 
       if (dbEpisodes.length > 0) {
         isDbEmpty = false;

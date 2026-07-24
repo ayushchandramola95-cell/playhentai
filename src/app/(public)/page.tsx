@@ -174,31 +174,44 @@ export default async function HomePage() {
   // Transform recent episodes list cleanly from DB based on release_date
   let processedEpisodes: any[] = [];
   if (dbEpisodes && dbEpisodes.length > 0) {
-    processedEpisodes = dbEpisodes.map(ep => {
-      const season = Array.isArray(ep.seasons) ? ep.seasons[0] : ep.seasons;
-      const seriesObj = season ? (Array.isArray(season.series) ? season.series[0] : season.series) : null;
-      const epTitle = ep.title || `Episode ${ep.episode_number}`;
-      const fullTitle = seriesObj?.title ? `${seriesObj.title} - ${epTitle}` : epTitle;
-      const isUncensored = (seriesObj?.tags || []).some((t: string) => t.toLowerCase() === 'uncensored');
-      
-      const effectiveDateStr = ep.release_date || ep.created_at;
-      const epTime = effectiveDateStr ? new Date(effectiveDateStr).getTime() : 0;
-      const isNew = epTime > 0 ? (Date.now() - epTime < 14 * 86400 * 1000 && epTime <= Date.now()) : false;
+    processedEpisodes = dbEpisodes
+      .map(ep => {
+        const season = Array.isArray(ep.seasons) ? ep.seasons[0] : ep.seasons;
+        const seriesObj = season ? (Array.isArray(season.series) ? season.series[0] : season.series) : null;
+        const epTitle = ep.title || `Episode ${ep.episode_number}`;
+        const fullTitle = seriesObj?.title ? `${seriesObj.title} - ${epTitle}` : epTitle;
+        const isUncensored = (seriesObj?.tags || []).some((t: string) => t.toLowerCase() === 'uncensored');
+        const seriesStatus = (seriesObj?.status || '').toLowerCase();
+        
+        // Exclude upcoming series or preview/trailer episodes from Recent Episodes section
+        const isPreviewOrUpcoming = 
+          seriesStatus === 'upcoming' ||
+          epTitle.toLowerCase().includes('preview') ||
+          epTitle.toLowerCase().includes('[preview]') ||
+          epTitle.toLowerCase().includes('trailer') ||
+          epTitle.toLowerCase().includes('[pv]');
 
-      return {
-        id: ep.id,
-        title: fullTitle,
-        showSlug: seriesObj?.slug || '',
-        episode_number: ep.episode_number,
-        thumbnail: ep.thumbnail_key || seriesObj?.poster_image_key,
-        duration: Math.floor((ep.duration_seconds || 1440) / 60) + ' min',
-        release_date: ep.release_date,
-        created_at: ep.created_at,
-        effectiveDate: epTime,
-        isNew,
-        isUncensored
-      };
-    });
+        if (isPreviewOrUpcoming) return null;
+
+        const effectiveDateStr = ep.release_date || ep.created_at;
+        const epTime = effectiveDateStr ? new Date(effectiveDateStr).getTime() : 0;
+        const isNew = epTime > 0 ? (Date.now() - epTime < 14 * 86400 * 1000 && epTime <= Date.now()) : false;
+
+        return {
+          id: ep.id,
+          title: fullTitle,
+          showSlug: seriesObj?.slug || '',
+          episode_number: ep.episode_number,
+          thumbnail: ep.thumbnail_key || seriesObj?.poster_image_key,
+          duration: Math.floor((ep.duration_seconds || 1440) / 60) + ' min',
+          release_date: ep.release_date,
+          created_at: ep.created_at,
+          effectiveDate: epTime,
+          isNew,
+          isUncensored
+        };
+      })
+      .filter(Boolean);
 
     processedEpisodes.sort((a, b) => {
       if (b.effectiveDate !== a.effectiveDate) {
