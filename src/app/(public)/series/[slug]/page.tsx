@@ -428,7 +428,7 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
             {/* Rating Row */}
             <div className={styles.ratingRow}>
               <span className={styles.ratingScoreGold}>{rating.toFixed(1)}</span>
-              <RateSeriesButton seriesId={activeSeries.id} seriesTitle={activeSeries.title} />
+              <RateSeriesButton seriesId={activeSeries.id} seriesTitle={activeSeries.title} iconOnly />
             </div>
 
             {/* Status & Censorship Badges Row */}

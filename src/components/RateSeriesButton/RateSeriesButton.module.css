@@ -42,6 +42,33 @@
   box-shadow: 0 6px 16px rgba(234, 179, 8, 0.4);
 }
 
+.starIconOnlyBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: rgba(234, 179, 8, 0.08);
+  border: 1px solid rgba(234, 179, 8, 0.3);
+  color: #eab308;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+  padding: 0;
+}
+
+.starIconOnlyBtn:hover {
+  background: rgba(234, 179, 8, 0.2);
+  border-color: #eab308;
+  transform: scale(1.08);
+}
+
+.activeStarBtn {
+  background: rgba(234, 179, 8, 0.25);
+  border-color: #eab308;
+}
+
 /* Glassmorphic Popover */
 .ratePopover {
   position: absolute;

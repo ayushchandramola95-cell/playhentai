@@ -7,6 +7,7 @@ import styles from './RateSeriesButton.module.css';
 interface RateSeriesButtonProps {
   seriesId: string;
   seriesTitle: string;
+  iconOnly?: boolean;
 }
 
 const RATING_LABELS = [
@@ -22,7 +23,7 @@ const RATING_LABELS = [
   'Masterpiece',
 ];
 
-export default function RateSeriesButton({ seriesId, seriesTitle }: RateSeriesButtonProps) {
+export default function RateSeriesButton({ seriesId, seriesTitle, iconOnly = false }: RateSeriesButtonProps) {
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [hoveredStar, setHoveredStar] = useState<number | null>(null);
   const [savedRating, setSavedRating] = useState<number | null>(null);
@@ -78,16 +79,29 @@ export default function RateSeriesButton({ seriesId, seriesTitle }: RateSeriesBu
 
   return (
     <div className={styles.rateWrapper} ref={popoverRef}>
-      <button 
-        onClick={() => setPopoverOpen(!popoverOpen)}
-        className={`${styles.rateBtn} ${savedRating ? styles.activeRateBtn : ''}`}
-        aria-label="Rate this series"
-      >
-        <Star size={16} fill="currentColor" />
-        <span>
-          {savedRating ? `You Rated: ${savedRating}/10` : 'Rate this Series'}
-        </span>
-      </button>
+      {iconOnly ? (
+        <button 
+          onClick={() => setPopoverOpen(!popoverOpen)}
+          className={`${styles.starIconOnlyBtn} ${savedRating ? styles.activeStarBtn : ''}`}
+          aria-label="Rate this series"
+          title={savedRating ? `You rated ${savedRating}/10` : 'Rate this series'}
+          type="button"
+        >
+          <Star size={16} fill={savedRating ? '#eab308' : 'none'} color="#eab308" />
+        </button>
+      ) : (
+        <button 
+          onClick={() => setPopoverOpen(!popoverOpen)}
+          className={`${styles.rateBtn} ${savedRating ? styles.activeRateBtn : ''}`}
+          aria-label="Rate this series"
+          type="button"
+        >
+          <Star size={16} fill="currentColor" />
+          <span>
+            {savedRating ? `You Rated: ${savedRating}/10` : 'Rate this Series'}
+          </span>
+        </button>
+      )}
 
       {popoverOpen && (
         <div className={`${styles.ratePopover} glass`}>
