@@ -48,6 +48,7 @@
   width: 100% !important;
   flex: 1 !important;
   padding: 0 !important;
+  z-index: 1001 !important;
 }
 
 .rightSection {
