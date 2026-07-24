@@ -143,28 +143,36 @@ export default function VideoPlayer({
     }
   };
 
-  // Handle container tap/click: On mobile, tapping outside control buttons toggles/closes controls & settings without pausing video
+  // Handle container tap/click: On mobile (portrait & landscape fullscreen), tapping outside collapses settings & toggles controls without pausing video
   const handleContainerClick = (e: React.MouseEvent) => {
     const target = e.target as HTMLElement;
 
-    // Ignore clicks directly inside interactive control buttons or speed menu
+    // 1. If settings popup/speed menu is open, ANY tap outside the dropdown menu collapses it cleanly!
+    if (showSpeedMenu) {
+      if (!target.closest(`.${styles.speedDropdown}`)) {
+        setShowSpeedMenu(false);
+        return;
+      }
+    }
+
+    // 2. Ignore clicks directly inside bottom controls row or center big play trigger
     if (
       target.closest(`.${styles.bottomControls}`) || 
-      target.closest(`.${styles.speedSelectorContainer}`) ||
       target.closest(`.${styles.bigPlayTrigger}`)
     ) {
       return;
     }
 
-    const isMobileScreen = typeof window !== 'undefined' && window.innerWidth <= 768;
+    // 3. Detect mobile or touch screen (works in portrait, landscape, and fullscreen)
+    const isTouchOrMobile = typeof window !== 'undefined' && (
+      window.innerWidth <= 1024 || 
+      'ontouchstart' in window || 
+      (navigator && navigator.maxTouchPoints > 0) ||
+      document.fullscreenElement !== null
+    );
 
-    if (isMobileScreen) {
-      // MOBILE ONLY: Tapping outside closes settings & toggles controls WITHOUT pausing video!
-      if (showSpeedMenu) {
-        setShowSpeedMenu(false);
-        return;
-      }
-
+    if (isTouchOrMobile) {
+      // MOBILE / TOUCH: Tapping video area toggles controls visibility WITHOUT pausing video
       if (showControls) {
         setShowControls(false);
       } else {
@@ -178,7 +186,7 @@ export default function VideoPlayer({
         }, 3000);
       }
     } else {
-      // DESKTOP: Clicking video area toggles play/pause
+      // DESKTOP MOUSE: Clicking video background toggles play/pause
       togglePlay();
     }
   };
