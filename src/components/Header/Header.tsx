@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import { Tv, User, LogOut, Heart, History, Settings, ShieldCheck, ChevronDown, Menu, X, Home, Layers, Eye, Film, Dices } from 'lucide-react';
+import { Tv, User, LogOut, Heart, Bookmark, History, Settings, ShieldCheck, ChevronDown, Menu, X, Home, Layers, Eye, Film, Dices } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import SearchBar from '../SearchBar/SearchBar';
 import styles from './Header.module.css';
@@ -131,7 +131,7 @@ export default function Header() {
       <div className={`${styles.rightSection} ${searchFocused ? styles.rightSectionHidden : ''}`}>
         {/* Watchlist Shortcut - Always Visible */}
         <Link href="/watchlist" className={`${styles.watchlistShortcut} ${pathname === '/watchlist' ? styles.activeLink : ''}`} title="My Watchlist">
-          <Heart size={16} className={styles.watchlistShortcutIcon} />
+          <Bookmark size={16} className={styles.watchlistShortcutIcon} />
           <span>Watchlist</span>
         </Link>
 
@@ -175,7 +175,7 @@ export default function Header() {
                   onClick={() => setDropdownOpen(false)} 
                   className={styles.dropdownItem}
                 >
-                  <Heart size={16} />
+                  <Bookmark size={16} />
                   <span>My Watchlist</span>
                 </Link>
 
