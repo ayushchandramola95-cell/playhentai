@@ -17,6 +17,7 @@ import { MOCK_SERIES, MOCK_EPISODES, MOCK_SERIES_DETAILS } from '@/utils/mockDat
 import { convertStudioNameToSlug } from '@/utils/studiosData';
 
 import SynopsisBox from './SynopsisBox';
+import MobileTagsRow from './MobileTagsRow';
 
 interface SeriesPageProps {
   params: Promise<{ slug: string }>;
@@ -670,29 +671,27 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
                 <span className={styles.censoredPillPinkMobile}>{activeSeries.content_rating || 'Censored'}</span>
               </div>
 
-              {/* Compact Inline Genre Tags Row */}
-              {activeSeries.tags && activeSeries.tags.length > 0 && (
-                <div className={styles.inlineTagsRow}>
-                  {activeSeries.tags
-                    .filter((t: string) => t.toLowerCase() !== 'featured' && !t.toLowerCase().startsWith('featured:'))
-                    .slice(0, 3)
-                    .map((tag: string) => (
-                      <Link key={tag} href={`/categories?genre=${encodeURIComponent(tag)}`} className={styles.tagPillGoldMobile}>
-                        {tag}
-                      </Link>
-                    ))}
-                  {activeSeries.tags.filter((t: string) => t.toLowerCase() !== 'featured' && !t.toLowerCase().startsWith('featured:')).length > 3 && (
-                    <span className={styles.tagPlusCountMobile}>
-                      +{activeSeries.tags.filter((t: string) => t.toLowerCase() !== 'featured' && !t.toLowerCase().startsWith('featured:')).length - 3}
-                    </span>
-                  )}
-                </div>
-              )}
+              {/* Interactive Clickable +Count Tag Expansion Row */}
+              <MobileTagsRow tags={activeSeries.tags || []} />
             </div>
           </div>
 
-          {/* Synopsis Box */}
-          <SynopsisBox description={activeSeries.description} />
+          {/* Synopsis Box - Expands with Full Series Details on See More */}
+          <SynopsisBox 
+            description={activeSeries.description} 
+            details={{
+              studio,
+              releaseDate: firstAirDateFormatted || releaseYear.toString(),
+              status,
+              runtime: activeSeries.runtime || 24,
+              episodes: totalEpisodesText,
+              originalLanguage: activeSeries.original_language || 'Japanese',
+              country: activeSeries.country || 'Japan',
+              contentRating: activeSeries.content_rating || 'Explicit',
+              altTitleJapanese: activeSeries.alt_title_japanese,
+              altTitleEnglish: activeSeries.alt_title_english || activeSeries.title,
+            }}
+          />
 
           {/* Action Buttons Row */}
           <div className={styles.actionButtonsRow}>
@@ -705,44 +704,40 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
             ) : null}
           </div>
 
-          {/* Studio Meta Line */}
-          <div className={styles.studioMetaLine}>
-            <Camera size={18} className={styles.studioIcon} />
-            <span className={styles.studioLabel}>Studio</span>
-            <Link href={`/studios/${convertStudioNameToSlug(studio.split(',')[0].trim())}`} className={styles.studioValueGold}>
-              {studio.split(',')[0]}
-            </Link>
-          </div>
-
-          {/* Mobile Episodes List Stack */}
+          {/* Mobile Episodes Section - 2 Column Image Box Grid */}
           <section className={styles.episodesSectionContainer}>
             <div className={styles.sectionHeader}>
               <div className={styles.sectionHeaderTitle}>
+                <Flame size={22} className={styles.headerIcon} />
                 <h2>Episodes</h2>
               </div>
             </div>
 
             {episodesToRender.length > 0 ? (
-              <div className={styles.episodesStackList}>
+              <div className={styles.episodeGridMobile}>
                 {[...episodesToRender]
                   .sort((a: any, b: any) => b.episode_number - a.episode_number)
                   .map((ep: any) => {
+                  const epRating = rating - 0.2 - (ep.episode_number % 5) * 0.1;
+                  const releaseDate = ep.release_date ? new Date(ep.release_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : getStableReleaseDate(ep.id);
                   const cleanTitle = (ep.title || '').replace(/^\[Preview\]\s*/i, '').replace(/^\[Trailer\]\s*/i, '').replace(/^.*-\s*/, '').trim();
 
                   return (
-                    <Link key={ep.id} href={getEpisodeWatchUrl(ep.id, ep.episode_number, slug)} className={styles.epListItemCard}>
-                      <div className={styles.epPlayBtnCircle}>
-                        <Play size={18} fill="#090d16" color="#090d16" />
+                    <div key={ep.id} className={`${styles.episodeCard} card-hover`}>
+                      <Link href={getEpisodeWatchUrl(ep.id, ep.episode_number, slug)} className={styles.epImageLink}>
+                        <div className={styles.epImageWrapper}>
+                          <Image src={getR2Url(ep.thumbnail_key || activeSeries.cover_image_key, 'thumbnail')} alt={ep.title} fill sizes="(max-width: 768px) 50vw, 360px" className={styles.epThumbnailImage} />
+                          <div className={styles.subBadge} style={ep.title.startsWith('[Preview]') || ep.title.startsWith('[Trailer]') ? { background: '#3b82f6', color: 'white' } : {}}>{ep.title.startsWith('[Preview]') || ep.title.startsWith('[Trailer]') ? 'PREVIEW' : 'SUB'}</div>
+                          <div className={styles.epRatingBadge}><Star size={10} fill="#eab308" color="#eab308" /><span>{epRating.toFixed(1)}</span></div>
+                          <div className={styles.epTitleOverlay}><span className={styles.epTitleName}>{cleanTitle || `Episode ${ep.episode_number}`}</span></div>
+                          <div className={styles.epPlayOverlay}><Play size={28} fill="white" className={styles.epPlayIcon} /></div>
+                        </div>
+                      </Link>
+                      <div className={styles.epMetadataRow}>
+                        <span className={styles.epReleaseDate}>{releaseDate}</span>
+                        <span className={styles.epDurationText}><Clock size={11} /><span>{Math.floor((ep.duration_seconds || 1440) / 60)} min</span></span>
                       </div>
-                      <div className={styles.epListTitleCol}>
-                        <span className={styles.epSeriesSubname}>{activeSeries.title}</span>
-                        <span className={styles.epTitleMain}>{cleanTitle || `Episode ${ep.episode_number}`}</span>
-                      </div>
-                      <div className={styles.epListRightCol}>
-                        <span className={styles.epNewBadge}>NEW</span>
-                        <ChevronRight size={18} className={styles.epChevronIcon} />
-                      </div>
-                    </Link>
+                    </div>
                   );
                 })}
               </div>

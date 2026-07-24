@@ -215,6 +215,26 @@
   color: #ffffff;
 }
 
+.tagPlusCountBtnMobile,
+.tagShowLessBtnMobile {
+  background: rgba(234, 179, 8, 0.15);
+  border: 1px solid rgba(234, 179, 8, 0.4);
+  color: #eab308;
+  font-size: 0.62rem;
+  font-weight: 800;
+  padding: 0.15rem 0.5rem;
+  border-radius: 5px;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.tagPlusCountBtnMobile:hover,
+.tagShowLessBtnMobile:hover {
+  background: #eab308;
+  color: #090d16;
+}
+
 .tagPlusCountMobile {
   color: #94a3b8;
   font-size: 0.65rem;
@@ -230,6 +250,43 @@
   border-radius: 10px;
   margin-bottom: 1.25rem;
   text-align: left;
+}
+
+/* Expanded Details Grid Inside Mobile Synopsis Box */
+.mobileDetailsExpandedGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem 1.25rem;
+  margin-top: 0.85rem;
+  padding-top: 0.85rem;
+  border-top: 1px dashed rgba(255, 255, 255, 0.08);
+}
+
+.mobileDetailItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.mobileDetailKey {
+  font-size: 0.62rem;
+  font-weight: 800;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.mobileDetailVal {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.episodeGridMobile {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  width: 100%;
 }
 
 /* Action Buttons Row */
