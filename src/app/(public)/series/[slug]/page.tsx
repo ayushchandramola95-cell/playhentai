@@ -16,6 +16,8 @@ import styles from './series.module.css';
 import { MOCK_SERIES, MOCK_EPISODES, MOCK_SERIES_DETAILS } from '@/utils/mockData';
 import { convertStudioNameToSlug } from '@/utils/studiosData';
 
+import SynopsisBox from './SynopsisBox';
+
 interface SeriesPageProps {
   params: Promise<{ slug: string }>;
 }
@@ -409,7 +411,7 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
       <div className={styles.contentWrapper}>
         <div className={styles.metaGrid}>
           
-          {/* Left Column: Poster Image */}
+          {/* Left Column: Poster Image + Watchlist & Rate Buttons */}
           <div className={styles.leftCol}>
             <div className={styles.posterWrapper}>
               <Image
@@ -421,9 +423,15 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
                 style={{ objectPosition: activeSeries.poster_position || 'center' }}
               />
             </div>
+
+            {/* Watchlist & Rate Action Buttons Row Below Poster */}
+            <div className={styles.secondaryButtonsRow}>
+              <WatchlistToggle seriesId={activeSeries.id} />
+              <RateSeriesButton seriesId={activeSeries.id} seriesTitle={activeSeries.title} />
+            </div>
           </div>
 
-          {/* Right Column: Title, Subtitle Meta, Ratings, Steam-style Action Buttons */}
+          {/* Right Column: Title, Subtitle Meta, Ratings, Wide Watch Now Button */}
           <div className={styles.heroRightCol}>
             {isDbEmpty && (
               <span className={styles.dbAlert}>
@@ -444,24 +452,24 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
               <span>{activeSeries.runtime !== undefined && activeSeries.runtime !== null ? activeSeries.runtime : 24} min</span>
             </div>
 
-            {/* Ratings Summary & Views Block */}
+            {/* Compact Ratings Summary & Views Block */}
             <div className={styles.ratingsBlock}>
               <div className={styles.ratingsCard}>
-                <Star size={16} fill="#eab308" color="#eab308" />
+                <Star size={13} fill="#eab308" color="#eab308" />
                 <span className={styles.ratingScore}>{rating.toFixed(1)}</span>
-                <span className={styles.ratingVotes}>({(views / 15).toFixed(0)} ratings)</span>
+                <span className={styles.ratingVotes}>({(views / 15).toFixed(0)})</span>
               </div>
               <span className={styles.viewsCounter}>
-                <Eye size={14} />
-                <span>{views.toLocaleString()} Views</span>
+                <Eye size={13} />
+                <span>{views.toLocaleString()}</span>
               </span>
             </div>
 
-            {/* Action Buttons Stack (Steam-style hierarchy) */}
-            <div className={styles.actionButtonsStack}>
+            {/* Big Wide Watch Now Button */}
+            <div className={styles.watchNowWrapper}>
               {firstEpisodeId ? (
                 <Link href={getEpisodeWatchUrl(firstEpisodeId, 1, slug)} className={styles.watchNowBtn}>
-                  <Play size={18} fill="currentColor" />
+                  <Play size={20} fill="currentColor" />
                   <span>Watch Now</span>
                 </Link>
               ) : (
@@ -469,20 +477,12 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
                   <span>Upcoming Release</span>
                 </button>
               )}
-              
-              <div className={styles.secondaryButtonsRow}>
-                <WatchlistToggle seriesId={activeSeries.id} />
-                <RateSeriesButton seriesId={activeSeries.id} seriesTitle={activeSeries.title} />
-              </div>
             </div>
           </div>
         </div>
 
-        {/* Premium Synopsis Card */}
-        <div className={styles.synopsisBox}>
-          <h3 className={styles.synopsisLabel}>Synopsis</h3>
-          <p className={styles.synopsisText}>{activeSeries.description}</p>
-        </div>
+        {/* Premium Synopsis Card with See More */}
+        <SynopsisBox description={activeSeries.description} />
 
         {/* Grouped Metadata Grid (3 Distinct Cards to reduce scrolling) */}
         <div className={styles.groupedMetadataGrid}>

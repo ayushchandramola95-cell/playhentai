@@ -351,40 +351,28 @@
 .ratingsBlock {
   display: flex;
   align-items: center;
-  gap: 1.25rem;
+  gap: 0.6rem;
   flex-wrap: wrap;
-  margin-top: -0.25rem;
 }
 
 .ratingsCard {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.35rem;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 0.5rem 1rem;
-  border-radius: 12px;
+  padding: 0.35rem 0.75rem;
+  border-radius: 8px;
 }
 
 .ratingScore {
-  font-size: 1.25rem;
+  font-size: 0.95rem;
   font-weight: 850;
   color: #ffffff;
 }
 
-.ratingMax {
-  font-size: 0.75rem;
-  color: var(--foreground-muted);
-}
-
-.ratingStars {
-  display: flex;
-  align-items: center;
-  gap: 0.2rem;
-}
-
 .ratingVotes {
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   color: var(--foreground-muted);
   font-weight: 500;
 }
@@ -392,14 +380,45 @@
 .viewsCounter {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  font-size: 0.82rem;
+  gap: 0.35rem;
+  font-size: 0.78rem;
   font-weight: 700;
   color: var(--foreground-secondary);
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.06);
-  padding: 0.5rem 0.9rem;
-  border-radius: 12px;
+  padding: 0.35rem 0.75rem;
+  border-radius: 8px;
+}
+
+/* Watch Now Wrapper & Button */
+.watchNowWrapper {
+  width: 100%;
+  margin-top: 0.75rem;
+}
+
+.watchNowBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  width: 100%;
+  max-width: 550px;
+  padding: 0.9rem 2rem;
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--primary) 0%, #9333ea 100%);
+  color: #ffffff;
+  font-size: 1.05rem;
+  font-weight: 800;
+  text-decoration: none !important;
+  box-shadow: 0 8px 25px rgba(var(--primary-rgb), 0.4);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  border: none;
+}
+
+.watchNowBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(var(--primary-rgb), 0.55);
+  opacity: 0.95;
 }
 
 .synopsisBox {
@@ -407,13 +426,17 @@
   border: 1px solid rgba(255, 255, 255, 0.05);
   padding: 1.5rem;
   border-radius: 14px;
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .synopsisLabel {
   font-size: 0.95rem;
   font-weight: 800;
   color: var(--foreground-primary);
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.25rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -423,6 +446,34 @@
   color: var(--foreground-secondary);
   line-height: 1.6;
   margin: 0;
+}
+
+.synopsisCollapsed {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.seeMoreBtn {
+  background: transparent;
+  border: none;
+  color: var(--primary);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0;
+  margin-top: 0.2rem;
+  transition: color 0.2s ease;
+  width: fit-content;
+}
+
+.seeMoreBtn:hover {
+  color: var(--primary-light, #c084fc);
+  text-decoration: underline;
 }
 
 /* Glassmorphic Details Meta Table */
