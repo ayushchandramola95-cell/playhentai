@@ -1,12 +1,11 @@
 .searchForm {
   position: relative;
-  width: 100%;
-  max-width: 380px;
-  transition: max-width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 220px;
+  transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .searchForm:focus-within {
-  max-width: 750px;
+  width: 480px;
 }
 
 .inputWrapper {
@@ -14,17 +13,18 @@
   display: flex;
   align-items: center;
   width: 100%;
+  height: 38px;
   background: var(--surface-hover);
   border: 1px solid var(--border);
   border-radius: 30px;
   padding: 0 0.8rem;
-  transition: all 0.25s ease;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .inputWrapper:focus-within {
   background: var(--surface);
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.12);
+  box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.2), 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
 .searchIcon {
@@ -168,5 +168,26 @@
   text-align: center;
   color: var(--foreground-muted);
   font-size: 0.8rem;
+}
+
+@media (max-width: 768px) {
+  .searchForm {
+    width: 130px;
+  }
+  .searchForm:focus-within {
+    width: 220px;
+  }
+  .searchInput {
+    font-size: 0.82rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .searchForm {
+    width: 110px;
+  }
+  .searchForm:focus-within {
+    width: 180px;
+  }
 }
 
