@@ -409,97 +409,102 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
       <div className={styles.contentWrapper}>
         <div className={styles.metaGrid}>
           
-          {/* Left Column: Poster, Favorites & Ratings */}
-          <div className={styles.leftCol}>
-            <div className={styles.posterWrapper}>
-              <Image
-                src={getR2Url(activeSeries.poster_image_key || activeSeries.cover_image_key, 'poster')}
-                alt={activeSeries.title}
-                fill
-                sizes="(max-width: 768px) 100vw, 300px"
-                className={styles.posterImage}
-                style={{ objectPosition: activeSeries.poster_position || 'center' }}
-              />
+          {/* Top Hero Section: Side-by-Side on Mobile (Poster Left, Title & Ratings Right) */}
+          <div className={styles.mobileTopRow}>
+            {/* Left Column: Poster, Favorites & Ratings */}
+            <div className={styles.leftCol}>
+              <div className={styles.posterWrapper}>
+                <Image
+                  src={getR2Url(activeSeries.poster_image_key || activeSeries.cover_image_key, 'poster')}
+                  alt={activeSeries.title}
+                  fill
+                  sizes="(max-width: 768px) 140px, 300px"
+                  className={styles.posterImage}
+                  style={{ objectPosition: activeSeries.poster_position || 'center' }}
+                />
+              </div>
+              
+              {/* Watchlist & Rate Action Buttons Row */}
+              <div className={styles.actionButtonsRow}>
+                <WatchlistToggle seriesId={activeSeries.id} />
+                <RateSeriesButton seriesId={activeSeries.id} seriesTitle={activeSeries.title} />
+              </div>
             </div>
-            
-            {/* Watchlist & Rate Action Buttons Row */}
-            <div className={styles.actionButtonsRow}>
-              <WatchlistToggle seriesId={activeSeries.id} />
-              <RateSeriesButton seriesId={activeSeries.id} seriesTitle={activeSeries.title} />
+
+            {/* Header Info Column: Category Badges, Title, Ratings */}
+            <div className={styles.headerInfoCol}>
+              {isDbEmpty && (
+                <span className={styles.dbAlert}>
+                  💡 Displaying catalog mock data for demo.
+                </span>
+              )}
+              
+              {/* Colorful Translucent Badges */}
+              <div className={styles.categoryBadgeRow}>
+                <Link href={`/categories?genre=${encodeURIComponent(activeSeries.category || 'Anime')}`} className={styles.categoryBadge}>
+                  {activeSeries.category || 'Anime'}
+                </Link>
+                {activeSeries.tags && activeSeries.tags
+                  .filter((t: string) => t.toLowerCase() !== 'featured' && !t.toLowerCase().startsWith('featured:'))
+                  .map((tag: string) => (
+                    <Link key={tag} href={`/categories?genre=${encodeURIComponent(tag)}`} className={styles.tagBadge}>
+                      #{tag}
+                    </Link>
+                  ))}
+              </div>
+
+              <h1 className={styles.seriesTitle}>{activeSeries.title}</h1>
+
+              {status === 'upcoming' && (
+                <div style={{
+                  background: 'rgba(59, 130, 246, 0.08)',
+                  border: '1px solid rgba(59, 130, 246, 0.3)',
+                  padding: '0.5rem 0.75rem',
+                  borderRadius: '8px',
+                  color: '#60a5fa',
+                  fontSize: '0.75rem',
+                  fontWeight: 700,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                  marginTop: '0.2rem',
+                  marginBottom: '0.4rem'
+                }}>
+                  <span>📢</span>
+                  <span>Upcoming Series — Airing soon!</span>
+                </div>
+              )}
+
+              {/* Ratings Summary Block */}
+              <div className={styles.ratingsBlock}>
+                <div className={styles.ratingsCard}>
+                  <span className={styles.ratingScore}>{rating.toFixed(1)}</span>
+                  <span className={styles.ratingMax}>/10</span>
+                  <div className={styles.ratingStars}>
+                    {Array.from({ length: 5 }).map((_, i) => {
+                      const filled = rating / 2 > i;
+                      return (
+                        <Star 
+                          key={i} 
+                          size={13} 
+                          fill={filled ? '#eab308' : 'transparent'} 
+                          color={filled ? '#eab308' : 'rgba(255,255,255,0.2)'} 
+                        />
+                      );
+                    })}
+                  </div>
+                  <span className={styles.ratingVotes}>({(views / 15).toFixed(0)})</span>
+                </div>
+                <span className={styles.viewsCounter}>
+                  <Eye size={13} />
+                  <span>{views.toLocaleString()}</span>
+                </span>
+              </div>
             </div>
           </div>
 
-          {/* Right Column: Title, Ratings Block, Description, Details Table */}
+          {/* Right Column / Full Width Bottom: Synopsis & Details Table */}
           <div className={styles.rightCol}>
-            {isDbEmpty && (
-              <span className={styles.dbAlert}>
-                💡 Displaying catalog mock data for demo.
-              </span>
-            )}
-            
-            {/* Colorful Translucent Badges */}
-            <div className={styles.categoryBadgeRow}>
-              <Link href={`/categories?genre=${encodeURIComponent(activeSeries.category || 'Anime')}`} className={styles.categoryBadge}>
-                {activeSeries.category || 'Anime'}
-              </Link>
-              {activeSeries.tags && activeSeries.tags
-                .filter((t: string) => t.toLowerCase() !== 'featured' && !t.toLowerCase().startsWith('featured:'))
-                .map((tag: string) => (
-                  <Link key={tag} href={`/categories?genre=${encodeURIComponent(tag)}`} className={styles.tagBadge}>
-                    #{tag}
-                  </Link>
-                ))}
-            </div>
-
-            <h1 className={styles.seriesTitle}>{activeSeries.title}</h1>
-
-            {status === 'upcoming' && (
-              <div style={{
-                background: 'rgba(59, 130, 246, 0.08)',
-                border: '1px solid rgba(59, 130, 246, 0.3)',
-                padding: '0.8rem 1rem',
-                borderRadius: '8px',
-                color: '#60a5fa',
-                fontSize: '0.82rem',
-                fontWeight: 700,
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                marginTop: '0.5rem',
-                marginBottom: '1rem',
-                maxWidth: '600px'
-              }}>
-                <span>📢</span>
-                <span>Upcoming Series — This title is scheduled to air soon. Stay tuned for previews and the official release!</span>
-              </div>
-            )}
-
-            {/* Ratings Summary Block */}
-            <div className={styles.ratingsBlock}>
-              <div className={styles.ratingsCard}>
-                <span className={styles.ratingScore}>{rating.toFixed(1)}</span>
-                <span className={styles.ratingMax}>/10</span>
-                <div className={styles.ratingStars}>
-                  {Array.from({ length: 5 }).map((_, i) => {
-                    const filled = rating / 2 > i;
-                    return (
-                      <Star 
-                        key={i} 
-                        size={14} 
-                        fill={filled ? '#eab308' : 'transparent'} 
-                        color={filled ? '#eab308' : 'rgba(255,255,255,0.2)'} 
-                      />
-                    );
-                  })}
-                </div>
-                <span className={styles.ratingVotes}>({(views / 15).toFixed(0)} votes)</span>
-              </div>
-              <span className={styles.viewsCounter}>
-                <Eye size={14} />
-                <span>{views.toLocaleString()} views</span>
-              </span>
-            </div>
-
             {/* Premium Synopsis Card */}
             <div className={styles.synopsisBox}>
               <h3 className={styles.synopsisLabel}>Synopsis</h3>
