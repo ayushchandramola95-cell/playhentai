@@ -38,24 +38,22 @@ export function getR2Url(
     return getFallbackUrl(fallbackType);
   }
 
-  const cleanKey = key.trim();
+  let cleanKey = key.trim();
+  const baseUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL || 'https://media.playhentai.live';
+  const sanitizedBase = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
 
-  // If the key is already a full URL or data URI, return it directly
+  // Automatically convert any legacy .r2.dev URLs to the custom CDN domain
+  if (cleanKey.includes('.r2.dev/')) {
+    cleanKey = cleanKey.replace(/^https?:\/\/[^/]+\.r2\.dev\//, '/');
+  }
+
+  // If the key is an external URL (e.g. Unsplash or external storage), return as is
   if (cleanKey.startsWith('http://') || cleanKey.startsWith('https://') || cleanKey.startsWith('data:')) {
     return cleanKey;
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL || 'https://media.playhentai.live';
-
-  if (baseUrl) {
-    const sanitizedBase = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
-    const sanitizedKey = cleanKey.startsWith('/') ? cleanKey : `/${cleanKey}`;
-    return `${sanitizedBase}${sanitizedKey}`;
-  }
-
-  // If pointing to mock or unconfigured R2 public URL, build relative path or clean object key
   const sanitizedKey = cleanKey.startsWith('/') ? cleanKey : `/${cleanKey}`;
-  return sanitizedKey;
+  return `${sanitizedBase}${sanitizedKey}`;
 }
 
 /**
