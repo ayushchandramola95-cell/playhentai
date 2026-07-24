@@ -286,3 +286,9 @@
   color: #ff5e00;
   background: rgba(255, 94, 0, 0.15) !important;
 }
+
+@media (max-width: 900px) {
+  .theaterBtn {
+    display: none !important;
+  }
+}

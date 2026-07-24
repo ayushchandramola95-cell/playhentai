@@ -259,10 +259,28 @@
 }
 
 /* Right Column: Sidebar (Flows naturally with entire page scroll) */
-.sidebarCol {
+.sidebarCol,
+.sidebarColDesktop {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+}
+
+.mobileOnlySeriesQueueBlock {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .sidebarColDesktop {
+    display: none !important;
+  }
+  .mobileOnlySeriesQueueBlock {
+    display: flex !important;
+    flex-direction: column;
+    gap: 1.25rem;
+    width: 100%;
+    margin: 0.5rem 0;
+  }
 }
 
 /* Series Quick Info Card (FIRST Card in Sidebar) */

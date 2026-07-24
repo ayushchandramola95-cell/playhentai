@@ -468,7 +468,7 @@ export default function VideoPlayer({
               <button 
                 type="button" 
                 onClick={(e) => { e.stopPropagation(); toggleTheater(); }} 
-                className={styles.controlBtn} 
+                className={`${styles.controlBtn} ${styles.theaterBtn}`} 
                 title="Theater Mode" 
                 aria-label="Toggle Theater Mode"
               >

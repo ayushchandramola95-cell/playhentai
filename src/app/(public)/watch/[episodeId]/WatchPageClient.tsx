@@ -234,6 +234,113 @@ export default function WatchPageClient({
             </p>
           </div>
 
+          {/* MOBILE ONLY: Series Quick Info Box & Episodes Queue (Placed DIRECTLY below Description Box) */}
+          <div className={styles.mobileOnlySeriesQueueBlock}>
+            {seriesDetails && (
+              <div className={`${styles.sidebarCard} glass`}>
+                <div className={styles.seriesInfoGrid}>
+                  <div className={styles.sidebarPosterWrapper}>
+                    <Image
+                      src={getR2Url(seriesDetails.poster_image_key || seriesDetails.cover_image_key, 'poster')}
+                      alt={seriesDetails.title}
+                      fill
+                      sizes="85px"
+                      className={styles.sidebarPoster}
+                    />
+                  </div>
+                  <div className={styles.sidebarSeriesMeta}>
+                    <Link href={`/series/${seriesSlug}`} className={styles.sidebarSeriesTitle}>
+                      {seriesDetails.title}
+                    </Link>
+                    <div className={styles.sidebarRatingBlock}>
+                      <Star size={12} fill="#eab308" color="#eab308" />
+                      <span className={styles.sidebarRatingScore}>{(seriesDetails.rating || 9.0).toFixed(1)}</span>
+                      <span className={styles.sidebarRatingScale}>/10</span>
+                    </div>
+                    <div className={styles.sidebarStatus}>
+                      <span
+                        className={`${styles.statusDot} ${
+                          seriesDetails.status === 'airing' ? styles.dotAiring : styles.dotFinalized
+                        }`}
+                      />
+                      <span className={styles.statusText}>{(seriesDetails.status || 'finalized').toUpperCase()}</span>
+                    </div>
+                  </div>
+                </div>
+                <div className={styles.sidebarTags}>
+                  {(seriesDetails.tags || []).slice(0, 4).map((tag: string) => (
+                    <span key={tag} className={styles.sidebarTag}>
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className={`${styles.queueCard} glass`}>
+              <div className={styles.queueHeader}>
+                <Tv size={18} className={styles.sidebarIcon} />
+                <h3>Episodes Queue</h3>
+                <span className={styles.epCountPill}>{seasonEpisodes.length} Episodes</span>
+              </div>
+
+              <div className={styles.queueList}>
+                {seasonEpisodes.map((ep) => {
+                  const isActive = ep.id === activeEpisode.id;
+                  const rawTitle = ep.title || `Episode ${ep.episode_number}`;
+                  const cleanEpTitle = rawTitle.replace(/^\[Preview\]\s*/i, '').replace(/^\[Trailer\]\s*/i, '').trim();
+
+                  const displayTitleText = cleanEpTitle.startsWith('Episode') || cleanEpTitle.startsWith('Ep')
+                    ? cleanEpTitle
+                    : `Episode ${ep.episode_number}: ${cleanEpTitle}`;
+
+                  return (
+                    <Link
+                      key={ep.id}
+                      ref={isActive ? activeItemRef : null}
+                      href={getEpisodeWatchUrl(ep.id, ep.episode_number, seriesSlug)}
+                      className={`${styles.queueItem} ${isActive ? styles.activeQueueItem : ''}`}
+                    >
+                      <div className={styles.queueThumbWrapper}>
+                        <Image
+                          src={getR2Url(ep.thumbnail_key || seriesDetails?.cover_image_key, 'thumbnail')}
+                          alt={ep.title}
+                          fill
+                          sizes="80px"
+                          className={styles.queueThumb}
+                        />
+                        {isActive && (
+                          <div className={styles.playingOverlay}>
+                            <div className={styles.equalizer}>
+                              <span />
+                              <span />
+                              <span />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      <div className={styles.queueMeta}>
+                        {isActive && (
+                          <span className={styles.queuePlayingBadge}>
+                            ▶ PLAYING NOW
+                          </span>
+                        )}
+                        <h4 className={styles.queueEpTitle}>
+                          {(ep.title.startsWith('[Preview]') || ep.title.startsWith('[Trailer]')) && (
+                            <span style={{ color: '#3b82f6', marginRight: '0.3rem', fontSize: '0.7rem', fontWeight: 800 }}>
+                              [PREVIEW]
+                            </span>
+                          )}
+                          {displayTitleText}
+                        </h4>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
           {/* Similar Titles row under info card */}
           {similarSeries.length > 0 && (
             <div className={styles.similarWrapper}>
@@ -247,8 +354,8 @@ export default function WatchPageClient({
           </div>
         </div>
 
-        {/* Right Column: Sidebar */}
-        <div className={styles.sidebarCol}>
+        {/* Right Column: Sidebar (DESKTOP ONLY) */}
+        <div className={styles.sidebarColDesktop}>
           
           {/* Series Quick Info Card (FIRST Card in Sidebar) */}
           {seriesDetails && (
@@ -292,7 +399,7 @@ export default function WatchPageClient({
             </div>
           )}
 
-          {/* Episode List Queue (SECOND Card in Sidebar, Capped to Description Box) */}
+          {/* Episode List Queue (SECOND Card in Sidebar) */}
           <div className={`${styles.queueCard} glass`}>
             <div className={styles.queueHeader}>
               <Tv size={18} className={styles.sidebarIcon} />
