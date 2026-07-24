@@ -420,11 +420,11 @@
   }
 
   .titleRow h1 {
-    font-size: 1.6rem;
+    font-size: 1.5rem;
   }
 
   .subtext {
-    font-size: 0.88rem;
+    font-size: 0.85rem;
   }
 
   .categoryTabs {
@@ -444,61 +444,71 @@
   }
 
   .collectionsGrid {
-    gap: 1.25rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0.75rem !important;
   }
 
   .collectionCard {
-    padding: 1.25rem;
-    min-height: auto;
+    padding: 1rem 0.85rem;
+    min-height: 180px;
     display: flex;
-    flex-direction: row;
-    align-items: flex-start;
+    flex-direction: column;
     justify-content: space-between;
-    gap: 0.85rem;
+    gap: 0.6rem;
+    position: relative;
   }
 
   .infoCol {
     padding-right: 0;
+    width: 100%;
     flex: 1;
-    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .cardHeader {
+    padding-right: 3rem;
   }
 
   .cardHeader h2 {
-    font-size: 1.2rem;
+    font-size: 1.02rem;
+    line-height: 1.25;
   }
 
   .description {
-    font-size: 0.82rem;
-    line-height: 1.45;
+    font-size: 0.75rem;
+    line-height: 1.35;
     -webkit-line-clamp: 2;
-    margin: 0.4rem 0 0.85rem 0;
+    margin: 0.35rem 0 0.6rem 0;
   }
 
   .viewBtn {
-    font-size: 0.82rem;
+    font-size: 0.78rem;
+    margin-top: 0.4rem;
   }
 
   .previewCol {
-    width: 80px;
-    flex-shrink: 0;
-    align-self: center;
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    width: 50px;
+    height: 75px;
+    z-index: 3;
+    pointer-events: none;
   }
 
-  .posterStack {
-    width: 65px;
-    height: 98px;
-  }
-
+  .posterStack,
   .stackedPoster,
   .emptyPreview {
-    width: 65px;
-    height: 98px;
-    border-radius: 8px;
+    width: 48px;
+    height: 72px;
+    border-radius: 6px;
   }
 
   .stackedPoster {
     transform: 
-      translate(calc(var(--index) * 8px), calc(var(--index) * -4px)) 
+      translate(calc(var(--index) * 5px), calc(var(--index) * -3px)) 
       rotate(calc((var(--index) - 1) * 3deg)) 
       scale(calc(1 - var(--index) * 0.04));
   }
@@ -510,32 +520,45 @@
 }
 
 @media (max-width: 480px) {
+  .collectionsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0.65rem !important;
+  }
+
   .collectionCard {
-    padding: 1rem;
+    padding: 0.85rem 0.75rem;
+    min-height: 170px;
   }
 
   .cardHeader h2 {
-    font-size: 1.1rem;
+    font-size: 0.95rem;
   }
 
   .countBadge {
-    font-size: 0.65rem;
-    padding: 0.15rem 0.45rem;
+    font-size: 0.62rem;
+    padding: 0.12rem 0.4rem;
   }
 
   .categoryBadge {
-    font-size: 0.62rem;
+    font-size: 0.58rem;
+  }
+
+  .description {
+    font-size: 0.72rem;
   }
 
   .previewCol {
-    width: 70px;
+    width: 42px;
+    height: 63px;
+    top: 0.65rem;
+    right: 0.65rem;
   }
 
   .posterStack,
   .stackedPoster,
   .emptyPreview {
-    width: 58px;
-    height: 87px;
+    width: 42px;
+    height: 63px;
   }
 
   .seriesGrid {
