@@ -16,7 +16,7 @@ export async function generateMetadata({ searchParams }: SearchPageProps) {
   const resolvedParams = await searchParams;
   const q = resolvedParams.q || '';
   return {
-    title: q ? `Search results for "${q}" - PlayHentai` : 'Search Anime & Series - PlayHentai',
+    title: q ? `Search results for "${q}"` : 'Search Hentai Anime & Series',
     description: `Find and watch anime series matching "${q}". Search by title, alternative names, studio, or genre tags on PlayHentai.`,
     robots: {
       index: false,

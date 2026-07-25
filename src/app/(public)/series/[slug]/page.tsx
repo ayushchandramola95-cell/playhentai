@@ -44,8 +44,8 @@ export async function generateMetadata({ params }: SeriesPageProps): Promise<Met
 
     if (data) {
       const isDubbed = data.tags ? data.tags.some((t: string) => t.toLowerCase() === 'dub' || t.toLowerCase() === 'dubbed') : false;
-      title = data.meta_title || `${data.title} - Watch Online with English ${isDubbed ? 'Dubbed' : 'Subtitles'} | PlayHentai`;
-      description = data.meta_description || `Watch ${data.title} online in HD with English ${isDubbed ? 'dubbed and subtitled' : 'subtitles'}. Browse ${isDubbed ? 'series' : 'all episodes, series'} information, release details, genres, and stream the latest updates on PlayHentai.`;
+      title = data.meta_title || `${data.title} - Watch Online (English ${isDubbed ? 'Dubbed' : 'Subbed'})`;
+      description = data.meta_description || `Watch ${data.title} online in HD with English ${isDubbed ? 'dubbed and subtitled' : 'subtitles'}. Browse series information, release details, genres, and stream full episodes on PlayHentai.`;
       ogImage = data.cover_image_key || data.poster_image_key || '';
       
       const keywordsList = [
@@ -67,8 +67,8 @@ export async function generateMetadata({ params }: SeriesPageProps): Promise<Met
     } else if (MOCK_SERIES_DETAILS[slug]) {
       const mock = MOCK_SERIES_DETAILS[slug];
       const isDubbed = mock.tags ? mock.tags.some((t: string) => t.toLowerCase() === 'dub' || t.toLowerCase() === 'dubbed') : false;
-      title = `${mock.title} - Watch Online with English ${isDubbed ? 'Dubbed' : 'Subtitles'} | StreamNexus`;
-      description = `Watch ${mock.title} online in HD with English ${isDubbed ? 'dubbed and subtitled' : 'subtitles'}. Browse ${isDubbed ? 'series' : 'all episodes, series'} information, release details, genres, and stream the latest updates on StreamNexus.`;
+      title = `${mock.title} - Watch Online (English ${isDubbed ? 'Dubbed' : 'Subbed'})`;
+      description = `Watch ${mock.title} online in HD with English ${isDubbed ? 'dubbed and subtitled' : 'subtitles'}. Browse series information, release details, genres, and stream full episodes on PlayHentai.`;
       ogImage = mock.cover_image_key || mock.poster_image_key || '';
       
       const keywordsList = [

@@ -5,7 +5,7 @@ import BrowseHub from '@/components/BrowseHub/BrowseHub';
 import styles from './categories.module.css';
 
 export const metadata = {
-  title: 'Categories & Series Library - PlayHentai',
+  title: 'Watch Uncensored Hentai Anime Series & Categories',
   description: 'Browse all anime genres, categories, release years, and studios. Filter uncensored anime series by your favorite tags on PlayHentai.',
   alternates: {
     canonical: '/categories',

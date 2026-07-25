@@ -3,8 +3,8 @@ import { createClient } from '@/utils/supabase/server';
 import WatchlistClient from '@/components/WatchlistClient/WatchlistClient';
 
 export const metadata = {
-  title: 'My Watchlist - StreamNexus',
-  description: 'Your saved series and bookmarked movies.',
+  title: 'My Anime Watchlist',
+  description: 'Your saved series and bookmarked anime episodes on PlayHentai.',
 };
 
 export default async function WatchlistPage() {

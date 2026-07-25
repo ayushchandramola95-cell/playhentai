@@ -190,7 +190,7 @@ export async function generateMetadata({ params }: WatchPageProps): Promise<Meta
     const resolved = await resolveEpisode(supabase, episodeId);
     if (resolved?.activeEpisode) {
       const ep = resolved.activeEpisode;
-      title = `Play ${resolved.seriesTitle} - Episode ${ep.episode_number}: ${ep.title} | PlayHentai`;
+      title = `${resolved.seriesTitle} Episode ${ep.episode_number}: ${ep.title} (HD Stream)`;
       description = ep.description || description;
       thumbnail = ep.thumbnail_key || ep.thumbnail || '';
       canonicalPath = getEpisodeWatchUrl(ep.id, ep.episode_number, resolved.seriesSlug);
