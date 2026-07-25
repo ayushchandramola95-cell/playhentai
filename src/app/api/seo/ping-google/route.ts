@@ -1,30 +1,72 @@
 import { NextResponse } from 'next/server';
 
 export async function GET() {
+  const host = 'playhentai.live';
+  const key = 'playhentai2026indexnowkey123';
+  const keyLocation = 'https://playhentai.live/playhentai-indexnow-key.txt';
   const sitemapUrl = 'https://playhentai.live/sitemap.xml';
-  const results: Record<string, string> = {};
 
+  const results: Record<string, any> = {};
+
+  // 1. Submit via IndexNow Protocol (Bing, Yandex, Yahoo, Naver)
   try {
-    // 1. Ping Google Search Console
-    const googleRes = await fetch(`https://www.google.com/ping?sitemap=${encodeURIComponent(sitemapUrl)}`);
-    results.google = googleRes.ok ? 'SUCCESS: Google pinged' : `STATUS: ${googleRes.status}`;
+    const indexNowPayload = {
+      host,
+      key,
+      keyLocation,
+      urlList: [
+        'https://playhentai.live',
+        'https://playhentai.live/categories',
+        'https://playhentai.live/sitemap.xml'
+      ]
+    };
+
+    const indexNowRes = await fetch('https://api.indexnow.org/indexnow', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8'
+      },
+      body: JSON.stringify(indexNowPayload)
+    });
+
+    results.indexNow = indexNowRes.status === 200 || indexNowRes.status === 202
+      ? 'SUCCESS: IndexNow submitted (HTTP ' + indexNowRes.status + ')'
+      : 'STATUS: ' + indexNowRes.status;
   } catch (err: any) {
-    results.google = `ERROR: ${err.message}`;
+    results.indexNow = 'ERROR: ' + err.message;
   }
 
+  // 2. Direct Bing IndexNow Endpoint
   try {
-    // 2. Ping Bing Webmaster Tools
-    const bingRes = await fetch(`https://www.bing.com/ping?sitemap=${encodeURIComponent(sitemapUrl)}`);
-    results.bing = bingRes.ok ? 'SUCCESS: Bing pinged' : `STATUS: ${bingRes.status}`;
+    const bingPayload = {
+      host,
+      key,
+      keyLocation,
+      urlList: ['https://playhentai.live/sitemap.xml']
+    };
+
+    const bingRes = await fetch('https://www.bing.com/indexnow', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8'
+      },
+      body: JSON.stringify(bingPayload)
+    });
+
+    results.bingIndexNow = bingRes.status === 200 || bingRes.status === 202
+      ? 'SUCCESS: Bing IndexNow submitted (HTTP ' + bingRes.status + ')'
+      : 'STATUS: ' + bingRes.status;
   } catch (err: any) {
-    results.bing = `ERROR: ${err.message}`;
+    results.bingIndexNow = 'ERROR: ' + err.message;
   }
 
   return NextResponse.json({
     success: true,
     timestamp: new Date().toISOString(),
     sitemap: sitemapUrl,
-    results
+    indexNowKey: keyLocation,
+    results,
+    note: 'Search engine IndexNow protocol submitted. For Google, sitemap.xml auto-syncs via Google Search Console.'
   });
 }
 
