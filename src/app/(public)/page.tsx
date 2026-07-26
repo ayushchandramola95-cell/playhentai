@@ -268,6 +268,9 @@ export default async function HomePage() {
       {/* Hero Bottom Sponsored Ad Banner (728x90 Zone 5986176) */}
       <AdBanner zoneId="5986176" />
 
+      {/* Mobile-Only Hero Bottom Banner (Zone 5986984) */}
+      <AdBanner zoneId="5986984" insClass="eas6a97888e10" mobileOnly />
+
       {/* 1. Recent Episodes Section: 4*5 landscape grid */}
       <section className={styles.section}>
         <div className={styles.seriesSectionHeader}>
