@@ -8,6 +8,7 @@ import { Play, Search, X, Filter, Calendar, Tv, Layers, Grid, ChevronLeft, Chevr
 import { GENRES, STUDIOS, RELEASE_YEARS } from '@/utils/constants';
 import { getR2Url } from '@/utils/r2';
 import SeriesCard from '../SeriesCard/SeriesCard';
+import AdBanner from '../AdBanner/AdBanner';
 import styles from './BrowseHub.module.css';
 
 interface SeriesItem {
@@ -385,6 +386,9 @@ function BrowseHubContent({ initialSeries, isDbEmpty }: BrowseHubProps) {
           </div>
         )}
       </div>
+
+      {/* Sponsored Ad Banner: Series After Filters (Zone 5986838) */}
+      <AdBanner zoneId="5986838" />
 
       {/* Catalog Results Grid */}
       <section className={styles.catalogSection} ref={catalogRef}>
