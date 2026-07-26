@@ -8,11 +8,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing credentials fields' }, { status: 400 });
     }
 
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
+    const redirectTo = `${siteUrl}/api/auth/callback`;
+
     const supabase = await createClient();
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
+        emailRedirectTo: redirectTo,
         data: {
           username: username,
         },
