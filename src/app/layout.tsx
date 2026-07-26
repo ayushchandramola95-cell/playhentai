@@ -61,6 +61,11 @@ export const metadata: Metadata = {
     shortcut: '/favicon.ico',
     apple: '/apple-icon.png',
   },
+  verification: {
+    other: {
+      '6a97888e-site-verification': 'ae5b610b0f4d1db35865d663bf9fa0ee',
+    },
+  },
   robots: {
     index: true,
     follow: true,
@@ -94,6 +99,9 @@ export default function RootLayout({
 
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`} suppressHydrationWarning>
+      <head>
+        <meta name="6a97888e-site-verification" content="ae5b610b0f4d1db35865d663bf9fa0ee" />
+      </head>
       <body>
         <script
           type="application/ld+json"
