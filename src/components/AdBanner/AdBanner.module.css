@@ -1,7 +1,7 @@
 .adContainer {
   width: 100%;
   max-width: 1200px;
-  margin: 1.5rem auto 2rem;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -9,7 +9,25 @@
   text-align: center;
   position: relative;
   z-index: 10;
+  padding: 0;
+  transition: all 0.3s ease;
+}
+
+.adHidden {
+  display: none !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.adLoaded {
+  margin: 1.5rem auto 2rem;
   padding: 0 1rem;
+  opacity: 1;
 }
 
 .adLabel {
@@ -24,25 +42,18 @@
 
 .adWrapper {
   width: 100%;
-  min-height: 90px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(15, 23, 42, 0.4);
-  border: 1px dashed rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
   overflow: hidden;
-  padding: 0.5rem;
 }
 
 @media (max-width: 768px) {
-  .adContainer {
+  .adLoaded {
     margin: 1rem auto 1.5rem;
     padding: 0 0.5rem;
-  }
-  
-  .adWrapper {
-    min-height: 70px;
-    padding: 0.25rem;
   }
 }
