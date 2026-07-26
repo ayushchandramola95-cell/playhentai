@@ -345,6 +345,9 @@ export default function WatchPageClient({
           {/* Sponsored Ad Banner: Episode Before Similar Titles (Zone 5986956) */}
           <AdBanner zoneId="5986956" />
 
+          {/* Mobile-Only Banner Before Similar Titles (Zone 5987000) */}
+          <AdBanner zoneId="5987000" insClass="eas6a97888e10" mobileOnly />
+
           {/* Similar Titles row under info card */}
           {similarSeries.length > 0 && (
             <div className={styles.similarWrapper}>

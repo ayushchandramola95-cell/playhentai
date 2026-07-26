@@ -26,6 +26,7 @@ To verify domain ownership on adult ad networks (ExoClick, JuicyAds, TrafficJunk
 | **`series-details-before-episodes-728x90`** | `5986920` | `eas6a97888e2` | `src/app/(public)/series/[slug]/page.tsx` | **Below Series Metadata, Before Episodes** |
 | **`series-before-episodes-banner`** | `5986998` | `eas6a97888e10` | `src/app/(public)/series/[slug]/page.tsx` | **Mobile-only banner above Episodes Grid (≤768px)** |
 | **`episode-before-similar-titles-728x90`** | `5986956` | `eas6a97888e2` | `src/app/(public)/watch/[episodeId]/WatchPageClient.tsx` | **Before Similar Titles on Watch/Episode page** |
+| **`watch-before-similar-banner`** | `5987000` | `eas6a97888e10` | `src/app/(public)/watch/[episodeId]/WatchPageClient.tsx` | **Mobile-only banner before Similar Titles (≤768px)** |
 | **`mobile-homepage-footer-banner`** | `5986980` | `eas6a97888e10` | `src/app/(public)/layout.tsx` | **Mobile-only banner above Footer (≤768px)** |
 | **`homepage-before-footer-728x90`** | `5986212` | `eas6a97888e2` | `src/app/(public)/layout.tsx` | Globally **above Site Footer** |
 
