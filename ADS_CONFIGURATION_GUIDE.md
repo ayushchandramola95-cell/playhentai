@@ -15,12 +15,12 @@ To verify domain ownership on adult ad networks (ExoClick, JuicyAds, TrafficJunk
 
 ## 📍 2. Active Homepage Ad Banner Zones (728x90)
 
-| Zone Name | Zone ID | Location in Code | Page Position |
-| :--- | :---: | :--- | :--- |
-| **`homepage-hero-bottom-728x90`** | `5986176` | `src/app/(public)/page.tsx` | Directly **below Hero Carousel** |
-| **`homepage-after-recent-episodes-728x90`** | `5986194` | `src/app/(public)/page.tsx` | Directly **after Recent Episodes** |
-| **`homepage-after-latest--series728x90`** | `5986226` | `src/app/(public)/page.tsx` | **Between Latest Series & Trending** |
-| **`homepage-before-footer-728x90`** | `5986212` | `src/app/(public)/layout.tsx` | Globally **above Site Footer** |
+| Zone Name | Zone ID | Class | Location in Code | Page Position |
+| :--- | :---: | :---: | :--- | :--- |
+| **`homepage-hero-bottom-728x90`** | `5986176` | `eas6a97888e2` | `src/app/(public)/page.tsx` | Directly **below Hero Carousel** |
+| **`homepage-after-recent-episodes-728x90`** | `5986194` | `eas6a97888e2` | `src/app/(public)/page.tsx` | Directly **after Recent Episodes** |
+| **`homepage-native-feed`** | `5986302` | `eas6a9788e20` | `src/app/(public)/page.tsx` | **Native Widget Between Latest Series & Trending** |
+| **`homepage-before-footer-728x90`** | `5986212` | `eas6a97888e2` | `src/app/(public)/layout.tsx` | Globally **above Site Footer** |
 
 ---
 

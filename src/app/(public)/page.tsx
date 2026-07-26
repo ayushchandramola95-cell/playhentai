@@ -350,8 +350,8 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Sponsored Ad Banner: After Latest Series (Zone 5986226) */}
-      <AdBanner zoneId="5986226" />
+      {/* Sponsored Native Recommendation Feed Widget (Zone 5986302) */}
+      <AdBanner zoneId="5986302" insClass="eas6a9788e20" />
 
       {/* Recommendations Banner */}
       {!user ? (

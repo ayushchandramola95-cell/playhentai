@@ -5,10 +5,11 @@ import styles from './AdBanner.module.css';
 
 interface AdBannerProps {
   zoneId?: string;
+  insClass?: string;
   className?: string;
 }
 
-export default function AdBanner({ zoneId = '5986176', className = '' }: AdBannerProps) {
+export default function AdBanner({ zoneId = '5986176', insClass, className = '' }: AdBannerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isAdLoaded, setIsAdLoaded] = useState(false);
 
@@ -27,7 +28,7 @@ export default function AdBanner({ zoneId = '5986176', className = '' }: AdBanne
 
     // Create ins element
     const insObj = document.createElement('ins');
-    insObj.className = 'eas6a97888e2';
+    insObj.className = insClass || 'eas6a97888e2';
     insObj.setAttribute('data-zoneid', zoneId);
 
     // Create serve push script
