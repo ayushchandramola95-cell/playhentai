@@ -328,6 +328,9 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* Sponsored Ad Banner: After Recent Episodes (Zone 5986194) */}
+      <AdBanner zoneId="5986194" />
+
       {/* 2. Latest Series Section: 6-column Grid with views and status overlays */}
       <section className={styles.section}>
         <div className={styles.seriesSectionHeader}>
