@@ -1,0 +1,63 @@
+# 📢 PlayHentai Ad Monetization & Zone Configuration Guide
+
+This guide documents the active ad zones, placement architecture, site verification details, and future expansion guides for **`https://playhentai.live`**.
+
+---
+
+## 🔐 1. Site Verification Meta Tag
+To verify domain ownership on adult ad networks (ExoClick, JuicyAds, TrafficJunky, etc.), the verification tag is injected in `src/app/layout.tsx`:
+
+```html
+<meta name="6a97888e-site-verification" content="ae5b610b0f4d1db35865d663bf9fa0ee" />
+```
+
+---
+
+## 📍 2. Active Homepage Ad Banner Zones (728x90)
+
+| Zone Name | Zone ID | Location in Code | Page Position |
+| :--- | :---: | :--- | :--- |
+| **`homepage-hero-bottom-728x90`** | `5986176` | `src/app/(public)/page.tsx` | Directly **below Hero Carousel** |
+| **`homepage-after-recent-episodes-728x90`** | `5986194` | `src/app/(public)/page.tsx` | Directly **after Recent Episodes** |
+| **`homepage-after-latest--series728x90`** | `5986226` | `src/app/(public)/page.tsx` | **Between Latest Series & Trending** |
+| **`homepage-before-footer-728x90`** | `5986212` | `src/app/(public)/layout.tsx` | Globally **above Site Footer** |
+
+---
+
+## 🛠️ 3. Dynamic Ad Component Architecture (`AdBanner.tsx`)
+
+The ad banner system is located in:
+- `src/components/AdBanner/AdBanner.tsx`
+- `src/components/AdBanner/AdBanner.module.css`
+
+### 💡 Key Features & Auto-Collapse Logic:
+1. **Asynchronous Non-Blocking Script Injection**:
+   - Dynamically loads `https://a.magsrv.com/ad-provider.js` and initializes `window.AdProvider`.
+2. **Auto-Collapse Empty Placeholders**:
+   - Uses a real-time DOM `MutationObserver` and `setInterval` check.
+   - **If no ad is filled or when ad blockers are active**: The container collapses completely (`display: none !important`, `height: 0`), leaving **zero empty space or dark placeholder boxes** on the site.
+   - **When an ad unit fills**: It automatically un-hides and displays the banner smoothly.
+
+---
+
+## 🚀 4. How to Add a New Ad Zone in 1 Step
+
+To place an ad anywhere on the site (e.g. watch page, categories, sidebar):
+
+```tsx
+import AdBanner from '@/components/AdBanner/AdBanner';
+
+// Place component with your ExoClick Zone ID:
+<AdBanner zoneId="YOUR_NEW_ZONE_ID" />
+```
+
+---
+
+## 📈 5. Recommended Future Ad Formats for Higher CPM
+
+1. **VAST Pre-Roll Video Ads** (Highest CPM in streaming sites):
+   - Integrates directly inside the video player (`VideoPlayer.tsx`) before episode playback begins.
+2. **Popunder Ads**:
+   - Triggers a single popunder tab on the first user click per 24 hours. Generates steady high revenue without disrupting regular browsing.
+3. **In-Video Banner Overlays**:
+   - Displays a floating 468x60 or 300x250 banner overlay at the bottom of the video player when paused.
