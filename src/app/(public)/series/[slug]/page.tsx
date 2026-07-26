@@ -605,6 +605,9 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
           {/* Sponsored Ad Banner: Series Details Before Episodes (Zone 5986920) */}
           <AdBanner zoneId="5986920" />
 
+          {/* Mobile-Only Banner Above Episodes Grid (Zone 5986998) */}
+          <AdBanner zoneId="5986998" insClass="eas6a97888e10" mobileOnly />
+
           {/* Desktop 16:9 Episodes Section */}
           <section className={styles.episodesSectionContainer}>
             <div className={styles.sectionHeader}>
@@ -713,6 +716,9 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
 
           {/* Sponsored Ad Banner: Series Details Before Episodes (Zone 5986920) */}
           <AdBanner zoneId="5986920" />
+
+          {/* Mobile-Only Banner Above Episodes Grid (Zone 5986998) */}
+          <AdBanner zoneId="5986998" insClass="eas6a97888e10" mobileOnly />
 
           {/* Mobile Episodes Section - 2 Column Image Box Grid */}
           <section className={styles.episodesSectionContainer}>
