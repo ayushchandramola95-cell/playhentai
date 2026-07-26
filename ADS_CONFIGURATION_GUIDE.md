@@ -21,6 +21,7 @@ To verify domain ownership on adult ad networks (ExoClick, JuicyAds, TrafficJunk
 | **`homepage-after-recent-episodes-728x90`** | `5986194` | `eas6a97888e2` | `src/app/(public)/page.tsx` | Directly **after Recent Episodes** |
 | **`homepage-native-feed`** | `5986302` | `eas6a9788e20` | `src/app/(public)/page.tsx` | **Native Widget Between Latest Series & Trending** |
 | **`series-after-filters-728x90`** | `5986838` | `eas6a97888e2` | `src/components/BrowseHub/BrowseHub.tsx` | **Below Genre/Series Filter Selector** |
+| **`series-details-before-episodes-728x90`** | `5986920` | `eas6a97888e2` | `src/app/(public)/series/[slug]/page.tsx` | **Below Series Metadata, Before Episodes** |
 | **`homepage-before-footer-728x90`** | `5986212` | `eas6a97888e2` | `src/app/(public)/layout.tsx` | Globally **above Site Footer** |
 
 ---

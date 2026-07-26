@@ -5,6 +5,7 @@ import FavoriteToggle from '@/components/FavoriteToggle/FavoriteToggle';
 import CommentSection from '@/components/CommentSection/CommentSection';
 import RateSeriesButton from '@/components/RateSeriesButton/RateSeriesButton';
 import SimilarTitles from '@/components/SimilarTitles/SimilarTitles';
+import AdBanner from '@/components/AdBanner/AdBanner';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Compass, Play, Clock, Layers, Star, Eye, MessageSquare, Flame, Camera, ChevronRight } from 'lucide-react';
@@ -601,6 +602,9 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
             </div>
           </div>
 
+          {/* Sponsored Ad Banner: Series Details Before Episodes (Zone 5986920) */}
+          <AdBanner zoneId="5986920" />
+
           {/* Desktop 16:9 Episodes Section */}
           <section className={styles.episodesSectionContainer}>
             <div className={styles.sectionHeader}>
@@ -706,6 +710,9 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
             <WatchlistToggle seriesId={activeSeries.id} />
             <FavoriteToggle seriesId={activeSeries.id} />
           </div>
+
+          {/* Sponsored Ad Banner: Series Details Before Episodes (Zone 5986920) */}
+          <AdBanner zoneId="5986920" />
 
           {/* Mobile Episodes Section - 2 Column Image Box Grid */}
           <section className={styles.episodesSectionContainer}>
