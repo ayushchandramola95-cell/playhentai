@@ -101,10 +101,10 @@ export default function SeriesCard({ item, className = '' }: SeriesCardProps) {
 
   // Calculate actual episodes from seasons
   let epCount = 0;
-  if (item.seasons) {
+  if (item.seasons && Array.isArray(item.seasons)) {
     item.seasons.forEach((s: any) => {
-      if (s.is_published && s.episodes) {
-        epCount += s.episodes.filter((e: any) => e.is_published).length;
+      if (s.is_published !== false && s.episodes && Array.isArray(s.episodes)) {
+        epCount += s.episodes.filter((e: any) => e.is_published !== false).length;
       }
     });
   } else if (item.slug) {
@@ -118,6 +118,11 @@ export default function SeriesCard({ item, className = '' }: SeriesCardProps) {
       'ookii-onnanoko-wa-suki-desu-ka': 2
     };
     epCount = mockCounts[item.slug] || 0;
+  }
+
+  // Fallback if epCount is 0 but planned episode override is set > 0
+  if (epCount === 0 && item.episode_count_override !== undefined && item.episode_count_override !== null && Number(item.episode_count_override) > 0) {
+    epCount = Number(item.episode_count_override);
   }
 
   return (

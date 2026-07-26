@@ -90,7 +90,15 @@ export default async function CategoriesPage() {
   try {
     const { data: seriesData } = await supabase
       .from('series')
-      .select('*')
+      .select(`
+        *,
+        seasons (
+          is_published,
+          episodes (
+            is_published
+          )
+        )
+      `)
       .eq('is_published', true)
       .order('created_at', { ascending: false });
 

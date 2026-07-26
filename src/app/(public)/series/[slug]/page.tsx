@@ -303,8 +303,18 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
   }
 
   const activeSeason = activeSeries.seasons?.[0]; // Default to Season 1
-  const currentEpCount = (activeSeries.seasons || []).reduce((acc: number, s: any) => acc + (s.episodes?.length || 0), 0);
-  const totalEpisodesText = activeSeries.episode_count_override !== undefined && activeSeries.episode_count_override !== null
+  const currentEpCount = (activeSeries.seasons || []).reduce((acc: number, s: any) => {
+    if (s.is_published !== false && s.episodes) {
+      return acc + (s.episodes.filter((e: any) => e.is_published !== false).length || 0);
+    }
+    return acc;
+  }, 0);
+
+  const hasPlannedOverride = activeSeries.episode_count_override !== undefined && 
+                             activeSeries.episode_count_override !== null && 
+                             Number(activeSeries.episode_count_override) > 0;
+
+  const totalEpisodesText = hasPlannedOverride
     ? `${currentEpCount} / ${activeSeries.episode_count_override}`
     : `${currentEpCount}`;
   const rating = activeSeries.rating || getStableRating(activeSeries.id || activeSeries.title);

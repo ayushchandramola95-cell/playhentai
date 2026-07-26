@@ -39,7 +39,15 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
       // Direct PostgreSQL OR query to find matching series
       const { data, error } = await supabase
         .from('series')
-        .select('*')
+        .select(`
+          *,
+          seasons (
+            is_published,
+            episodes (
+              is_published
+            )
+          )
+        `)
         .eq('is_published', true)
         .or(`title.ilike.%${query}%,description.ilike.%${query}%`);
 
