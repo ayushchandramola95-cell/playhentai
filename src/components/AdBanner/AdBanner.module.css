@@ -43,3 +43,14 @@
     padding: 0 0.5rem;
   }
 }
+
+/* Mobile-only ad: hide on desktop, show only on small screens */
+.mobileOnly {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .mobileOnly {
+    display: flex;
+  }
+}

@@ -6,10 +6,11 @@ import styles from './AdBanner.module.css';
 interface AdBannerProps {
   zoneId?: string;
   insClass?: string;
+  mobileOnly?: boolean;
   className?: string;
 }
 
-export default function AdBanner({ zoneId = '5986176', insClass, className = '' }: AdBannerProps) {
+export default function AdBanner({ zoneId = '5986176', insClass, mobileOnly = false, className = '' }: AdBannerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -39,7 +40,7 @@ export default function AdBanner({ zoneId = '5986176', insClass, className = '' 
   }, [zoneId, insClass]);
 
   return (
-    <div className={`${styles.adContainer} ${className}`}>
+    <div className={`${styles.adContainer} ${mobileOnly ? styles.mobileOnly : ''} ${className}`}>
       <div className={styles.adLabel}>SPONSORED ADVERTISEMENT</div>
       <div ref={containerRef} className={styles.adWrapper} />
     </div>
