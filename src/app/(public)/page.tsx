@@ -6,6 +6,7 @@ import path from 'path';
 import { Play, Star, Eye, Calendar, Sparkles, Award, Clock, Flame, ChevronRight } from 'lucide-react';
 import HeroCarousel from '@/components/HeroCarousel/HeroCarousel';
 import SeriesCard from '@/components/SeriesCard/SeriesCard';
+import AdBanner from '@/components/AdBanner/AdBanner';
 import { createClient } from '@/utils/supabase/server';
 import styles from './page.module.css';
 import { MOCK_SERIES, MOCK_EPISODES, MOCK_SERIES_DETAILS } from '@/utils/mockData';
@@ -263,6 +264,9 @@ export default async function HomePage() {
 
       {/* Featured Hero Carousel Banner */}
       <HeroCarousel activeSeries={featuredSeries} isDbEmpty={isDbEmpty} />
+
+      {/* Hero Bottom Sponsored Ad Banner (728x90 Zone 5986176) */}
+      <AdBanner zoneId="5986176" />
 
       {/* 1. Recent Episodes Section: 4*5 landscape grid */}
       <section className={styles.section}>
