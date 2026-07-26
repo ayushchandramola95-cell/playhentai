@@ -11,6 +11,7 @@ import { getEpisodeWatchUrl } from '@/utils/episodeUrl';
 import VideoPlayer from '@/components/VideoPlayer/VideoPlayer';
 import CommentSection from '@/components/CommentSection/CommentSection';
 import SimilarTitles from '@/components/SimilarTitles/SimilarTitles';
+import AdBanner from '@/components/AdBanner/AdBanner';
 import styles from './watch.module.css';
 
 interface WatchPageClientProps {
@@ -340,6 +341,9 @@ export default function WatchPageClient({
               </div>
             </div>
           </div>
+
+          {/* Sponsored Ad Banner: Episode Before Similar Titles (Zone 5986956) */}
+          <AdBanner zoneId="5986956" />
 
           {/* Similar Titles row under info card */}
           {similarSeries.length > 0 && (
