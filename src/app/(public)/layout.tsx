@@ -1,6 +1,7 @@
 import React from 'react';
 import Header from '@/components/Header/Header';
 import Footer from '@/components/Footer/Footer';
+import AdBanner from '@/components/AdBanner/AdBanner';
 
 export default function PublicLayout({
   children,
@@ -13,6 +14,8 @@ export default function PublicLayout({
       <main style={{ flex: '1 0 auto', display: 'flex', flexDirection: 'column' }}>
         {children}
       </main>
+      {/* Before Footer Sponsored Ad Banner (Zone 5986212) */}
+      <AdBanner zoneId="5986212" />
       <Footer />
     </>
   );
