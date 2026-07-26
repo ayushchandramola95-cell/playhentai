@@ -7,10 +7,11 @@ interface AdBannerProps {
   zoneId?: string;
   insClass?: string;
   mobileOnly?: boolean;
+  desktopOnly?: boolean;
   className?: string;
 }
 
-export default function AdBanner({ zoneId = '5986176', insClass, mobileOnly = false, className = '' }: AdBannerProps) {
+export default function AdBanner({ zoneId = '5986176', insClass, mobileOnly = false, desktopOnly = false, className = '' }: AdBannerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -40,7 +41,7 @@ export default function AdBanner({ zoneId = '5986176', insClass, mobileOnly = fa
   }, [zoneId, insClass]);
 
   return (
-    <div className={`${styles.adContainer} ${mobileOnly ? styles.mobileOnly : ''} ${className}`}>
+    <div className={`${styles.adContainer} ${mobileOnly ? styles.mobileOnly : ''} ${desktopOnly ? styles.desktopOnly : ''} ${className}`}>
       <div className={styles.adLabel}>SPONSORED ADVERTISEMENT</div>
       <div ref={containerRef} className={styles.adWrapper} />
     </div>

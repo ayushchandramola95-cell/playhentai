@@ -54,3 +54,14 @@
     display: flex;
   }
 }
+
+/* Desktop-only ad: visible on desktop, hidden on mobile */
+.desktopOnly {
+  display: flex;
+}
+
+@media (max-width: 768px) {
+  .desktopOnly {
+    display: none !important;
+  }
+}

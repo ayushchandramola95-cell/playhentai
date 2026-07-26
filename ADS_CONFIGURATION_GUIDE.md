@@ -20,7 +20,8 @@ To verify domain ownership on adult ad networks (ExoClick, JuicyAds, TrafficJunk
 | **`homepage-hero-bottom-728x90`** | `5986176` | `eas6a97888e2` | `src/app/(public)/page.tsx` | Directly **below Hero Carousel** |
 | **`mobile-homepage-after-hero-banner`** | `5986984` | `eas6a97888e10` | `src/app/(public)/page.tsx` | **Mobile-only banner below Hero (≤768px)** |
 | **`homepage-after-recent-episodes-728x90`** | `5986194` | `eas6a97888e2` | `src/app/(public)/page.tsx` | Directly **after Recent Episodes** |
-| **`homepage-native-feed`** | `5986302` | `eas6a9788e20` | `src/app/(public)/page.tsx` | **Native Widget Between Latest Series & Trending** |
+| **`homepage-after-recent-episodes-mobile`** | `5986994` | `eas6a97888e10` | `src/app/(public)/page.tsx` | **Mobile-only banner after Recent Episodes (≤768px)** |
+| **`homepage-native-feed`** | `5986302` | `eas6a9788e20` | `src/app/(public)/page.tsx` | **Native Widget Between Latest Series & Trending (Desktop Only)** |
 | **`series-after-filters-728x90`** | `5986838` | `eas6a97888e2` | `src/components/BrowseHub/BrowseHub.tsx` | **Below Genre/Series Filter Selector** |
 | **`series-details-before-episodes-728x90`** | `5986920` | `eas6a97888e2` | `src/app/(public)/series/[slug]/page.tsx` | **Below Series Metadata, Before Episodes** |
 | **`episode-before-similar-titles-728x90`** | `5986956` | `eas6a97888e2` | `src/app/(public)/watch/[episodeId]/WatchPageClient.tsx` | **Before Similar Titles on Watch/Episode page** |

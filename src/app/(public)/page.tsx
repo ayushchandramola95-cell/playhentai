@@ -334,6 +334,9 @@ export default async function HomePage() {
       {/* Sponsored Ad Banner: After Recent Episodes (Zone 5986194) */}
       <AdBanner zoneId="5986194" />
 
+      {/* Mobile-Only After Recent Episodes Banner (Zone 5986994) */}
+      <AdBanner zoneId="5986994" insClass="eas6a97888e10" mobileOnly />
+
       {/* 2. Latest Series Section: 6-column Grid with views and status overlays */}
       <section className={styles.section}>
         <div className={styles.seriesSectionHeader}>
@@ -353,8 +356,8 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Sponsored Native Recommendation Feed Widget (Zone 5986302) */}
-      <AdBanner zoneId="5986302" insClass="eas6a9788e20" />
+      {/* Sponsored Native Recommendation Feed Widget (Zone 5986302) - Desktop Only */}
+      <AdBanner zoneId="5986302" insClass="eas6a9788e20" desktopOnly />
 
       {/* Recommendations Banner */}
       {!user ? (
