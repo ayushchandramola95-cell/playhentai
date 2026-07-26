@@ -157,6 +157,16 @@
   backdrop-filter: blur(12px);
 }
 
+/* Hide series detail hover popover on Mobile & Touch Devices */
+@media (max-width: 1024px), (hover: none) {
+  :global(.popover) {
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+}
+
 .seriesCard:hover :global(.popover) {
   opacity: 1;
   visibility: visible;
