@@ -350,6 +350,9 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* Sponsored Ad Banner: After Latest Series (Zone 5986226) */}
+      <AdBanner zoneId="5986226" />
+
       {/* Recommendations Banner */}
       {!user ? (
         <section className={`${styles.section} ${styles.recommendationBanner} glass`}>
