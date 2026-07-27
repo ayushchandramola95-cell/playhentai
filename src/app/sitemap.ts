@@ -30,6 +30,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let dbSeries: any[] = [];
   let dbEpisodes: any[] = [];
   let dbDistinctTags: string[] = [];
+  let dbDistinctYears: number[] = [];
 
   try {
     // Instantiate a direct cookie-free client to prevent "Dynamic Server Usage" bailout during static build
@@ -41,10 +42,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Fetch published series
     const { data: series } = await supabase
       .from('series')
-      .select('slug, created_at')
+      .select('slug, created_at, release_year')
       .eq('is_published', true);
 
-    if (series) dbSeries = series;
+    if (series) {
+      dbSeries = series;
+      const yearSet = new Set<number>();
+      series.forEach((s: any) => {
+        if (s.release_year && typeof s.release_year === 'number') {
+          yearSet.add(s.release_year);
+        }
+      });
+      dbDistinctYears = Array.from(yearSet);
+    }
 
     // Fetch published episodes with joined series slug for clean URLs
     const { data: episodes } = await supabase
@@ -136,8 +146,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }));
 
+  // 6. Year Pages — dynamically generated from DB distinct years, priority 0.8
+  const activeYears = dbDistinctYears.length > 0 ? dbDistinctYears : [2024, 2026];
+  const yearPages = activeYears.map(year => ({
+    url: `${baseUrl}/year/${year}`,
+    lastModified: new Date(),
+    changeFrequency: 'weekly' as const,
+    priority: 0.8,
+  }));
 
-  // 6. Tag Pages — DB-driven, auto-updates when new tags are added to series
+  // 7. Tag Pages — DB-driven, auto-updates when new tags are added to series
   const tagPages = dbDistinctTags.map(tag => ({
     url: `${baseUrl}/tag/${tagToSlug(tag)}`,
     lastModified: new Date(),
@@ -152,6 +170,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...episodePages,
     studioIndexPage,
     ...studioDetailPages,
+    ...yearPages,
     ...tagPages,
   ];
 }
