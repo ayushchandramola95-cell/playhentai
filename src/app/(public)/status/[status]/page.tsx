@@ -119,7 +119,7 @@ export async function generateMetadata({ params }: StatusPageProps): Promise<Met
   }
 
   const capStatus = getCapitalizedStatus(normalizedStatus);
-  const title = `${capStatus} Hentai Anime Series - PlayHentai`;
+  const title = `${capStatus} Hentai Anime | PlayHentai`;
   const description = getMetaDescription(normalizedStatus, count);
   const canonicalUrl = `${SITE_URL}/status/${normalizedStatus}`;
 

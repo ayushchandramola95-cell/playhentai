@@ -3,7 +3,7 @@ import { createClient } from '@/utils/supabase/server';
 import HistoryClient from '@/components/HistoryClient/HistoryClient';
 
 export const metadata = {
-  title: 'Watch History - StreamNexus',
+  title: 'Watch History - PlayHentai',
   description: 'Resume your saved video playback locations.',
 };
 
@@ -61,7 +61,7 @@ export default async function HistoryPage() {
 
           const episode_title = dbEp?.title || mockEp?.title || `Episode ${item.episode_id}`;
           const episode_number = dbEp?.episode_number || mockEp?.episode_number || 1;
-          const series_title = dbEp?.seasons?.series?.title || dbEp?.series_title || mockEp?.series_title || 'StreamNexus Series';
+          const series_title = dbEp?.seasons?.series?.title || dbEp?.series_title || mockEp?.series_title || 'PlayHentai Series';
           const thumbnail_key = dbEp?.thumbnail_key || mockEp?.thumbnail_key || '';
           const duration_seconds = dbEp?.duration_seconds || mockEp?.duration_seconds || item.duration_seconds || 1400;
 

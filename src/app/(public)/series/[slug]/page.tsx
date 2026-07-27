@@ -47,8 +47,9 @@ export async function generateMetadata({ params }: SeriesPageProps): Promise<Met
 
     if (data) {
       const isDubbed = data.tags ? data.tags.some((t: string) => t.toLowerCase() === 'dub' || t.toLowerCase() === 'dubbed') : false;
-      title = data.meta_title || `${data.title} - Watch Online (English ${isDubbed ? 'Dubbed' : 'Subbed'})`;
-      description = data.meta_description || `Watch ${data.title} online in HD with English ${isDubbed ? 'dubbed and subtitled' : 'subtitles'}. Browse series information, release details, genres, and stream full episodes on PlayHentai.`;
+      const subOrDub = isDubbed ? 'English Dubbed/Subbed' : 'English Sub';
+      title = data.meta_title || `${data.title} - Watch ${subOrDub} HD | PlayHentai`;
+      description = data.meta_description || `Watch ${data.title} with English subtitles in HD. Stream all available episodes, releases, and check out similar titles on PlayHentai.`;
       ogImage = data.cover_image_key || data.poster_image_key || '';
       
       const keywordsList = [
@@ -70,8 +71,9 @@ export async function generateMetadata({ params }: SeriesPageProps): Promise<Met
     } else if (MOCK_SERIES_DETAILS[slug]) {
       const mock = MOCK_SERIES_DETAILS[slug];
       const isDubbed = mock.tags ? mock.tags.some((t: string) => t.toLowerCase() === 'dub' || t.toLowerCase() === 'dubbed') : false;
-      title = `${mock.title} - Watch Online (English ${isDubbed ? 'Dubbed' : 'Subbed'})`;
-      description = `Watch ${mock.title} online in HD with English ${isDubbed ? 'dubbed and subtitled' : 'subtitles'}. Browse series information, release details, genres, and stream full episodes on PlayHentai.`;
+      const subOrDub = isDubbed ? 'English Dubbed/Subbed' : 'English Sub';
+      title = `${mock.title} - Watch ${subOrDub} HD | PlayHentai`;
+      description = `Watch ${mock.title} with English subtitles in HD. Stream all available episodes, releases, and check out similar titles on PlayHentai.`;
       ogImage = mock.cover_image_key || mock.poster_image_key || '';
       
       const keywordsList = [
@@ -575,12 +577,18 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
                         boxShadow: status === 'ongoing' || status === 'airing' ? '0 0 8px #22c55e' : status === 'upcoming' ? '0 0 8px #3b82f6' : 'none'
                       }} 
                     />
-                    <span className={styles.statusText}>{status.toUpperCase()}</span>
+                    <Link href={`/status/${status}`} style={{ textTransform: 'uppercase', color: '#a855f7', fontWeight: 700, textDecoration: 'none' }}>
+                      {status}
+                    </Link>
                   </span>
                 </div>
                 <div className={styles.detailsRow}>
                   <span className={styles.detailsKey}>RELEASE YEAR</span>
-                  <span className={styles.detailsVal}>{releaseYear}</span>
+                  <span className={styles.detailsVal}>
+                    <Link href={`/year/${releaseYear}`} style={{ color: '#a855f7', fontWeight: 700, textDecoration: 'none' }}>
+                      {releaseYear}
+                    </Link>
+                  </span>
                 </div>
                 {firstAirDateFormatted && (
                   <div className={styles.detailsRow}>
@@ -719,9 +727,32 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
           <SynopsisBox 
             description={activeSeries.description} 
             details={{
-              studio,
-              releaseDate: firstAirDateFormatted || releaseYear.toString(),
-              status,
+              studio: (
+                <span style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap' }}>
+                  {studio.split(',').map((sName: string, index: number) => {
+                    const cleanName = sName.trim();
+                    const studioSlug = convertStudioNameToSlug(cleanName);
+                    return (
+                      <React.Fragment key={cleanName}>
+                        <Link href={`/studios/${studioSlug}`} style={{ color: '#a855f7', fontWeight: 700, textDecoration: 'none' }}>
+                          {cleanName}
+                        </Link>
+                        {index < studio.split(',').length - 1 && <span style={{ color: 'var(--foreground-secondary)' }}>,</span>}
+                      </React.Fragment>
+                    );
+                  })}
+                </span>
+              ),
+              releaseDate: (
+                <Link href={`/year/${releaseYear}`} style={{ color: '#a855f7', fontWeight: 700, textDecoration: 'none' }}>
+                  {firstAirDateFormatted || releaseYear.toString()}
+                </Link>
+              ),
+              status: (
+                <Link href={`/status/${status}`} style={{ color: '#a855f7', fontWeight: 700, textDecoration: 'none' }}>
+                  {status.toUpperCase()}
+                </Link>
+              ),
               runtime: activeSeries.runtime || 24,
               episodes: totalEpisodesText,
               originalLanguage: activeSeries.original_language || 'Japanese',

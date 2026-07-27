@@ -97,8 +97,8 @@ export async function generateMetadata({ params }: TagPageProps): Promise<Metada
   const count = seriesList.length;
   const canonicalUrl = `${SITE_URL}/tag/${slug}`;
 
-  const title = `${exactTag} Hentai Anime Series - PlayHentai`;
-  const description = `Browse ${count} ${exactTag.toLowerCase()} hentai anime series available to stream in HD on PlayHentai. Find completed and ongoing ${exactTag.toLowerCase()} titles.`;
+  const title = `${exactTag} Hentai Anime | PlayHentai`;
+  const description = `Browse ${count} ${exactTag.toLowerCase()} hentai anime series with English subtitles in HD. Find completed and ongoing ${exactTag.toLowerCase()} titles on PlayHentai.`;
 
   return {
     title,

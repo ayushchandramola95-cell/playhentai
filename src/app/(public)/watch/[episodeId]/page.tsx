@@ -191,8 +191,8 @@ export async function generateMetadata({ params }: WatchPageProps): Promise<Meta
     const resolved = await resolveEpisode(supabase, episodeId);
     if (resolved?.activeEpisode) {
       const ep = resolved.activeEpisode;
-      title = `${resolved.seriesTitle} Episode ${ep.episode_number}: ${ep.title} (HD Stream)`;
-      description = ep.description || description;
+      title = `Watch ${resolved.seriesTitle} Episode ${ep.episode_number} English Sub HD | PlayHentai`;
+      description = `Watch ${resolved.seriesTitle} Episode ${ep.episode_number} English Sub HD online on PlayHentai. Stream the latest episodes in high definition.`;
       thumbnail = ep.thumbnail_key || ep.thumbnail || '';
       canonicalPath = getEpisodeWatchUrl(ep.id, ep.episode_number, resolved.seriesSlug);
     }

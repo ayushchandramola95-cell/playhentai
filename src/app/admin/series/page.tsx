@@ -712,8 +712,8 @@ export default function AdminSeriesPage() {
 
   const currentFormTags = tagsInput.split(',').map((t) => t.trim().toLowerCase());
   const isFormDubbed = currentFormTags.includes('dub') || currentFormTags.includes('dubbed');
-  const autoTitlePlaceholder = `${title || 'Series Title'} - Watch Online with English ${isFormDubbed ? 'Dubbed' : 'Subtitles'} | StreamNexus`;
-  const autoDescriptionPlaceholder = `Watch ${title || 'Series Title'} online in HD with English ${isFormDubbed ? 'dubbed and subtitled' : 'subtitles'}. Browse ${isFormDubbed ? 'series' : 'all episodes, series'} information, release details, genres, and stream the latest updates on StreamNexus.`;
+  const autoTitlePlaceholder = `${title || 'Series Title'} - Watch English Sub HD | PlayHentai`;
+  const autoDescriptionPlaceholder = `Watch ${title || 'Series Title'} with English subtitles in HD. Stream all available episodes, releases, and check out similar titles on PlayHentai.`;
 
   return (
     <div className={styles.panelCard}>
@@ -1461,7 +1461,7 @@ export default function AdminSeriesPage() {
                         <div style={{ fontSize: '12px', color: 'var(--foreground-muted)', display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '2px' }}>
                           <span>🌐</span>
                           <span style={{ fontSize: '11px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                            https://streamnexus.com/series/{slug || 'url-slug'}
+                            https://playhentai.live/series/{slug || 'url-slug'}
                           </span>
                         </div>
                         <div style={{ fontSize: '18px', color: '#58a6ff', textDecoration: 'none', cursor: 'pointer', lineHeight: '1.2', marginBottom: '4px', fontWeight: 500 }}>

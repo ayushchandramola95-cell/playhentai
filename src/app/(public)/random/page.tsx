@@ -4,7 +4,7 @@ import { MOCK_SERIES } from '@/utils/mockData';
 import RandomizerPortal from './RandomizerPortal';
 
 export const metadata = {
-  title: 'Surprise Me - StreamNexus',
+  title: 'Surprise Me - PlayHentai',
   description: 'Let our randomizer engine pick your next anime binge-watch. Filter by genre or roll the dice for instant surprises.',
 };
 

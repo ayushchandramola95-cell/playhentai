@@ -85,7 +85,7 @@ export async function generateMetadata({ params }: YearPageProps): Promise<Metad
 
   const count = seriesList.length;
   const canonicalUrl = `${SITE_URL}/year/${year}`;
-  const title = `${year} Hentai Anime Series - PlayHentai`;
+  const title = `${year} Hentai Anime | PlayHentai`;
   const description = `Browse ${count} hentai anime series released in ${year} on PlayHentai. Find completed and ongoing releases from ${year}.`;
 
   return {

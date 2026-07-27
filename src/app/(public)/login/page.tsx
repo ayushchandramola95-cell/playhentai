@@ -69,7 +69,7 @@ function LoginForm() {
       <div className={styles.cardHeader}>
         <div className={styles.logoRow}>
           <Tv size={36} className={styles.logoIcon} />
-          <span style={{ fontSize: '1.6rem', fontWeight: 800, letterSpacing: '-0.03em' }}>StreamNexus</span>
+          <span style={{ fontSize: '1.6rem', fontWeight: 800, letterSpacing: '-0.03em' }}>PlayHentai</span>
         </div>
         <h1>{isLogin ? 'Welcome Back' : 'Create Account'}</h1>
         <p>{isLogin ? 'Access your watchlist and history logs' : 'Sign up to start saving and tracking your shows'}</p>

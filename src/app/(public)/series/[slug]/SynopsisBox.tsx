@@ -5,9 +5,9 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 import styles from './series.module.css';
 
 interface SeriesDetails {
-  studio?: string;
-  releaseDate?: string;
-  status?: string;
+  studio?: React.ReactNode;
+  releaseDate?: React.ReactNode;
+  status?: React.ReactNode;
   runtime?: number | string;
   episodes?: string;
   originalLanguage?: string;
@@ -49,7 +49,7 @@ export default function SynopsisBox({ description, details }: SynopsisBoxProps) 
           {details.status && (
             <div className={styles.mobileDetailItem}>
               <span className={styles.mobileDetailKey}>STATUS</span>
-              <span className={styles.mobileDetailVal}>{details.status.toUpperCase()}</span>
+              <span className={styles.mobileDetailVal}>{details.status}</span>
             </div>
           )}
           {details.runtime && (

@@ -3,7 +3,7 @@ import { getAllCollectionsWithPreviews } from '@/utils/collectionsData';
 import CollectionsClient from '@/components/CollectionsClient/CollectionsClient';
 
 export const metadata = {
-  title: 'Curated Playlists - StreamNexus',
+  title: 'Curated Playlists - PlayHentai',
   description: 'Hand-picked collections of top series, movies, and episodes grouped by genre and themes.',
 };
 
