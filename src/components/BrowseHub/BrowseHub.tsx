@@ -21,6 +21,7 @@ interface SeriesItem {
   category?: string;
   studio?: string;
   releaseYear?: number;
+  release_year?: number;
   alt_title_japanese?: string;
   alt_title_romaji?: string;
   alt_title_english?: string;
@@ -207,7 +208,8 @@ function BrowseHubContent({ initialSeries, isDbEmpty }: BrowseHubProps) {
 
       // 4. Release Year filter
       if (selectedYear) {
-        if (!series.releaseYear || series.releaseYear !== selectedYear) return false;
+        const yr = series.releaseYear ?? series.release_year;
+        if (!yr || yr !== selectedYear) return false;
       }
 
       return true;
@@ -221,14 +223,14 @@ function BrowseHubContent({ initialSeries, isDbEmpty }: BrowseHubProps) {
       sorted.sort((a, b) => (b.title || '').localeCompare(a.title || ''));
     } else if (sortMode === 'newest') {
       sorted.sort((a, b) => {
-        const dateA = new Date((a as any).release_date || (a as any).created_at || a.releaseYear || 0).getTime();
-        const dateB = new Date((b as any).release_date || (b as any).created_at || b.releaseYear || 0).getTime();
+        const dateA = new Date((a as any).release_date || (a as any).created_at || a.releaseYear || a.release_year || 0).getTime();
+        const dateB = new Date((b as any).release_date || (b as any).created_at || b.releaseYear || b.release_year || 0).getTime();
         return dateB - dateA;
       });
     } else if (sortMode === 'oldest') {
       sorted.sort((a, b) => {
-        const dateA = new Date((a as any).release_date || (a as any).created_at || a.releaseYear || 0).getTime();
-        const dateB = new Date((b as any).release_date || (b as any).created_at || b.releaseYear || 0).getTime();
+        const dateA = new Date((a as any).release_date || (a as any).created_at || a.releaseYear || a.release_year || 0).getTime();
+        const dateB = new Date((b as any).release_date || (b as any).created_at || b.releaseYear || b.release_year || 0).getTime();
         return dateA - dateB;
       });
     } else if (sortMode === 'most_viewed') {
