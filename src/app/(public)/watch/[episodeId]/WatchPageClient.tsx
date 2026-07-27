@@ -243,7 +243,7 @@ export default function WatchPageClient({
                   <div className={styles.sidebarPosterWrapper}>
                     <Image
                       src={getR2Url(seriesDetails.poster_image_key || seriesDetails.cover_image_key, 'poster')}
-                      alt={seriesDetails.title}
+                      alt={`Watch ${seriesDetails.title} Hentai online - PlayHentai`}
                       fill
                       sizes="85px"
                       className={styles.sidebarPoster}
@@ -305,7 +305,7 @@ export default function WatchPageClient({
                       <div className={styles.queueThumbWrapper}>
                         <Image
                           src={getR2Url(ep.thumbnail_key || seriesDetails?.cover_image_key, 'thumbnail')}
-                          alt={ep.title}
+                          alt={`Watch ${seriesDetails.title} Episode ${ep.episode_number} Hentai stream - PlayHentai`}
                           fill
                           sizes="80px"
                           className={styles.queueThumb}
@@ -371,7 +371,7 @@ export default function WatchPageClient({
                 <div className={styles.sidebarPosterWrapper}>
                   <Image
                     src={getR2Url(seriesDetails.poster_image_key || seriesDetails.cover_image_key, 'poster')}
-                    alt={seriesDetails.title}
+                    alt={`Watch ${seriesDetails.title} Hentai online - PlayHentai`}
                     fill
                     sizes="85px"
                     className={styles.sidebarPoster}
@@ -434,7 +434,7 @@ export default function WatchPageClient({
                     <div className={styles.queueThumbWrapper}>
                       <Image
                         src={getR2Url(ep.thumbnail_key || seriesDetails?.cover_image_key, 'thumbnail')}
-                        alt={ep.title}
+                        alt={`Watch ${seriesDetails.title} Episode ${ep.episode_number} Hentai stream - PlayHentai`}
                         fill
                         sizes="80px"
                         className={styles.queueThumb}

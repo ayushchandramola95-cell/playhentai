@@ -119,7 +119,7 @@ export default function HeroCarousel({ activeSeries, isDbEmpty }: HeroCarouselPr
               <div className={styles.heroBg}>
                 <Image
                   src={bannerUrl}
-                  alt={series.title || 'Anime Banner'}
+                  alt={`Watch ${series.title || 'Featured'} Hentai Anime - PlayHentai`}
                   fill
                   priority={index === 0}
                   sizes="100vw"
@@ -152,7 +152,7 @@ export default function HeroCarousel({ activeSeries, isDbEmpty }: HeroCarouselPr
                 <Link href={`/series/${series.slug}`} className={styles.posterLink}>
                   <Image
                     src={posterUrl}
-                    alt={series.title || 'Anime Poster'}
+                    alt={`Stream ${series.title || 'Featured'} Hentai in HD - PlayHentai`}
                     fill
                     sizes="(max-width: 768px) 140px, 220px"
                     className={styles.posterImage}

@@ -437,7 +437,7 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
       <div className={styles.bannerContainer}>
         <Image
           src={getR2Url(activeSeries.banner_image_key || activeSeries.cover_image_key || activeSeries.poster_image_key, 'banner')}
-          alt={activeSeries.title}
+          alt={`Watch ${activeSeries.title} Hentai Anime Online - PlayHentai`}
           fill
           priority
           className={styles.bannerImage}
@@ -457,7 +457,7 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
               <div className={styles.posterWrapper}>
                 <Image
                   src={getR2Url(activeSeries.poster_image_key || activeSeries.cover_image_key, 'poster')}
-                  alt={activeSeries.title}
+                  alt={`Watch ${activeSeries.title} Uncensored Hentai in Full HD - PlayHentai`}
                   fill
                   sizes="300px"
                   className={styles.posterImage}
@@ -669,7 +669,7 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
                     <div key={ep.id} className={`${styles.episodeCard} card-hover`}>
                       <Link href={getEpisodeWatchUrl(ep.id, ep.episode_number, slug)} className={styles.epImageLink}>
                         <div className={styles.epImageWrapper}>
-                          <Image src={getR2Url(ep.thumbnail_key || activeSeries.cover_image_key, 'thumbnail')} alt={ep.title} fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 360px" className={styles.epThumbnailImage} />
+                          <Image src={getR2Url(ep.thumbnail_key || activeSeries.cover_image_key, 'thumbnail')} alt={`Stream ${activeSeries.title} Episode ${ep.episode_number} Hentai online - PlayHentai`} fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 360px" className={styles.epThumbnailImage} />
                           <div className={styles.epTitleOverlay}><span className={styles.epTitleName}>{cleanTitle || `Episode ${ep.episode_number}`}</span></div>
                           <div className={styles.epPlayOverlay}><Play size={28} fill="white" className={styles.epPlayIcon} /></div>
                         </div>
@@ -692,7 +692,7 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
             <div className={styles.posterWrapperMobile}>
               <Image
                 src={getR2Url(activeSeries.poster_image_key || activeSeries.cover_image_key, 'poster')}
-                alt={activeSeries.title}
+                alt={`Watch ${activeSeries.title} Uncensored Hentai in Full HD - PlayHentai`}
                 fill
                 sizes="150px"
                 className={styles.posterImage}
@@ -790,7 +790,7 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
                     <div key={ep.id} className={`${styles.episodeCard} card-hover`}>
                       <Link href={getEpisodeWatchUrl(ep.id, ep.episode_number, slug)} className={styles.epImageLink}>
                         <div className={styles.epImageWrapper}>
-                          <Image src={getR2Url(ep.thumbnail_key || activeSeries.cover_image_key, 'thumbnail')} alt={ep.title} fill sizes="(max-width: 768px) 50vw, 360px" className={styles.epThumbnailImage} />
+                          <Image src={getR2Url(ep.thumbnail_key || activeSeries.cover_image_key, 'thumbnail')} alt={`Stream ${activeSeries.title} Episode ${ep.episode_number} Hentai online - PlayHentai`} fill sizes="(max-width: 768px) 50vw, 360px" className={styles.epThumbnailImage} />
                           <div className={styles.epTitleOverlay}><span className={styles.epTitleName}>{cleanTitle || `Episode ${ep.episode_number}`}</span></div>
                           <div className={styles.epPlayOverlay}><Play size={28} fill="white" className={styles.epPlayIcon} /></div>
                         </div>
