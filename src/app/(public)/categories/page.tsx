@@ -10,6 +10,10 @@ export const metadata = {
   alternates: {
     canonical: '/categories',
   },
+  openGraph: {
+    url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live'}/categories`,
+    type: 'website' as const,
+  },
 };
 
 // Rich Mock Data with assigned Genres, Studios, and Release Years matching images

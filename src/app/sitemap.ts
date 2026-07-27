@@ -1,5 +1,6 @@
 import { MetadataRoute } from 'next';
 import { createClient } from '@supabase/supabase-js';
+import { STUDIOS_METADATA } from '@/utils/studiosData';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
@@ -101,10 +102,29 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }));
 
+  // 5. Studio Pages (static list from STUDIOS_METADATA)
+  const studioIndexPage = {
+    url: `${baseUrl}/studios`,
+    lastModified: new Date(),
+    changeFrequency: 'weekly' as const,
+    priority: 0.7,
+  };
+
+  // Use slug field from STUDIOS_METADATA
+  const studioDetailPages = STUDIOS_METADATA.map(studio => ({
+    url: `${baseUrl}/studios/${(studio as any).slug || studio.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+    lastModified: new Date(),
+    changeFrequency: 'monthly' as const,
+    priority: 0.6,
+  }));
+
+
   return [
     ...staticPages,
     ...categoryPages,
     ...seriesPages,
     ...episodePages,
+    studioIndexPage,
+    ...studioDetailPages,
   ];
 }

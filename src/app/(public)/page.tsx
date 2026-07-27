@@ -7,6 +7,7 @@ import { Play, Star, Eye, Calendar, Sparkles, Award, Clock, Flame, ChevronRight 
 import HeroCarousel from '@/components/HeroCarousel/HeroCarousel';
 import SeriesCard from '@/components/SeriesCard/SeriesCard';
 import AdBanner from '@/components/AdBanner/AdBanner';
+import JsonLd from '@/components/JsonLd/JsonLd';
 import { createClient } from '@/utils/supabase/server';
 import styles from './page.module.css';
 import { MOCK_SERIES, MOCK_EPISODES, MOCK_SERIES_DETAILS } from '@/utils/mockData';
@@ -14,6 +15,17 @@ import { getR2Url } from '@/utils/r2';
 import { getEpisodeWatchUrl } from '@/utils/episodeUrl';
 
 export const dynamic = 'force-dynamic';
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
+
+export const metadata = {
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    url: SITE_URL,
+  },
+};
 
 function getLocalSettings(): Record<string, string> {
   const defaultSettings = { 
@@ -256,8 +268,23 @@ export default async function HomePage() {
     ? customExploreCategories
     : defaultExploreCategories;
 
+  const trendingSeriesForSchema = activeSeries.slice(0, 10);
+  const itemListJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    'name': 'Trending Hentai Series on PlayHentai',
+    'url': SITE_URL,
+    'itemListElement': trendingSeriesForSchema.map((s: any, i: number) => ({
+      '@type': 'ListItem',
+      'position': i + 1,
+      'name': s.title,
+      'url': `${SITE_URL}/series/${s.slug}`,
+    })),
+  };
+
   return (
     <div className={styles.container}>
+      <JsonLd data={itemListJsonLd} />
       {/* Ambient Glows */}
       <div className="ambient-glow" />
       <div className="ambient-glow-2" />

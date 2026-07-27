@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { ArrowLeft, Film, Star, Award, Calendar, MapPin } from 'lucide-react';
 import { getStudioDetails } from '@/utils/studiosData';
 import SeriesCard from '@/components/SeriesCard/SeriesCard';
+import JsonLd from '@/components/JsonLd/JsonLd';
 import styles from './studios.module.css';
 
 interface StudioDetailPageProps {
@@ -13,9 +14,22 @@ interface StudioDetailPageProps {
 export async function generateMetadata({ params }: StudioDetailPageProps) {
   const { slug } = await params;
   const studio = await getStudioDetails(slug);
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
+  const canonicalUrl = `${siteUrl}/studios/${slug}`;
+  const title = studio ? `${studio.name} - Animation Studio` : 'Studio Not Found';
+  const description = studio?.bio || 'Animation studio production profile and releases catalog.';
   return {
-    title: studio ? `${studio.name} - Animation Studio` : 'Studio Not Found',
-    description: studio?.bio || 'Animation studio production profile and releases catalog.',
+    title,
+    description,
+    alternates: {
+      canonical: `/studios/${slug}`,
+    },
+    openGraph: {
+      title,
+      description,
+      url: canonicalUrl,
+      type: 'website',
+    },
   };
 }
 
@@ -27,8 +41,50 @@ export default async function StudioDetailPage({ params }: StudioDetailPageProps
     notFound();
   }
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
+  const studioUrl = `${siteUrl}/studios/${slug}`;
+
+  const organizationJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    '@id': studioUrl,
+    'url': studioUrl,
+    'name': studio.name,
+    'description': studio.bio || `${studio.name} is an animation studio producing hentai series.`,
+    'foundingDate': studio.founded ? String(studio.founded) : undefined,
+    'foundingLocation': studio.country || undefined,
+  };
+
+  const itemListJsonLd = studio.series.length > 0 ? {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    'name': `${studio.name} Series`,
+    'url': studioUrl,
+    'itemListElement': studio.series.map((s: any, i: number) => ({
+      '@type': 'ListItem',
+      'position': i + 1,
+      'name': s.title,
+      'url': `${siteUrl}/series/${s.slug}`,
+    })),
+  } : null;
+
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    'itemListElement': [
+      { '@type': 'ListItem', 'position': 1, 'name': 'Home', 'item': siteUrl },
+      { '@type': 'ListItem', 'position': 2, 'name': 'Studios', 'item': `${siteUrl}/studios` },
+      { '@type': 'ListItem', 'position': 3, 'name': studio.name, 'item': studioUrl },
+    ],
+  };
+
+  const schemas = itemListJsonLd
+    ? [organizationJsonLd, itemListJsonLd, breadcrumbJsonLd]
+    : [organizationJsonLd, breadcrumbJsonLd];
+
   return (
     <div className={styles.container}>
+      <JsonLd data={schemas} />
       <div className="ambient-glow" />
 
       {/* Back link */}
@@ -112,3 +168,4 @@ export default async function StudioDetailPage({ params }: StudioDetailPageProps
     </div>
   );
 }
+

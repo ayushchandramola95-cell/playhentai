@@ -6,6 +6,7 @@ import CommentSection from '@/components/CommentSection/CommentSection';
 import RateSeriesButton from '@/components/RateSeriesButton/RateSeriesButton';
 import SimilarTitles from '@/components/SimilarTitles/SimilarTitles';
 import AdBanner from '@/components/AdBanner/AdBanner';
+import JsonLd from '@/components/JsonLd/JsonLd';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Compass, Play, Clock, Layers, Star, Eye, MessageSquare, Flame, Camera, ChevronRight } from 'lucide-react';
@@ -89,6 +90,8 @@ export async function generateMetadata({ params }: SeriesPageProps): Promise<Met
     console.error('Error generating metadata:', err);
   }
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
+  const canonicalUrl = `${siteUrl}/series/${slug}`;
   const images = ogImage ? [{ url: getR2Url(ogImage, 'cover') }] : [];
 
   return {
@@ -101,6 +104,7 @@ export async function generateMetadata({ params }: SeriesPageProps): Promise<Met
     openGraph: {
       title,
       description,
+      url: canonicalUrl,
       images,
       type: 'video.tv_show',
     },
@@ -388,24 +392,43 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
     .filter((s: any) => s.slug !== slug)
     .slice(0, 5);
 
-  const jsonLd = {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
+  const seriesCanonicalUrl = `${siteUrl}/series/${slug}`;
+
+  const tvSeriesJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'TVSeries',
+    '@id': seriesCanonicalUrl,
+    'url': seriesCanonicalUrl,
     'name': activeSeries.title,
-    'description': activeSeries.description,
+    'description': activeSeries.description || `Watch ${activeSeries.title} online in HD on PlayHentai.`,
     'image': getR2Url(activeSeries.cover_image_key || activeSeries.poster_image_key, 'cover'),
-    'genre': activeSeries.tags || [],
-    'numberOfSeasons': activeSeries.seasons?.length || 0,
-    'numberOfEpisodes': activeSeries.episode_count_override || currentEpCount
+    'genre': Array.isArray(activeSeries.tags) && activeSeries.tags.length > 0 ? activeSeries.tags[0] : 'Animation',
+    'numberOfSeasons': activeSeries.seasons?.length || 1,
+    'numberOfEpisodes': activeSeries.episode_count_override || currentEpCount,
+    'datePublished': activeSeries.created_at || activeSeries.first_air_date || undefined,
+    'inLanguage': 'en',
+    'isFamilyFriendly': false,
+    'publisher': {
+      '@type': 'Organization',
+      'name': 'PlayHentai',
+      'url': siteUrl
+    }
+  };
+
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    'itemListElement': [
+      { '@type': 'ListItem', 'position': 1, 'name': 'Home', 'item': siteUrl },
+      { '@type': 'ListItem', 'position': 2, 'name': activeSeries.title, 'item': seriesCanonicalUrl }
+    ]
   };
 
   return (
     <div className={styles.container}>
       {/* Schema.org Structured Data */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+      <JsonLd data={[tvSeriesJsonLd, breadcrumbJsonLd]} />
       
       {/* Premium Ambient Backdrop */}
       <div className={styles.bannerContainer}>

@@ -10,6 +10,18 @@ import { GENRES } from '@/utils/constants';
 
 export const dynamic = 'force-dynamic';
 
+export const metadata = {
+  title: 'Trending Hentai Anime Series - PlayHentai',
+  description: 'Discover the most popular and trending uncensored hentai anime series right now on PlayHentai.',
+  alternates: {
+    canonical: '/trending',
+  },
+  openGraph: {
+    url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live'}/trending`,
+    type: 'website' as const,
+  },
+};
+
 function getFirstEpisodeId(series: any, isDbEmpty: boolean): string | null {
   if (isDbEmpty) {
     const details = MOCK_SERIES_DETAILS[series.slug];

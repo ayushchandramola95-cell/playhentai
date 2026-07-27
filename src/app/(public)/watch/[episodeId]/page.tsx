@@ -6,6 +6,7 @@ import { getR2Url } from '@/utils/r2';
 import { MOCK_SERIES, MOCK_SERIES_DETAILS } from '@/utils/mockData';
 import { parseEpisodeSlug, getEpisodeWatchUrl } from '@/utils/episodeUrl';
 import WatchPageClient from './WatchPageClient';
+import JsonLd from '@/components/JsonLd/JsonLd';
 import styles from './watch.module.css';
 
 export const dynamic = 'force-dynamic';
@@ -199,6 +200,8 @@ export async function generateMetadata({ params }: WatchPageProps): Promise<Meta
     console.error('Error generating metadata:', err);
   }
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
+  const canonicalUrl = `${siteUrl}${canonicalPath}`;
   const images = thumbnail ? [{ url: getR2Url(thumbnail, 'thumbnail') }] : [];
 
   return {
@@ -210,6 +213,7 @@ export async function generateMetadata({ params }: WatchPageProps): Promise<Meta
     openGraph: {
       title,
       description,
+      url: canonicalUrl,
       images,
       type: 'video.episode',
     },
@@ -263,19 +267,47 @@ export default async function WatchPage({ params }: WatchPageProps) {
     ? seasonEpisodes[currentIdx + 1] 
     : null;
 
+  // Guaranteed thumbnailUrl fallback chain — must never be empty for valid VideoObject
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
   const canonicalUrl = `${siteUrl}${getEpisodeWatchUrl(activeEpisode.id, activeEpisode.episode_number, seriesSlug)}`;
+
+  const thumbnailUrl =
+    getR2Url(activeEpisode.thumbnail_key || activeEpisode.thumbnail, 'thumbnail') ||
+    getR2Url(seriesDetails?.cover_image_key || seriesDetails?.poster_image_key, 'cover') ||
+    '';
+
+  // Direct R2 video URL (MP4 publicly accessible) — required for Google video rich results
+  const videoContentUrl = activeEpisode.video_key
+    ? getR2Url(activeEpisode.video_key, 'video')
+    : canonicalUrl;
+
+  const seriesPageUrl = `${siteUrl}/series/${seriesSlug}`;
+
 
   const videoJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'VideoObject',
+    '@id': canonicalUrl,
     'name': `${seriesTitle} - Episode ${activeEpisode.episode_number}: ${activeEpisode.title}`,
     'description': activeEpisode.description || `Watch ${seriesTitle} Episode ${activeEpisode.episode_number} in HD online.`,
-    'thumbnailUrl': [getR2Url(activeEpisode.thumbnail_key || activeEpisode.thumbnail, 'thumbnail')],
+    'thumbnailUrl': thumbnailUrl ? [thumbnailUrl] : undefined,
     'uploadDate': activeEpisode.release_date || activeEpisode.created_at || new Date().toISOString(),
     'duration': activeEpisode.duration_seconds ? `PT${Math.floor(activeEpisode.duration_seconds / 60)}M` : 'PT24M',
-    'contentUrl': canonicalUrl,
-    'embedUrl': canonicalUrl
+    'contentUrl': videoContentUrl,
+    'embedUrl': canonicalUrl,
+    'url': canonicalUrl,
+    'inLanguage': 'en',
+    'isFamilyFriendly': false,
+    'publisher': {
+      '@type': 'Organization',
+      'name': 'PlayHentai',
+      'url': siteUrl
+    },
+    'partOfSeries': {
+      '@type': 'TVSeries',
+      'name': seriesTitle,
+      'url': seriesPageUrl
+    }
   };
 
   const breadcrumbJsonLd = {
@@ -283,21 +315,14 @@ export default async function WatchPage({ params }: WatchPageProps) {
     '@type': 'BreadcrumbList',
     'itemListElement': [
       { '@type': 'ListItem', 'position': 1, 'name': 'Home', 'item': siteUrl },
-      { '@type': 'ListItem', 'position': 2, 'name': seriesTitle, 'item': `${siteUrl}/series/${seriesSlug}` },
+      { '@type': 'ListItem', 'position': 2, 'name': seriesTitle, 'item': seriesPageUrl },
       { '@type': 'ListItem', 'position': 3, 'name': `Episode ${activeEpisode.episode_number}`, 'item': canonicalUrl }
     ]
   };
 
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(videoJsonLd) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
-      />
+      <JsonLd data={[videoJsonLd, breadcrumbJsonLd]} />
       <WatchPageClient
         activeEpisode={activeEpisode}
         seasonEpisodes={seasonEpisodes}
