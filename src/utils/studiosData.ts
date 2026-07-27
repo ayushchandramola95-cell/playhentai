@@ -75,11 +75,90 @@ export const STUDIOS_METADATA: StudioInfo[] = [
   }
 ];
 
+export async function getAllStudiosWithStats() {
+  const supabase = await createClient();
+  let seriesList: any[] = [];
+  try {
+    const { data } = await supabase
+      .from('series')
+      .select('*')
+      .eq('is_published', true);
+    if (data && data.length > 0) {
+      seriesList = data;
+    }
+  } catch (err) {
+    console.error('Error fetching series for all studios stats:', err);
+  }
+
+  if (seriesList.length === 0) {
+    seriesList = MOCK_SERIES;
+  }
+
+  // Group series by studio name (case-insensitive)
+  const studioGroups: Record<string, any[]> = {};
+  seriesList.forEach(s => {
+    const sStudio = (s.studio || '').trim();
+    if (!sStudio) return;
+    const lower = sStudio.toLowerCase();
+    if (!studioGroups[lower]) {
+      studioGroups[lower] = [];
+    }
+    studioGroups[lower].push(s);
+  });
+
+  const allStudios = Object.keys(studioGroups).map(lowerName => {
+    const series = studioGroups[lowerName];
+    const firstSeries = series[0];
+    const originalName = firstSeries.studio || lowerName.toUpperCase();
+    const slug = convertStudioNameToSlug(originalName);
+
+    // Find static metadata
+    let meta = STUDIOS_METADATA.find(s => s.slug === slug);
+    if (!meta) {
+      meta = {
+        id: `st-fallback-${slug}`,
+        name: originalName,
+        slug: slug,
+        bio: `${originalName} is an animation production company associated with several popular releases on our platform.`,
+        founded: 2018,
+        country: 'Japan',
+        logoChar: originalName.charAt(0).toUpperCase(),
+        gradient: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)'
+      };
+    }
+
+    // Stats
+    const totalSeries = series.length;
+    let averageRating = 0;
+    let validRatings = 0;
+    series.forEach(s => {
+      if (s.rating) {
+        averageRating += Number(s.rating);
+        validRatings++;
+      }
+    });
+    averageRating = validRatings > 0 ? Number((averageRating / validRatings).toFixed(1)) : 0;
+
+    return {
+      ...meta,
+      stats: {
+        totalSeries,
+        averageRating: averageRating || 'N/A'
+      },
+      tags: Array.from(new Set(series.flatMap(s => s.tags || [])))
+    };
+  });
+
+  // Sort by total series count descending
+  return allStudios.sort((a, b) => b.stats.totalSeries - a.stats.totalSeries);
+}
+
 export async function getStudioDetails(slug: string) {
-  // Find matching metadata or auto-create a fallback for unknown studios
-  let metadata = STUDIOS_METADATA.find(s => s.slug === slug);
-  
-  // Connect to Supabase or use Mock data to retrieve associated series
+  const allStudios = await getAllStudiosWithStats();
+  const currentStudio = allStudios.find(s => s.slug === slug);
+  if (!currentStudio) return null;
+
+  // Re-fetch full series matching this studio
   const supabase = await createClient();
   let seriesList: any[] = [];
   try {
@@ -98,55 +177,38 @@ export async function getStudioDetails(slug: string) {
     seriesList = MOCK_SERIES;
   }
 
-  // If metadata doesn't exist, create a clean default template
-  if (!metadata) {
-    // Try to find the studio name in the series list
-    const foundSeries = seriesList.find(s => (s.studio || '').toLowerCase().replace(/[^a-z0-9]+/g, '-') === slug);
-    const studioName = foundSeries ? foundSeries.studio : slug.toUpperCase();
-
-    metadata = {
-      id: `st-fallback-${slug}`,
-      name: studioName,
-      slug: slug,
-      bio: `${studioName} is an animation production company associated with several popular releases on our platform.`,
-      founded: 2018,
-      country: 'Japan',
-      logoChar: studioName.charAt(0).toUpperCase(),
-      gradient: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)'
-    };
-  }
-
-  // Filter series belonging to this studio (case-insensitive name match or slug match)
   const studioSeries = seriesList.filter(s => {
     const sStudio = s.studio || '';
-    const nameMatch = sStudio.toLowerCase() === metadata!.name.toLowerCase();
+    const nameMatch = sStudio.toLowerCase() === currentStudio.name.toLowerCase();
     const slugMatch = sStudio.toLowerCase().replace(/[^a-z0-9]+/g, '-') === slug;
     return nameMatch || slugMatch;
   });
 
-  // Calculate statistics
-  const totalSeries = studioSeries.length;
+  // Calculate related studios (studios with overlapping tags, excluding self)
+  const currentTags = currentStudio.tags || [];
+  const otherStudios = allStudios.filter(s => s.slug !== slug);
   
-  // Calculate average rating of their series
-  let averageRating = 0;
-  let validRatings = 0;
-  
-  studioSeries.forEach(s => {
-    if (s.rating) {
-      averageRating += Number(s.rating);
-      validRatings++;
-    }
-  });
-  
-  averageRating = validRatings > 0 ? Number((averageRating / validRatings).toFixed(1)) : 0;
+  const relatedStudios = otherStudios.map(s => {
+    const otherTags = s.tags || [];
+    const intersection = currentTags.filter(t => otherTags.includes(t)).length;
+    return {
+      name: s.name,
+      slug: s.slug,
+      logoChar: s.logoChar,
+      gradient: s.gradient,
+      totalSeries: s.stats.totalSeries,
+      averageRating: s.stats.averageRating,
+      intersection
+    };
+  })
+  .filter(s => s.intersection > 0 || s.totalSeries > 0)
+  .sort((a, b) => b.intersection - a.intersection || b.totalSeries - a.totalSeries)
+  .slice(0, 3);
 
   return {
-    ...metadata,
+    ...currentStudio,
     series: studioSeries,
-    stats: {
-      totalSeries,
-      averageRating: averageRating || 'N/A'
-    }
+    relatedStudios
   };
 }
 

@@ -88,9 +88,9 @@ export default async function StudioDetailPage({ params }: StudioDetailPageProps
       <div className="ambient-glow" />
 
       {/* Back link */}
-      <Link href="/" className={styles.backLink}>
+      <Link href="/studios" className={styles.backLink}>
         <ArrowLeft size={16} />
-        <span>Back to Home</span>
+        <span>Back to Studios</span>
       </Link>
 
       {/* Studio Header Card */}
@@ -120,6 +120,23 @@ export default async function StudioDetailPage({ params }: StudioDetailPageProps
 
             <h1>{studio.name}</h1>
             <p className={styles.bioText}>{studio.bio}</p>
+
+            {/* Primary Genres Badges */}
+            {studio.tags && studio.tags.length > 0 && (
+              <div className={styles.genresRow}>
+                {studio.tags
+                  .filter((t: string) => t.toLowerCase() !== 'featured' && !t.toLowerCase().startsWith('featured:'))
+                  .slice(0, 5)
+                  .map((tag: string) => {
+                    const cleanSlug = tag.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+                    return (
+                      <Link href={`/tag/${cleanSlug}`} key={tag} className={styles.genreBadge}>
+                        {tag}
+                      </Link>
+                    );
+                  })}
+              </div>
+            )}
           </div>
 
           {/* Stats Column */}
@@ -165,6 +182,31 @@ export default async function StudioDetailPage({ params }: StudioDetailPageProps
           </div>
         )}
       </section>
+
+      {/* Related Studios Section */}
+      {studio.relatedStudios && studio.relatedStudios.length > 0 && (
+        <section className={styles.relatedSection}>
+          <div className={styles.sectionHeader}>
+            <Film size={20} style={{ color: 'var(--primary)' }} />
+            <h2>Similar Studios</h2>
+          </div>
+          <div className={styles.relatedGrid}>
+            {studio.relatedStudios.map((other: any) => (
+              <Link href={`/studios/${other.slug}`} key={other.slug} className={styles.relatedCard}>
+                <div className={styles.relatedAvatar} style={{ background: other.gradient }}>
+                  {other.logoChar}
+                </div>
+                <div className={styles.relatedInfo}>
+                   <h3>{other.name}</h3>
+                   <span className={styles.relatedMeta}>
+                     {other.totalSeries} Series • ★ {other.averageRating}
+                   </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

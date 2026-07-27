@@ -119,6 +119,9 @@ export default function Header() {
           <Link href="/collections" className={`${styles.navLink} ${pathname.startsWith('/collections') ? styles.activeLink : ''}`}>
             Playlists
           </Link>
+          <Link href="/studios" className={`${styles.navLink} ${pathname.startsWith('/studios') ? styles.activeLink : ''}`}>
+            Studios
+          </Link>
           <Link href="/random" className={`${styles.navLink} ${pathname === '/random' ? styles.activeLink : ''}`}>
             Surprise Me
           </Link>
@@ -274,6 +277,11 @@ export default function Header() {
               <Link href="/collections" onClick={() => setMobileMenuOpen(false)} className={`${styles.mobileNavLink} ${pathname.startsWith('/collections') ? styles.activeLink : ''}`}>
                 <Film size={18} />
                 <span>Playlists</span>
+              </Link>
+
+              <Link href="/studios" onClick={() => setMobileMenuOpen(false)} className={`${styles.mobileNavLink} ${pathname.startsWith('/studios') ? styles.activeLink : ''}`}>
+                <Tv size={18} />
+                <span>Studios</span>
               </Link>
 
               <Link href="/random" onClick={() => setMobileMenuOpen(false)} className={`${styles.mobileNavLink} ${pathname === '/random' ? styles.activeLink : ''}`}>
