@@ -1,6 +1,7 @@
 import { MetadataRoute } from 'next';
 import { createClient } from '@supabase/supabase-js';
 import { STUDIOS_METADATA } from '@/utils/studiosData';
+import { tagToSlug } from '@/utils/constants';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
@@ -28,6 +29,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   let dbSeries: any[] = [];
   let dbEpisodes: any[] = [];
+  let dbDistinctTags: string[] = [];
 
   try {
     // Instantiate a direct cookie-free client to prevent "Dynamic Server Usage" bailout during static build
@@ -61,6 +63,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           created_at: ep.created_at
         };
       });
+    }
+
+    // Fetch all distinct tags from published series for tag pages
+    const { data: seriesWithTags } = await supabase
+      .from('series')
+      .select('tags')
+      .eq('is_published', true);
+
+    if (seriesWithTags) {
+      const tagSet = new Set<string>();
+      seriesWithTags.forEach((row: any) => {
+        (row.tags || []).forEach((t: string) => {
+          if (t && t.trim()) tagSet.add(t.trim());
+        });
+      });
+      dbDistinctTags = Array.from(tagSet);
     }
 
   } catch (err) {
@@ -119,6 +137,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
 
+  // 6. Tag Pages — DB-driven, auto-updates when new tags are added to series
+  const tagPages = dbDistinctTags.map(tag => ({
+    url: `${baseUrl}/tag/${tagToSlug(tag)}`,
+    lastModified: new Date(),
+    changeFrequency: 'weekly' as const,
+    priority: 0.8,  // Tag pages are important landing pages — same level as series
+  }));
+
   return [
     ...staticPages,
     ...categoryPages,
@@ -126,5 +152,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...episodePages,
     studioIndexPage,
     ...studioDetailPages,
+    ...tagPages,
   ];
 }

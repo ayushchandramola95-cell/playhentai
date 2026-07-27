@@ -18,6 +18,7 @@ import styles from './series.module.css';
 
 import { MOCK_SERIES, MOCK_EPISODES, MOCK_SERIES_DETAILS } from '@/utils/mockData';
 import { convertStudioNameToSlug } from '@/utils/studiosData';
+import { tagToSlug } from '@/utils/constants';
 
 import SynopsisBox from './SynopsisBox';
 import MobileTagsRow from './MobileTagsRow';
@@ -485,7 +486,7 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
                 {activeSeries.tags && activeSeries.tags
                   .filter((t: string) => t.toLowerCase() !== 'featured' && !t.toLowerCase().startsWith('featured:'))
                   .map((tag: string) => (
-                    <Link key={tag} href={`/categories?genre=${encodeURIComponent(tag)}`} className={styles.tagBadge}>
+                    <Link key={tag} href={`/tag/${tagToSlug(tag)}`} className={styles.tagBadge}>
                       #{tag}
                     </Link>
                   ))}

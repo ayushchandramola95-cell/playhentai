@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { tagToSlug } from '@/utils/constants';
 import styles from './series.module.css';
 
 interface MobileTagsRowProps {
@@ -23,7 +24,7 @@ export default function MobileTagsRow({ tags }: MobileTagsRowProps) {
   return (
     <div className={styles.inlineTagsRow}>
       {visibleTags.map((tag: string) => (
-        <Link key={tag} href={`/categories?genre=${encodeURIComponent(tag)}`} className={styles.tagPillGoldMobile}>
+        <Link key={tag} href={`/tag/${tagToSlug(tag)}`} className={styles.tagPillGoldMobile}>
           {tag}
         </Link>
       ))}

@@ -45,3 +45,14 @@ export const RELEASE_YEARS = [
   2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 
   2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
 ];
+
+/**
+ * Converts a tag name to a URL-safe slug.
+ * e.g. "Large Breasts" -> "large-breasts"
+ *      "Sci-Fi"        -> "sci-fi"
+ *      "Three some"    -> "three-some"
+ */
+export function tagToSlug(tag: string): string {
+  return tag.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+}
+
