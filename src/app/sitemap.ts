@@ -42,7 +42,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Fetch published series
     const { data: series } = await supabase
       .from('series')
-      .select('slug, created_at, release_year')
+      .select('slug, created_at, release_year, status')
       .eq('is_published', true);
 
     if (series) {
@@ -163,6 +163,31 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,  // Tag pages are important landing pages — same level as series
   }));
 
+  // 8. Status Pages — dynamically included only if they have content, priority 0.8
+  const completedCount = dbSeries.filter((s: any) => (s.status || '').toLowerCase() === 'completed').length;
+  const ongoingCount = dbSeries.filter((s: any) => (s.status || '').toLowerCase() === 'ongoing').length;
+  const upcomingCount = dbSeries.filter((s: any) => (s.status || '').toLowerCase() === 'upcoming').length;
+
+  // Fallbacks if DB query returned zero (mock values match finalized status)
+  const isDbEmpty = dbSeries.length === 0;
+  const finalCompletedCount = isDbEmpty ? 3 : completedCount;
+  const finalOngoingCount = isDbEmpty ? 0 : ongoingCount;
+  const finalUpcomingCount = isDbEmpty ? 0 : upcomingCount;
+
+  const activeStatuses = [
+    { name: 'completed', count: finalCompletedCount },
+    { name: 'ongoing', count: finalOngoingCount },
+    { name: 'upcoming', count: finalUpcomingCount }
+  ].filter(s => s.count > 0);
+
+  const statusPages = activeStatuses.map(s => ({
+    url: `${baseUrl}/status/${s.name}`,
+    lastModified: new Date(),
+    changeFrequency: 'weekly' as const,
+    priority: 0.8,
+  }));
+
+
   return [
     ...staticPages,
     ...categoryPages,
@@ -171,6 +196,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     studioIndexPage,
     ...studioDetailPages,
     ...yearPages,
+    ...statusPages,
     ...tagPages,
   ];
 }
