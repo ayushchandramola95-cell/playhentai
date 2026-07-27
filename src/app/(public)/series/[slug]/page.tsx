@@ -635,10 +635,7 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
           </div>
 
           {/* Sponsored Ad Banner: Series Details Before Episodes (Zone 5986920) */}
-          <AdBanner zoneId="5986920" />
-
-          {/* Mobile-Only Banner Above Episodes Grid (Zone 5986998) */}
-          <AdBanner zoneId="5986998" insClass="eas6a97888e10" mobileOnly />
+          <AdBanner zoneId="5986920" desktopOnly />
 
           {/* Desktop 16:9 Episodes Section */}
           <section className={styles.episodesSectionContainer}>
@@ -768,9 +765,6 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
             <WatchlistToggle seriesId={activeSeries.id} />
             <FavoriteToggle seriesId={activeSeries.id} />
           </div>
-
-          {/* Sponsored Ad Banner: Series Details Before Episodes (Zone 5986920) */}
-          <AdBanner zoneId="5986920" />
 
           {/* Mobile-Only Banner Above Episodes Grid (Zone 5986998) */}
           <AdBanner zoneId="5986998" insClass="eas6a97888e10" mobileOnly />

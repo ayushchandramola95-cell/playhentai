@@ -343,7 +343,7 @@ export default function WatchPageClient({
           </div>
 
           {/* Sponsored Ad Banner: Episode Before Similar Titles (Zone 5986956) */}
-          <AdBanner zoneId="5986956" />
+          <AdBanner zoneId="5986956" desktopOnly />
 
           {/* Mobile-Only Banner Before Similar Titles (Zone 5987000) */}
           <AdBanner zoneId="5987000" insClass="eas6a97888e10" mobileOnly />

@@ -15,7 +15,7 @@ export default function PublicLayout({
         {children}
       </main>
       {/* Before Footer Sponsored Ad Banner (Zone 5986212) */}
-      <AdBanner zoneId="5986212" />
+      <AdBanner zoneId="5986212" desktopOnly />
       {/* Mobile-Only Footer Banner (Zone 5986980) */}
       <AdBanner zoneId="5986980" insClass="eas6a97888e10" mobileOnly />
       <Footer />

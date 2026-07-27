@@ -293,7 +293,7 @@ export default async function HomePage() {
       <HeroCarousel activeSeries={featuredSeries} isDbEmpty={isDbEmpty} />
 
       {/* Hero Bottom Sponsored Ad Banner (728x90 Zone 5986176) */}
-      <AdBanner zoneId="5986176" />
+      <AdBanner zoneId="5986176" desktopOnly />
 
       {/* Mobile-Only Hero Bottom Banner (Zone 5986984) */}
       <AdBanner zoneId="5986984" insClass="eas6a97888e10" mobileOnly />
@@ -359,7 +359,7 @@ export default async function HomePage() {
       </section>
 
       {/* Sponsored Ad Banner: After Recent Episodes (Zone 5986194) */}
-      <AdBanner zoneId="5986194" />
+      <AdBanner zoneId="5986194" desktopOnly />
 
       {/* Mobile-Only After Recent Episodes Banner (Zone 5986994) */}
       <AdBanner zoneId="5986994" insClass="eas6a97888e10" mobileOnly />
