@@ -50,9 +50,9 @@
 /* Full Width Bottom Sections Container */
 .fullWidthSectionContainer {
   width: 100%;
-  max-width: 1320px;
+  max-width: 100%;
   padding: 0 1.6rem;
-  margin: 0 auto;
+  margin: 0;
   position: relative;
   z-index: 10;
 }
@@ -990,10 +990,12 @@
   margin-top: 4rem;
   text-align: left;
   width: 100%;
+  max-width: 100%;
 }
 
 .commentsCardWrapper {
   width: 100%;
+  max-width: 100%;
   padding: 2rem;
   border-radius: 20px;
   border: 1px solid rgba(255, 255, 255, 0.08);
