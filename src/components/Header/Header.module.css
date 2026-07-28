@@ -1,6 +1,8 @@
 .header {
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   width: 100%;
   height: 64px; /* Reduced navbar height by 6px for a sleek, premium layout */
   display: flex;

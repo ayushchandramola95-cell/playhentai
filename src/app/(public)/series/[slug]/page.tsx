@@ -615,8 +615,6 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
           <ChevronRight size={14} />
           <Link href="/categories">Series</Link>
           <ChevronRight size={14} />
-          <Link href={`/categories?genre=${encodeURIComponent(activeSeries.category || 'Anime')}`}>{activeSeries.category || 'Anime'}</Link>
-          <ChevronRight size={14} />
           <span className={styles.breadcrumbActive}>{activeSeries.title}</span>
         </div>
 
