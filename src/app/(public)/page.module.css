@@ -405,24 +405,25 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.9rem 0.8rem;
+  padding: 0.95rem 0.8rem;
   border-radius: 10px;
-  background: var(--surface);
+  background: linear-gradient(135deg, var(--surface) 0%, rgba(255,255,255,0.03) 100%);
   border: 1px solid var(--border);
   font-weight: 700;
   font-size: 0.85rem;
-  color: var(--foreground-primary);
+  color: var(--foreground-secondary);
   text-decoration: none;
   text-align: center;
-  transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.22s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255,255,255,0.04);
+  letter-spacing: 0.01em;
 }
 
 .categoryCard:hover {
-  background: var(--surface-hover);
-  border-color: var(--primary);
-  color: var(--primary);
-  box-shadow: 0 4px 16px rgba(var(--primary-rgb), 0.25);
+  background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.12) 0%, rgba(var(--primary-rgb), 0.06) 100%);
+  border-color: rgba(var(--primary-rgb), 0.5);
+  color: #ffffff;
+  box-shadow: 0 6px 20px rgba(var(--primary-rgb), 0.2), 0 0 0 1px rgba(var(--primary-rgb), 0.2);
   transform: translateY(-2px);
 }
 

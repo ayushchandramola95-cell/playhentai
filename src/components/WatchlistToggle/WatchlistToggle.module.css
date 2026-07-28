@@ -52,6 +52,11 @@
   border-color: var(--hero-watchlist-border);
   color: var(--hero-watchlist-color);
   backdrop-filter: blur(8px);
+  width: auto;
+  padding: 0.75rem 1.5rem;
+  border-radius: 9px;
+  font-size: 0.95rem;
+  flex-shrink: 0;
 }
 
 .heroVariant:hover:not(:disabled) {

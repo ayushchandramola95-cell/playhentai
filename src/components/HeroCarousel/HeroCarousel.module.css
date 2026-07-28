@@ -2,9 +2,9 @@
   position: relative;
   width: 100%;
   max-width: 100%;
-  min-height: 600px;
-  height: 75vh;
-  max-height: 720px;
+  min-height: 520px;
+  height: 62vh;
+  max-height: 680px;
   overflow: hidden !important;
   display: flex;
   align-items: center;
