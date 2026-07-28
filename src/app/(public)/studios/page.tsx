@@ -58,8 +58,8 @@ export default async function StudiosIndexPage() {
       </div>
 
       <div className={styles.grid}>
-        {studios.map((studio) => (
-          <Link href={`/studios/${studio.slug}`} key={studio.slug} className={`${styles.studioCard} glass`}>
+        {studios.map((studio, idx) => (
+          <Link href={`/studios/${studio.slug}`} key={studio.slug || `studio-${idx}`} className={`${styles.studioCard} glass`}>
             <div className={styles.cardBgGradient} style={{ '--accent-gradient': studio.gradient } as React.CSSProperties} />
             
             <div className={styles.cardHeader}>

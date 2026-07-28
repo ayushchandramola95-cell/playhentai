@@ -94,23 +94,31 @@ export async function getAllStudiosWithStats() {
     seriesList = MOCK_SERIES;
   }
 
-  // Group series by studio name (case-insensitive)
-  const studioGroups: Record<string, any[]> = {};
+  // Group series by studio slug (ensuring unique slugs)
+  const studioGroups: Record<string, { originalName: string; series: any[] }> = {};
+
   seriesList.forEach(s => {
     const sStudio = (s.studio || '').trim();
     if (!sStudio) return;
-    const lower = sStudio.toLowerCase();
-    if (!studioGroups[lower]) {
-      studioGroups[lower] = [];
-    }
-    studioGroups[lower].push(s);
+    
+    // Support comma-separated studios if a series has multiple studio credits
+    const rawNames = sStudio.split(',').map((st: string) => st.trim()).filter(Boolean);
+    
+    rawNames.forEach((rawName: string) => {
+      const slug = convertStudioNameToSlug(rawName);
+      if (!slug) return;
+      
+      if (!studioGroups[slug]) {
+        studioGroups[slug] = { originalName: rawName, series: [] };
+      }
+      if (!studioGroups[slug].series.some(item => item.id === s.id)) {
+        studioGroups[slug].series.push(s);
+      }
+    });
   });
 
-  const allStudios = Object.keys(studioGroups).map(lowerName => {
-    const series = studioGroups[lowerName];
-    const firstSeries = series[0];
-    const originalName = firstSeries.studio || lowerName.toUpperCase();
-    const slug = convertStudioNameToSlug(originalName);
+  const allStudios = Object.keys(studioGroups).map(slug => {
+    const { originalName, series } = studioGroups[slug];
 
     // Find static metadata
     let meta = STUDIOS_METADATA.find(s => s.slug === slug);
