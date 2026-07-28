@@ -499,7 +499,7 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
     })
     .sort((a, b) => b.score - a.score)
     .map((item) => item.series)
-    .slice(0, 5);
+    .slice(0, 12);
 
   // Compute more series by the same studio (up to 5 items)
   const moreFromStudio = [...sourceList]

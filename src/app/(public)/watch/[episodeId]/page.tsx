@@ -303,7 +303,7 @@ export default async function WatchPage({ params }: WatchPageProps) {
     })
     .sort((a, b) => b.score - a.score)
     .map((item) => item.series)
-    .slice(0, 6);
+    .slice(0, 12);
 
   const currentIdx = seasonEpisodes.findIndex((ep: any) => ep.id === activeEpisode.id || ep.episode_number === activeEpisode.episode_number);
   const prevEpisode = currentIdx > 0 ? seasonEpisodes[currentIdx - 1] : null;
