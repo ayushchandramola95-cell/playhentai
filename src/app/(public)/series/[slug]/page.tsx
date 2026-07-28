@@ -5,6 +5,7 @@ import FavoriteToggle from '@/components/FavoriteToggle/FavoriteToggle';
 import CommentSection from '@/components/CommentSection/CommentSection';
 import RateSeriesButton from '@/components/RateSeriesButton/RateSeriesButton';
 import SimilarTitles from '@/components/SimilarTitles/SimilarTitles';
+import SeriesCard from '@/components/SeriesCard/SeriesCard';
 import AdBanner from '@/components/AdBanner/AdBanner';
 import JsonLd from '@/components/JsonLd/JsonLd';
 import Link from 'next/link';
@@ -641,9 +642,11 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
                 <h3 className={styles.synopsisLabel}>SYNOPSIS</h3>
                 <p className={styles.synopsisText}>{activeSeries.description}</p>
               </div>
+            </div>
+          </div>
 
-              {/* Details Meta Grid Card (2-Column Grid) */}
-              <div className={styles.detailsTable}>
+          {/* Details Meta Grid Card (Rendered Full Width below the columns!) */}
+          <div className={styles.detailsTable} style={{ marginTop: '2.5rem' }}>
                 <div className={styles.detailsRow}>
                   <span className={styles.detailsKey}>STUDIO</span>
                   <span className={styles.detailsVal} style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap' }}>
@@ -757,8 +760,6 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
                   </div>
                 )}
               </div>
-            </div>
-          </div>
 
           {/* About This Series (Desktop) */}
           {activeSeries.about_text && (
@@ -966,31 +967,9 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
               </Link>
             </div>
             <div className={styles.moreFromStudioGrid}>
-              {moreFromStudio.map((item: any) => {
-                const itemRating = item.rating || getStableRating(item.id || item.title);
-                return (
-                  <div key={item.id} className="relative group">
-                    <Link href={`/series/${item.slug}`} style={{ textDecoration: 'none' }}>
-                      <div style={{ position: 'relative', width: '100%', aspectRatio: '2/3', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 24px rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                        <Image
-                          src={getR2Url(item.poster_image_key || item.cover_image_key, 'poster')}
-                          alt={`Watch ${item.title} Hentai`}
-                          fill
-                          sizes="(max-width: 768px) 50vw, 220px"
-                          style={{ objectFit: 'cover' }}
-                        />
-                        <div style={{ position: 'absolute', top: '8px', right: '8px', background: 'rgba(9, 13, 22, 0.8)', padding: '0.2rem 0.5rem', borderRadius: '6px', fontSize: '0.72rem', fontWeight: 800, color: '#eab308', display: 'flex', alignItems: 'center', gap: '3px', border: '1px solid rgba(234, 179, 8, 0.2)' }}>
-                          <Star size={11} fill="#eab308" color="#eab308" />
-                          <span>{itemRating.toFixed(1)}</span>
-                        </div>
-                      </div>
-                      <h4 style={{ fontSize: '0.88rem', fontWeight: 700, color: '#ffffff', marginTop: '0.6rem', marginBottom: '0.2rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
-                        {item.title}
-                      </h4>
-                    </Link>
-                  </div>
-                );
-              })}
+              {moreFromStudio.map((item: any) => (
+                <SeriesCard key={item.id} item={item} />
+              ))}
             </div>
           </section>
         )}

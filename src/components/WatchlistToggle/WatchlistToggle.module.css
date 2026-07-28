@@ -13,7 +13,7 @@
   outline: none;
   background: var(--surface);
   color: var(--foreground-primary);
-  width: auto;
+  width: 100%;
 }
 
 .watchlistBtn:hover:not(:disabled) {
