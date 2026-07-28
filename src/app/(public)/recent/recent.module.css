@@ -228,7 +228,7 @@
 /* Responsive Breakpoints */
 @media (max-width: 1200px) {
   .seriesGrid {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
   }
   .episodeGrid {
     grid-template-columns: repeat(4, 1fr);
