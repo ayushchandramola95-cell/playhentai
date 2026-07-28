@@ -50,7 +50,27 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Series title is required for metadata context' }, { status: 400 });
     }
 
-    const geminiKey = process.env.GEMINI_API_KEY;
+    let geminiKey = process.env.GEMINI_API_KEY;
+    if (process.env.NODE_ENV === 'development') {
+      try {
+        const fs = require('fs');
+        const path = require('path');
+        const envPath = path.join(process.cwd(), '.env.local');
+        if (fs.existsSync(envPath)) {
+          const envContent = fs.readFileSync(envPath, 'utf8');
+          const match = envContent.match(/GEMINI_API_KEY\s*=\s*(.+)/);
+          if (match) {
+            const parsedKey = match[1].trim().replace(/['"]/g, '');
+            if (parsedKey) {
+              geminiKey = parsedKey;
+            }
+          }
+        }
+      } catch (e) {
+        console.error('Failed to dynamically read .env.local:', e);
+      }
+    }
+
     if (!geminiKey || geminiKey === 'your_gemini_api_key_here') {
       return NextResponse.json({ error: 'Gemini API Key is not configured on the server.' }, { status: 500 });
     }
@@ -148,7 +168,7 @@ Return only the improved text content, without any headers, quotes, or JSON wrap
     }
 
     // 4. Invoke Gemini API
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${geminiKey}`;
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${geminiKey}`;
     
     const requestPayload: any = {
       contents: [
