@@ -1111,3 +1111,203 @@
     gap: 0.65rem;
   }
 }
+
+/* Premium Breadcrumbs Styling */
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--foreground-secondary);
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.breadcrumbs a {
+  color: var(--foreground-secondary);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.breadcrumbs a:hover {
+  color: var(--primary);
+}
+
+.breadcrumbActive {
+  color: var(--foreground-primary);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 250px;
+}
+
+/* About Section glass card */
+.aboutSection {
+  margin-top: 2rem;
+  width: 100%;
+}
+
+.aboutCard {
+  padding: 2rem;
+  border-radius: 16px;
+  background: rgba(15, 23, 42, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  text-align: left;
+}
+
+.aboutCard h2 {
+  font-size: 1.4rem;
+  font-weight: 850;
+  color: #ffffff;
+  margin: 0 0 1rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  background: linear-gradient(90deg, #ffffff, var(--foreground-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.aboutCard p {
+  font-size: 0.95rem;
+  color: var(--foreground-secondary);
+  line-height: 1.6;
+  margin: 0;
+  white-space: pre-line;
+}
+
+/* More from Studio Section */
+.moreFromStudioSection {
+  margin-top: 3.5rem;
+  text-align: left;
+}
+
+.moreFromStudioTitleRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.moreFromStudioTitleRow h2 {
+  font-size: 1.5rem;
+  font-weight: 850;
+  color: #ffffff;
+  margin: 0;
+}
+
+.moreFromStudioViewAll {
+  font-size: 0.85rem;
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 700;
+  transition: all 0.2s ease;
+  background: rgba(168, 85, 247, 0.1);
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  border: 1px solid rgba(168, 85, 247, 0.2);
+}
+
+.moreFromStudioViewAll:hover {
+  background: rgba(168, 85, 247, 0.25);
+  color: #ffffff;
+  box-shadow: 0 0 8px rgba(168, 85, 247, 0.4);
+}
+
+.moreFromStudioGrid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1.25rem;
+}
+
+@media (max-width: 900px) {
+  .moreFromStudioGrid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .moreFromStudioGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+  .moreFromStudioTitleRow h2 {
+    font-size: 1.2rem;
+  }
+}
+
+/* FAQ Accordion Section */
+.faqSection {
+  margin-top: 4rem;
+  text-align: left;
+}
+
+.faqSection h2 {
+  font-size: 1.6rem;
+  font-weight: 850;
+  color: #ffffff;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.faqAccordion {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.faqItem {
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(15, 23, 42, 0.25);
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.faqItem:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(15, 23, 42, 0.35);
+}
+
+.faqQuestion {
+  width: 100%;
+  padding: 1.1rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #ffffff;
+  transition: color 0.15s ease;
+}
+
+.faqQuestion:hover {
+  color: var(--primary);
+}
+
+.faqAnswer {
+  padding: 0 1.5rem 1.25rem 1.5rem;
+  font-size: 0.92rem;
+  color: var(--foreground-secondary);
+  line-height: 1.6;
+}
+
+.faqArrow {
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  color: var(--foreground-muted);
+}
+
+.faqItem[open] .faqArrow {
+  transform: rotate(180deg);
+  color: var(--primary);
+}
+

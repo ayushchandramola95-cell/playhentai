@@ -15,6 +15,8 @@ interface SeriesDetails {
   contentRating?: string;
   altTitleJapanese?: string;
   altTitleEnglish?: string;
+  originalSource?: string;
+  contentWarnings?: string;
 }
 
 interface SynopsisBoxProps {
@@ -92,6 +94,18 @@ export default function SynopsisBox({ description, details }: SynopsisBoxProps) 
             <div className={styles.mobileDetailItem}>
               <span className={styles.mobileDetailKey}>ENGLISH</span>
               <span className={styles.mobileDetailVal}>{details.altTitleEnglish}</span>
+            </div>
+          )}
+          {details.originalSource && (
+            <div className={styles.mobileDetailItem}>
+              <span className={styles.mobileDetailKey}>SOURCE</span>
+              <span className={styles.mobileDetailVal}>{details.originalSource}</span>
+            </div>
+          )}
+          {details.contentWarnings && (
+            <div className={styles.mobileDetailItem}>
+              <span className={styles.mobileDetailKey}>WARNINGS</span>
+              <span className={styles.mobileDetailVal} style={{ color: '#ef4444' }}>{details.contentWarnings}</span>
             </div>
           )}
         </div>

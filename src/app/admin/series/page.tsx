@@ -40,6 +40,10 @@ interface Series {
   poster_position?: string;
   cover_position?: string;
   banner_position?: string;
+  original_source?: string;
+  content_warnings?: string[];
+  about_text?: string;
+  faq_override?: any;
 }
 
 export default function AdminSeriesPage() {
@@ -77,6 +81,12 @@ export default function AdminSeriesPage() {
   const [altTitleJapanese, setAltTitleJapanese] = useState('');
   const [altTitleRomaji, setAltTitleRomaji] = useState('');
   const [altTitleEnglish, setAltTitleEnglish] = useState('');
+  
+  // Series page SEO enhancement fields
+  const [originalSource, setOriginalSource] = useState('');
+  const [contentWarningsInput, setContentWarningsInput] = useState('');
+  const [aboutText, setAboutText] = useState('');
+  const [faqOverrideInput, setFaqOverrideInput] = useState('');
   const [originalLanguage, setOriginalLanguage] = useState('Japanese');
   const [status, setStatus] = useState('ongoing');
   const [episodeCountOverride, setEpisodeCountOverride] = useState<number | ''>('');
@@ -469,6 +479,10 @@ export default function AdminSeriesPage() {
     setAltTitleRomaji('');
     setAltTitleEnglish('');
     setOriginalLanguage('Japanese');
+    setOriginalSource('');
+    setContentWarningsInput('');
+    setAboutText('');
+    setFaqOverrideInput('[]');
     setStatus('ongoing');
     setEpisodeCountOverride('');
     setRuntime(24);
@@ -506,6 +520,10 @@ export default function AdminSeriesPage() {
     setAltTitleRomaji(s.alt_title_romaji || '');
     setAltTitleEnglish(s.alt_title_english || '');
     setOriginalLanguage(s.original_language || 'Japanese');
+    setOriginalSource(s.original_source || '');
+    setContentWarningsInput(s.content_warnings ? s.content_warnings.join(', ') : '');
+    setAboutText(s.about_text || '');
+    setFaqOverrideInput(s.faq_override ? JSON.stringify(s.faq_override, null, 2) : '[]');
     setStatus(s.status || 'ongoing');
     setEpisodeCountOverride(s.episode_count_override !== null && s.episode_count_override !== undefined ? s.episode_count_override : '');
     setRuntime(s.runtime !== undefined && s.runtime !== null ? s.runtime : 24);
@@ -568,6 +586,25 @@ export default function AdminSeriesPage() {
       .map((a) => a.trim())
       .filter((a) => a.length > 0);
 
+    const contentWarnings = contentWarningsInput
+      .split(',')
+      .map((w) => w.trim())
+      .filter((w) => w.length > 0);
+
+    let faqOverride = [];
+    try {
+      if (faqOverrideInput.trim()) {
+        faqOverride = JSON.parse(faqOverrideInput);
+        if (!Array.isArray(faqOverride)) {
+          throw new Error('FAQ Override must be a JSON array of objects');
+        }
+      }
+    } catch (parseErr: any) {
+      setError(`FAQ Override JSON Error: ${parseErr.message}`);
+      setSaving(false);
+      return;
+    }
+
     let finalPoster = posterKey;
     let finalCover = coverKey;
     let finalBanner = bannerKey;
@@ -599,6 +636,10 @@ export default function AdminSeriesPage() {
       alt_title_romaji: altTitleRomaji || null,
       alt_title_english: altTitleEnglish || null,
       original_language: originalLanguage,
+      original_source: originalSource || null,
+      content_warnings: contentWarnings,
+      about_text: aboutText || null,
+      faq_override: faqOverride,
       status,
       episode_count_override: episodeCountOverride !== '' ? Number(episodeCountOverride) : null,
       runtime: runtime !== '' ? Number(runtime) : 24,
@@ -1121,16 +1162,16 @@ export default function AdminSeriesPage() {
                    </div>
 
                    <div className={styles.formGroup}>
-                     <label>Synopsis Description</label>
-                     <textarea
-                       required
-                       className={styles.textareaField}
-                       placeholder="Write a short summary..."
-                       value={description}
-                       onChange={(e) => setDescription(e.target.value)}
-                       style={{ height: '120px' }}
-                     />
-                   </div>
+                      <label>Synopsis Description (Story / Plot Summary)</label>
+                      <textarea
+                        required
+                        className={styles.textareaField}
+                        placeholder="Write a comprehensive plot summary (recommended: 350-600 words mentioning story, main characters, themes, and subbed/dubbed info naturally)..."
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        style={{ height: '240px', resize: 'vertical' }}
+                      />
+                    </div>
 
                   <div className={styles.formRow} style={{ marginBottom: '1.2rem', display: 'flex', gap: '1rem' }}>
                     <div className={styles.formGroup} style={{ flex: 1 }}>
@@ -1425,6 +1466,58 @@ export default function AdminSeriesPage() {
                         value={aliasesInput}
                         onChange={(e) => setAliasesInput(e.target.value)}
                       />
+                    </div>
+                  </div>
+
+                  {/* Additional SEO Metadata (Original Source, Content Warnings, About Series, FAQ Override) */}
+                  <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1.2rem', marginBottom: '1.2rem' }}>
+                    <h4 style={{ fontSize: '0.9rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--primary)', marginBottom: '1rem' }}>Additional SEO Metadata</h4>
+                    
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                      <div className={styles.formGroup}>
+                        <label>Original Source</label>
+                        <input
+                          type="text"
+                          className={styles.inputField}
+                          placeholder="e.g. Manga, Light Novel, Game, Original"
+                          value={originalSource}
+                          onChange={(e) => setOriginalSource(e.target.value)}
+                        />
+                      </div>
+                      <div className={styles.formGroup}>
+                        <label>Content Warnings (comma-separated, optional)</label>
+                        <input
+                          type="text"
+                          className={styles.inputField}
+                          placeholder="e.g. NTR, Gore, Violence"
+                          value={contentWarningsInput}
+                          onChange={(e) => setContentWarningsInput(e.target.value)}
+                        />
+                        <span style={{ fontSize: '0.78rem', color: 'var(--foreground-muted)', marginTop: '0.2rem', display: 'block' }}>Left blank if none exist. Empty warnings are hidden.</span>
+                      </div>
+                    </div>
+
+                    <div className={styles.formGroup} style={{ marginBottom: '1rem' }}>
+                      <label>About This Series (General Overview, Production Details, Reception)</label>
+                      <textarea
+                        className={styles.textareaField}
+                        placeholder="Write dynamic general overview, reception, themes and target audience details for this series. Rendered as a separate section below synopsis."
+                        value={aboutText}
+                        onChange={(e) => setAboutText(e.target.value)}
+                        style={{ height: '140px', resize: 'vertical' }}
+                      />
+                    </div>
+
+                    <div className={styles.formGroup}>
+                      <label>Custom FAQ Override JSON (Optional)</label>
+                      <textarea
+                        className={styles.textareaField}
+                        placeholder='[{"q": "Is this show subbed?", "a": "Yes, it contains english subtitles..."}]'
+                        value={faqOverrideInput}
+                        onChange={(e) => setFaqOverrideInput(e.target.value)}
+                        style={{ height: '100px', fontFamily: 'monospace', fontSize: '0.82rem', resize: 'vertical' }}
+                      />
+                      <span style={{ fontSize: '0.78rem', color: 'var(--foreground-muted)', marginTop: '0.2rem', display: 'block' }}>If empty, the system automatically generates FAQs using database facts. Paste JSON array of Q&As only to override.</span>
                     </div>
                   </div>
 

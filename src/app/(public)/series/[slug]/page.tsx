@@ -389,11 +389,114 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
   const firstAirDateFormatted = formatDateString(activeSeries.first_air_date);
   const lastAirDateFormatted = formatDateString(activeSeries.last_air_date);
 
-  // Compute similar series (5 items)
+  // Helper helper to get stable ratings
+  function getStableRating(id: string) {
+    let hash = 0;
+    for (let i = 0; i < id.length; i++) {
+      hash = id.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return 7.0 + (Math.abs(hash) % 25) / 10;
+  }
+
+  // Derive Themes from Tags to avoid duplication
+  const derivedThemes = activeSeries.tags
+    ? activeSeries.tags.filter((t: string) => t.toLowerCase() !== 'featured' && !t.toLowerCase().startsWith('featured:') && t !== activeSeries.category)
+    : [];
+
+  // Compute similar series (5 items) using weighted scoring algorithm
   const sourceList = isDbEmpty ? MOCK_SERIES : allSeriesList;
-  const similarSeries = sourceList
+  const similarSeries = [...sourceList]
     .filter((s: any) => s.slug !== slug)
+    .map((s: any) => {
+      let score = 0;
+      // 1. Same Studio (+6 points)
+      if (s.studio && activeSeries.studio) {
+        const sStudios = s.studio.split(',').map((st: string) => st.trim().toLowerCase());
+        const actStudios = activeSeries.studio.split(',').map((st: string) => st.trim().toLowerCase());
+        const hasOverlap = sStudios.some((st: string) => actStudios.includes(st));
+        if (hasOverlap) score += 6;
+      }
+      // 2. Shared Tags (+4 points for EACH matching tag)
+      if (s.tags && activeSeries.tags) {
+        const sTags = s.tags.map((t: string) => t.toLowerCase());
+        const actTags = activeSeries.tags.map((t: string) => t.toLowerCase());
+        const intersection = sTags.filter((t: string) => actTags.includes(t));
+        score += intersection.length * 4;
+      }
+      // 3. Same Airing Status (+2 points)
+      if (s.status && activeSeries.status && s.status.toLowerCase() === activeSeries.status.toLowerCase()) {
+        score += 2;
+      }
+      // 4. Same Release Year (+1 point)
+      if (s.release_year && activeSeries.release_year && s.release_year === activeSeries.release_year) {
+        score += 1;
+      }
+      // 5. Similar Rating (within ±1.0) (+1 point)
+      const sRating = s.rating || getStableRating(s.id || s.title);
+      const actRating = activeSeries.rating || getStableRating(activeSeries.id || activeSeries.title);
+      if (Math.abs(sRating - actRating) <= 1.0) {
+        score += 1;
+      }
+      return { series: s, score };
+    })
+    .sort((a, b) => b.score - a.score)
+    .map((item) => item.series)
     .slice(0, 5);
+
+  // Compute more series by the same studio (up to 5 items)
+  const moreFromStudio = [...sourceList]
+    .filter((s: any) => s.slug !== slug)
+    .filter((s: any) => {
+      if (!s.studio || !activeSeries.studio) return false;
+      const sStudios = s.studio.split(',').map((st: string) => st.trim().toLowerCase());
+      const actStudios = activeSeries.studio.split(',').map((st: string) => st.trim().toLowerCase());
+      return sStudios.some((st: string) => actStudios.includes(st));
+    })
+    .slice(0, 5);
+
+  // Compile Accordion FAQs
+  let renderedFaqs: { q: string, a: string }[] = [];
+  if (activeSeries.faq_override && Array.isArray(activeSeries.faq_override) && activeSeries.faq_override.length > 0) {
+    renderedFaqs = activeSeries.faq_override;
+  } else {
+    const genresText = derivedThemes.length > 0 ? derivedThemes.slice(0, 3).join(', ') : 'hentai';
+    const mainStudio = studio.split(',')[0].trim();
+    renderedFaqs = [
+      {
+        q: `What is ${activeSeries.title}?`,
+        a: `${activeSeries.title} is a ${genresText} hentai anime series produced by ${mainStudio}. ${activeSeries.description || ''}`
+      },
+      {
+        q: `Is ${activeSeries.title} uncensored?`,
+        a: `${activeSeries.title} is available in its ${activeSeries.content_rating || 'uncensored'} version. You can watch it in full high definition (1080p) online on PlayHentai.`
+      },
+      {
+        q: `How many episodes does ${activeSeries.title} have?`,
+        a: `${activeSeries.title} has ${currentEpCount} episodes currently available to stream${activeSeries.episode_count_override ? ` out of a planned ${activeSeries.episode_count_override} episodes` : ''}.`
+      },
+      {
+        q: `Is ${activeSeries.title} completed or ongoing?`,
+        a: `The show is currently ${status}. New releases are updated here immediately.`
+      },
+      {
+        q: `Who produced ${activeSeries.title}?`,
+        a: `The series was animated by the production studio ${studio}.`
+      }
+    ];
+  }
+
+  const faqJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    'mainEntity': renderedFaqs.map((faq) => ({
+      '@type': 'Question',
+      'name': faq.q,
+      'acceptedAnswer': {
+        '@type': 'Answer',
+        'text': faq.a
+      }
+    }))
+  };
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
   const seriesCanonicalUrl = `${siteUrl}/series/${slug}`;
@@ -431,7 +534,7 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
   return (
     <div className={styles.container}>
       {/* Schema.org Structured Data */}
-      <JsonLd data={[tvSeriesJsonLd, breadcrumbJsonLd]} />
+      <JsonLd data={[tvSeriesJsonLd, breadcrumbJsonLd, faqJsonLd]} />
       
       {/* Premium Ambient Backdrop */}
       <div className={styles.bannerContainer}>
@@ -448,6 +551,17 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
 
       {/* Main Details Wrapper */}
       <div className={styles.contentWrapper}>
+        {/* Visible Breadcrumbs UI */}
+        <div className={styles.breadcrumbs}>
+          <Link href="/">Home</Link>
+          <ChevronRight size={14} />
+          <Link href="/categories">Series</Link>
+          <ChevronRight size={14} />
+          <Link href={`/categories?genre=${encodeURIComponent(activeSeries.category || 'Anime')}`}>{activeSeries.category || 'Anime'}</Link>
+          <ChevronRight size={14} />
+          <span className={styles.breadcrumbActive}>{activeSeries.title}</span>
+        </div>
+
         {/* Desktop View (> 900px) - EXACT REFERENCE SCREENSHOT MATCH */}
         <div className={styles.desktopOnlyContainer}>
           <div className={styles.metaGrid}>
@@ -630,9 +744,31 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
                   <span className={styles.detailsKey}>TOTAL EPISODES</span>
                   <span className={styles.detailsVal}>{totalEpisodesText}</span>
                 </div>
+                {activeSeries.original_source && (
+                  <div className={styles.detailsRow}>
+                    <span className={styles.detailsKey}>ORIGINAL SOURCE</span>
+                    <span className={styles.detailsVal}>{activeSeries.original_source}</span>
+                  </div>
+                )}
+                {activeSeries.content_warnings && activeSeries.content_warnings.length > 0 && (
+                  <div className={styles.detailsRow}>
+                    <span className={styles.detailsKey}>CONTENT WARNINGS</span>
+                    <span className={styles.detailsVal} style={{ color: '#ef4444', fontWeight: 600 }}>{activeSeries.content_warnings.join(', ')}</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
+
+          {/* About This Series (Desktop) */}
+          {activeSeries.about_text && (
+            <section className={styles.aboutSection} style={{ marginBottom: '2rem' }}>
+              <div className={`${styles.aboutCard} glass`}>
+                <h2>About {activeSeries.title}</h2>
+                <p>{activeSeries.about_text}</p>
+              </div>
+            </section>
+          )}
 
           {/* Sponsored Ad Banner: Series Details Before Episodes (Zone 5986920) */}
           <AdBanner zoneId="5986920" desktopOnly />
@@ -757,8 +893,22 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
               contentRating: activeSeries.content_rating || 'Explicit',
               altTitleJapanese: activeSeries.alt_title_japanese,
               altTitleEnglish: activeSeries.alt_title_english || activeSeries.title,
+              originalSource: activeSeries.original_source,
+              contentWarnings: activeSeries.content_warnings && activeSeries.content_warnings.length > 0 
+                ? activeSeries.content_warnings.join(', ') 
+                : undefined,
             }}
           />
+
+          {/* About This Series (Mobile) */}
+          {activeSeries.about_text && (
+            <section className={styles.aboutSection} style={{ marginBottom: '1.25rem' }}>
+              <div className={`${styles.aboutCard} glass`}>
+                <h2>About {activeSeries.title}</h2>
+                <p>{activeSeries.about_text}</p>
+              </div>
+            </section>
+          )}
 
           {/* Action Buttons Row */}
           <div className={styles.actionButtonsRow}>
@@ -806,9 +956,70 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
           </section>
         </div>
 
+        {/* More From Studio Section */}
+        {moreFromStudio.length > 0 && (
+          <section className={styles.moreFromStudioSection}>
+            <div className={styles.moreFromStudioTitleRow}>
+              <h2>More From {studio.split(',')[0].trim()}</h2>
+              <Link href={`/studios/${convertStudioNameToSlug(studio.split(',')[0].trim())}`} className={styles.moreFromStudioViewAll}>
+                View All
+              </Link>
+            </div>
+            <div className={styles.moreFromStudioGrid}>
+              {moreFromStudio.map((item: any) => {
+                const itemRating = item.rating || getStableRating(item.id || item.title);
+                return (
+                  <div key={item.id} className="relative group">
+                    <Link href={`/series/${item.slug}`} style={{ textDecoration: 'none' }}>
+                      <div style={{ position: 'relative', width: '100%', aspectRatio: '2/3', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 24px rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                        <Image
+                          src={getR2Url(item.poster_image_key || item.cover_image_key, 'poster')}
+                          alt={`Watch ${item.title} Hentai`}
+                          fill
+                          sizes="(max-width: 768px) 50vw, 220px"
+                          style={{ objectFit: 'cover' }}
+                        />
+                        <div style={{ position: 'absolute', top: '8px', right: '8px', background: 'rgba(9, 13, 22, 0.8)', padding: '0.2rem 0.5rem', borderRadius: '6px', fontSize: '0.72rem', fontWeight: 800, color: '#eab308', display: 'flex', alignItems: 'center', gap: '3px', border: '1px solid rgba(234, 179, 8, 0.2)' }}>
+                          <Star size={11} fill="#eab308" color="#eab308" />
+                          <span>{itemRating.toFixed(1)}</span>
+                        </div>
+                      </div>
+                      <h4 style={{ fontSize: '0.88rem', fontWeight: 700, color: '#ffffff', marginTop: '0.6rem', marginBottom: '0.2rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
+                        {item.title}
+                      </h4>
+                    </Link>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
         {/* Similar Titles Section */}
         {similarSeries.length > 0 && (
           <SimilarTitles list={similarSeries} />
+        )}
+
+        {/* Frequently Asked Questions accordion */}
+        {renderedFaqs.length > 0 && (
+          <section className={styles.faqSection}>
+            <h2>Frequently Asked Questions</h2>
+            <div className={styles.faqAccordion}>
+              {renderedFaqs.map((faq, idx) => (
+                <details key={idx} className={styles.faqItem}>
+                  <summary className={styles.faqQuestion}>
+                    <span>{faq.q}</span>
+                    <svg className={styles.faqArrow} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                  </summary>
+                  <div className={styles.faqAnswer}>
+                    {faq.a}
+                  </div>
+                </details>
+              ))}
+            </div>
+          </section>
         )}
 
         {/* Discussion / Comments Section */}

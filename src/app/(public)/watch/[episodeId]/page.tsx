@@ -257,8 +257,52 @@ export default async function WatchPage({ params }: WatchPageProps) {
   const { activeEpisode, seriesDetails, seriesTitle, seriesSlug, seasonEpisodes, isDbEmpty } = resolved;
 
   const sourceList = isDbEmpty ? MOCK_SERIES : allSeriesList;
-  const similarSeries = sourceList
+
+  // Helper helper to get stable ratings
+  function getStableRating(id: string) {
+    let hash = 0;
+    for (let i = 0; i < id.length; i++) {
+      hash = id.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return 7.0 + (Math.abs(hash) % 25) / 10;
+  }
+
+  const similarSeries = [...sourceList]
     .filter((s: any) => s.slug !== seriesSlug)
+    .map((s: any) => {
+      let score = 0;
+      // 1. Same Studio (+6 points)
+      if (s.studio && seriesDetails?.studio) {
+        const sStudios = s.studio.split(',').map((st: string) => st.trim().toLowerCase());
+        const actStudios = seriesDetails.studio.split(',').map((st: string) => st.trim().toLowerCase());
+        const hasOverlap = sStudios.some((st: string) => actStudios.includes(st));
+        if (hasOverlap) score += 6;
+      }
+      // 2. Shared Tags (+4 points for EACH matching tag)
+      if (s.tags && seriesDetails?.tags) {
+        const sTags = s.tags.map((t: string) => t.toLowerCase());
+        const actTags = seriesDetails.tags.map((t: string) => t.toLowerCase());
+        const intersection = sTags.filter((t: string) => actTags.includes(t));
+        score += intersection.length * 4;
+      }
+      // 3. Same Airing Status (+2 points)
+      if (s.status && seriesDetails?.status && s.status.toLowerCase() === seriesDetails.status.toLowerCase()) {
+        score += 2;
+      }
+      // 4. Same Release Year (+1 point)
+      if (s.release_year && seriesDetails?.release_year && s.release_year === seriesDetails.release_year) {
+        score += 1;
+      }
+      // 5. Similar Rating (within ±1.0) (+1 point)
+      const sRating = s.rating || getStableRating(s.id || s.title);
+      const actRating = seriesDetails?.rating || getStableRating(seriesDetails?.id || seriesDetails?.title || '');
+      if (Math.abs(sRating - actRating) <= 1.0) {
+        score += 1;
+      }
+      return { series: s, score };
+    })
+    .sort((a, b) => b.score - a.score)
+    .map((item) => item.series)
     .slice(0, 6);
 
   const currentIdx = seasonEpisodes.findIndex((ep: any) => ep.id === activeEpisode.id || ep.episode_number === activeEpisode.episode_number);

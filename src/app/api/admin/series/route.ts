@@ -59,7 +59,11 @@ export async function POST(request: Request) {
         image_library: payload.image_library || [],
         poster_position: payload.poster_position || '50% 50%',
         cover_position: payload.cover_position || '50% 50%',
-        banner_position: payload.banner_position || '50% 50%'
+        banner_position: payload.banner_position || '50% 50%',
+        original_source: payload.original_source || null,
+        content_warnings: payload.content_warnings || [],
+        about_text: payload.about_text || null,
+        faq_override: payload.faq_override || []
       })
       .select()
       .single();
@@ -131,7 +135,11 @@ export async function PUT(request: Request) {
         image_library: payload.image_library,
         poster_position: payload.poster_position,
         cover_position: payload.cover_position,
-        banner_position: payload.banner_position
+        banner_position: payload.banner_position,
+        original_source: payload.original_source,
+        content_warnings: payload.content_warnings,
+        about_text: payload.about_text,
+        faq_override: payload.faq_override
       })
       .eq('id', payload.id)
       .select()
