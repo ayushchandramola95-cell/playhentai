@@ -137,26 +137,84 @@ export default async function HomePage() {
   const pool = isDbEmpty ? MOCK_SERIES : dbSeries;
   const activeSeries = pool;
 
+  // Pre-calculate latest episode series list if needed
+  const getLatestEpisodeSeries = () => {
+    const list: any[] = [];
+    const seen = new Set<string>();
+    if (dbEpisodes && dbEpisodes.length > 0) {
+      dbEpisodes.forEach(ep => {
+        const season = Array.isArray(ep.seasons) ? ep.seasons[0] : ep.seasons;
+        const seriesObj = season ? (Array.isArray(season.series) ? season.series[0] : season.series) : null;
+        if (seriesObj && seriesObj.slug) {
+          const fullSeriesObj = pool.find(s => s.slug === seriesObj.slug);
+          if (fullSeriesObj && !seen.has(fullSeriesObj.id)) {
+            seen.add(fullSeriesObj.id);
+            list.push(fullSeriesObj);
+          }
+        }
+      });
+    }
+    return list.length > 0 ? list : [...pool];
+  };
+
   // Calculate Featured Series according to Admin Panel heroSource & slideLimit
   if (heroSource === 'latest_series') {
     featuredSeries = [...pool].slice(0, slideLimit);
   } else if (heroSource === 'latest_episodes') {
-    featuredSeries = [...pool].slice(0, slideLimit);
-  } else if (heroSource === 'latest_mix') {
-    featuredSeries = [...pool].slice(0, slideLimit);
+    featuredSeries = getLatestEpisodeSeries().slice(0, slideLimit);
+  } else if (heroSource === 'mix_latest' || heroSource === 'latest_mix') {
+    const seriesList = [...pool];
+    const episodeList = getLatestEpisodeSeries();
+    const interleaved: any[] = [];
+    const maxLen = Math.max(seriesList.length, episodeList.length);
+    const seenIds = new Set<string>();
+
+    for (let i = 0; i < maxLen; i++) {
+      if (i < seriesList.length) {
+        const s = seriesList[i];
+        if (!seenIds.has(s.id)) {
+          seenIds.add(s.id);
+          interleaved.push(s);
+        }
+      }
+      if (i < episodeList.length) {
+        const s = episodeList[i];
+        if (!seenIds.has(s.id)) {
+          seenIds.add(s.id);
+          interleaved.push(s);
+        }
+      }
+    }
+    featuredSeries = interleaved.slice(0, slideLimit);
   } else if (heroSource === 'random') {
     featuredSeries = [...pool].sort(() => 0.5 - Math.random()).slice(0, slideLimit);
-  } else if (heroSource === 'random_mix') {
+  } else if (heroSource === 'mix_random_latest' || heroSource === 'random_mix') {
     const half = Math.ceil(slideLimit / 2);
     const newest = pool.slice(0, half);
-    const randoms = [...pool].sort(() => 0.5 - Math.random()).filter(s => !newest.some(n => n.id === s.id)).slice(0, slideLimit - newest.length);
+    const remaining = pool.filter(s => !newest.some(n => n.id === s.id));
+    const randoms = [...remaining].sort(() => 0.5 - Math.random()).slice(0, slideLimit - newest.length);
     featuredSeries = [...newest, ...randoms].slice(0, slideLimit);
   } else {
-    // Default manual featured tags
+    // Default manual featured tags (featured_tags) sorted by order suffix if present (e.g. featured:1, featured:2)
     const tagged = pool.filter(s =>
       (s.tags || []).some((t: string) => t.toLowerCase() === 'featured' || t.toLowerCase().startsWith('featured:'))
     );
-    featuredSeries = tagged.length > 0 ? tagged.slice(0, slideLimit) : pool.slice(0, slideLimit);
+    if (tagged.length > 0) {
+      tagged.sort((a, b) => {
+        const getWeight = (s: any) => {
+          const tag = (s.tags || []).find((t: string) => t.toLowerCase().startsWith('featured:'));
+          if (tag) {
+            const num = parseInt(tag.split(':')[1], 10);
+            return isNaN(num) ? 999 : num;
+          }
+          return (s.tags || []).some((t: string) => t.toLowerCase() === 'featured') ? 99 : 9999;
+        };
+        return getWeight(a) - getWeight(b);
+      });
+      featuredSeries = tagged.slice(0, slideLimit);
+    } else {
+      featuredSeries = pool.slice(0, slideLimit);
+    }
   }
 
   // Sort Latest Series according to Admin Panel latest_series_sort_mode & release dates (excluding upcoming series)
