@@ -77,10 +77,10 @@ export async function POST(req: NextRequest) {
 
     // Define section constraints and guidelines
     const sectionInstructions: Record<string, string> = {
-      overview: 'Explain what kind of anime this is, its overall focus, its genre, and adaptation source. Keep it factual and avoid plot summary. The first sentence should open smoothly: e.g. "[Title] is a romance-focused adult OVA adapted from the original manga..."',
-      production: 'Describe the animation style, studio reputation, and visual presentation naturally. Emphasize specific elements like expressive facial animations, digital artwork, or character-focused cinematography rather than generic phrases. Keep studio descriptions neutral (e.g. follows the studio\'s established style of character-focused adult animation). Do NOT list metadata fields.',
-      themes: 'Describe the themes (e.g. romance, school life, vanilla, coming of age), tone, pacing, and character development focus.',
-      recommended: 'Describe which types of viewers would enjoy this series based on its genres and style. Frame it conversationally and neutrally, e.g. "Viewers who enjoy romance-driven adult anime with an emphasis on emotional relationships..." rather than repetitive marketing lists.'
+      overview: 'Explain what kind of anime this is, its overall focus, its genre, and adaptation source. Keep it factual and avoid plot summary. The first sentence should open smoothly: e.g. "[Title] is a romance-focused adult OVA adapted from the original manga..." Aim for at least 120 words — write enough to give readers a full picture of the series without padding.',
+      production: 'Describe the animation style, studio reputation, and visual presentation naturally. Emphasize specific elements like expressive facial animations, digital artwork, or character-focused cinematography rather than generic phrases. Keep studio descriptions neutral. Do NOT list metadata fields. Aim for at least 80 words.',
+      themes: 'Describe the themes (e.g. romance, school life, vanilla, coming of age), tone, pacing, and character development focus. Aim for at least 80 words.',
+      recommended: 'Describe which types of viewers would enjoy this series based on its genres and style. Frame it conversationally and neutrally, e.g. "Viewers who enjoy romance-driven adult anime with an emphasis on emotional relationships..." Aim for at least 50 words.'
     };
 
     const sectionWordLimit: Record<string, string> = {
@@ -197,7 +197,12 @@ Return only the improved text content, without any headers, quotes, or JSON wrap
 
     if (responseMimeType) {
       requestPayload.generationConfig = {
-        responseMimeType
+        responseMimeType,
+        maxOutputTokens: 4096
+      };
+    } else {
+      requestPayload.generationConfig = {
+        maxOutputTokens: 2048
       };
     }
 
