@@ -94,6 +94,7 @@ export default function AdminSeriesPage() {
   const [aboutRecommended, setAboutRecommended] = useState('');
   const [isGeneratingAll, setIsGeneratingAll] = useState(false);
   const [isGeneratingSection, setIsGeneratingSection] = useState<Record<string, boolean>>({});
+  const [aboutModel, setAboutModel] = useState('gemini-3.6-flash');
 
   // Parsing helper to support Option A and legacy plaintext fallback
   function parseAboutText(aboutData: any, aboutTextLegacy: string) {
@@ -233,7 +234,8 @@ export default function AdminSeriesPage() {
           mode: isImprove ? 'improve' : 'single',
           section: sectionKey,
           existingText: isImprove ? existingText : undefined,
-          metadata
+          metadata,
+          model: aboutModel
         })
       });
 
@@ -282,7 +284,8 @@ export default function AdminSeriesPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           mode: 'all',
-          metadata
+          metadata,
+          model: aboutModel
         })
       });
 
@@ -1704,43 +1707,72 @@ export default function AdminSeriesPage() {
 
                     {/* Upgraded Structured About Series Builder */}
                     <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1.5rem', marginBottom: '1.5rem' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.2rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.2rem', gap: '1rem', flexWrap: 'wrap' }}>
                         <div>
                           <h4 style={{ margin: 0, fontSize: '0.9rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--primary)' }}>About This Series Builder</h4>
                           <span style={{ fontSize: '0.74rem', color: 'var(--foreground-muted)' }}>Write or auto-generate structured, encyclopedic editorial content to complement the synopsis.</span>
                         </div>
-                        <button
-                          type="button"
-                          onClick={handleGenerateAllAbout}
-                          disabled={isGeneratingAll || !title}
-                          className={styles.actionBtn}
-                          style={{
-                            background: 'linear-gradient(135deg, #a855f7 0%, #7c3aed 100%)',
-                            color: '#ffffff',
-                            border: 'none',
-                            padding: '0.55rem 1.1rem',
-                            borderRadius: '8px',
-                            fontWeight: 700,
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.4rem',
-                            fontSize: '0.78rem',
-                            boxShadow: '0 4px 12px rgba(124, 58, 237, 0.3)'
-                          }}
-                        >
-                          {isGeneratingAll ? (
-                            <>
-                              <span className={styles.loadingSpinner} style={{ width: '12px', height: '12px', marginRight: '4px' }} />
-                              <span>Generating...</span>
-                            </>
-                          ) : (
-                            <>
-                              <span>✨</span>
-                              <span>Generate Entire About Article</span>
-                            </>
-                          )}
-                        </button>
+                        
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--foreground-muted)', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>AI Model:</span>
+                            <select
+                              value={aboutModel}
+                              onChange={(e) => setAboutModel(e.target.value)}
+                              style={{
+                                padding: '0.45rem 0.75rem',
+                                borderRadius: '8px',
+                                border: '1px solid var(--border)',
+                                background: 'var(--surface-hover)',
+                                color: 'var(--foreground-primary)',
+                                fontSize: '0.78rem',
+                                outline: 'none',
+                                cursor: 'pointer',
+                                fontWeight: 600
+                              }}
+                            >
+                              <option value="gemini-3.6-flash">Gemini 3.6 Flash (Default)</option>
+                              <option value="gemini-3.5-flash">Gemini 3.5 Flash</option>
+                              <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash Lite</option>
+                              <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro Preview</option>
+                              <option value="gemini-3.1-flash-lite">Gemini 3.1 Flash Lite</option>
+                              <option value="gemini-3-flash-preview">Gemini 3 Flash Preview</option>
+                            </select>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={handleGenerateAllAbout}
+                            disabled={isGeneratingAll || !title}
+                            className={styles.actionBtn}
+                            style={{
+                              background: 'linear-gradient(135deg, #a855f7 0%, #7c3aed 100%)',
+                              color: '#ffffff',
+                              border: 'none',
+                              padding: '0.55rem 1.1rem',
+                              borderRadius: '8px',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.4rem',
+                              fontSize: '0.78rem',
+                              boxShadow: '0 4px 12px rgba(124, 58, 237, 0.3)'
+                            }}
+                          >
+                            {isGeneratingAll ? (
+                              <>
+                                <span className={styles.loadingSpinner} style={{ width: '12px', height: '12px', marginRight: '4px' }} />
+                                <span>Generating...</span>
+                              </>
+                            ) : (
+                              <>
+                                <span>✨</span>
+                                <span>Generate Entire About Article</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
                       </div>
 
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>

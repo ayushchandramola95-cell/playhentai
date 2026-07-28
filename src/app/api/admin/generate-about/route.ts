@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
 
     // 2. Parse request payload
     const body = await req.json();
-    const { mode, section, existingText, metadata } = body;
+    const { mode, section, existingText, metadata, model } = body;
 
     if (!mode || !['all', 'single', 'improve'].includes(mode)) {
       return NextResponse.json({ error: 'Invalid generation mode' }, { status: 400 });
@@ -167,8 +167,19 @@ ${existingText}
 Return only the improved text content, without any headers, quotes, or JSON wrapping.`;
     }
 
+    // Validate and select target model
+    const allowedModels = [
+      'gemini-3.6-flash',
+      'gemini-3.5-flash',
+      'gemini-3.5-flash-lite',
+      'gemini-3.1-pro-preview',
+      'gemini-3.1-flash-lite',
+      'gemini-3-flash-preview'
+    ];
+    const targetModel = (model && allowedModels.includes(model)) ? model : 'gemini-3.6-flash';
+
     // 4. Invoke Gemini API
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${geminiKey}`;
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:generateContent?key=${geminiKey}`;
     
     const requestPayload: any = {
       contents: [
