@@ -50,8 +50,8 @@
 /* Full Width Bottom Sections Container */
 .fullWidthSectionContainer {
   width: 100%;
-  max-width: 100%;
-  padding: 0 2.5rem;
+  max-width: 1320px;
+  padding: 0 1.6rem;
   margin: 0 auto;
   position: relative;
   z-index: 10;
