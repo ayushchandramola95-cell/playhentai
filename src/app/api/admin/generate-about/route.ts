@@ -175,7 +175,16 @@ Return only the improved text content, without any headers, quotes, or JSON wrap
     if (!geminiRes.ok) {
       const errText = await geminiRes.text();
       console.error('Gemini API request failed:', errText);
-      return NextResponse.json({ error: `Gemini API Error: ${geminiRes.statusText}` }, { status: 502 });
+      let descriptiveError = `Gemini API Error: ${geminiRes.statusText}`;
+      try {
+        const errObj = JSON.parse(errText);
+        if (errObj.error?.message) {
+          descriptiveError = `Gemini API Error: ${errObj.error.message}`;
+        }
+      } catch (parseErr) {
+        // ignore
+      }
+      return NextResponse.json({ error: descriptiveError }, { status: 502 });
     }
 
     const geminiData = await geminiRes.json();

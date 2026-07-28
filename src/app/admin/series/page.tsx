@@ -248,7 +248,6 @@ export default function AdminSeriesPage() {
       else if (sectionKey === 'themes') setAboutThemes(data);
       else if (sectionKey === 'recommended') setAboutRecommended(data);
     } catch (err: any) {
-      console.error('Error generating section:', err);
       setError(err.message || 'Generation failed.');
     } finally {
       setIsGeneratingSection(prev => ({ ...prev, [sectionKey]: false }));
@@ -298,7 +297,6 @@ export default function AdminSeriesPage() {
       if (data.themes) setAboutThemes(data.themes);
       if (data.recommended) setAboutRecommended(data.recommended);
     } catch (err: any) {
-      console.error('Error generating all sections:', err);
       setError(err.message || 'Generation failed.');
     } finally {
       setIsGeneratingAll(false);
