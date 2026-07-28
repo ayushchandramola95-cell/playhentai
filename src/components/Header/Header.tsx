@@ -34,10 +34,13 @@ export default function Header() {
     setMounted(true);
   }, []);
 
-  // Close mobile drawer and reset search focus on route changes
+  // Close mobile drawer, reset search focus, and scroll to top on route changes
   useEffect(() => {
     setMobileMenuOpen(false);
     setSearchFocused(false);
+    if (typeof window !== 'undefined') {
+      window.scrollTo(0, 0);
+    }
   }, [pathname]);
 
   // Prevent scrolling when mobile drawer is open
