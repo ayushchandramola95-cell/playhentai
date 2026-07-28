@@ -605,3 +605,19 @@
     padding: 1.25rem;
   }
 }
+
+/* Full Width Bottom Sections Container (Outside playerLayout 2-column grid) */
+.watchFullWidthSection {
+  width: 100%;
+  max-width: 100%;
+  margin-top: 3.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+.watchFullWidthSection .similarWrapper,
+.watchFullWidthSection .commentsCard {
+  width: 100%;
+  max-width: 100%;
+}

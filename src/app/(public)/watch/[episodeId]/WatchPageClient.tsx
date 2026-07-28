@@ -348,17 +348,6 @@ export default function WatchPageClient({
           {/* Mobile-Only Banner Before Similar Titles (Zone 5987000) */}
           <AdBanner zoneId="5987000" insClass="eas6a97888e10" mobileOnly />
 
-          {/* Similar Titles row under info card */}
-          {similarSeries.length > 0 && (
-            <div className={styles.similarWrapper}>
-              <SimilarTitles list={similarSeries} />
-            </div>
-          )}
-
-          {/* Comments Section */}
-          <div className={styles.commentsCard}>
-            <CommentSection episodeId={activeEpisode.id} />
-          </div>
         </div>
 
         {/* Right Column: Sidebar (DESKTOP ONLY) */}
@@ -470,6 +459,21 @@ export default function WatchPageClient({
             </div>
           </div>
 
+        </div>
+      </div>
+
+      {/* Full-Width Bottom Sections Outside playerLayout 2-Column Grid */}
+      <div className={styles.watchFullWidthSection}>
+        {/* Similar Titles row */}
+        {similarSeries.length > 0 && (
+          <div className={styles.similarWrapper}>
+            <SimilarTitles list={similarSeries} />
+          </div>
+        )}
+
+        {/* Comments Section */}
+        <div className={styles.commentsCard}>
+          <CommentSection episodeId={activeEpisode.id} />
         </div>
       </div>
     </div>
