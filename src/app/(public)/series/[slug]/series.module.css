@@ -6,10 +6,14 @@
 
 /* Ambient Backdrop Banner */
 .bannerContainer {
-  position: relative;
-  width: 100%;
-  height: 280px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 460px;
   overflow: hidden;
+  z-index: 0;
+  pointer-events: none;
 }
 
 .bannerImage {
@@ -24,10 +28,11 @@
   position: absolute;
   inset: 0;
   background: linear-gradient(
-    to top,
-    var(--background) 0%,
-    rgba(9, 13, 22, 0.4) 60%,
-    transparent 100%
+    to bottom,
+    rgba(9, 13, 22, 0.15) 0%,
+    rgba(9, 13, 22, 0.25) 40%,
+    rgba(9, 13, 22, 0.75) 75%,
+    var(--background) 100%
   );
   z-index: 1;
 }
@@ -35,8 +40,8 @@
 /* Content Wrapper */
 .contentWrapper {
   max-width: 1200px;
-  margin: -140px auto 0;
-  padding: 0 2rem;
+  margin: 0 auto;
+  padding: 1rem 2rem 0;
   position: relative;
   z-index: 10;
   width: 100%;
@@ -1013,11 +1018,10 @@
     display: block !important;
   }
   .bannerContainer {
-    height: 140px;
+    height: 320px;
   }
   .contentWrapper {
-    margin-top: -105px;
-    padding: 0 1rem;
+    padding: 0.75rem 1rem 0;
   }
   .metaGrid {
     display: flex;
@@ -1069,11 +1073,10 @@
 
 @media (max-width: 600px) {
   .bannerContainer {
-    height: 130px;
+    height: 280px;
   }
   .contentWrapper {
-    margin-top: -95px;
-    padding: 0 0.85rem;
+    padding: 0.75rem 0.85rem 0;
   }
   .leftCol {
     width: 105px;
@@ -1124,7 +1127,7 @@
   gap: 0.5rem;
   font-size: 0.85rem;
   color: var(--foreground-secondary);
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
   flex-wrap: wrap;
 }
 
