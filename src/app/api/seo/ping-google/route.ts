@@ -1,12 +1,43 @@
 import { NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
   const host = 'playhentai.live';
+  const baseUrl = `https://${host}`;
   const key = 'playhentai2026indexnowkey123';
-  const keyLocation = 'https://playhentai.live/playhentai-indexnow-key.txt';
-  const sitemapUrl = 'https://playhentai.live/sitemap.xml';
+  const keyLocation = `${baseUrl}/playhentai-indexnow-key.txt`;
+  const sitemapUrl = `${baseUrl}/sitemap.xml`;
 
   const results: Record<string, any> = {};
+  const urlList: string[] = [
+    baseUrl,
+    `${baseUrl}/categories`,
+    `${baseUrl}/studios`,
+    `${baseUrl}/sitemap.xml`
+  ];
+
+  try {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+    const { data: series } = await supabase
+      .from('series')
+      .select('slug')
+      .eq('is_published', true);
+
+    if (series && series.length > 0) {
+      series.forEach((s: any) => {
+        if (s.slug) {
+          urlList.push(`${baseUrl}/series/${s.slug}`);
+        }
+      });
+    }
+  } catch (err) {
+    console.error('Error fetching series for IndexNow payload:', err);
+  }
 
   // 1. Submit via IndexNow Protocol (Bing, Yandex, Yahoo, Naver)
   try {
@@ -14,11 +45,7 @@ export async function GET() {
       host,
       key,
       keyLocation,
-      urlList: [
-        'https://playhentai.live',
-        'https://playhentai.live/categories',
-        'https://playhentai.live/sitemap.xml'
-      ]
+      urlList
     };
 
     const indexNowRes = await fetch('https://api.indexnow.org/indexnow', {
@@ -42,7 +69,7 @@ export async function GET() {
       host,
       key,
       keyLocation,
-      urlList: ['https://playhentai.live/sitemap.xml']
+      urlList
     };
 
     const bingRes = await fetch('https://www.bing.com/indexnow', {
