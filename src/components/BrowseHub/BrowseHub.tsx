@@ -42,6 +42,7 @@ function BrowseHubContent({ initialSeries, isDbEmpty }: BrowseHubProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const catalogRef = useRef<HTMLDivElement>(null);
+  const filterBarRef = useRef<HTMLDivElement>(null);
 
   // Active filter states
   const [activeTab, setActiveTab] = useState<TabType>('genres');
@@ -49,10 +50,29 @@ function BrowseHubContent({ initialSeries, isDbEmpty }: BrowseHubProps) {
   const [selectedStudio, setSelectedStudio] = useState<string | null>(null);
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [sortMode, setSortMode] = useState<string>('a_z'); // DEFAULT: A to Z
   const [currentPage, setCurrentPage] = useState<number>(1);
 
   const ITEMS_PER_PAGE = 25; // 5 rows of 5 cards
+
+  // Smooth scroll handler when search box is clicked/focused
+  const handleSearchFocus = () => {
+    setIsSearchFocused(true);
+    setTimeout(() => {
+      if (filterBarRef.current) {
+        const rect = filterBarRef.current.getBoundingClientRect();
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        // Position search box at top right below navbar (~75px offset)
+        const targetY = rect.top + scrollTop - 75;
+        window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' });
+      }
+    }, 40);
+  };
+
+  const handleSearchBlur = () => {
+    setIsSearchFocused(false);
+  };
 
   // Smooth scroll helper to slide series grid 50-75% into view
   const scrollToResults = () => {
@@ -344,7 +364,10 @@ function BrowseHubContent({ initialSeries, isDbEmpty }: BrowseHubProps) {
       </div>
 
       {/* Search and Quick Filters Bar (Below Filter Box) */}
-      <div className={`${styles.filterBar} glass`}>
+      <div
+        ref={filterBarRef}
+        className={`${styles.filterBar} glass ${isSearchFocused ? styles.filterBarFocused : ''}`}
+      >
         <div className={styles.searchWrapper}>
           <Search size={18} className={styles.searchIcon} />
           <input
@@ -353,6 +376,8 @@ function BrowseHubContent({ initialSeries, isDbEmpty }: BrowseHubProps) {
             placeholder="Search titles, tags, descriptions..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            onFocus={handleSearchFocus}
+            onBlur={handleSearchBlur}
           />
           {searchQuery && (
             <button onClick={() => setSearchQuery('')} className={styles.clearSearchBtn} aria-label="Clear search">
