@@ -37,23 +37,17 @@
 }
 
 .similarGrid {
-  display: flex;
-  overflow-x: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
   gap: 1.5rem;
+  width: 100%;
   padding: 0.5rem 0.2rem 1.5rem;
-  scroll-behavior: smooth;
-  /* hide scrollbars */
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.similarGrid::-webkit-scrollbar {
-  display: none;
 }
 
 .similarGrid > div {
-  flex: 0 0 190px;
-  width: 190px;
+  width: 100% !important;
+  max-width: 100% !important;
+  flex: none !important;
 }
 
 /* Disable hover popovers inside the horizontally scrollable track to prevent overflow-x boundary clipping */

@@ -1029,8 +1029,6 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
           </section>
         )}
 
-
-
         {/* Frequently Asked Questions accordion */}
         {renderedFaqs.length > 0 && (
           <section className={styles.faqSection}>
