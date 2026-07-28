@@ -1029,10 +1029,7 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
           </section>
         )}
 
-        {/* Similar Titles Section */}
-        {similarSeries.length > 0 && (
-          <SimilarTitles list={similarSeries} />
-        )}
+
 
         {/* Frequently Asked Questions accordion */}
         {renderedFaqs.length > 0 && (
