@@ -1055,6 +1055,14 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
             </div>
           </section>
         )}
+      </div>
+
+      {/* Full-Width Bottom Sections (Similar Titles & Discussion) */}
+      <div className={styles.fullWidthSectionContainer}>
+        {/* Similar Titles Section */}
+        {similarSeries.length > 0 && (
+          <SimilarTitles list={similarSeries} />
+        )}
 
         {/* Discussion / Comments Section */}
         {firstEpisodeId && (
@@ -1064,7 +1072,6 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
             </div>
           </section>
         )}
-
       </div>
     </div>
   );
