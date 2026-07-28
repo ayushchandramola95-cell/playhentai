@@ -52,7 +52,7 @@ function BrowseHubContent({ initialSeries, isDbEmpty }: BrowseHubProps) {
   const [sortMode, setSortMode] = useState<string>('a_z'); // DEFAULT: A to Z
   const [currentPage, setCurrentPage] = useState<number>(1);
 
-  const ITEMS_PER_PAGE = 20; // 4 rows of 5 cards
+  const ITEMS_PER_PAGE = 25; // 5 rows of 5 cards
 
   // Smooth scroll helper to slide series grid 50-75% into view
   const scrollToResults = () => {
@@ -264,52 +264,6 @@ function BrowseHubContent({ initialSeries, isDbEmpty }: BrowseHubProps) {
 
   return (
     <div className={styles.hubContainer}>
-      {/* Search and Quick Filters Bar */}
-      <div className={`${styles.filterBar} glass`}>
-        <div className={styles.searchWrapper}>
-          <Search size={18} className={styles.searchIcon} />
-          <input
-            type="text"
-            className={styles.searchInput}
-            placeholder="Search titles, tags, descriptions..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          {searchQuery && (
-            <button onClick={() => setSearchQuery('')} className={styles.clearSearchBtn} aria-label="Clear search">
-              <X size={16} />
-            </button>
-          )}
-        </div>
-
-        {/* Selected Filters Badges */}
-        {(selectedGenre || selectedStudio || selectedYear || searchQuery) && (
-          <div className={styles.activeBadgesRow}>
-            {selectedGenre && (
-              <span className={styles.activeBadge}>
-                Genre: {selectedGenre}
-                <button onClick={() => setSelectedGenre(null)}><X size={12} /></button>
-              </span>
-            )}
-            {selectedStudio && (
-              <span className={styles.activeBadge}>
-                Studio: {selectedStudio}
-                <button onClick={() => setSelectedStudio(null)}><X size={12} /></button>
-              </span>
-            )}
-            {selectedYear && (
-              <span className={styles.activeBadge}>
-                Year: {selectedYear}
-                <button onClick={() => setSelectedYear(null)}><X size={12} /></button>
-              </span>
-            )}
-            <button onClick={handleClearFilters} className={styles.clearAllBtn}>
-              Clear All
-            </button>
-          </div>
-        )}
-      </div>
-
       {/* Tabs Selector */}
       <div className={styles.tabsContainer}>
         <button
@@ -385,6 +339,52 @@ function BrowseHubContent({ initialSeries, isDbEmpty }: BrowseHubProps) {
                 </button>
               );
             })}
+          </div>
+        )}
+      </div>
+
+      {/* Search and Quick Filters Bar (Below Filter Box) */}
+      <div className={`${styles.filterBar} glass`}>
+        <div className={styles.searchWrapper}>
+          <Search size={18} className={styles.searchIcon} />
+          <input
+            type="text"
+            className={styles.searchInput}
+            placeholder="Search titles, tags, descriptions..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          {searchQuery && (
+            <button onClick={() => setSearchQuery('')} className={styles.clearSearchBtn} aria-label="Clear search">
+              <X size={16} />
+            </button>
+          )}
+        </div>
+
+        {/* Selected Filters Badges */}
+        {(selectedGenre || selectedStudio || selectedYear || searchQuery) && (
+          <div className={styles.activeBadgesRow}>
+            {selectedGenre && (
+              <span className={styles.activeBadge}>
+                Genre: {selectedGenre}
+                <button onClick={() => setSelectedGenre(null)}><X size={12} /></button>
+              </span>
+            )}
+            {selectedStudio && (
+              <span className={styles.activeBadge}>
+                Studio: {selectedStudio}
+                <button onClick={() => setSelectedStudio(null)}><X size={12} /></button>
+              </span>
+            )}
+            {selectedYear && (
+              <span className={styles.activeBadge}>
+                Year: {selectedYear}
+                <button onClick={() => setSelectedYear(null)}><X size={12} /></button>
+              </span>
+            )}
+            <button onClick={handleClearFilters} className={styles.clearAllBtn}>
+              Clear All
+            </button>
           </div>
         )}
       </div>
