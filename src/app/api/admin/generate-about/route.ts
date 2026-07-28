@@ -77,10 +77,10 @@ export async function POST(req: NextRequest) {
 
     // Define section constraints and guidelines
     const sectionInstructions: Record<string, string> = {
-      overview: 'Explain what kind of anime this is, its overall focus, its genre, and adaptation source. Word count limit: 120-180 words.',
-      production: 'Describe the animation style, studio reputation, production quality, and visual presentation. Word count limit: 80-120 words. Do NOT list metadata fields.',
-      themes: 'Describe the themes (e.g. romance, school life, vanilla, coming of age), tone, pacing, and character development focus. Word count limit: 80-120 words.',
-      recommended: 'Describe which types of viewers would enjoy this series based on its genres and style. Word count limit: 50-80 words.'
+      overview: 'Explain what kind of anime this is, its overall focus, its genre, and adaptation source. Keep it factual and avoid plot summary. The first sentence should open smoothly: e.g. "[Title] is a romance-focused adult OVA adapted from the original manga..."',
+      production: 'Describe the animation style, studio reputation, and visual presentation naturally. Emphasize specific elements like expressive facial animations, digital artwork, or character-focused cinematography rather than generic phrases. Keep studio descriptions neutral (e.g. follows the studio\'s established style of character-focused adult animation). Do NOT list metadata fields.',
+      themes: 'Describe the themes (e.g. romance, school life, vanilla, coming of age), tone, pacing, and character development focus.',
+      recommended: 'Describe which types of viewers would enjoy this series based on its genres and style. Frame it conversationally and neutrally, e.g. "Viewers who enjoy romance-driven adult anime with an emphasis on emotional relationships..." rather than repetitive marketing lists.'
     };
 
     const sectionWordLimit: Record<string, string> = {
@@ -116,11 +116,14 @@ Synopsis: ${description || 'N/A'}
     const editorialStyleBlock = `
 --- EDITORIAL STYLE GUIDE ---
 1. TONE: Write in a neutral, objective, encyclopedia-style tone similar to MyAnimeList or AniDB. Write in the third-person.
-2. NO SPAM/MARKETING: Do NOT use marketing or promotional language, e.g., never say "Watch in Full HD", "Best streaming", "Premium servers", "watch online", "high bitrate", "unparalleled experience", etc. Keep it educational.
-3. NO PLOT REPETITION: Do NOT repeat or summarize the story/plot. The Synopsis already describes the plot. Focus on overall focus, presentation, pacing, and style.
-4. NO BULLET POINTS: Do NOT output lists or bullet points. Write naturally in short paragraphs with smooth transitions.
-5. CONCISENESS: Keep sentences concise. Prefer 15-25 words per sentence and avoid overly long paragraphs.
-6. SOURCE TRUST: Use only the supplied metadata. If details are not provided in the metadata, do NOT invent or hallucinate them. If something is not provided, omit it rather than inventing details.
+2. NO REPETITION: Avoid starting every sentence or paragraph with the series title. Instead, use natural variations like "The series...", "This adaptation...", "The production...", "Its storytelling...", or pronouns to make it read more naturally.
+3. CONCISENESS & NATURAL FLOW: Write naturally. Avoid unnecessary repetition. Keep the article concise but informative. Use as many words as necessary, but avoid filler or padding text just to hit a target length.
+4. SPECIFICITY: Avoid generic boilerplate phrases (e.g., say "expressive animation style, digital background art, and character-focused framing" instead of "standard production values").
+5. NEUTRAL DESCRIPTION: Keep descriptions of studios and production staff factual and neutral. Avoid broad characterizations or promotional claims unless directly supported by metadata.
+6. NO SPAM/MARKETING: Do NOT use marketing or promotional language, e.g., never say "Watch in Full HD", "Best streaming", "Premium servers", "watch online", "high bitrate", "unparalleled experience", etc. Keep it educational.
+7. NO PLOT REPETITION: Do NOT repeat or summarize the story/plot. The Synopsis already describes the plot. Focus on overall focus, presentation, pacing, and style.
+8. NO BULLET POINTS: Do NOT output lists or bullet points. Write naturally in short paragraphs with smooth transitions.
+9. SOURCE TRUST: Use only the supplied metadata. If details are not provided in the metadata, do NOT invent or hallucinate them. If something is not provided, omit it rather than inventing details.
 `;
 
     if (mode === 'all') {
@@ -151,15 +154,16 @@ ${sectionInstructions[section as string]}
 
 Return only the text content for this section, without any headers, quotes, or JSON wrapping.`;
     } else if (mode === 'improve') {
-      prompt = `You are an expert copyeditor.
+      prompt = `You are an expert copyeditor working on an anime encyclopedia.
 Improve the grammar, readability, flow, and conciseness of the following text for the "${section}" section of an anime encyclopedia page.
 
 --- EDITING RULES ---
 1. Do NOT change or add any factual information.
-2. Keep sentences concise. Prefer 15-25 words per sentence.
-3. Maintain the third-person objective, encyclopedic tone.
-4. Do NOT use marketing or promotional language.
-5. Retain a word count matching the recommended limit: ${sectionWordLimit[section as string]}.
+2. Avoid starting sentences with the series title repeatedly. Use natural variations: "The series...", "This adaptation...", "Its storytelling...", etc.
+3. Replace generic phrases (e.g., "standard production values") with more specific, descriptive language where possible.
+4. Maintain the third-person objective, encyclopedic tone. No marketing language.
+5. Write naturally. Do not pad or add filler words to hit a word count. If the text is already good length, do not artificially extend it.
+6. Keep sentences concise and readable (roughly 15-25 words per sentence).
 
 --- TEXT TO IMPROVE ---
 ${existingText}

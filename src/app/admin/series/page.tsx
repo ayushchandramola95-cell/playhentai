@@ -1775,12 +1775,17 @@ export default function AdminSeriesPage() {
                         </div>
                       </div>
 
+                      {/* Intro context text */}
+                      <p style={{ margin: '0 0 1rem 0', fontSize: '0.82rem', color: 'var(--foreground-muted)', lineHeight: 1.6 }}>
+                        Learn more about the production, themes, presentation, and viewing experience of this series. Each section contributes to a structured editorial article shown on the series detail page.
+                      </p>
+
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                         {[
                           {
                             key: 'overview',
                             title: '1. Overview',
-                            desc: 'Explain what kind of anime this is, general focus, genre, and adaptation source. (No plot spoilers or summary)',
+                            desc: 'Genre, format, adaptation source and general focus. Write naturally — no plot spoilers or plot summaries.',
                             value: aboutOverview,
                             setter: setAboutOverview,
                             min: 120,
@@ -1789,7 +1794,7 @@ export default function AdminSeriesPage() {
                           {
                             key: 'production',
                             title: '2. Production & Presentation',
-                            desc: 'Describe animation style, studio visual quality, voice acting, and adaptation quality naturally. (Do not write list metadata)',
+                            desc: 'Animation style, visual presentation, and studio characteristics. Be specific — avoid generic phrases like "standard production values".',
                             value: aboutProduction,
                             setter: setAboutProduction,
                             min: 80,
@@ -1798,7 +1803,7 @@ export default function AdminSeriesPage() {
                           {
                             key: 'themes',
                             title: '3. Themes & Style',
-                            desc: 'Describe themes (e.g. romance, vanilla, school life), tone, pacing, and character focus.',
+                            desc: 'Recurring themes (romance, vanilla, school life, etc.), tone, pacing, and character development focus.',
                             value: aboutThemes,
                             setter: setAboutThemes,
                             min: 80,
@@ -1807,7 +1812,7 @@ export default function AdminSeriesPage() {
                           {
                             key: 'recommended',
                             title: '4. Recommended For',
-                            desc: 'Describe which viewer preferences or fans would enjoy this series.',
+                            desc: 'Who will enjoy this series? Write conversationally: "Viewers who enjoy... may appreciate..."',
                             value: aboutRecommended,
                             setter: setAboutRecommended,
                             min: 50,
