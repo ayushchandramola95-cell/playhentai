@@ -194,6 +194,63 @@ function getFirstEpisodeId(series: any, isDbEmpty: boolean): string | null {
   return null;
 }
 
+function renderAboutSections(aboutData: any, aboutTextLegacy: string, seriesTitle: string, isMobile = false) {
+  // If aboutData exists and has structured sections
+  if (aboutData && typeof aboutData === 'object' && (aboutData.overview || aboutData.production || aboutData.themes || aboutData.recommended)) {
+    const sections = [
+      { key: 'overview', title: 'Overview', content: aboutData.overview },
+      { key: 'production', title: 'Production & Presentation', content: aboutData.production },
+      { key: 'themes', title: 'Themes & Style', content: aboutData.themes },
+      { key: 'recommended', title: 'Recommended For', content: aboutData.recommended }
+    ].filter(s => s.content && s.content.trim());
+
+    if (sections.length === 0) return null;
+
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '1rem' : '1.5rem', textAlign: 'left' }}>
+        {sections.map((sec) => (
+          <div key={sec.key}>
+            <h3 style={{
+              fontSize: isMobile ? '0.85rem' : '1rem',
+              fontWeight: 700,
+              color: '#a855f7',
+              marginBottom: '0.4rem',
+              borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+              paddingBottom: '0.2rem',
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em'
+            }}>
+              {sec.title}
+            </h3>
+            <p style={{
+              fontSize: isMobile ? '0.82rem' : '0.92rem',
+              color: 'rgba(255, 255, 255, 0.8)',
+              lineHeight: '1.6',
+              margin: 0
+            }}>
+              {sec.content}
+            </p>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  // Legacy fallback: render plaintext
+  if (!aboutTextLegacy) return null;
+  return (
+    <p style={{
+      fontSize: isMobile ? '0.82rem' : '0.92rem',
+      color: 'rgba(255, 255, 255, 0.8)',
+      lineHeight: '1.6',
+      margin: 0,
+      textAlign: 'left'
+    }}>
+      {aboutTextLegacy}
+    </p>
+  );
+}
+
 export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
   const resolvedParams = await params;
   const slug = resolvedParams.slug;
@@ -762,11 +819,11 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
               </div>
 
           {/* About This Series (Desktop) */}
-          {activeSeries.about_text && (
+          {(activeSeries.about_data || activeSeries.about_text) && (
             <section className={styles.aboutSection} style={{ marginBottom: '2rem' }}>
               <div className={`${styles.aboutCard} glass`}>
                 <h2>About {activeSeries.title}</h2>
-                <p>{activeSeries.about_text}</p>
+                {renderAboutSections(activeSeries.about_data, activeSeries.about_text || '', activeSeries.title, false)}
               </div>
             </section>
           )}
@@ -902,11 +959,11 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
           />
 
           {/* About This Series (Mobile) */}
-          {activeSeries.about_text && (
+          {(activeSeries.about_data || activeSeries.about_text) && (
             <section className={styles.aboutSection} style={{ marginBottom: '1.25rem' }}>
               <div className={`${styles.aboutCard} glass`}>
                 <h2>About {activeSeries.title}</h2>
-                <p>{activeSeries.about_text}</p>
+                {renderAboutSections(activeSeries.about_data, activeSeries.about_text || '', activeSeries.title, true)}
               </div>
             </section>
           )}

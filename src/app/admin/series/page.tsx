@@ -43,6 +43,7 @@ interface Series {
   original_source?: string;
   content_warnings?: string[];
   about_text?: string;
+  about_data?: any;
   faq_override?: any;
 }
 
@@ -85,7 +86,37 @@ export default function AdminSeriesPage() {
   // Series page SEO enhancement fields
   const [originalSource, setOriginalSource] = useState('');
   const [contentWarningsInput, setContentWarningsInput] = useState('');
-  const [aboutText, setAboutText] = useState('');
+  
+  // Structured About Series states
+  const [aboutOverview, setAboutOverview] = useState('');
+  const [aboutProduction, setAboutProduction] = useState('');
+  const [aboutThemes, setAboutThemes] = useState('');
+  const [aboutRecommended, setAboutRecommended] = useState('');
+  const [isGeneratingAll, setIsGeneratingAll] = useState(false);
+  const [isGeneratingSection, setIsGeneratingSection] = useState<Record<string, boolean>>({});
+
+  // Parsing helper to support Option A and legacy plaintext fallback
+  function parseAboutText(aboutData: any, aboutTextLegacy: string) {
+    const sections = {
+      overview: '',
+      production: '',
+      themes: '',
+      recommended: ''
+    };
+
+    if (aboutData && typeof aboutData === 'object') {
+      sections.overview = aboutData.overview || '';
+      sections.production = aboutData.production || '';
+      sections.themes = aboutData.themes || '';
+      sections.recommended = aboutData.recommended || '';
+    } else if (aboutTextLegacy) {
+      // Legacy fallback: put all legacy plain text in Overview
+      sections.overview = aboutTextLegacy;
+    }
+
+    return sections;
+  }
+
   const [faqOverrideInput, setFaqOverrideInput] = useState('');
   const [originalLanguage, setOriginalLanguage] = useState('Japanese');
   const [status, setStatus] = useState('ongoing');
@@ -115,9 +146,164 @@ export default function AdminSeriesPage() {
   const [bannerX, setBannerX] = useState<number>(50);
   const [bannerY, setBannerY] = useState<number>(50);
 
-  // Full-screen Lightbox image preview key
   const [lightboxKey, setLightboxKey] = useState<string | null>(null);
   const [activeCropRole, setActiveCropRole] = useState<'poster' | 'cover' | 'banner' | null>(null);
+
+  // Word counter helper
+  const getWordCount = (text: string): number => {
+    if (!text || !text.trim()) return 0;
+    return text.trim().split(/\s+/).length;
+  };
+
+  const getWordCountStatus = (count: number, min: number, max: number) => {
+    if (count === 0) return { label: 'Empty', color: 'var(--foreground-muted)', isError: false };
+    if (count < min) return { label: `⚠️ Too short (min ${min} words)`, color: '#f59e0b', isError: true };
+    if (count > max) return { label: `⚠️ Too long (max ${max} words)`, color: '#ef4444', isError: true };
+    return { label: '✅ Excellent', color: '#10b981', isError: false };
+  };
+
+  // Load drafts if editing id matches or when modal opens
+  useEffect(() => {
+    if (isModalOpen) {
+      const draft = localStorage.getItem('about_editor_drafts');
+      if (draft) {
+        try {
+          const parsed = JSON.parse(draft);
+          if (parsed.editingId === editingId) {
+            if (parsed.overview) setAboutOverview(parsed.overview);
+            if (parsed.production) setAboutProduction(parsed.production);
+            if (parsed.themes) setAboutThemes(parsed.themes);
+            if (parsed.recommended) setAboutRecommended(parsed.recommended);
+          }
+        } catch (e) {
+          // ignore
+        }
+      }
+    }
+  }, [isModalOpen, editingId]);
+
+  // Save drafts automatically
+  useEffect(() => {
+    if (isModalOpen) {
+      const drafts = {
+        editingId,
+        overview: aboutOverview,
+        production: aboutProduction,
+        themes: aboutThemes,
+        recommended: aboutRecommended
+      };
+      localStorage.setItem('about_editor_drafts', JSON.stringify(drafts));
+    }
+  }, [aboutOverview, aboutProduction, aboutThemes, aboutRecommended, isModalOpen, editingId]);
+
+  const handleGenerateSection = async (sectionKey: 'overview' | 'production' | 'themes' | 'recommended', isImprove = false) => {
+    setIsGeneratingSection(prev => ({ ...prev, [sectionKey]: true }));
+    setError(null);
+
+    const existingText = {
+      overview: aboutOverview,
+      production: aboutProduction,
+      themes: aboutThemes,
+      recommended: aboutRecommended
+    }[sectionKey];
+
+    const metadata = {
+      title,
+      alt_title_japanese: altTitleJapanese,
+      alt_title_romaji: altTitleRomaji,
+      alt_title_english: altTitleEnglish,
+      studio,
+      original_source: originalSource,
+      release_year: releaseYear,
+      runtime,
+      country,
+      original_language: originalLanguage,
+      status,
+      content_rating: contentRating,
+      age_rating: ageRating,
+      tags: tagsInput.split(',').map(t => t.trim()).filter(Boolean),
+      description
+    };
+
+    try {
+      const res = await fetch('/api/admin/generate-about', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mode: isImprove ? 'improve' : 'single',
+          section: sectionKey,
+          existingText: isImprove ? existingText : undefined,
+          metadata
+        })
+      });
+
+      const resData = await res.json();
+      if (!res.ok) {
+        throw new Error(resData.error || 'Failed to generate content');
+      }
+
+      const data = resData.data;
+      if (sectionKey === 'overview') setAboutOverview(data);
+      else if (sectionKey === 'production') setAboutProduction(data);
+      else if (sectionKey === 'themes') setAboutThemes(data);
+      else if (sectionKey === 'recommended') setAboutRecommended(data);
+    } catch (err: any) {
+      console.error('Error generating section:', err);
+      setError(err.message || 'Generation failed.');
+    } finally {
+      setIsGeneratingSection(prev => ({ ...prev, [sectionKey]: false }));
+    }
+  };
+
+  const handleGenerateAllAbout = async () => {
+    setIsGeneratingAll(true);
+    setError(null);
+
+    const metadata = {
+      title,
+      alt_title_japanese: altTitleJapanese,
+      alt_title_romaji: altTitleRomaji,
+      alt_title_english: altTitleEnglish,
+      studio,
+      original_source: originalSource,
+      release_year: releaseYear,
+      runtime,
+      country,
+      original_language: originalLanguage,
+      status,
+      content_rating: contentRating,
+      age_rating: ageRating,
+      tags: tagsInput.split(',').map(t => t.trim()).filter(Boolean),
+      description
+    };
+
+    try {
+      const res = await fetch('/api/admin/generate-about', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mode: 'all',
+          metadata
+        })
+      });
+
+      const resData = await res.json();
+      if (!res.ok) {
+        throw new Error(resData.error || 'Failed to generate all sections');
+      }
+
+      const data = resData.data;
+      if (data.overview) setAboutOverview(data.overview);
+      if (data.production) setAboutProduction(data.production);
+      if (data.themes) setAboutThemes(data.themes);
+      if (data.recommended) setAboutRecommended(data.recommended);
+    } catch (err: any) {
+      console.error('Error generating all sections:', err);
+      setError(err.message || 'Generation failed.');
+    } finally {
+      setIsGeneratingAll(false);
+    }
+  };
 
   const parsePercent = (posStr: string | undefined, index: number, defaultVal: number): number => {
     if (!posStr) return defaultVal;
@@ -451,11 +637,13 @@ export default function AdminSeriesPage() {
 
   const handleDiscardDraft = () => {
     localStorage.removeItem('series_form_draft');
+    localStorage.removeItem('about_editor_drafts');
     setHasDraft(false);
   };
 
   const handleCloseModal = () => {
     localStorage.removeItem('series_form_draft');
+    localStorage.removeItem('about_editor_drafts');
     setHasDraft(false);
     setFirstAirDate('');
     setLastAirDate('');
@@ -481,7 +669,10 @@ export default function AdminSeriesPage() {
     setOriginalLanguage('Japanese');
     setOriginalSource('');
     setContentWarningsInput('');
-    setAboutText('');
+    setAboutOverview('');
+    setAboutProduction('');
+    setAboutThemes('');
+    setAboutRecommended('');
     setFaqOverrideInput('[]');
     setStatus('ongoing');
     setEpisodeCountOverride('');
@@ -522,7 +713,11 @@ export default function AdminSeriesPage() {
     setOriginalLanguage(s.original_language || 'Japanese');
     setOriginalSource(s.original_source || '');
     setContentWarningsInput(s.content_warnings ? s.content_warnings.join(', ') : '');
-    setAboutText(s.about_text || '');
+    const parsedAbout = parseAboutText(s.about_data, s.about_text || '');
+    setAboutOverview(parsedAbout.overview);
+    setAboutProduction(parsedAbout.production);
+    setAboutThemes(parsedAbout.themes);
+    setAboutRecommended(parsedAbout.recommended);
     setFaqOverrideInput(s.faq_override ? JSON.stringify(s.faq_override, null, 2) : '[]');
     setStatus(s.status || 'ongoing');
     setEpisodeCountOverride(s.episode_count_override !== null && s.episode_count_override !== undefined ? s.episode_count_override : '');
@@ -638,7 +833,18 @@ export default function AdminSeriesPage() {
       original_language: originalLanguage,
       original_source: originalSource || null,
       content_warnings: contentWarnings,
-      about_text: aboutText || null,
+      about_text: [
+        aboutOverview.trim() ? `## Overview\n${aboutOverview.trim()}` : '',
+        aboutProduction.trim() ? `## Production & Presentation\n${aboutProduction.trim()}` : '',
+        aboutThemes.trim() ? `## Themes & Style\n${aboutThemes.trim()}` : '',
+        aboutRecommended.trim() ? `## Recommended For\n${aboutRecommended.trim()}` : ''
+      ].filter(Boolean).join('\n\n') || null,
+      about_data: {
+        overview: aboutOverview,
+        production: aboutProduction,
+        themes: aboutThemes,
+        recommended: aboutRecommended
+      },
       faq_override: faqOverride,
       status,
       episode_count_override: episodeCountOverride !== '' ? Number(episodeCountOverride) : null,
@@ -676,6 +882,7 @@ export default function AdminSeriesPage() {
       if (!res.ok) throw new Error(data.error || 'Failed to save series');
 
       localStorage.removeItem('series_form_draft');
+      localStorage.removeItem('about_editor_drafts');
       setHasDraft(false);
       setIsModalOpen(false);
       fetchSeries();
@@ -1497,15 +1704,207 @@ export default function AdminSeriesPage() {
                       </div>
                     </div>
 
-                    <div className={styles.formGroup} style={{ marginBottom: '1rem' }}>
-                      <label>About This Series (General Overview, Production Details, Reception)</label>
-                      <textarea
-                        className={styles.textareaField}
-                        placeholder="Write dynamic general overview, reception, themes and target audience details for this series. Rendered as a separate section below synopsis."
-                        value={aboutText}
-                        onChange={(e) => setAboutText(e.target.value)}
-                        style={{ height: '140px', resize: 'vertical' }}
-                      />
+                    {/* Upgraded Structured About Series Builder */}
+                    <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1.5rem', marginBottom: '1.5rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.2rem' }}>
+                        <div>
+                          <h4 style={{ margin: 0, fontSize: '0.9rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--primary)' }}>About This Series Builder</h4>
+                          <span style={{ fontSize: '0.74rem', color: 'var(--foreground-muted)' }}>Write or auto-generate structured, encyclopedic editorial content to complement the synopsis.</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleGenerateAllAbout}
+                          disabled={isGeneratingAll || !title}
+                          className={styles.actionBtn}
+                          style={{
+                            background: 'linear-gradient(135deg, #a855f7 0%, #7c3aed 100%)',
+                            color: '#ffffff',
+                            border: 'none',
+                            padding: '0.55rem 1.1rem',
+                            borderRadius: '8px',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.4rem',
+                            fontSize: '0.78rem',
+                            boxShadow: '0 4px 12px rgba(124, 58, 237, 0.3)'
+                          }}
+                        >
+                          {isGeneratingAll ? (
+                            <>
+                              <span className={styles.loadingSpinner} style={{ width: '12px', height: '12px', marginRight: '4px' }} />
+                              <span>Generating...</span>
+                            </>
+                          ) : (
+                            <>
+                              <span>✨</span>
+                              <span>Generate Entire About Article</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                        {[
+                          {
+                            key: 'overview',
+                            title: '1. Overview',
+                            desc: 'Explain what kind of anime this is, general focus, genre, and adaptation source. (No plot spoilers or summary)',
+                            value: aboutOverview,
+                            setter: setAboutOverview,
+                            min: 120,
+                            max: 180
+                          },
+                          {
+                            key: 'production',
+                            title: '2. Production & Presentation',
+                            desc: 'Describe animation style, studio visual quality, voice acting, and adaptation quality naturally. (Do not write list metadata)',
+                            value: aboutProduction,
+                            setter: setAboutProduction,
+                            min: 80,
+                            max: 120
+                          },
+                          {
+                            key: 'themes',
+                            title: '3. Themes & Style',
+                            desc: 'Describe themes (e.g. romance, vanilla, school life), tone, pacing, and character focus.',
+                            value: aboutThemes,
+                            setter: setAboutThemes,
+                            min: 80,
+                            max: 120
+                          },
+                          {
+                            key: 'recommended',
+                            title: '4. Recommended For',
+                            desc: 'Describe which viewer preferences or fans would enjoy this series.',
+                            value: aboutRecommended,
+                            setter: setAboutRecommended,
+                            min: 50,
+                            max: 80
+                          }
+                        ].map((sec) => {
+                          const wCount = getWordCount(sec.value);
+                          const status = getWordCountStatus(wCount, sec.min, sec.max);
+                          const progressPercent = Math.min((wCount / sec.max) * 100, 100);
+                          const isSectionGenerating = !!isGeneratingSection[sec.key];
+
+                          return (
+                            <div
+                              key={sec.key}
+                              style={{
+                                background: 'rgba(255,255,255,0.01)',
+                                border: '1px solid var(--border)',
+                                borderRadius: '12px',
+                                padding: '1.25rem'
+                              }}
+                            >
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.6rem', gap: '1rem' }}>
+                                <div style={{ flex: 1 }}>
+                                  <h5 style={{ margin: 0, fontSize: '0.85rem', fontWeight: 800, color: '#ffffff' }}>{sec.title}</h5>
+                                  <span style={{ fontSize: '0.74rem', color: 'var(--foreground-muted)', display: 'block', marginTop: '0.1rem' }}>{sec.desc}</span>
+                                </div>
+                                
+                                <div style={{ display: 'flex', gap: '0.4rem', flexShrink: 0 }}>
+                                  {wCount > 0 ? (
+                                    <>
+                                      <button
+                                        type="button"
+                                        disabled={isSectionGenerating}
+                                        onClick={() => handleGenerateSection(sec.key as any, false)}
+                                        style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', color: 'var(--foreground-primary)', padding: '0.35rem 0.65rem', borderRadius: '6px', fontSize: '0.72rem', cursor: 'pointer', fontWeight: 700 }}
+                                      >
+                                        {isSectionGenerating ? 'Wait...' : '↻ Regenerate'}
+                                      </button>
+                                      <button
+                                        type="button"
+                                        disabled={isSectionGenerating}
+                                        onClick={() => handleGenerateSection(sec.key as any, true)}
+                                        style={{ background: 'rgba(168, 85, 247, 0.1)', border: '1px solid rgba(168, 85, 247, 0.3)', color: '#c084fc', padding: '0.35rem 0.65rem', borderRadius: '6px', fontSize: '0.72rem', cursor: 'pointer', fontWeight: 700 }}
+                                      >
+                                        {isSectionGenerating ? 'Wait...' : '✨ Improve'}
+                                      </button>
+                                    </>
+                                  ) : (
+                                    <button
+                                      type="button"
+                                      disabled={isSectionGenerating || !title}
+                                      onClick={() => handleGenerateSection(sec.key as any, false)}
+                                      style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', color: 'var(--foreground-primary)', padding: '0.35rem 0.65rem', borderRadius: '6px', fontSize: '0.72rem', cursor: 'pointer', fontWeight: 700 }}
+                                    >
+                                      {isSectionGenerating ? 'Wait...' : '✨ Generate'}
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+
+                              <textarea
+                                className={styles.textareaField}
+                                value={sec.value}
+                                onChange={(e) => sec.setter(e.target.value)}
+                                style={{ height: '90px', resize: 'vertical', fontSize: '0.85rem', marginBottom: '0.4rem' }}
+                                placeholder={`Enter ${sec.title} description...`}
+                              />
+
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.72rem' }}>
+                                <span style={{ fontWeight: 700, color: 'var(--foreground-muted)' }}>
+                                  {wCount} / Rec: {sec.min}–{sec.max} words
+                                </span>
+                                <span style={{ fontWeight: 800, color: status.color }}>{status.label}</span>
+                              </div>
+
+                              <div style={{ width: '100%', height: '5px', background: 'rgba(255,255,255,0.06)', borderRadius: '3px', overflow: 'hidden', marginTop: '0.3rem' }}>
+                                <div style={{ width: `${progressPercent}%`, height: '100%', background: status.color, borderRadius: '3px', transition: 'width 0.2s ease' }} />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Visual Live Preview matching public page styling */}
+                      <div style={{ marginTop: '2rem', borderTop: '1px solid var(--border)', paddingTop: '1.5rem' }}>
+                        <span style={{ fontSize: '0.72rem', color: 'var(--foreground-muted)', display: 'block', fontWeight: 700, textTransform: 'uppercase', marginBottom: '0.8rem', letterSpacing: '0.05em' }}>
+                          Live Editorial Preview ({(() => {
+                            const totalWords = getWordCount(aboutOverview) + getWordCount(aboutProduction) + getWordCount(aboutThemes) + getWordCount(aboutRecommended);
+                            const estSeconds = Math.ceil((totalWords / 200) * 60);
+                            return estSeconds < 60 ? `${estSeconds} sec` : `${Math.floor(estSeconds / 60)} min ${estSeconds % 60} sec`;
+                          })()} read)
+                        </span>
+                        
+                        <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '14px', padding: '1.5rem' }}>
+                          <h4 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#ffffff', marginBottom: '1.2rem', textAlign: 'left' }}>About {title || 'Series Title'}</h4>
+                          
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', textAlign: 'left' }}>
+                            {aboutOverview.trim() && (
+                              <div>
+                                <h5 style={{ fontSize: '0.85rem', fontWeight: 700, color: '#a855f7', marginBottom: '0.3rem', borderBottom: '1px solid rgba(255, 255, 255, 0.06)', paddingBottom: '0.2rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Overview</h5>
+                                <p style={{ fontSize: '0.85rem', color: 'rgba(255, 255, 255, 0.8)', lineHeight: '1.6', margin: 0 }}>{aboutOverview}</p>
+                              </div>
+                            )}
+
+                            {aboutProduction.trim() && (
+                              <div>
+                                <h5 style={{ fontSize: '0.85rem', fontWeight: 700, color: '#a855f7', marginBottom: '0.3rem', borderBottom: '1px solid rgba(255, 255, 255, 0.06)', paddingBottom: '0.2rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Production & Presentation</h5>
+                                <p style={{ fontSize: '0.85rem', color: 'rgba(255, 255, 255, 0.8)', lineHeight: '1.6', margin: 0 }}>{aboutProduction}</p>
+                              </div>
+                            )}
+
+                            {aboutThemes.trim() && (
+                              <div>
+                                <h5 style={{ fontSize: '0.85rem', fontWeight: 700, color: '#a855f7', marginBottom: '0.3rem', borderBottom: '1px solid rgba(255, 255, 255, 0.06)', paddingBottom: '0.2rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Themes & Style</h5>
+                                <p style={{ fontSize: '0.85rem', color: 'rgba(255, 255, 255, 0.8)', lineHeight: '1.6', margin: 0 }}>{aboutThemes}</p>
+                              </div>
+                            )}
+
+                            {aboutRecommended.trim() && (
+                              <div>
+                                <h5 style={{ fontSize: '0.85rem', fontWeight: 700, color: '#a855f7', marginBottom: '0.3rem', borderBottom: '1px solid rgba(255, 255, 255, 0.06)', paddingBottom: '0.2rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Recommended For</h5>
+                                <p style={{ fontSize: '0.85rem', color: 'rgba(255, 255, 255, 0.8)', lineHeight: '1.6', margin: 0 }}>{aboutRecommended}</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
                     </div>
 
                     <div className={styles.formGroup}>

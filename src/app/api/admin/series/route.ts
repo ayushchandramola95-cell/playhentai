@@ -63,6 +63,7 @@ export async function POST(request: Request) {
         original_source: payload.original_source || null,
         content_warnings: payload.content_warnings || [],
         about_text: payload.about_text || null,
+        about_data: payload.about_data || null,
         faq_override: payload.faq_override || []
       })
       .select()
@@ -139,6 +140,7 @@ export async function PUT(request: Request) {
         original_source: payload.original_source,
         content_warnings: payload.content_warnings,
         about_text: payload.about_text,
+        about_data: payload.about_data,
         faq_override: payload.faq_override
       })
       .eq('id', payload.id)
