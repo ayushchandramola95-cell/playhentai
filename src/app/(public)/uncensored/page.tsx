@@ -1,9 +1,10 @@
 import React from 'react';
 import { ShieldCheck } from 'lucide-react';
 import { createClient } from '@/utils/supabase/server';
-import BrowseHub from '@/components/BrowseHub/BrowseHub';
+import UncensoredHub from '@/components/UncensoredHub/UncensoredHub';
 import JsonLd from '@/components/JsonLd/JsonLd';
 import styles from '../categories/categories.module.css';
+import { MOCK_SERIES } from '@/utils/mockData';
 
 export const metadata = {
   title: 'Watch Uncensored Hentai Anime Series & Episodes in HD | PlayHentai',
@@ -18,31 +19,6 @@ export const metadata = {
     type: 'website' as const,
   },
 };
-
-const MOCK_SERIES = [
-  {
-    id: 'mock-1',
-    title: 'Cyberpunk Odyssey',
-    slug: 'cyberpunk-odyssey',
-    description: 'In a neon-drenched metropolis, a rogue netrunner discovers a data anomaly that could rewrite the city\'s neural network and change everything.',
-    poster_image_key: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=500&auto=format&fit=crop&q=80',
-    tags: ['Uncensored', 'Sci-Fi', 'Action', 'Cyberpunk', '3D'],
-    category: 'Uncensored',
-    studio: 'PoRO',
-    releaseYear: 2024
-  },
-  {
-    id: 'mock-2',
-    title: 'Fantasy Chronicles: Runes',
-    slug: 'fantasy-chronicles-runes',
-    description: 'A young mage sets out on a journey across uncharted magical islands to unlock the secrets of ancient runic monuments.',
-    poster_image_key: 'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=500&auto=format&fit=crop&q=80',
-    tags: ['Uncensored', 'Fantasy', 'Adventure', 'Magic'],
-    category: 'Uncensored',
-    studio: 'Bunnywalker',
-    releaseYear: 2023
-  }
-];
 
 export default async function UncensoredPage() {
   const supabase = await createClient();
@@ -108,8 +84,8 @@ export default async function UncensoredPage() {
         </p>
       </div>
 
-      {/* Filterable Browse Hub with initialGenre="Uncensored" */}
-      <BrowseHub initialSeries={activeSeries} isDbEmpty={isDbEmpty} initialGenre="Uncensored" />
+      {/* Dedicated Standalone Uncensored Catalog View */}
+      <UncensoredHub initialSeries={activeSeries} isDbEmpty={isDbEmpty} />
     </div>
   );
 }
