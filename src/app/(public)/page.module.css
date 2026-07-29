@@ -237,6 +237,7 @@
   border-color: transparent;
   box-shadow: 0 4px 16px rgba(var(--primary-rgb), 0.4);
   transform: translateY(-1px);
+  text-decoration: none !important;
 }
 
 .latestSeriesGrid {
@@ -486,13 +487,13 @@
   font-size: 0.9rem;
   color: var(--primary);
   font-weight: 600;
-  text-decoration: none;
+  text-decoration: none !important;
   transition: all 0.2s ease;
 }
 
 .viewAllLink:hover {
-  opacity: 0.8;
-  text-decoration: underline;
+  opacity: 0.9;
+  text-decoration: none !important;
 }
 
 /* Responsive Breakpoints */
