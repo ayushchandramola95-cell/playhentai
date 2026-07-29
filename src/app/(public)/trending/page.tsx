@@ -169,7 +169,7 @@ export default async function TrendingPage({
                 href={`/trending?sort=newest&genre=${genreFilter}`}
                 className={`${styles.filterChip} ${sort === 'newest' ? styles.activeChip : ''}`}
               >
-                <Flame size={14} /> Newest Releases
+                <Flame size={14} /> Newest<span className={styles.desktopOnlyText}> Releases</span>
               </Link>
             </div>
           </div>
