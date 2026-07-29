@@ -258,14 +258,30 @@
 
 @media (max-width: 768px) {
   .container {
-    padding: 1rem 1rem 4rem;
+    padding: 1rem 0.75rem 4rem !important;
+    overflow-x: hidden !important;
   }
   .seriesGrid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0.75rem !important;
+    align-items: start !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  .rankCardWrapper {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    overflow: hidden !important;
+  }
+  /* Disable hover popover preview on mobile screens to prevent layout breakage */
+  .rankCardWrapper :global(.popover) {
+    display: none !important;
   }
   .filterBar {
     flex-direction: column;
     align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
   }
 }
