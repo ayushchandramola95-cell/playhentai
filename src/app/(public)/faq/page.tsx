@@ -1,79 +1,77 @@
 import React from 'react';
-import Link from 'next/link';
-import { HelpCircle, ChevronDown, ArrowLeft, ShieldCheck, PlayCircle, Lock } from 'lucide-react';
-import styles from './faq.module.css';
+import FAQClient from '@/components/FAQClient/FAQClient';
+import JsonLd from '@/components/JsonLd/JsonLd';
 
 export const metadata = {
   title: 'Frequently Asked Questions (FAQ) - PlayHentai',
-  description: 'Find answers to common questions about playback, 18+ age requirements, account settings, and uncensored streaming on PlayHentai.',
+  description: 'Find comprehensive answers about 1080p HD streaming, uncensored releases, account settings, Chromecast casting, and 18+ age verification on PlayHentai.',
   alternates: {
     canonical: '/faq',
   },
+  openGraph: {
+    title: 'Frequently Asked Questions (FAQ) - PlayHentai',
+    description: 'Find comprehensive answers about 1080p HD streaming, uncensored releases, account settings, Chromecast casting, and 18+ age verification on PlayHentai.',
+    url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live'}/faq`,
+    type: 'website' as const,
+  },
 };
 
+const FAQ_DATA = [
+  {
+    q: 'Is PlayHentai completely free to use?',
+    a: 'Yes! All anime series, 1080p HD episodes, category hubs, and streaming features on PlayHentai are 100% free with unlimited access.'
+  },
+  {
+    q: 'What is the age requirement to access PlayHentai?',
+    a: 'You must be at least 18 years of age (or the legal age of majority in your country) to access or view content on PlayHentai.'
+  },
+  {
+    q: 'What is the difference between Censored and Uncensored releases?',
+    a: 'Uncensored titles present original unedited animation without pixelation or mosaic overlays. Censored releases feature standard broadcast pixelation.'
+  },
+  {
+    q: 'Why is a video buffering or failing to load?',
+    a: 'Video playback issues are usually caused by browser ad-block extensions or network congestion. Try switching video server mirrors below the player or clearing browser cache.'
+  },
+  {
+    q: 'Do I need an account to watch episodes on PlayHentai?',
+    a: 'No account is required to stream any video on PlayHentai. However, creating a free account unlocks saving titles to your Watchlist and tracking Watch History.'
+  },
+  {
+    q: 'Can I watch PlayHentai on mobile devices or Smart TVs?',
+    a: 'Yes! PlayHentai is fully responsive and supports casting to Apple AirPlay and Google Chromecast directly from the video player.'
+  }
+];
+
 export default function FAQPage() {
-  const faqs = [
-    {
-      question: "Is PlayHentai completely free to use?",
-      answer: "Yes! All anime series, episodes, categories, and streaming features on PlayHentai are 100% free with unlimited access."
-    },
-    {
-      question: "What is the age requirement to access this website?",
-      answer: "You must be at least 18 years of age (or the legal age of majority in your jurisdiction) to access PlayHentai. By entering, you confirm you meet the age requirement."
-    },
-    {
-      question: "What is the difference between Censored and Uncensored content?",
-      answer: "Uncensored titles are presented without pixelation or mosaic overlays, providing the original unedited animation. Censored titles feature standard broadcast pixelation."
-    },
-    {
-      question: "Why is a video buffering or failing to play?",
-      answer: "Video playback issues are usually caused by browser extensions (like aggressive ad-blockers) or temporary network congestion. Try clearing your browser cache or switching video server mirrors."
-    },
-    {
-      question: "Do I need an account to watch episodes?",
-      answer: "No account is required to stream videos. However, creating a free account allows you to save bookmarks to your Watchlist, track your Watch History, and leave ratings and comments."
-    },
-    {
-      question: "How do I report a broken video link or wrong episode?",
-      answer: "You can report broken streams or missing episodes by visiting our DMCA & Contact page or leaving a comment under the affected episode page."
-    }
-  ];
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
+
+  const faqJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    'mainEntity': FAQ_DATA.map((item) => ({
+      '@type': 'Question',
+      'name': item.q,
+      'acceptedAnswer': {
+        '@type': 'Answer',
+        'text': item.a,
+      },
+    })),
+  };
+
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    'itemListElement': [
+      { '@type': 'ListItem', 'position': 1, 'name': 'Home', 'item': siteUrl },
+      { '@type': 'ListItem', 'position': 2, 'name': 'FAQ', 'item': `${siteUrl}/faq` },
+    ],
+  };
 
   return (
-    <div className={styles.container}>
-      <div className="ambient-glow" />
-      <div className="ambient-glow-2" />
-
-      <section className={styles.section}>
-        <div className={styles.backWrapper}>
-          <Link href="/" className={styles.backBtn}>
-            <ArrowLeft size={16} />
-            <span>Back to Home</span>
-          </Link>
-        </div>
-
-        <div className={styles.header}>
-          <HelpCircle size={36} className={styles.headerIcon} />
-          <h1>Frequently Asked Questions</h1>
-          <p className={styles.subtitle}>
-            Everything you need to know about streaming, playback, accounts, and site features.
-          </p>
-        </div>
-
-        <div className={styles.faqList}>
-          {faqs.map((faq, index) => (
-            <details key={index} className={`${styles.faqCard} glass`}>
-              <summary className={styles.question}>
-                <span>{faq.question}</span>
-                <ChevronDown size={18} className={styles.arrowIcon} />
-              </summary>
-              <div className={styles.answer}>
-                <p>{faq.answer}</p>
-              </div>
-            </details>
-          ))}
-        </div>
-      </section>
-    </div>
+    <>
+      <JsonLd data={[faqJsonLd, breadcrumbJsonLd]} />
+      <FAQClient />
+    </>
   );
 }
