@@ -34,11 +34,12 @@ interface SeriesItem {
 interface BrowseHubProps {
   initialSeries: SeriesItem[];
   isDbEmpty: boolean;
+  initialGenre?: string;
 }
 
 type TabType = 'genres' | 'studios' | 'years';
 
-function BrowseHubContent({ initialSeries, isDbEmpty }: BrowseHubProps) {
+function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre }: BrowseHubProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const catalogRef = useRef<HTMLDivElement>(null);
@@ -46,7 +47,7 @@ function BrowseHubContent({ initialSeries, isDbEmpty }: BrowseHubProps) {
 
   // Active filter states
   const [activeTab, setActiveTab] = useState<TabType>('genres');
-  const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
+  const [selectedGenre, setSelectedGenre] = useState<string | null>(initialGenre || null);
   const [selectedStudio, setSelectedStudio] = useState<string | null>(null);
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');

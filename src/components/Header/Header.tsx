@@ -116,7 +116,7 @@ export default function Header() {
           <Link href="/categories" className={`${styles.navLink} ${pathname === '/categories' && !currentGenre ? styles.activeLink : ''}`}>
             Series
           </Link>
-          <Link href="/categories?genre=uncensored" className={`${styles.navLink} ${pathname === '/categories' && currentGenre === 'uncensored' ? styles.activeLink : ''}`}>
+          <Link href="/uncensored" className={`${styles.navLink} ${pathname === '/uncensored' ? styles.activeLink : ''}`}>
             Uncensored
           </Link>
           <Link href="/collections" className={`${styles.navLink} ${pathname.startsWith('/collections') ? styles.activeLink : ''}`}>
@@ -272,7 +272,7 @@ export default function Header() {
                 <span>Series Library</span>
               </Link>
 
-              <Link href="/categories?genre=uncensored" onClick={() => setMobileMenuOpen(false)} className={`${styles.mobileNavLink} ${pathname === '/categories' && currentGenre === 'uncensored' ? styles.activeLink : ''}`}>
+              <Link href="/uncensored" onClick={() => setMobileMenuOpen(false)} className={`${styles.mobileNavLink} ${pathname === '/uncensored' ? styles.activeLink : ''}`}>
                 <Eye size={18} />
                 <span>Uncensored</span>
               </Link>
