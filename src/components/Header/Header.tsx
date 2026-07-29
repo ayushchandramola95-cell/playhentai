@@ -119,7 +119,7 @@ export default function Header() {
           <Link href="/uncensored" className={`${styles.navLink} ${pathname === '/uncensored' ? styles.activeLink : ''}`}>
             Uncensored
           </Link>
-          <Link href="/collections" className={`${styles.navLink} ${pathname.startsWith('/collections') ? styles.activeLink : ''}`}>
+          <Link href="/playlists" className={`${styles.navLink} ${pathname.startsWith('/playlists') || pathname.startsWith('/collections') ? styles.activeLink : ''}`}>
             Playlists
           </Link>
           <Link href="/studios" className={`${styles.navLink} ${pathname.startsWith('/studios') ? styles.activeLink : ''}`}>
@@ -277,7 +277,7 @@ export default function Header() {
                 <span>Uncensored</span>
               </Link>
 
-              <Link href="/collections" onClick={() => setMobileMenuOpen(false)} className={`${styles.mobileNavLink} ${pathname.startsWith('/collections') ? styles.activeLink : ''}`}>
+              <Link href="/playlists" onClick={() => setMobileMenuOpen(false)} className={`${styles.mobileNavLink} ${pathname.startsWith('/playlists') || pathname.startsWith('/collections') ? styles.activeLink : ''}`}>
                 <Film size={18} />
                 <span>Playlists</span>
               </Link>
