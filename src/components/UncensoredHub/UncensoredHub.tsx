@@ -132,7 +132,7 @@ export default function UncensoredHub({ initialSeries, isDbEmpty }: UncensoredHu
         ref={filterBarRef}
         className={`${styles.filterBar} ${isSearchFocused ? styles.filterBarFocused : ''}`}
       >
-        <div className={styles.searchBox}>
+        <div className={styles.searchWrapper}>
           <Search size={18} className={styles.searchIcon} />
           <input
             type="text"
@@ -195,7 +195,7 @@ export default function UncensoredHub({ initialSeries, isDbEmpty }: UncensoredHu
           <p>No uncensored anime found matching your search term.</p>
           <button 
             onClick={() => setSearchQuery('')}
-            className={styles.resetBtn}
+            className={styles.clearFiltersBtn}
           >
             Clear Search Filter
           </button>
@@ -204,33 +204,31 @@ export default function UncensoredHub({ initialSeries, isDbEmpty }: UncensoredHu
 
       {/* Pagination Controls */}
       {totalPages > 1 && (
-        <div className={styles.pagination}>
+        <div className={styles.paginationContainer}>
           <button 
             disabled={currentPage === 1}
             onClick={() => handlePageChange(currentPage - 1)}
-            className={styles.pageBtn}
+            className={`${styles.pageBtn} ${currentPage === 1 ? styles.pageBtnDisabled : ''}`}
             title="Previous Page"
           >
             <ChevronLeft size={18} />
             <span>Prev</span>
           </button>
 
-          <div className={styles.pageNumbers}>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
-              <button
-                key={pageNum}
-                onClick={() => handlePageChange(pageNum)}
-                className={`${styles.pageNumBtn} ${currentPage === pageNum ? styles.activePageBtn : ''}`}
-              >
-                {pageNum}
-              </button>
-            ))}
-          </div>
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
+            <button
+              key={pageNum}
+              onClick={() => handlePageChange(pageNum)}
+              className={`${styles.pageBtn} ${currentPage === pageNum ? styles.pageBtnActive : ''}`}
+            >
+              {pageNum}
+            </button>
+          ))}
 
           <button 
             disabled={currentPage === totalPages}
             onClick={() => handlePageChange(currentPage + 1)}
-            className={styles.pageBtn}
+            className={`${styles.pageBtn} ${currentPage === totalPages ? styles.pageBtnDisabled : ''}`}
             title="Next Page"
           >
             <span>Next</span>
