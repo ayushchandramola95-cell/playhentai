@@ -162,73 +162,55 @@
 .navLink {
   position: relative;
   font-size: 0.9rem;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--foreground-secondary);
   text-decoration: none;
-  padding: 0.4rem 0;
-  transition: color 180ms ease;
+  padding: 0.4rem 0.65rem;
+  border-radius: 20px;
+  transition: all 180ms ease;
 }
 
 .navLink::after {
   content: '';
   position: absolute;
   bottom: -2px;
-  left: 0;
+  left: 15%;
   width: 0%;
-  height: 2px;
-  background: var(--primary);
-  border-radius: 2px;
+  height: 3px;
+  background: linear-gradient(90deg, #a855f7 0%, #6366f1 100%);
+  border-radius: 4px;
   transition: width 180ms cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 0 8px rgba(139, 92, 246, 0.6);
-}
-
-.threeDNavBadge {
-  background: linear-gradient(135deg, rgba(168, 85, 247, 0.2) 0%, rgba(6, 182, 212, 0.25) 100%) !important;
-  border: 1px solid rgba(6, 182, 212, 0.4) !important;
-  color: #38bdf8 !important;
-  font-size: 0.78rem !important;
-  font-weight: 850 !important;
-  padding: 0.22rem 0.65rem !important;
-  border-radius: 20px !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  gap: 0.3rem !important;
-  box-shadow: 0 0 12px rgba(6, 182, 212, 0.25) !important;
-  transition: all 0.2s ease !important;
-  text-decoration: none !important;
-}
-
-.threeDNavBadge:hover {
-  background: linear-gradient(135deg, #a855f7 0%, #06b6d4 100%) !important;
-  color: #ffffff !important;
-  border-color: transparent !important;
-  box-shadow: 0 0 16px rgba(6, 182, 212, 0.5) !important;
-  transform: translateY(-1px) !important;
+  box-shadow: 0 0 10px rgba(168, 85, 247, 0.8);
 }
 
 .navLink:hover {
   color: #ffffff;
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .navLink:hover::after {
-  width: 100%;
+  width: 70%;
 }
 
 .activeLink {
-  color: var(--primary) !important;
-  font-weight: 700 !important;
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  background: rgba(168, 85, 247, 0.16) !important;
+  border: 1px solid rgba(168, 85, 247, 0.35) !important;
+  box-shadow: 0 0 14px rgba(168, 85, 247, 0.25) !important;
+  text-shadow: 0 0 10px rgba(168, 85, 247, 0.5) !important;
 }
 
 .activeLink::after {
   content: '';
   position: absolute;
-  bottom: -2px;
-  left: 0;
-  width: 100% !important;
-  height: 2px;
-  background: var(--primary);
-  border-radius: 2px;
-  box-shadow: 0 0 10px rgba(139, 92, 246, 0.8);
+  bottom: -3px;
+  left: 15%;
+  width: 70% !important;
+  height: 3px;
+  background: linear-gradient(90deg, #a855f7 0%, #6366f1 100%) !important;
+  border-radius: 4px;
+  box-shadow: 0 0 12px rgba(168, 85, 247, 0.9) !important;
   animation: active-bar 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
