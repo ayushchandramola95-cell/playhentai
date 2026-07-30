@@ -1,0 +1,119 @@
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+.heroBanner {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, rgba(6, 182, 212, 0.15) 100%);
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  border-radius: 20px;
+  padding: 2rem 2.5rem;
+  margin-bottom: 2.5rem;
+  backdrop-filter: blur(12px);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+}
+
+.glowSphere {
+  position: absolute;
+  top: -50px;
+  right: -50px;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(6, 182, 212, 0.3) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.badgeRow {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin-bottom: 0.6rem;
+}
+
+.badgeIcon {
+  background: linear-gradient(135deg, #a855f7 0%, #06b6d4 100%);
+  padding: 0.45rem;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(168, 85, 247, 0.4);
+}
+
+.badgeText {
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #06b6d4;
+}
+
+.heroTitle {
+  font-size: 2.2rem;
+  font-weight: 900;
+  color: #ffffff;
+  margin-bottom: 0.6rem;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.heroDescription {
+  font-size: 1rem;
+  color: var(--foreground-secondary);
+  max-width: 750px;
+  line-height: 1.65;
+  margin: 0;
+}
+
+/* Tablet Responsive Rules (769px to 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .container {
+    padding: 1.5rem 1.25rem;
+  }
+  .heroBanner {
+    padding: 1.75rem 1.75rem;
+    margin-bottom: 2rem;
+    border-radius: 16px;
+  }
+  .heroTitle {
+    font-size: 1.85rem;
+  }
+  .heroDescription {
+    font-size: 0.95rem;
+  }
+}
+
+/* Mobile Responsive Rules (max-width: 768px) */
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem 0.75rem 4rem;
+    overflow-x: hidden;
+  }
+  .heroBanner {
+    padding: 1.25rem 1.15rem;
+    margin-bottom: 1.5rem;
+    border-radius: 14px;
+  }
+  .badgeRow {
+    gap: 0.6rem;
+    margin-bottom: 0.4rem;
+  }
+  .badgeIcon {
+    padding: 0.35rem;
+  }
+  .badgeText {
+    font-size: 0.75rem;
+  }
+  .heroTitle {
+    font-size: 1.5rem;
+    margin-bottom: 0.4rem;
+  }
+  .heroDescription {
+    font-size: 0.88rem;
+    line-height: 1.5;
+  }
+}

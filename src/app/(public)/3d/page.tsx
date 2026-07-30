@@ -53,6 +53,8 @@ async function getSeriesFromDb() {
   }
 }
 
+import styles from './ThreeD.module.css';
+
 export default async function ThreeDPage() {
   const { series, isDbEmpty } = await getSeriesFromDb();
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
@@ -75,70 +77,26 @@ export default async function ThreeDPage() {
   };
 
   return (
-    <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '2rem 1.5rem' }}>
+    <div className={styles.container}>
       <JsonLd data={[collectionJsonLd, breadcrumbJsonLd]} />
 
       {/* Hero Banner Header */}
-      <div style={{
-        background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, rgba(6, 182, 212, 0.15) 100%)',
-        border: '1px solid rgba(168, 85, 247, 0.3)',
-        borderRadius: '20px',
-        padding: '2rem 2.5rem',
-        marginBottom: '2.5rem',
-        backdropFilter: 'blur(12px)',
-        position: 'relative',
-        overflow: 'hidden'
-      }}>
-        <div style={{
-          position: 'absolute',
-          top: '-50px',
-          right: '-50px',
-          width: '200px',
-          height: '200px',
-          background: 'radial-gradient(circle, rgba(6, 182, 212, 0.3) 0%, transparent 70%)',
-          pointerEvents: 'none'
-        }} />
+      <div className={styles.heroBanner}>
+        <div className={styles.glowSphere} />
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', marginBottom: '0.5rem' }}>
-          <div style={{
-            background: 'linear-gradient(135deg, #a855f7 0%, #06b6d4 100%)',
-            padding: '0.45rem',
-            borderRadius: '12px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#ffffff',
-            boxShadow: '0 4px 14px rgba(168, 85, 247, 0.4)'
-          }}>
-            <Box size={22} />
+        <div className={styles.badgeRow}>
+          <div className={styles.badgeIcon}>
+            <Box size={20} />
           </div>
-          <span style={{
-            fontSize: '0.82rem',
-            fontWeight: 800,
-            textTransform: 'uppercase',
-            letterSpacing: '0.08em',
-            color: '#06b6d4'
-          }}>
+          <span className={styles.badgeText}>
             3D CGI Catalog
           </span>
         </div>
 
-        <h1 style={{
-          fontSize: '2.2rem',
-          fontWeight: 900,
-          color: '#ffffff',
-          marginBottom: '0.6rem',
-          letterSpacing: '-0.02em'
-        }}>
+        <h1 className={styles.heroTitle}>
           3D Hentai & CGI Animations
         </h1>
-        <p style={{
-          fontSize: '1rem',
-          color: 'var(--foreground-secondary)',
-          maxWidth: '750px',
-          lineHeight: '1.6',
-          margin: 0
-        }}>
+        <p className={styles.heroDescription}>
           Explore our dedicated collection of high quality 3D CGI anime series, smooth 60fps CGI animation releases, and 3D titles available to stream in 1080p HD.
         </p>
       </div>
