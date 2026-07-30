@@ -120,7 +120,6 @@ export default function Header() {
             Uncensored
           </Link>
           <Link href="/3d" className={`${styles.threeDNavBadge} ${pathname === '/3d' ? styles.activeLink : ''}`}>
-            <Box size={13} />
             <span>3D</span>
           </Link>
           <Link href="/playlists" className={`${styles.navLink} ${pathname.startsWith('/playlists') || pathname.startsWith('/collections') ? styles.activeLink : ''}`}>
