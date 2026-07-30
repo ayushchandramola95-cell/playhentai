@@ -45,13 +45,13 @@ async function getSeriesFromDb() {
       .eq('is_published', true)
       .order('title', { ascending: true });
 
-    if (error || !data) {
-      return { series: [], isDbEmpty: true };
+    if (error || !data || data.length === 0) {
+      return { series: MOCK_SERIES, isDbEmpty: true };
     }
 
     return { series: data, isDbEmpty: false };
   } catch {
-    return { series: [], isDbEmpty: true };
+    return { series: MOCK_SERIES, isDbEmpty: true };
   }
 }
 
