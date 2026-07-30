@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Film, Plus, Search, Edit2, Trash2, X, AlertCircle, Image } from 'lucide-react';
+import { createClient } from '@/utils/supabase/client';
 import FileUploader from '@/components/FileUploader/FileUploader';
 import { GENRES, STUDIOS, RELEASE_YEARS } from '@/utils/constants';
 import { getR2Url } from '@/utils/r2';
@@ -149,6 +150,72 @@ export default function AdminSeriesPage() {
 
   const [lightboxKey, setLightboxKey] = useState<string | null>(null);
   const [activeCropRole, setActiveCropRole] = useState<'poster' | 'cover' | 'banner' | null>(null);
+
+  // Episode Thumbnail Picker state for Manage Media Modal
+  const [episodeThumbnails, setEpisodeThumbnails] = useState<{ episodeNumber: number; title: string; key: string }[]>([]);
+  const [loadingEpisodeThumbs, setLoadingEpisodeThumbs] = useState(false);
+  const [showEpisodePicker, setShowEpisodePicker] = useState(false);
+
+  const fetchEpisodeThumbnails = async (seriesId: string) => {
+    setLoadingEpisodeThumbs(true);
+    try {
+      const supabase = createClient();
+      const { data: seasons } = await supabase
+        .from('seasons')
+        .select('id')
+        .eq('series_id', seriesId);
+
+      let epData: any[] = [];
+      if (seasons && seasons.length > 0) {
+        const seasonIds = seasons.map((sec: any) => sec.id);
+        const { data: episodes } = await supabase
+          .from('episodes')
+          .select('id, episode_number, title, thumbnail_key, thumbnail_options')
+          .in('season_id', seasonIds)
+          .order('episode_number', { ascending: true });
+        if (episodes) epData = episodes;
+      } else {
+        const { data: episodes } = await supabase
+          .from('episodes')
+          .select('id, episode_number, title, thumbnail_key, thumbnail_options')
+          .eq('series_id', seriesId)
+          .order('episode_number', { ascending: true });
+        if (episodes) epData = episodes;
+      }
+
+      const collected: { episodeNumber: number; title: string; key: string }[] = [];
+      const seenKeys = new Set<string>();
+
+      epData.forEach((ep: any) => {
+        if (ep.thumbnail_key && !seenKeys.has(ep.thumbnail_key)) {
+          seenKeys.add(ep.thumbnail_key);
+          collected.push({
+            episodeNumber: ep.episode_number,
+            title: ep.title || `Episode ${ep.episode_number}`,
+            key: ep.thumbnail_key,
+          });
+        }
+        if (ep.thumbnail_options && Array.isArray(ep.thumbnail_options)) {
+          ep.thumbnail_options.forEach((optKey: string) => {
+            if (optKey && !seenKeys.has(optKey)) {
+              seenKeys.add(optKey);
+              collected.push({
+                episodeNumber: ep.episode_number,
+                title: ep.title || `Episode ${ep.episode_number}`,
+                key: optKey,
+              });
+            }
+          });
+        }
+      });
+
+      setEpisodeThumbnails(collected);
+    } catch (err) {
+      console.error('Error fetching episode thumbnails:', err);
+    } finally {
+      setLoadingEpisodeThumbs(false);
+    }
+  };
 
   // Word counter helper
   const getWordCount = (text: string): number => {
@@ -331,7 +398,11 @@ export default function AdminSeriesPage() {
     setBannerX(parsePercent(s.banner_position, 0, 50));
     setBannerY(parsePercent(s.banner_position, 1, 50));
 
+    setShowEpisodePicker(false);
+    setEpisodeThumbnails([]);
     setMediaModalOpen(true);
+
+    fetchEpisodeThumbnails(s.id);
   };
 
   const handleCloseMediaModal = () => {
@@ -2079,6 +2150,92 @@ export default function AdminSeriesPage() {
                       }}
                       previewType="thumbnail"
                     />
+
+                    {/* Select from Episode Thumbnails Button */}
+                    <button
+                      type="button"
+                      onClick={() => setShowEpisodePicker((prev) => !prev)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.4rem',
+                        padding: '0.55rem 0.75rem',
+                        borderRadius: '6px',
+                        background: showEpisodePicker 
+                          ? 'var(--primary)' 
+                          : 'linear-gradient(135deg, rgba(168, 85, 247, 0.18) 0%, rgba(99, 102, 241, 0.18) 100%)',
+                        border: '1px solid rgba(168, 85, 247, 0.4)',
+                        color: '#ffffff',
+                        fontSize: '0.78rem',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                      }}
+                    >
+                      <Film size={14} />
+                      <span>{showEpisodePicker ? 'Hide Episode Picker' : `Import Episode Images (${episodeThumbnails.length})`}</span>
+                    </button>
+
+                    {/* Episode Thumbnails Selection Grid */}
+                    {showEpisodePicker && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', padding: '0.75rem', background: 'var(--surface)', border: '1px solid rgba(168, 85, 247, 0.3)', borderRadius: '8px', maxHeight: '220px', overflowY: 'auto' }}>
+                        <span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--primary-light, #c084fc)' }}>
+                          Click an episode thumbnail to add to library:
+                        </span>
+                        {loadingEpisodeThumbs ? (
+                          <div style={{ fontSize: '0.75rem', color: 'var(--foreground-muted)', padding: '0.4rem' }}>
+                            Fetching episode thumbnails...
+                          </div>
+                        ) : episodeThumbnails.length > 0 ? (
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(68px, 1fr))', gap: '0.4rem' }}>
+                            {episodeThumbnails.map((epThumb, idx) => {
+                              const isAdded = imageLibrary.includes(epThumb.key);
+                              return (
+                                <div
+                                  key={idx}
+                                  onClick={() => {
+                                    if (!isAdded) {
+                                      setImageLibrary((prev) => {
+                                        const next = [...prev, epThumb.key];
+                                        if (!posterKey) setPosterKey(epThumb.key);
+                                        return next;
+                                      });
+                                    }
+                                  }}
+                                  style={{
+                                    position: 'relative',
+                                    aspectRatio: '16/9',
+                                    borderRadius: '4px',
+                                    overflow: 'hidden',
+                                    border: isAdded ? '2px solid var(--primary)' : '1px solid var(--border)',
+                                    cursor: isAdded ? 'default' : 'pointer',
+                                    opacity: isAdded ? 0.6 : 1,
+                                    transition: 'all 0.15s ease',
+                                  }}
+                                  title={`Episode ${epThumb.episodeNumber}: ${epThumb.title}${isAdded ? ' (Already Added)' : ' (Click to Import)'}`}
+                                >
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img src={getR2Url(epThumb.key, 'thumbnail')} alt={epThumb.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                  <span style={{ position: 'absolute', bottom: '2px', left: '2px', background: 'rgba(0,0,0,0.85)', color: '#fff', fontSize: '0.55rem', padding: '1px 3px', borderRadius: '2px', fontWeight: 700 }}>
+                                    EP {epThumb.episodeNumber}
+                                  </span>
+                                  {isAdded && (
+                                    <span style={{ position: 'absolute', top: '2px', right: '2px', background: 'var(--primary)', color: '#fff', fontSize: '0.55rem', padding: '1px 3px', borderRadius: '2px', fontWeight: 800 }}>
+                                      ✓ Added
+                                    </span>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <div style={{ fontSize: '0.75rem', color: 'var(--foreground-muted)', padding: '0.4rem', fontStyle: 'italic' }}>
+                            No uploaded episode thumbnails found for this series.
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     {imageLibrary.length > 0 ? (
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(75px, 1fr))', gap: '0.5rem', marginTop: '0.5rem', maxHeight: '240px', overflowY: 'auto', padding: '0.2rem', border: '1px solid var(--border)', borderRadius: '6px', background: 'var(--surface)' }}>
