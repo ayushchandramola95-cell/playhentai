@@ -74,6 +74,38 @@
   }
 }
 
+@media (max-width: 1199px) and (min-width: 769px) {
+  .header {
+    padding: 0 0.85rem !important;
+  }
+
+  .leftSection {
+    gap: 0.85rem !important;
+  }
+
+  .logoText {
+    font-size: 1.2rem !important;
+  }
+
+  .nav {
+    gap: 0.2rem !important;
+  }
+
+  .navLink {
+    font-size: 0.8rem !important;
+    padding: 0.32rem 0.5rem !important;
+  }
+
+  .centerSection {
+    flex: 0 0 175px !important;
+    margin-right: 0.25rem !important;
+  }
+
+  .rightSection {
+    gap: 0.5rem !important;
+  }
+}
+
 @media (max-width: 768px) {
   .centerSectionFocused {
     position: absolute !important;
