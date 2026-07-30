@@ -749,7 +749,7 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
                         boxShadow: status === 'ongoing' || status === 'airing' ? '0 0 8px #22c55e' : status === 'upcoming' ? '0 0 8px #3b82f6' : 'none'
                       }} 
                     />
-                    <Link href={`/status/${status}`} style={{ textTransform: 'uppercase', color: '#a855f7', fontWeight: 700, textDecoration: 'none' }}>
+                    <Link href={`/${status}`} style={{ textTransform: 'uppercase', color: '#a855f7', fontWeight: 700, textDecoration: 'none' }}>
                       {status}
                     </Link>
                   </span>
@@ -938,7 +938,7 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
                 </Link>
               ),
               status: (
-                <Link href={`/status/${status}`} style={{ color: '#a855f7', fontWeight: 700, textDecoration: 'none' }}>
+                <Link href={`/${status}`} style={{ color: '#a855f7', fontWeight: 700, textDecoration: 'none' }}>
                   {status.toUpperCase()}
                 </Link>
               ),

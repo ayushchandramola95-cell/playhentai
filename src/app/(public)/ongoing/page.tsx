@@ -9,11 +9,11 @@ interface PageProps {
 }
 
 export async function generateMetadata(): Promise<Metadata> {
-  const series = await fetchSeriesByStatus('upcoming');
-  return buildStatusMetadata('upcoming', series.length);
+  const series = await fetchSeriesByStatus('ongoing');
+  return buildStatusMetadata('ongoing', series.length);
 }
 
-export default async function UpcomingPage({ searchParams }: PageProps) {
+export default async function OngoingPage({ searchParams }: PageProps) {
   const sp = await searchParams;
-  return <StatusCatalog status="upcoming" searchParams={sp} />;
+  return <StatusCatalog status="ongoing" searchParams={sp} />;
 }

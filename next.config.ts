@@ -29,6 +29,30 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      {
+        source: '/status/upcoming',
+        destination: '/upcoming',
+        permanent: true,
+      },
+      {
+        source: '/status/ongoing',
+        destination: '/ongoing',
+        permanent: true,
+      },
+      {
+        source: '/status/completed',
+        destination: '/completed',
+        permanent: true,
+      },
+      {
+        source: '/status/:path*',
+        destination: '/categories',
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;
