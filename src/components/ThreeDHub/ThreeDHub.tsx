@@ -77,7 +77,7 @@ export default function ThreeDHub({ initialSeries, isDbEmpty }: ThreeDHubProps) 
       return matches3DTag || matches3DCat || matches3DTitle;
     });
 
-    const baseList = tagged3D.length > 0 ? tagged3D : initialSeries;
+    const baseList = tagged3D;
 
     // Apply searchQuery if user typed in search box
     return baseList.filter((series) => {
