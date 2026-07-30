@@ -135,8 +135,8 @@ export default function Header() {
       </div>
 
       <div className={styles.rightSection}>
-        {/* Search Bar - Positioned next to Watchlist */}
-        <div className={styles.desktopSearchWrapper}>
+        {/* Search Bar - Expands smoothly into middle on focus while hiding nav links */}
+        <div className={`${styles.searchWrapper} ${searchFocused ? styles.searchWrapperFocused : ''}`}>
           <SearchBar onFocusChange={setSearchFocused} />
         </div>
 

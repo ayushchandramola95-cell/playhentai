@@ -142,19 +142,23 @@
 .nav {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  gap: 0.5rem;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
   opacity: 1;
   visibility: visible;
+  max-width: 900px;
+  overflow: hidden;
   white-space: nowrap;
 }
 
 .navHidden {
-  opacity: 0;
-  visibility: hidden;
-  max-width: 0;
-  gap: 0;
-  pointer-events: none;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  max-width: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  gap: 0 !important;
+  pointer-events: none !important;
 }
 
 .navLink {
@@ -182,13 +186,21 @@
   text-shadow: 0 0 12px rgba(168, 85, 247, 0.6) !important;
 }
 
-.desktopSearchWrapper {
-  width: 220px;
-  transition: width 0.25s ease;
+.searchWrapper {
+  width: 250px;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  z-index: 101;
 }
 
-.desktopSearchWrapper:focus-within {
-  width: 320px;
+.searchWrapperFocused {
+  width: 580px;
+}
+
+@media (min-width: 1280px) {
+  .searchWrapperFocused {
+    width: 680px;
+  }
 }
 
 @keyframes active-bar {
