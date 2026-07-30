@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import { Tv, User, LogOut, Heart, Bookmark, History, Settings, ShieldCheck, ChevronDown, Menu, X, Home, Layers, Eye, Film, Dices } from 'lucide-react';
+import { Tv, User, LogOut, Heart, Bookmark, History, Settings, ShieldCheck, ChevronDown, Menu, X, Home, Layers, Eye, Film, Dices, Box } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import SearchBar from '../SearchBar/SearchBar';
 import styles from './Header.module.css';
@@ -118,6 +118,10 @@ export default function Header() {
           </Link>
           <Link href="/uncensored" className={`${styles.navLink} ${pathname === '/uncensored' ? styles.activeLink : ''}`}>
             Uncensored
+          </Link>
+          <Link href="/3d" className={`${styles.threeDNavBadge} ${pathname === '/3d' ? styles.activeLink : ''}`}>
+            <Box size={13} />
+            <span>3D</span>
           </Link>
           <Link href="/playlists" className={`${styles.navLink} ${pathname.startsWith('/playlists') || pathname.startsWith('/collections') ? styles.activeLink : ''}`}>
             Playlists
@@ -275,6 +279,11 @@ export default function Header() {
               <Link href="/uncensored" onClick={() => setMobileMenuOpen(false)} className={`${styles.mobileNavLink} ${pathname === '/uncensored' ? styles.activeLink : ''}`}>
                 <Eye size={18} />
                 <span>Uncensored</span>
+              </Link>
+
+              <Link href="/3d" onClick={() => setMobileMenuOpen(false)} className={`${styles.mobileNavLink} ${pathname === '/3d' ? styles.activeLink : ''}`}>
+                <Box size={18} style={{ color: '#06b6d4' }} />
+                <span>3D Animations</span>
               </Link>
 
               <Link href="/playlists" onClick={() => setMobileMenuOpen(false)} className={`${styles.mobileNavLink} ${pathname.startsWith('/playlists') || pathname.startsWith('/collections') ? styles.activeLink : ''}`}>
