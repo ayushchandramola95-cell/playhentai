@@ -66,15 +66,17 @@ export default function ThreeDHub({ initialSeries, isDbEmpty }: ThreeDHubProps) 
   const threeDFilteredSeries = useMemo(() => {
     // First check if any items contain 3d/cgi tags
     const tagged3D = initialSeries.filter((series) => {
-      const tags = (series.tags || []).map(t => t.toLowerCase());
-      const cat = (series.category || '').toLowerCase();
-      const title = series.title.toLowerCase();
+      const tags = (series.tags || []).map(t => (typeof t === 'string' ? t.toLowerCase().trim() : ''));
+      const cat = (series.category || '').toLowerCase().trim();
+      const title = (series.title || '').toLowerCase().trim();
+      const desc = (series.description || '').toLowerCase().trim();
 
-      const matches3DTag = tags.some(t => t === '3d' || t === 'cgi' || t.includes('3d animation'));
+      const matches3DTag = tags.some(t => t.includes('3d') || t.includes('cgi'));
       const matches3DCat = cat.includes('3d') || cat.includes('cgi');
       const matches3DTitle = title.includes('3d') || title.includes('cgi');
+      const matches3DDesc = desc.includes('3d animation') || desc.includes('3d hentai') || desc.includes('cgi');
 
-      return matches3DTag || matches3DCat || matches3DTitle;
+      return matches3DTag || matches3DCat || matches3DTitle || matches3DDesc;
     });
 
     const baseList = tagged3D;
