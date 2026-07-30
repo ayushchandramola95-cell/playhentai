@@ -134,10 +134,12 @@ export default function Header() {
         </nav>
       </div>
 
-      <div className={`${styles.centerSection} ${searchFocused ? styles.centerSectionFocused : ''}`}>
-        <SearchBar onFocusChange={setSearchFocused} />
-      </div>
-      <div className={`${styles.rightSection} ${searchFocused ? styles.rightSectionHidden : ''}`}>
+      <div className={styles.rightSection}>
+        {/* Search Bar - Positioned next to Watchlist */}
+        <div className={styles.desktopSearchWrapper}>
+          <SearchBar onFocusChange={setSearchFocused} />
+        </div>
+
         {/* Watchlist Shortcut - Always Visible */}
         <Link href="/watchlist" className={`${styles.watchlistShortcut} ${pathname === '/watchlist' ? styles.activeLink : ''}`} title="My Watchlist">
           <Bookmark size={16} className={styles.watchlistShortcutIcon} />
