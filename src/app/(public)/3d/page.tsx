@@ -32,9 +32,7 @@ async function getSeriesFromDb() {
     const { data, error } = await supabase
       .from('series')
       .select(`
-        id, title, slug, description, poster_image_key, cover_image_key,
-        banner_image_key, tags, category, views, status, rating,
-        release_year, studio, episode_count_override, poster_position,
+        *,
         seasons (
           is_published,
           episodes (
@@ -43,15 +41,15 @@ async function getSeriesFromDb() {
         )
       `)
       .eq('is_published', true)
-      .order('title', { ascending: true });
+      .order('created_at', { ascending: false });
 
     if (error || !data || data.length === 0) {
-      return { series: MOCK_SERIES, isDbEmpty: true };
+      return { series: [], isDbEmpty: true };
     }
 
     return { series: data, isDbEmpty: false };
   } catch {
-    return { series: MOCK_SERIES, isDbEmpty: true };
+    return { series: [], isDbEmpty: true };
   }
 }
 
