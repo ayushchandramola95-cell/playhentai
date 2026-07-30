@@ -134,12 +134,11 @@ export default function Header() {
         </nav>
       </div>
 
-      <div className={styles.rightSection}>
-        {/* Search Bar - Expands smoothly into middle on focus while hiding nav links */}
-        <div className={`${styles.searchWrapper} ${searchFocused ? styles.searchWrapperFocused : ''}`}>
-          <SearchBar onFocusChange={setSearchFocused} />
-        </div>
+      <div className={`${styles.centerSection} ${searchFocused ? styles.centerSectionFocused : ''}`}>
+        <SearchBar onFocusChange={setSearchFocused} />
+      </div>
 
+      <div className={styles.rightSection}>
         {/* Watchlist Shortcut - Always Visible */}
         <Link href="/watchlist" className={`${styles.watchlistShortcut} ${pathname === '/watchlist' ? styles.activeLink : ''}`} title="My Watchlist">
           <Bookmark size={16} className={styles.watchlistShortcutIcon} />
