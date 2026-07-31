@@ -86,7 +86,7 @@ export default async function HomePage() {
   let isDbEmpty = true;
 
   try {
-    // Fetch series from DB
+    // Fetch series from DB (only published series for public pages)
     const { data: seriesData } = await supabase
       .from('series')
       .select(`
@@ -101,14 +101,14 @@ export default async function HomePage() {
           )
         )
       `)
-      .order('created_at', { ascending: false });
+      .eq('is_published', true);
 
     if (seriesData && seriesData.length > 0) {
       isDbEmpty = false;
       dbSeries = seriesData;
     }
 
-    // Fetch episodes directly, ordering by release_date descending first
+    // Fetch episodes directly (only published episodes), ordering by release_date descending
     const { data: episodeData } = await supabase
       .from('episodes')
       .select(`
@@ -123,6 +123,7 @@ export default async function HomePage() {
           )
         )
       `)
+      .eq('is_published', true)
       .order('release_date', { ascending: false, nullsFirst: false })
       .order('created_at', { ascending: false });
 
@@ -134,7 +135,16 @@ export default async function HomePage() {
   }
 
   // Fallback pool to rich Mock Data ONLY if DB has zero series
-  const pool = isDbEmpty ? MOCK_SERIES : dbSeries;
+  // Sort pool by actual release date/year timestamp descending
+  const pool = isDbEmpty 
+    ? MOCK_SERIES 
+    : [...dbSeries].sort((a, b) => {
+        const timeA = getSeriesReleaseTimestamp(a);
+        const timeB = getSeriesReleaseTimestamp(b);
+        if (timeB !== timeA) return timeB - timeA;
+        return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+      });
+      
   const activeSeries = pool;
 
   // Pre-calculate latest episode series list if needed
@@ -216,6 +226,7 @@ export default async function HomePage() {
       featuredSeries = pool.slice(0, slideLimit);
     }
   }
+
 
   // Sort Latest Series according to Admin Panel latest_series_sort_mode & release dates (excluding upcoming series)
   const sortMode = settingsMap.latest_series_sort_mode || 'latest_episode';
