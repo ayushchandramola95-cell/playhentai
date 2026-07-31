@@ -385,8 +385,8 @@ export default async function HomePage() {
     })),
   };
 
-  // VideoObject JSON-LD Schema for Top 5 Recent Episodes
-  const topRecentEpisodesForSchema = processedEpisodes.slice(0, 5);
+  // VideoObject JSON-LD Schema for All 20 Visible Recent Episodes on Homepage
+  const topRecentEpisodesForSchema = processedEpisodes.slice(0, 20);
   const videoObjectSchemas = topRecentEpisodesForSchema.map((ep: any) => {
     const watchUrl = `${SITE_URL}${getEpisodeWatchUrl(ep.id, ep.episode_number, ep.showSlug)}`;
     const thumbUrl = getR2Url(ep.thumbnail, 'thumbnail');
