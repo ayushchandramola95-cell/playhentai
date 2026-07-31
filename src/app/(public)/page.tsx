@@ -136,7 +136,7 @@ export default async function HomePage() {
 
   // Fallback pool to rich Mock Data ONLY if DB has zero series
   // Sort pool by actual release date/year timestamp descending
-  const pool = isDbEmpty 
+  const rawPool = isDbEmpty 
     ? MOCK_SERIES 
     : [...dbSeries].sort((a, b) => {
         const timeA = getSeriesReleaseTimestamp(a);
@@ -145,6 +145,8 @@ export default async function HomePage() {
         return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
       });
       
+  // Exclude upcoming series from the Hero Banner pool
+  const pool = rawPool.filter(s => (s.status || '').toLowerCase() !== 'upcoming');
   const activeSeries = pool;
 
   // Pre-calculate latest episode series list if needed
@@ -202,8 +204,24 @@ export default async function HomePage() {
     const half = Math.ceil(slideLimit / 2);
     const newest = pool.slice(0, half);
     const remaining = pool.filter(s => !newest.some(n => n.id === s.id));
-    const randoms = [...remaining].sort(() => 0.5 - Math.random()).slice(0, slideLimit - newest.length);
-    featuredSeries = [...newest, ...randoms].slice(0, slideLimit);
+    const randoms = [...remaining].sort(() => 0.5 - Math.random());
+
+    const interleaved: any[] = [];
+    const seenIds = new Set<string>();
+    const maxCount = Math.max(newest.length, randoms.length);
+
+    for (let i = 0; i < maxCount; i++) {
+      if (i < newest.length && !seenIds.has(newest[i].id)) {
+        seenIds.add(newest[i].id);
+        interleaved.push(newest[i]);
+      }
+      if (i < randoms.length && !seenIds.has(randoms[i].id)) {
+        seenIds.add(randoms[i].id);
+        interleaved.push(randoms[i]);
+      }
+      if (interleaved.length >= slideLimit) break;
+    }
+    featuredSeries = interleaved.slice(0, slideLimit);
   } else {
     // Default manual featured tags (featured_tags) sorted by order suffix if present (e.g. featured:1, featured:2)
     const tagged = pool.filter(s =>
