@@ -405,11 +405,34 @@ export default async function HomePage() {
     };
   });
 
+  // TVSeries JSON-LD Schemas for All 24 Visible Latest Series on Homepage
+  const topLatestSeriesForSchema = sortedLatestSeries.slice(0, 24);
+  const tvSeriesSchemas = topLatestSeriesForSchema.map((s: any) => {
+    const seriesUrl = `${SITE_URL}/series/${s.slug}`;
+    const posterUrl = getR2Url(s.poster_image_key || s.cover_image_key, 'poster');
+    return {
+      '@context': 'https://schema.org',
+      '@type': 'TVSeries',
+      'name': s.title,
+      'description': s.description || `Watch ${s.title} uncensored hentai anime series in HD on PlayHentai. Stream full episodes online.`,
+      'url': seriesUrl,
+      'image': posterUrl,
+      'genre': s.category || 'Anime',
+      'productionCompany': {
+        '@type': 'Organization',
+        'name': s.studio || 'Juicymango'
+      }
+    };
+  });
+
   return (
     <div className={styles.container}>
       <JsonLd data={itemListJsonLd} />
       {videoObjectSchemas.map((schema, idx) => (
-        <JsonLd key={idx} data={schema} />
+        <JsonLd key={`video-${idx}`} data={schema} />
+      ))}
+      {tvSeriesSchemas.map((schema, idx) => (
+        <JsonLd key={`series-${idx}`} data={schema} />
       ))}
 
       {/* Visually-hidden fallback H1 tag for 100% crawl guarantee */}
