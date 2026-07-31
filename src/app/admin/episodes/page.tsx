@@ -56,6 +56,13 @@ export default function AdminEpisodesPage() {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [expandedSeriesIds, setExpandedSeriesIds] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const ITEMS_PER_PAGE = 15;
+
+  // Reset pagination to page 1 on filter or search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedLaunchYear, sortBy, sortOrder]);
 
   // Modal form states
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -1199,9 +1206,21 @@ export default function AdminEpisodesPage() {
     return sortOrder === 'asc' ? comp : -comp;
   });
 
+  const totalPages = Math.ceil(filteredSeries.length / ITEMS_PER_PAGE) || 1;
+  const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
+  const startIndex = (safeCurrentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, filteredSeries.length);
+  const paginatedSeries = filteredSeries.slice(startIndex, endIndex);
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const filteredSeasonsFormList = seasonsList.filter(
     s => s.series_id === formSeriesId
   );
+
 
   return (
     <div className={styles.panelCard}>
@@ -1308,219 +1327,277 @@ export default function AdminEpisodesPage() {
           <div className={styles.loadingSpinner} style={{ border: '2px solid rgba(var(--primary-rgb), 0.3)', borderTopColor: 'var(--primary)', width: '32px', height: '32px', display: 'inline-block' }} />
         </div>
       ) : filteredSeries.length > 0 ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          {filteredSeries.map((series) => {
-            const isExpanded = expandedSeriesIds.has(series.id);
-            const seriesSeasons = seasonsList.filter(s => s.series_id === series.id);
-            const seriesSeasonIds = seriesSeasons.map(s => s.id);
-            const seriesEpisodes = episodesList.filter(ep => 
-              seriesSeasonIds.includes(ep.season_id) &&
-              (searchTerm.trim() === '' || 
-               ep.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-               series.title.toLowerCase().includes(searchTerm.toLowerCase()))
-            );
+        <>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {paginatedSeries.map((series) => {
+              const isExpanded = expandedSeriesIds.has(series.id);
+              const seriesSeasons = seasonsList.filter(s => s.series_id === series.id);
+              const seriesSeasonIds = seriesSeasons.map(s => s.id);
+              const seriesEpisodes = episodesList.filter(ep => 
+                seriesSeasonIds.includes(ep.season_id) &&
+                (searchTerm.trim() === '' || 
+                 ep.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                 series.title.toLowerCase().includes(searchTerm.toLowerCase()))
+              );
 
-            // Sort episodes: primary by season_id, secondary by episode_number
-            seriesEpisodes.sort((a, b) => {
-              const aSeason = seasonsList.find(s => s.id === a.season_id);
-              const bSeason = seasonsList.find(s => s.id === b.season_id);
-              const aNum = aSeason ? aSeason.season_number : 1;
-              const bNum = bSeason ? bSeason.season_number : 1;
-              if (aNum !== bNum) return aNum - bNum;
-              return a.episode_number - b.episode_number;
-            });
+              // Sort episodes: primary by season_id, secondary by episode_number
+              seriesEpisodes.sort((a, b) => {
+                const aSeason = seasonsList.find(s => s.id === a.season_id);
+                const bSeason = seasonsList.find(s => s.id === b.season_id);
+                const aNum = aSeason ? aSeason.season_number : 1;
+                const bNum = bSeason ? bSeason.season_number : 1;
+                if (aNum !== bNum) return aNum - bNum;
+                return a.episode_number - b.episode_number;
+              });
 
-            return (
-              <div 
-                key={series.id} 
-                style={{
-                  background: 'var(--surface)',
-                  border: '1px solid var(--border)',
-                  borderRadius: '12px',
-                  overflow: 'hidden',
-                  transition: 'all 0.2s ease'
-                }}
-              >
-                {/* Series Header Card */}
+              return (
                 <div 
+                  key={series.id} 
                   style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '1rem 1.25rem',
-                    background: isExpanded ? 'rgba(255,255,255,0.02)' : 'transparent',
-                    borderBottom: isExpanded ? '1px solid var(--border)' : 'none',
-                    cursor: 'pointer',
-                    userSelect: 'none',
-                    flexWrap: 'wrap',
-                    gap: '1rem'
+                    background: 'var(--surface)',
+                    border: '1px solid var(--border)',
+                    borderRadius: '12px',
+                    overflow: 'hidden',
+                    transition: 'all 0.2s ease'
                   }}
-                  onClick={() => toggleSeriesExpand(series.id)}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    {/* Small Poster preview */}
-                    <div style={{ width: '40px', height: '60px', borderRadius: '4px', overflow: 'hidden', background: 'var(--surface-hover)', border: '1px solid var(--border)', flexShrink: 0 }}>
-                      {series.poster_image_key ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img 
-                          src={getR2Url(series.poster_image_key, 'poster')} 
-                          alt="Poster" 
-                          style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
-                        />
-                      ) : (
-                        <div style={{ width: '100%', height: '100%', background: 'var(--surface-hover)' }} />
-                      )}
+                  {/* Series Header Card */}
+                  <div 
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '1rem 1.25rem',
+                      background: isExpanded ? 'rgba(255,255,255,0.02)' : 'transparent',
+                      borderBottom: isExpanded ? '1px solid var(--border)' : 'none',
+                      cursor: 'pointer',
+                      userSelect: 'none',
+                      flexWrap: 'wrap',
+                      gap: '1rem'
+                    }}
+                    onClick={() => toggleSeriesExpand(series.id)}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                      {/* Small Poster preview */}
+                      <div style={{ width: '40px', height: '60px', borderRadius: '4px', overflow: 'hidden', background: 'var(--surface-hover)', border: '1px solid var(--border)', flexShrink: 0 }}>
+                        {series.poster_image_key ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img 
+                            src={getR2Url(series.poster_image_key, 'poster')} 
+                            alt="Poster" 
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                          />
+                        ) : (
+                          <div style={{ width: '100%', height: '100%', background: 'var(--surface-hover)' }} />
+                        )}
+                      </div>
+                      <div>
+                        <h3 style={{ fontSize: '1.02rem', fontWeight: 800, margin: 0, color: 'var(--foreground)' }}>{series.title}</h3>
+                        <span style={{ fontSize: '0.78rem', color: 'var(--foreground-secondary)' }}>
+                          {series.studio || 'Unknown Studio'} • {series.release_year || '2026'} • {seriesEpisodes.length} Episodes
+                        </span>
+                      </div>
                     </div>
-                    <div>
-                      <h3 style={{ fontSize: '1.02rem', fontWeight: 800, margin: 0, color: 'var(--foreground)' }}>{series.title}</h3>
-                      <span style={{ fontSize: '0.78rem', color: 'var(--foreground-secondary)' }}>
-                        {series.studio || 'Unknown Studio'} • {series.release_year || '2026'} • {seriesEpisodes.length} Episodes
-                      </span>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }} onClick={(e) => e.stopPropagation()}>
+                      <button
+                        onClick={() => handleOpenCreate(series.id, seriesSeasons[0]?.id)}
+                        disabled={seriesSeasons.length === 0}
+                        style={{
+                          background: 'var(--primary)',
+                          color: 'white',
+                          border: 'none',
+                          padding: '0.45rem 1rem',
+                          borderRadius: '20px',
+                          fontSize: '0.75rem',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.3rem',
+                          boxShadow: '0 4px 12px rgba(var(--primary-rgb), 0.25)',
+                          transition: 'all 0.15s ease'
+                        }}
+                        title="Directly add new episode to this show"
+                      >
+                        <Plus size={12} />
+                        <span>Add Episode</span>
+                      </button>
+
+                      <button
+                        onClick={() => toggleSeriesExpand(series.id)}
+                        style={{
+                          background: 'transparent',
+                          border: 'none',
+                          color: 'var(--foreground-muted)',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          transform: isExpanded ? 'rotate(45deg)' : 'rotate(0deg)',
+                          transition: 'transform 0.2s ease',
+                          padding: '0.2rem'
+                        }}
+                      >
+                        <Plus size={16} />
+                      </button>
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }} onClick={(e) => e.stopPropagation()}>
-                    <button
-                      onClick={() => handleOpenCreate(series.id, seriesSeasons[0]?.id)}
-                      disabled={seriesSeasons.length === 0}
-                      style={{
-                        background: 'var(--primary)',
-                        color: 'white',
-                        border: 'none',
-                        padding: '0.45rem 1rem',
-                        borderRadius: '20px',
-                        fontSize: '0.75rem',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.3rem',
-                        boxShadow: '0 4px 12px rgba(var(--primary-rgb), 0.25)',
-                        transition: 'all 0.15s ease'
-                      }}
-                      title="Directly add new episode to this show"
-                    >
-                      <Plus size={12} />
-                      <span>Add Episode</span>
-                    </button>
-
-                    <button
-                      onClick={() => toggleSeriesExpand(series.id)}
-                      style={{
-                        background: 'transparent',
-                        border: 'none',
-                        color: 'var(--foreground-muted)',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        transform: isExpanded ? 'rotate(45deg)' : 'rotate(0deg)',
-                        transition: 'transform 0.2s ease',
-                        padding: '0.2rem'
-                      }}
-                    >
-                      <Plus size={16} />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Closable Episode List table */}
-                {isExpanded && (
-                  <div style={{ padding: '0.8rem 1rem' }}>
-                    {seriesEpisodes.length > 0 ? (
-                      <div className={styles.tableContainer} style={{ margin: 0, boxShadow: 'none', border: 'none' }}>
-                        <table className={styles.adminTable} style={{ fontSize: '0.85rem' }}>
-                          <thead>
-                            <tr>
-                              <th style={{ width: '80px' }}>Preview</th>
-                              <th>Episode Title</th>
-                              <th>Season</th>
-                              <th>Number</th>
-                              <th>Video Key (R2)</th>
-                              <th>Duration</th>
-                              <th>Status</th>
-                              <th>Air Date</th>
-                              <th style={{ textAlign: 'right' }}>Actions</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {seriesEpisodes.map((ep) => {
-                              const sTitle = seasonsList.find(s => s.id === ep.season_id)?.title || 'Season 1';
-                              return (
-                                <tr key={ep.id}>
-                                  <td>
-                                    <div 
-                                      style={{ position: 'relative', width: '70px', height: '40px', borderRadius: '6px', overflow: 'hidden', background: 'var(--surface-hover)', border: '1px solid var(--border)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                                      onClick={() => handleOpenThumbnailModal(ep)}
-                                      title="Manage Episode Thumbnails"
-                                    >
-                                      {ep.thumbnail_key ? (
-                                        // eslint-disable-next-line @next/next/no-img-element
-                                        <img 
-                                          src={getR2Url(ep.thumbnail_key, 'thumbnail')} 
-                                          alt="Thumb" 
-                                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                        />
-                                      ) : (
-                                        <div style={{ fontSize: '0.62rem', color: 'var(--primary)', fontWeight: 800, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
-                                          <Camera size={10} />
-                                          <span>GENERATE</span>
-                                        </div>
-                                      )}
-                                    </div>
-                                  </td>
-                                  <td style={{ fontWeight: 700 }}>{ep.title}</td>
-                                  <td>{sTitle}</td>
-                                  <td>{ep.episode_number}</td>
-                                  <td style={{ fontSize: '0.75rem', fontFamily: 'monospace', color: 'var(--foreground-muted)', maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                    {ep.video_key}
-                                  </td>
-                                  <td style={{ fontSize: '0.8rem' }}>
-                                    {Math.floor(ep.duration_seconds / 60)}m
-                                  </td>
-                                  <td>
-                                    <span className={`${styles.badge} ${ep.is_published ? styles.badgeSuccess : styles.badgeWarning}`}>
-                                      {ep.is_published ? 'Published' : 'Draft'}
-                                    </span>
-                                  </td>
-                                  <td style={{ fontSize: '0.8rem', color: 'var(--foreground-muted)' }}>
-                                    {new Date(ep.release_date).toLocaleDateString()}
-                                  </td>
-                                  <td style={{ textAlign: 'right' }}>
-                                    <div className={styles.actionBtnGroup} style={{ justifyContent: 'flex-end' }}>
-                                      <button 
-                                        onClick={() => handleOpenThumbnailModal(ep)} 
-                                        className={styles.editActionBtn} 
-                                        style={{ background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', border: '1px solid rgba(59, 130, 246, 0.2)' }}
+                  {/* Closable Episode List table */}
+                  {isExpanded && (
+                    <div style={{ padding: '0.8rem 1rem' }}>
+                      {seriesEpisodes.length > 0 ? (
+                        <div className={styles.tableContainer} style={{ margin: 0, boxShadow: 'none', border: 'none' }}>
+                          <table className={styles.adminTable} style={{ fontSize: '0.85rem' }}>
+                            <thead>
+                              <tr>
+                                <th style={{ width: '80px' }}>Preview</th>
+                                <th>Episode Title</th>
+                                <th>Season</th>
+                                <th>Number</th>
+                                <th>Video Key (R2)</th>
+                                <th>Duration</th>
+                                <th>Status</th>
+                                <th>Air Date</th>
+                                <th style={{ textAlign: 'right' }}>Actions</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {seriesEpisodes.map((ep) => {
+                                const sTitle = seasonsList.find(s => s.id === ep.season_id)?.title || 'Season 1';
+                                return (
+                                  <tr key={ep.id}>
+                                    <td>
+                                      <div 
+                                        style={{ position: 'relative', width: '70px', height: '40px', borderRadius: '6px', overflow: 'hidden', background: 'var(--surface-hover)', border: '1px solid var(--border)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                        onClick={() => handleOpenThumbnailModal(ep)}
                                         title="Manage Episode Thumbnails"
                                       >
-                                        <Camera size={14} />
-                                      </button>
-                                      <button onClick={() => handleOpenEdit(ep)} className={styles.editActionBtn} title="Edit Episode Details">
-                                        <Edit2 size={14} />
-                                      </button>
-                                      <button onClick={() => handleDelete(ep.id)} className={styles.deleteActionBtn} title="Delete Episode">
-                                        <Trash2 size={14} />
-                                      </button>
-                                    </div>
-                                  </td>
-                                </tr>
-                              );
-                            })}
-                          </tbody>
-                        </table>
-                      </div>
-                    ) : (
-                      <div style={{ padding: '1rem', color: 'var(--foreground-muted)', fontStyle: 'italic', fontSize: '0.8rem' }}>
-                        No episodes found for this show matching your search.
-                      </div>
-                    )}
-                  </div>
-                )}
+                                        {ep.thumbnail_key ? (
+                                          // eslint-disable-next-line @next/next/no-img-element
+                                          <img 
+                                            src={getR2Url(ep.thumbnail_key, 'thumbnail')} 
+                                            alt="Thumb" 
+                                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                          />
+                                        ) : (
+                                          <div style={{ fontSize: '0.62rem', color: 'var(--primary)', fontWeight: 800, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+                                            <Camera size={10} />
+                                            <span>GENERATE</span>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </td>
+                                    <td style={{ fontWeight: 700 }}>{ep.title}</td>
+                                    <td>{sTitle}</td>
+                                    <td>{ep.episode_number}</td>
+                                    <td style={{ fontSize: '0.75rem', fontFamily: 'monospace', color: 'var(--foreground-muted)', maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                      {ep.video_key}
+                                    </td>
+                                    <td style={{ fontSize: '0.8rem' }}>
+                                      {Math.floor(ep.duration_seconds / 60)}m
+                                    </td>
+                                    <td>
+                                      <span className={`${styles.badge} ${ep.is_published ? styles.badgeSuccess : styles.badgeWarning}`}>
+                                        {ep.is_published ? 'Published' : 'Draft'}
+                                      </span>
+                                    </td>
+                                    <td style={{ fontSize: '0.8rem', color: 'var(--foreground-muted)' }}>
+                                      {new Date(ep.release_date).toLocaleDateString()}
+                                    </td>
+                                    <td style={{ textAlign: 'right' }}>
+                                      <div className={styles.actionBtnGroup} style={{ justifyContent: 'flex-end' }}>
+                                        <button 
+                                          onClick={() => handleOpenThumbnailModal(ep)} 
+                                          className={styles.editActionBtn} 
+                                          style={{ background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', border: '1px solid rgba(59, 130, 246, 0.2)' }}
+                                          title="Manage Episode Thumbnails"
+                                        >
+                                          <Camera size={14} />
+                                        </button>
+                                        <button onClick={() => handleOpenEdit(ep)} className={styles.editActionBtn} title="Edit Episode Details">
+                                          <Edit2 size={14} />
+                                        </button>
+                                        <button onClick={() => handleDelete(ep.id)} className={styles.deleteActionBtn} title="Delete Episode">
+                                          <Trash2 size={14} />
+                                        </button>
+                                      </div>
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                      ) : (
+                        <div style={{ padding: '1rem', color: 'var(--foreground-muted)', fontStyle: 'italic', fontSize: '0.8rem' }}>
+                          No episodes found for this show matching your search.
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Pagination Controls */}
+          {filteredSeries.length > 0 && totalPages > 1 && (
+            <div className={styles.paginationBar}>
+              <div className={styles.paginationInfo}>
+                Showing {startIndex + 1}–{endIndex} of {filteredSeries.length} series (Page {safeCurrentPage} of {totalPages})
               </div>
-            );
-          })}
-        </div>
+
+              <div className={styles.paginationNav}>
+                <button
+                  className={styles.pageNavBtn}
+                  disabled={safeCurrentPage <= 1}
+                  onClick={() => handlePageChange(safeCurrentPage - 1)}
+                >
+                  Prev
+                </button>
+
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => {
+                  if (
+                    totalPages <= 7 ||
+                    pageNum === 1 ||
+                    pageNum === totalPages ||
+                    (pageNum >= safeCurrentPage - 2 && pageNum <= safeCurrentPage + 2)
+                  ) {
+                    return (
+                      <button
+                        key={pageNum}
+                        className={`${styles.pageNumberBtn} ${pageNum === safeCurrentPage ? styles.pageNumberActive : ''}`}
+                        onClick={() => handlePageChange(pageNum)}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  } else if (
+                    pageNum === safeCurrentPage - 3 ||
+                    pageNum === safeCurrentPage + 3
+                  ) {
+                    return (
+                      <span key={pageNum} style={{ color: 'var(--foreground-muted)', padding: '0 0.2rem' }}>
+                        ...
+                      </span>
+                    );
+                  }
+                  return null;
+                })}
+
+                <button
+                  className={styles.pageNavBtn}
+                  disabled={safeCurrentPage >= totalPages}
+                  onClick={() => handlePageChange(safeCurrentPage + 1)}
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
+        </>
       ) : (
         <div className={styles.emptyState}>
           {seasonsList.length === 0 

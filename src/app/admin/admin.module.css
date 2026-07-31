@@ -778,3 +778,84 @@
 .studioThumbCard:hover .studioThumbOverlay {
   opacity: 1;
 }
+
+/* Pagination Bar Styling */
+.paginationBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.paginationInfo {
+  font-size: 0.82rem;
+  color: var(--foreground-secondary);
+  font-weight: 600;
+}
+
+.paginationNav {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.pageNavBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.4rem 0.85rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface-hover);
+  color: var(--foreground-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pageNavBtn:hover:not(:disabled) {
+  background: var(--primary);
+  color: #ffffff;
+  border-color: transparent;
+}
+
+.pageNavBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pageNumberBtn {
+  min-width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface-hover);
+  color: var(--foreground-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0 0.5rem;
+}
+
+.pageNumberBtn:hover:not(.pageNumberActive) {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.pageNumberActive {
+  background: var(--primary);
+  color: #ffffff;
+  border-color: var(--primary);
+  box-shadow: 0 0 10px rgba(var(--primary-rgb), 0.3);
+}
+

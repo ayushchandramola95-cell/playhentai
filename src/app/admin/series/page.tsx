@@ -56,11 +56,18 @@ export default function AdminSeriesPage() {
   const [dbCategories, setDbCategories] = useState<string[]>([]);
   const [dbStudios, setDbStudios] = useState<string[]>([]);
 
-  // Filtering states
+  // Filtering & Pagination states
   const [selectedYear, setSelectedYear] = useState<string>('all');
   const [selectedStudio, setSelectedStudio] = useState<string>('all');
   const [selectedTag, setSelectedTag] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const ITEMS_PER_PAGE = 15;
+
+  // Reset pagination to page 1 on filter or search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedYear, selectedStudio, selectedTag, selectedStatus]);
 
 
 
@@ -1030,6 +1037,18 @@ export default function AdminSeriesPage() {
     return matchesSearch && matchesYear && matchesStudio && matchesTag && matchesStatus;
   });
 
+  const totalPages = Math.ceil(filteredList.length / ITEMS_PER_PAGE) || 1;
+  const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
+  const startIndex = (safeCurrentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, filteredList.length);
+  const paginatedList = filteredList.slice(startIndex, endIndex);
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+
   const currentFormTags = tagsInput.split(',').map((t) => t.trim().toLowerCase());
   const isFormDubbed = currentFormTags.includes('dub') || currentFormTags.includes('dubbed');
   const autoTitlePlaceholder = `${title || 'Series Title'} - Watch English Sub HD | PlayHentai`;
@@ -1234,7 +1253,7 @@ export default function AdminSeriesPage() {
               </tr>
             </thead>
             <tbody>
-              {filteredList.map((s) => {
+              {paginatedList.map((s) => {
                 const imageKey = s.poster_image_key || s.cover_image_key || s.banner_image_key;
                 return (
                   <tr key={s.id}>
@@ -1390,6 +1409,63 @@ export default function AdminSeriesPage() {
           No series found matching your query. Click "Add Series" to register your first show.
         </div>
       )}
+
+      {/* Pagination Controls */}
+      {filteredList.length > 0 && totalPages > 1 && (
+        <div className={styles.paginationBar}>
+          <div className={styles.paginationInfo}>
+            Showing {startIndex + 1}–{endIndex} of {filteredList.length} titles (Page {safeCurrentPage} of {totalPages})
+          </div>
+
+          <div className={styles.paginationNav}>
+            <button
+              className={styles.pageNavBtn}
+              disabled={safeCurrentPage <= 1}
+              onClick={() => handlePageChange(safeCurrentPage - 1)}
+            >
+              Prev
+            </button>
+
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => {
+              if (
+                totalPages <= 7 ||
+                pageNum === 1 ||
+                pageNum === totalPages ||
+                (pageNum >= safeCurrentPage - 2 && pageNum <= safeCurrentPage + 2)
+              ) {
+                return (
+                  <button
+                    key={pageNum}
+                    className={`${styles.pageNumberBtn} ${pageNum === safeCurrentPage ? styles.pageNumberActive : ''}`}
+                    onClick={() => handlePageChange(pageNum)}
+                  >
+                    {pageNum}
+                  </button>
+                );
+              } else if (
+                pageNum === safeCurrentPage - 3 ||
+                pageNum === safeCurrentPage + 3
+              ) {
+                return (
+                  <span key={pageNum} style={{ color: 'var(--foreground-muted)', padding: '0 0.2rem' }}>
+                    ...
+                  </span>
+                );
+              }
+              return null;
+            })}
+
+            <button
+              className={styles.pageNavBtn}
+              disabled={safeCurrentPage >= totalPages}
+              onClick={() => handlePageChange(safeCurrentPage + 1)}
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
+
 
       {/* CRUD Modal */}
       {isModalOpen && (
