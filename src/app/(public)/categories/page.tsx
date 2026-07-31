@@ -1,20 +1,65 @@
 import React from 'react';
 import { Layers } from 'lucide-react';
-import { createClient } from '@/utils/supabase/server';
+import { unstable_cache } from 'next/cache';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import JsonLd from '@/components/JsonLd/JsonLd';
 import BrowseHub from '@/components/BrowseHub/BrowseHub';
 import styles from './categories.module.css';
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
+
 export const metadata = {
-  title: 'Watch Uncensored Hentai Anime Series & Categories',
-  description: 'Browse all anime genres, categories, release years, and studios. Filter uncensored anime series by your favorite tags on PlayHentai.',
+  title: 'Browse Hentai Anime Categories & Series | PlayHentai',
+  description: 'Browse all uncensored hentai anime series, genres, studios, and release years. Filter the complete anime library on PlayHentai.',
   alternates: {
     canonical: '/categories',
   },
   openGraph: {
-    url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live'}/categories`,
+    title: 'Browse Hentai Anime Categories & Series | PlayHentai',
+    description: 'Browse all uncensored hentai anime series, genres, studios, and release years on PlayHentai.',
+    url: `${SITE_URL}/categories`,
     type: 'website' as const,
   },
 };
+
+// 60-Second TTL Cached Categories Series Query
+const getCachedCategoriesSeries = unstable_cache(
+  async () => {
+    let dbSeries: any[] = [];
+    let isDbEmpty = true;
+
+    try {
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://kdesazliquregjbptyhc.supabase.co';
+      const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+      const supabase = createSupabaseClient(supabaseUrl, supabaseAnonKey);
+
+      const { data: seriesData } = await supabase
+        .from('series')
+        .select(`
+          *,
+          seasons (
+            is_published,
+            episodes (
+              is_published
+            )
+          )
+        `)
+        .eq('is_published', true)
+        .order('created_at', { ascending: false });
+
+      if (seriesData && seriesData.length > 0) {
+        dbSeries = seriesData;
+        isDbEmpty = false;
+      }
+    } catch (err) {
+      console.error('Error fetching series from DB:', err);
+    }
+
+    return { dbSeries, isDbEmpty };
+  },
+  ['categories-series-catalog-cache-v1'],
+  { revalidate: 60, tags: ['categories_catalog'] }
+);
 
 // Rich Mock Data with assigned Genres, Studios, and Release Years matching images
 const MOCK_SERIES = [
@@ -87,44 +132,38 @@ const MOCK_SERIES = [
 ];
 
 export default async function CategoriesPage() {
-  const supabase = await createClient();
-  let dbSeries: any[] = [];
-  let isDbEmpty = true;
-
-  try {
-    const { data: seriesData } = await supabase
-      .from('series')
-      .select(`
-        *,
-        seasons (
-          is_published,
-          episodes (
-            is_published
-          )
-        )
-      `)
-      .eq('is_published', true)
-      .order('created_at', { ascending: false });
-
-    if (seriesData && seriesData.length > 0) {
-      dbSeries = seriesData;
-      isDbEmpty = false;
-    }
-  } catch (err) {
-    console.error('Error fetching series from DB:', err);
-  }
-
+  const { dbSeries, isDbEmpty } = await getCachedCategoriesSeries();
   const activeSeries = isDbEmpty ? MOCK_SERIES : dbSeries;
+
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    'itemListElement': [
+      {
+        '@type': 'ListItem',
+        'position': 1,
+        'name': 'Home',
+        'item': SITE_URL,
+      },
+      {
+        '@type': 'ListItem',
+        'position': 2,
+        'name': 'Browse Library',
+        'item': `${SITE_URL}/categories`,
+      },
+    ],
+  };
 
   return (
     <div className={styles.container}>
+      <JsonLd data={breadcrumbJsonLd} />
       <div className="ambient-glow" />
 
       {/* Header */}
       <div className={styles.headerSection}>
         <div className={styles.titleRow}>
           <Layers size={28} className={styles.headerIcon} />
-          <h1>Browse Library</h1>
+          <h1>Browse Hentai Anime Library</h1>
         </div>
         <p className={styles.subtext}>
           Filter through our complete collection by genres, studios, and release years.

@@ -9,7 +9,10 @@ import { GENRES, STUDIOS, RELEASE_YEARS } from '@/utils/constants';
 import { getR2Url } from '@/utils/r2';
 import SeriesCard from '../SeriesCard/SeriesCard';
 import AdBanner from '../AdBanner/AdBanner';
+import JsonLd from '../JsonLd/JsonLd';
 import styles from './BrowseHub.module.css';
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
 
 interface SeriesItem {
   id: string;
@@ -113,16 +116,21 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre }: BrowseHubP
     const studioParam = searchParams.get('studio');
     const yearParam = searchParams.get('year');
     const sortParam = searchParams.get('sort');
+    const pageParam = searchParams.get('page');
 
     if (sortParam) {
       setSortMode(sortParam);
+    }
+
+    if (pageParam) {
+      const p = parseInt(pageParam, 10);
+      if (!isNaN(p) && p > 0) setCurrentPage(p);
     }
 
     if (genreParam) {
       if (genreParam.toLowerCase() === 'all' || genreParam.toLowerCase() === 'all genres') {
         setSelectedGenre(null);
       } else {
-        // Find case-insensitive match in our dynamicGenres list
         const matchedGenre = dynamicGenres.find(g => g.toLowerCase() === genreParam.toLowerCase());
         if (matchedGenre) {
           setSelectedGenre(matchedGenre);
@@ -195,7 +203,6 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre }: BrowseHubP
   // Computed filtered & sorted list of series
   const filteredSeries = useMemo(() => {
     const list = initialSeries.filter(series => {
-      // 1. Text Search matching title, alternative titles, aliases, description, and tags
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
         const matchesTitle = series.title.toLowerCase().includes(query);
@@ -215,19 +222,16 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre }: BrowseHubP
         if (!matchesTitle && !matchesDesc && !matchesTags && !matchesAltTitles && !matchesAliases) return false;
       }
 
-      // 2. Genre filter (matches either series.category or series.tags)
       if (selectedGenre) {
         const matchesCategory = series.category?.toLowerCase() === selectedGenre.toLowerCase();
         const matchesTags = series.tags?.some(tag => tag.toLowerCase() === selectedGenre.toLowerCase());
         if (!matchesCategory && !matchesTags) return false;
       }
 
-      // 3. Studio filter
       if (selectedStudio) {
         if (!series.studio || series.studio.toLowerCase() !== selectedStudio.toLowerCase()) return false;
       }
 
-      // 4. Release Year filter
       if (selectedYear) {
         const yr = series.releaseYear ?? series.release_year;
         if (!yr || yr !== selectedYear) return false;
@@ -236,7 +240,6 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre }: BrowseHubP
       return true;
     });
 
-    // 5. Apply Sorting (DEFAULT: A-Z)
     const sorted = [...list];
     if (sortMode === 'a_z') {
       sorted.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
@@ -277,6 +280,20 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre }: BrowseHubP
     }
   };
 
+  // ItemList JSON-LD Schema for Active Paginated Results
+  const itemListJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    'name': 'Uncensored Hentai Anime Catalog on PlayHentai',
+    'url': `${SITE_URL}/categories`,
+    'itemListElement': currentSeries.map((s, i) => ({
+      '@type': 'ListItem',
+      'position': startIndex + i + 1,
+      'name': s.title,
+      'url': `${SITE_URL}/series/${s.slug}`,
+    })),
+  };
+
   // Generate Page Numbers Array
   const pageNumbers: number[] = [];
   for (let i = 1; i <= totalPages; i++) {
@@ -285,7 +302,9 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre }: BrowseHubP
 
   return (
     <div className={styles.hubContainer}>
+      <JsonLd data={itemListJsonLd} />
       {/* Tabs Selector */}
+
       <div className={styles.tabsContainer}>
         <button
           onClick={() => setActiveTab('genres')}
