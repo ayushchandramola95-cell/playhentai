@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useSearchParams } from 'next/navigation';
 import { Sparkles, Dices, Play, RefreshCw, Flame, Zap, Heart, Compass, Star, ArrowRight } from 'lucide-react';
 import { getR2Url } from '@/utils/r2';
 import styles from './random.module.css';
@@ -31,10 +32,21 @@ const GENRE_FILTERS = [
 ];
 
 export default function RandomizerPortal({ seriesList }: RandomizerPortalProps) {
+  const searchParams = useSearchParams();
   const [selectedGenre, setSelectedGenre] = useState<string>('all');
   const [isSpinning, setIsSpinning] = useState<boolean>(true);
   const [slotImageIndex, setSlotImageIndex] = useState<number>(0);
   const [winner, setWinner] = useState<SeriesItem | null>(null);
+
+  useEffect(() => {
+    const genreParam = searchParams.get('genre');
+    if (genreParam) {
+      const matched = GENRE_FILTERS.find(g => g.id.toLowerCase() === genreParam.toLowerCase());
+      if (matched) {
+        setSelectedGenre(matched.id);
+      }
+    }
+  }, [searchParams]);
 
   // Filter pool based on selected genre chip
   const filteredPool = useMemo(() => {
@@ -92,7 +104,7 @@ export default function RandomizerPortal({ seriesList }: RandomizerPortalProps) 
       <div className={styles.portalContent}>
         {/* Header Section */}
         <div className={styles.portalHeader}>
-          <h1>Surprise Me Randomizer</h1>
+          <h1>Random Hentai Anime Generator</h1>
           <p className={styles.portalSubtext}>
             Can't decide what to watch next? Filter by vibe or spin the wheel for instant recommendations.
           </p>
