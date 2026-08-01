@@ -97,16 +97,18 @@ const getCachedResolvedEpisode = unstable_cache(
 - **SEO Goal**: Rank #1 on Google Video Search and SERPs for episode streaming queries (`watch [Series Title] episode [num] english sub hd`).
 
 ### Target Keyword Strategy & Keyword Mapping:
-- **Primary Keyword**: `watch [Series Title] episode [num] english sub`
+### Target Keyword Strategy & Keyword Mapping:
+- **Primary Keyword**: `[Series Title] Episode [Number]` (Highest-volume user search query e.g. "Cyberpunk Odyssey Episode 1").
 - **Supporting / Secondary Keywords**:
-  - `[Series Title] ep [num] uncensored`
-  - `[Series Title] episode [num] 1080p`
-  - `[Series Title] episode [num] stream`
-  - `[Series Title] episode [num] online`
+  - `Watch [Series Title] Episode [Number]`
+  - `[Series Title] Episode [Number] English Sub`
+  - `[Series Title] Episode [Number] HD`
+  - `[Series Title] Episode [Number] Online`
+  - `[Series Title] Episode [Number] Uncensored`
 - **Primary Terms Present**:
-  - `Watch` (Present in Title Tag, Meta Description, H1, Breadcrumbs, CTAs)
   - `Series Title` (Present in Title Tag, Meta Description, H1, Breadcrumbs, JSON-LD)
   - `Episode Number` (Present in Title Tag, Meta Description, H1, Breadcrumbs, JSON-LD)
+  - `Watch` (Present in Title Tag, Meta Description, H1, Breadcrumbs, CTAs)
   - `English Sub HD` (Present in Title Tag & Meta Description)
   - `Brand Name` (`PlayHentai` present in Title Tag & Meta Description)
 
@@ -117,24 +119,33 @@ const getCachedResolvedEpisode = unstable_cache(
 - **Robots Directives**: `index: true`, `follow: true`, `googleBot: { index: true, follow: true, max-image-preview: 'large', max-video-preview: -1, max-snippet: -1 }` (Inherited from Root Layout)
 - **Pagination**: `None`
 
-### Dynamic Metadata Inspection:
+### Dynamic Metadata & Social Sharing Inspection:
 - **Title Tag**: `Watch ${seriesTitle} Episode ${ep.episode_number} English Sub HD | PlayHentai`
 - **Meta Description**: `Watch ${seriesTitle} Episode ${ep.episode_number} English Sub HD online on PlayHentai. Stream the latest episodes in high definition.`
 - **Canonical URL**: `https://playhentai.live/watch/[series-slug]-episode-[epNum]` (Canonicalized via `getEpisodeWatchUrl`)
 - **OpenGraph Metadata**: `og:title`, `og:description`, `og:url`, `og:type` (`video.episode`), `og:image`.
-- **OpenGraph Image (`og:image`)**: Episode thumbnail image delivered via Cloudflare R2 CDN (`https://media.playhentai.live`). Default site banner fallback (`https://media.playhentai.live/og-banner.jpg`) applied if thumbnail is missing.
+- **Twitter Card Metadata**: `twitter:card` (`summary_large_image`), `twitter:title`, `twitter:description`, `twitter:image`.
+- **OpenGraph & Twitter Banner (`og:image` / `twitter:image`)**: Episode thumbnail image delivered via Cloudflare R2 CDN (`https://media.playhentai.live`). Default site poster banner fallback (`https://media.playhentai.live/og-banner.jpg`) applied if thumbnail is missing.
+
+### Image SEO & Asset CDN Delivery:
+- **Episode Thumbnail Alt Pattern**: `alt={`Watch ${seriesTitle} Episode ${activeEpisode.episode_number} Hentai Online - PlayHentai`}`
+- **Sidebar Poster Alt Pattern**: `alt={`Watch ${seriesDetails.title} Hentai online - PlayHentai`}`
 
 ### Semantic HTML & DOM H1 Verification:
 - **`<h1>` Verification**:
   - *Current H1*: `<h1>Watch {seriesTitle} Episode {activeEpisode.episode_number}: {activeEpisode.title}</h1>` in `WatchPageClient.tsx`.
-  - *Result*: **Passed (100% Single H1 HTML DOM)**. Aligned with target keyword `watch [Series Title] episode [num]`.
+  - *Result*: **Passed (100% Single H1 HTML DOM)**. Aligned with primary target keyword `Watch [Series Title] Episode [Number]`.
 - **`<h2>` Headers**: `<h2>Episode Not Found</h2>`, `<h2>Similar Titles You Might Like</h2>`.
 
 ### JSON-LD Structured Data Implementation:
 1. **Implemented Schemas**:
    - `BreadcrumbList` (`Home` $\rightarrow$ `[Series Title]` $\rightarrow$ `Episode [Num]`)
    - `VideoObject` (with `@id`, `name`, `description`, `thumbnailUrl`, `uploadDate`, `duration`, `contentUrl`, `embedUrl`, `url`, `publisher`, `partOfSeries`)
-     - *Schema Data Dependencies*: Depends directly on `episodes` table (`video_key`, `thumbnail_key`, `duration_seconds`), `series` table, and `seasons` table.
+     - *Schema Data Field Sources & Dependencies*:
+       - `uploadDate Source`: `activeEpisode.release_date || activeEpisode.created_at` (Episode Release Date)
+       - `duration Source`: `activeEpisode.duration_seconds` (Converted to ISO 8601 duration e.g. `PT24M`)
+       - `contentUrl Source`: Direct MP4 video stream URL via Cloudflare R2 CDN (`getR2Url(activeEpisode.video_key, 'video')`)
+       - `partOfSeries Source`: Linked parent `TVSeries` object (`seriesTitle` & `/series/${seriesSlug}`)
 2. **Not Implemented / Intentionally Omitted Schemas**:
    - `CollectionPage`: (Omitted; reserved for index/catalog pages)
 
