@@ -4,7 +4,7 @@ import { ShieldCheck, ArrowLeft, Eye, Cookie, UserCheck, Server } from 'lucide-r
 import styles from './privacy.module.css';
 
 export const metadata = {
-  title: 'Privacy Policy - PlayHentai',
+  title: 'Privacy Policy | PlayHentai',
   description: 'Privacy Policy and data security guidelines for PlayHentai users.',
   alternates: {
     canonical: '/privacy',

@@ -4,7 +4,7 @@ import { FileText, ArrowLeft, ShieldAlert, CheckCircle, Scale, Lock } from 'luci
 import styles from './terms.module.css';
 
 export const metadata = {
-  title: 'Terms of Service - PlayHentai',
+  title: 'Terms of Service | PlayHentai',
   description: 'Terms of Service and legal conditions for accessing and using PlayHentai.',
   alternates: {
     canonical: '/terms',

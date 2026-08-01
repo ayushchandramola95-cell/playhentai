@@ -6,7 +6,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: '*',
       allow: '/',
-      disallow: ['/admin/', '/api/'], // block admin routes and internal api endpoints from indexing
+      disallow: ['/admin/', '/api/', '/watchlist/', '/history/', '/favorites/', '/settings/'],
     },
     sitemap: `${baseUrl}/sitemap.xml`,
   };
