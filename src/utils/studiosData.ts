@@ -1,5 +1,10 @@
 import { MOCK_SERIES } from './mockData';
-import { createClient } from './supabase/server';
+import { unstable_cache } from 'next/cache';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://kdesazliquregjbptyhc.supabase.co';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const publicSupabaseClient = createSupabaseClient(supabaseUrl, supabaseAnonKey);
 
 export interface StudioInfo {
   id: string;
@@ -75,27 +80,27 @@ export const STUDIOS_METADATA: StudioInfo[] = [
   }
 ];
 
-export async function getAllStudiosWithStats() {
-  const supabase = await createClient();
-  let seriesList: any[] = [];
-  try {
-    const { data } = await supabase
-      .from('series')
-      .select('*')
-      .eq('is_published', true);
-    if (data && data.length > 0) {
-      seriesList = data;
+export const getAllStudiosWithStats = unstable_cache(
+  async () => {
+    let seriesList: any[] = [];
+    try {
+      const { data } = await publicSupabaseClient
+        .from('series')
+        .select('*')
+        .eq('is_published', true);
+      if (data && data.length > 0) {
+        seriesList = data;
+      }
+    } catch (err) {
+      console.error('Error fetching series for all studios stats:', err);
     }
-  } catch (err) {
-    console.error('Error fetching series for all studios stats:', err);
-  }
 
-  if (seriesList.length === 0) {
-    seriesList = MOCK_SERIES;
-  }
+    if (seriesList.length === 0) {
+      seriesList = MOCK_SERIES;
+    }
 
-  // Group series by studio slug (ensuring unique slugs)
-  const studioGroups: Record<string, { originalName: string; series: any[] }> = {};
+    // Group series by studio slug (ensuring unique slugs)
+    const studioGroups: Record<string, { originalName: string; series: any[] }> = {};
 
   seriesList.forEach(s => {
     const sStudio = (s.studio || '').trim();
@@ -159,7 +164,10 @@ export async function getAllStudiosWithStats() {
 
   // Sort by total series count descending
   return allStudios.sort((a, b) => b.stats.totalSeries - a.stats.totalSeries);
-}
+},
+['all-studios-stats-cache-v1'],
+{ revalidate: 60, tags: ['studios_stats'] }
+);
 
 export async function getStudioDetails(slug: string) {
   const allStudios = await getAllStudiosWithStats();
@@ -167,10 +175,9 @@ export async function getStudioDetails(slug: string) {
   if (!currentStudio) return null;
 
   // Re-fetch full series matching this studio
-  const supabase = await createClient();
   let seriesList: any[] = [];
   try {
-    const { data } = await supabase
+    const { data } = await publicSupabaseClient
       .from('series')
       .select('*')
       .eq('is_published', true);
