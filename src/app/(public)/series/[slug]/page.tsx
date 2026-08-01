@@ -1,5 +1,7 @@
 import React from 'react';
 import { Metadata } from 'next';
+import { unstable_cache } from 'next/cache';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import WatchlistToggle from '@/components/WatchlistToggle/WatchlistToggle';
 import FavoriteToggle from '@/components/FavoriteToggle/FavoriteToggle';
 import CommentSection from '@/components/CommentSection/CommentSection';
@@ -11,8 +13,6 @@ import JsonLd from '@/components/JsonLd/JsonLd';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Compass, Play, Clock, Layers, Star, Eye, MessageSquare, Flame, Camera, ChevronRight } from 'lucide-react';
-import { createClient } from '@/utils/supabase/server';
-export const dynamic = 'force-dynamic';
 import { getR2Url } from '@/utils/r2';
 import { getEpisodeWatchUrl } from '@/utils/episodeUrl';
 import styles from './series.module.css';
@@ -24,6 +24,12 @@ import { tagToSlug } from '@/utils/constants';
 import SynopsisBox from './SynopsisBox';
 import MobileTagsRow from './MobileTagsRow';
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://kdesazliquregjbptyhc.supabase.co';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const publicSupabaseClient = createSupabaseClient(supabaseUrl, supabaseAnonKey);
+
 interface SeriesPageProps {
   params: Promise<{ slug: string }>;
 }
@@ -31,7 +37,6 @@ interface SeriesPageProps {
 export async function generateMetadata({ params }: SeriesPageProps): Promise<Metadata> {
   const resolvedParams = await params;
   const slug = resolvedParams.slug;
-  const supabase = await createClient();
 
   let title = 'Series Details - PlayHentai';
   let description = 'View details and watch episodes of this series on PlayHentai.';
@@ -39,7 +44,7 @@ export async function generateMetadata({ params }: SeriesPageProps): Promise<Met
   let keywords: string[] = [];
 
   try {
-    const { data } = await supabase
+    const { data } = await publicSupabaseClient
       .from('series')
       .select('*')
       .eq('slug', slug)
@@ -94,9 +99,10 @@ export async function generateMetadata({ params }: SeriesPageProps): Promise<Met
     console.error('Error generating metadata:', err);
   }
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
-  const canonicalUrl = `${siteUrl}/series/${slug}`;
-  const images = ogImage ? [{ url: getR2Url(ogImage, 'cover') }] : [];
+  const canonicalUrl = `${SITE_URL}/series/${slug}`;
+  const images = ogImage 
+    ? [{ url: getR2Url(ogImage, 'cover') }] 
+    : [{ url: 'https://media.playhentai.live/og-banner.jpg', width: 1200, height: 630, alt: title }];
 
   return {
     title,
@@ -251,68 +257,73 @@ function renderAboutSections(aboutData: any, aboutTextLegacy: string, seriesTitl
   );
 }
 
+const getCachedSeriesData = unstable_cache(
+  async (slug: string) => {
+    let dbSeries: any = null;
+    let dbSeasons: any[] = [];
+    let isDbEmpty = true;
+    let allSeriesList: any[] = [];
+
+    try {
+      const { data: allSeriesData } = await publicSupabaseClient
+        .from('series')
+        .select('*')
+        .eq('is_published', true);
+      if (allSeriesData) {
+        allSeriesList = allSeriesData;
+      }
+
+      const { data: seriesData } = await publicSupabaseClient
+        .from('series')
+        .select('*')
+        .eq('slug', slug)
+        .eq('is_published', true)
+        .single();
+
+      if (seriesData) {
+        dbSeries = seriesData;
+        isDbEmpty = false;
+
+        const { data: seasonsData } = await publicSupabaseClient
+          .from('seasons')
+          .select('*')
+          .eq('series_id', seriesData.id)
+          .eq('is_published', true)
+          .order('season_number');
+
+        if (seasonsData) {
+          const seasonsWithEpisodes = await Promise.all(
+            seasonsData.map(async (season) => {
+              const { data: eps } = await publicSupabaseClient
+                .from('episodes')
+                .select('*')
+                .eq('season_id', season.id)
+                .eq('is_published', true)
+                .order('episode_number');
+              return {
+                ...season,
+                episodes: eps || []
+              };
+            })
+          );
+          dbSeasons = seasonsWithEpisodes;
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching series details:', err);
+    }
+
+    return { dbSeries, dbSeasons, isDbEmpty, allSeriesList };
+  },
+  ['series-details-full-cache-v1'],
+  { revalidate: 60, tags: ['series_details'] }
+);
+
 export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
   const resolvedParams = await params;
   const slug = resolvedParams.slug;
   
-  const supabase = await createClient();
-  let dbSeries: any = null;
-  let dbSeasons: any[] = [];
-  let isDbEmpty = true;
-  let allSeriesList: any[] = [];
-
-  try {
-    // 1. Fetch all series list for similar carousel
-    const { data: allSeriesData } = await supabase
-      .from('series')
-      .select('*')
-      .eq('is_published', true);
-    if (allSeriesData) {
-      allSeriesList = allSeriesData;
-    }
-
-    // 2. Fetch series details
-    const { data: seriesData } = await supabase
-      .from('series')
-      .select('*')
-      .eq('slug', slug)
-      .eq('is_published', true)
-      .single();
-
-    if (seriesData) {
-      dbSeries = seriesData;
-      isDbEmpty = false;
-
-      // 3. Fetch seasons under this series
-      const { data: seasonsData } = await supabase
-        .from('seasons')
-        .select('*')
-        .eq('series_id', seriesData.id)
-        .eq('is_published', true)
-        .order('season_number');
-
-      if (seasonsData) {
-        // 4. Fetch episodes for each season
-        const seasonsWithEpisodes = await Promise.all(
-          seasonsData.map(async (season) => {
-            const { data: eps } = await supabase
-              .from('episodes')
-              .select('*')
-              .eq('season_id', season.id)
-              .eq('is_published', true)
-              .order('episode_number');
-            return {
-              ...season,
-              episodes: eps || []
-            };
-          })
-        );
-        dbSeasons = seasonsWithEpisodes;
-      }
-    }
-  } catch (err) {
-    console.error('Error fetching series details:', err);
-  }
+  const { dbSeries, dbSeasons, isDbEmpty, allSeriesList } = await getCachedSeriesData(slug);
 
   // Load fallback if not found in database
   let activeSeries = isDbEmpty ? MOCK_SERIES_DETAILS[slug] : { ...dbSeries, seasons: dbSeasons };
@@ -573,10 +584,17 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
     'datePublished': activeSeries.created_at || activeSeries.first_air_date || undefined,
     'inLanguage': 'en',
     'isFamilyFriendly': false,
+    'aggregateRating': {
+      '@type': 'AggregateRating',
+      'ratingValue': rating,
+      'ratingCount': views,
+      'bestRating': 10,
+      'worstRating': 1
+    },
     'publisher': {
       '@type': 'Organization',
       'name': 'PlayHentai',
-      'url': siteUrl
+      'url': SITE_URL
     }
   };
 
