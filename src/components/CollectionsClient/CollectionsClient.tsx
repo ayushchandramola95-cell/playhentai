@@ -81,7 +81,7 @@ export default function CollectionsClient({ collections }: CollectionsClientProp
       <div className={styles.headerSection}>
         <div className={styles.titleRow}>
           <Layers size={28} className={styles.headerIcon} />
-          <h1>Curated Playlists</h1>
+          <h1>Curated Hentai Playlists</h1>
         </div>
         <p className={styles.subtext}>
           Explore hand-picked series lists curated by our team of collectors. Find your next favorite genre niche.
@@ -151,7 +151,7 @@ export default function CollectionsClient({ collections }: CollectionsClientProp
                     >
                       <Image
                         src={getR2Url(item.poster_image_key, 'poster')}
-                        alt={item.title}
+                        alt={`${col.name} - ${item.title} Hentai Poster`}
                         fill
                         sizes="100px"
                         className={styles.posterImage}

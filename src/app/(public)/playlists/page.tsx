@@ -19,14 +19,14 @@ export async function generateMetadata({ searchParams }: PageProps) {
     : '/playlists';
 
   return {
-    title: 'Curated Anime Playlists & Collections | PlayHentai',
-    description: 'Explore hand-picked playlists and thematic series collections of top 1080p anime series on PlayHentai.',
+    title: 'Curated Hentai Playlists & Collections | PlayHentai',
+    description: 'Explore hand-picked hentai playlists and thematic series collections of top 1080p anime series on PlayHentai.',
     alternates: {
       canonical: canonicalPath,
     },
     openGraph: {
-      title: 'Curated Anime Playlists & Collections | PlayHentai',
-      description: 'Explore hand-picked playlists and thematic series collections of top 1080p anime series on PlayHentai.',
+      title: 'Curated Hentai Playlists & Collections | PlayHentai',
+      description: 'Explore hand-picked hentai playlists and thematic series collections of top 1080p anime series on PlayHentai.',
       url: `${SITE_URL}${canonicalPath}`,
       siteName: 'PlayHentai',
       locale: 'en_US',
@@ -36,14 +36,14 @@ export async function generateMetadata({ searchParams }: PageProps) {
           url: 'https://media.playhentai.live/og-banner.jpg',
           width: 1200,
           height: 630,
-          alt: 'PlayHentai Curated Anime Playlists',
+          alt: 'PlayHentai Curated Hentai Playlists',
         },
       ],
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'Curated Anime Playlists & Collections | PlayHentai',
-      description: 'Explore hand-picked playlists and thematic series collections of top 1080p anime series on PlayHentai.',
+      title: 'Curated Hentai Playlists & Collections | PlayHentai',
+      description: 'Explore hand-picked hentai playlists and thematic series collections of top 1080p anime series on PlayHentai.',
       images: ['https://media.playhentai.live/og-banner.jpg'],
     },
   };
