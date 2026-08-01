@@ -8,19 +8,65 @@ import styles from './categories.module.css';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
 
-export const metadata = {
-  title: 'Browse Hentai Anime Categories & Series | PlayHentai',
-  description: 'Browse all uncensored hentai anime series, genres, studios, and release years. Filter the complete anime library on PlayHentai.',
-  alternates: {
-    canonical: '/categories',
-  },
-  openGraph: {
-    title: 'Browse Hentai Anime Categories & Series | PlayHentai',
-    description: 'Browse all uncensored hentai anime series, genres, studios, and release years on PlayHentai.',
-    url: `${SITE_URL}/categories`,
-    type: 'website' as const,
-  },
-};
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://kdesazliquregjbptyhc.supabase.co';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const publicSupabaseClient = createSupabaseClient(supabaseUrl, supabaseAnonKey);
+
+interface PageProps {
+  searchParams: Promise<{
+    genre?: string;
+    studio?: string;
+    year?: string;
+    sort?: string;
+  }>;
+}
+
+export async function generateMetadata({ searchParams }: PageProps) {
+  const params = await searchParams;
+  const genre = params.genre;
+  const studio = params.studio;
+  const year = params.year;
+
+  let title = 'Browse Hentai Anime Categories & Series | PlayHentai';
+  let description = 'Browse all uncensored hentai anime series, genres, studios, and release years. Filter the complete anime library on PlayHentai.';
+  let canonicalPath = '/categories';
+
+  if (genre && genre.toLowerCase() !== 'all' && genre.toLowerCase() !== 'all genres') {
+    const formattedGenre = genre.charAt(0).toUpperCase() + genre.slice(1);
+    title = `${formattedGenre} Hentai Anime Series & Collections | PlayHentai`;
+    description = `Watch and stream ${formattedGenre} uncensored hentai anime series in HD for free on PlayHentai. Explore all ${formattedGenre} anime titles.`;
+    canonicalPath = `/categories?genre=${encodeURIComponent(genre)}`;
+  } else if (studio) {
+    title = `${studio} Studio Hentai Anime Series | PlayHentai`;
+    description = `Explore all uncensored hentai anime series produced by ${studio} studio on PlayHentai. High quality HD streaming.`;
+    canonicalPath = `/categories?studio=${encodeURIComponent(studio)}`;
+  } else if (year) {
+    title = `${year} Hentai Anime Releases & Series | PlayHentai`;
+    description = `Stream all uncensored hentai anime series released in ${year} on PlayHentai. Watch full HD episodes online.`;
+    canonicalPath = `/categories?year=${encodeURIComponent(year)}`;
+  }
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: canonicalPath,
+    },
+    openGraph: {
+      title,
+      description,
+      url: `${SITE_URL}${canonicalPath}`,
+      siteName: 'PlayHentai',
+      locale: 'en_US',
+      type: 'website' as const,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+    },
+  };
+}
 
 // 60-Second TTL Cached Categories Series Query
 const getCachedCategoriesSeries = unstable_cache(
@@ -29,11 +75,7 @@ const getCachedCategoriesSeries = unstable_cache(
     let isDbEmpty = true;
 
     try {
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://kdesazliquregjbptyhc.supabase.co';
-      const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-      const supabase = createSupabaseClient(supabaseUrl, supabaseAnonKey);
-
-      const { data: seriesData } = await supabase
+      const { data: seriesData } = await publicSupabaseClient
         .from('series')
         .select(`
           *,

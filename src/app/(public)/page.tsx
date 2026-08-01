@@ -20,12 +20,28 @@ export const dynamic = 'force-dynamic';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
 
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://kdesazliquregjbptyhc.supabase.co';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const publicSupabaseClient = createSupabaseClient(supabaseUrl, supabaseAnonKey);
+
 export const metadata = {
+  title: 'PlayHentai - Watch Uncensored Hentai Anime Online in HD',
+  description: 'Stream high quality uncensored hentai anime series online for free. Watch full HD episodes, trending playlists, and popular uncensored titles on PlayHentai.',
   alternates: {
     canonical: '/',
   },
   openGraph: {
+    title: 'PlayHentai - Watch Uncensored Hentai Anime Online in HD',
+    description: 'Stream high quality uncensored hentai anime series online for free.',
     url: SITE_URL,
+    siteName: 'PlayHentai',
+    locale: 'en_US',
+    type: 'website' as const,
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'PlayHentai - Watch Uncensored Hentai Anime Online in HD',
+    description: 'Stream high quality uncensored hentai anime series online for free.',
   },
 };
 
@@ -37,11 +53,7 @@ const getCachedCatalogData = unstable_cache(
     let isDbEmpty = true;
 
     try {
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://kdesazliquregjbptyhc.supabase.co';
-      const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-      const supabase = createSupabaseClient(supabaseUrl, supabaseAnonKey);
-
-      const { data: seriesData } = await supabase
+      const { data: seriesData } = await publicSupabaseClient
         .from('series')
         .select(`
           *,
@@ -62,7 +74,7 @@ const getCachedCatalogData = unstable_cache(
         dbSeries = seriesData;
       }
 
-      const { data: episodeData } = await supabase
+      const { data: episodeData } = await publicSupabaseClient
         .from('episodes')
         .select(`
           *,
@@ -93,8 +105,10 @@ const getCachedCatalogData = unstable_cache(
   { revalidate: 60, tags: ['homepage_catalog'] }
 );
 
+let cachedSettingsData: Record<string, string> | undefined;
 function getLocalSettings(): Record<string, string> {
-  const defaultSettings = { 
+  if (cachedSettingsData) return cachedSettingsData;
+  const defaultSettings: Record<string, string> = { 
     latest_series_sort_mode: 'latest_episode',
     hero_banner_source: 'featured_tags',
     hero_banner_slide_count: '8'
@@ -103,10 +117,14 @@ function getLocalSettings(): Record<string, string> {
     const filePath = path.join(process.cwd(), 'src', 'utils', 'site_settings.json');
     if (fs.existsSync(filePath)) {
       const fileData = fs.readFileSync(filePath, 'utf-8');
-      return { ...defaultSettings, ...JSON.parse(fileData) };
+      cachedSettingsData = { ...defaultSettings, ...JSON.parse(fileData) };
+    } else {
+      cachedSettingsData = defaultSettings;
     }
-  } catch (err) {}
-  return defaultSettings;
+  } catch (err) {
+    cachedSettingsData = defaultSettings;
+  }
+  return cachedSettingsData || defaultSettings;
 }
 
 function getSeriesReleaseTimestamp(s: any): number {
