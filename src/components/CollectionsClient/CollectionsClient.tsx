@@ -1,11 +1,15 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useSearchParams } from 'next/navigation';
 import { Layers, ArrowRight, Play, Sparkles, Compass, Flame } from 'lucide-react';
 import { getR2Url } from '@/utils/r2';
+import JsonLd from '../JsonLd/JsonLd';
 import styles from '@/app/(public)/collections/collections.module.css';
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
 
 interface SeriesItem {
   id: string;
@@ -36,15 +40,41 @@ const TABS = [
 ];
 
 export default function CollectionsClient({ collections }: CollectionsClientProps) {
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<string>('all');
+
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam) {
+      const matched = TABS.find(t => t.id.toLowerCase() === tabParam.toLowerCase());
+      if (matched) {
+        setActiveTab(matched.id);
+      }
+    }
+  }, [searchParams]);
 
   const filteredCollections = useMemo(() => {
     if (activeTab === 'all') return collections;
     return collections.filter(c => c.categoryTag === activeTab);
   }, [collections, activeTab]);
 
+  // ItemList JSON-LD Schema for Collections Grid
+  const itemListJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    'name': 'Curated Hentai Anime Playlists on PlayHentai',
+    'url': `${SITE_URL}/playlists`,
+    'itemListElement': filteredCollections.map((col, idx) => ({
+      '@type': 'ListItem',
+      'position': idx + 1,
+      'name': col.name,
+      'url': `${SITE_URL}/collections/${col.slug}`,
+    })),
+  };
+
   return (
     <div className={styles.container}>
+      <JsonLd data={itemListJsonLd} />
       <div className="ambient-glow" />
 
       {/* Header Section */}

@@ -1,5 +1,10 @@
 import { MOCK_SERIES } from './mockData';
-import { createClient } from './supabase/server';
+import { unstable_cache } from 'next/cache';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://kdesazliquregjbptyhc.supabase.co';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const publicSupabaseClient = createSupabaseClient(supabaseUrl, supabaseAnonKey);
 
 export interface Collection {
   id: string;
@@ -126,11 +131,9 @@ export async function getCollectionWithSeries(slug: string) {
   const collection = COLLECTIONS.find(c => c.slug === slug);
   if (!collection) return null;
 
-  // Fetch all series from Supabase or Fallback to Mock
-  const supabase = await createClient();
   let seriesList: any[] = [];
   try {
-    const { data } = await supabase
+    const { data } = await publicSupabaseClient
       .from('series')
       .select('*')
       .eq('is_published', true);
@@ -146,7 +149,6 @@ export async function getCollectionWithSeries(slug: string) {
     seriesList = MOCK_SERIES;
   }
 
-  // Smart matching logic
   let matchedSeries = seriesList.filter(s => {
     if (collection.seriesSlugs.includes(s.slug)) return true;
 
@@ -181,70 +183,71 @@ export async function getCollectionWithSeries(slug: string) {
   };
 }
 
-export async function getAllCollectionsWithPreviews() {
-  const supabase = await createClient();
-  let seriesList: any[] = [];
-  try {
-    const { data } = await supabase
-      .from('series')
-      .select('*')
-      .eq('is_published', true);
-    
-    if (data && data.length > 0) {
-      seriesList = data;
+export const getAllCollectionsWithPreviews = unstable_cache(
+  async () => {
+    let seriesList: any[] = [];
+    try {
+      const { data } = await publicSupabaseClient
+        .from('series')
+        .select('*')
+        .eq('is_published', true);
+      
+      if (data && data.length > 0) {
+        seriesList = data;
+      }
+    } catch (err) {
+      console.error('Error listing collections previews:', err);
     }
-  } catch (err) {
-    console.error('Error listing collections previews:', err);
-  }
 
-  if (seriesList.length === 0) {
-    seriesList = MOCK_SERIES;
-  }
+    if (seriesList.length === 0) {
+      seriesList = MOCK_SERIES;
+    }
 
-  return COLLECTIONS.map(col => {
-    let matched = seriesList.filter(s => {
-      if (col.seriesSlugs.includes(s.slug)) return true;
-      const tagsLower = (s.tags || []).map((t: string) => t.toLowerCase());
-      const catLower = (s.category || '').toLowerCase();
-      const titleLower = (s.title || '').toLowerCase();
-      const descLower = (s.description || '').toLowerCase();
+    return COLLECTIONS.map(col => {
+      let matched = seriesList.filter(s => {
+        if (col.seriesSlugs.includes(s.slug)) return true;
+        const tagsLower = (s.tags || []).map((t: string) => t.toLowerCase());
+        const catLower = (s.category || '').toLowerCase();
+        const titleLower = (s.title || '').toLowerCase();
+        const descLower = (s.description || '').toLowerCase();
 
-      if (col.slug === 'uncensored-legends') return tagsLower.includes('uncensored') || descLower.includes('uncensored');
-      if (col.slug === 'scifi-cyberpunk') return catLower === 'sci-fi' || tagsLower.includes('cyberpunk') || tagsLower.includes('sci-fi') || tagsLower.includes('mecha');
-      if (col.slug === 'fantasy-magic') return catLower === 'fantasy' || tagsLower.includes('magic') || tagsLower.includes('fantasy');
-      if (col.slug === 'action-martial-arts') return catLower === 'action' || tagsLower.includes('action') || titleLower.includes('ninja');
-      if (col.slug === 'harem-romance') return catLower === 'harem' || tagsLower.includes('harem') || tagsLower.includes('romance') || tagsLower.includes('school');
-      if (col.slug === 'supernatural-demons') return tagsLower.includes('supernatural') || tagsLower.includes('demons');
-      if (col.slug === 'top-rated-classics') return true;
-      if (col.slug === 'comedy-slice-of-life') return catLower === 'comedy' || tagsLower.includes('comedy');
-      if (col.slug === 'mystery-thriller') return catLower === 'mystery' || tagsLower.includes('mystery') || tagsLower.includes('thriller');
-      if (col.slug === 'historical-feudal') return catLower === 'historical' || tagsLower.includes('historical');
-      if (col.slug === 'super-power') return tagsLower.includes('super power') || catLower === 'action';
-      if (col.slug === 'ecchi-fanservice') return catLower === 'ecchi' || tagsLower.includes('ecchi');
-      return false;
-    });
+        if (col.slug === 'uncensored-legends') return tagsLower.includes('uncensored') || descLower.includes('uncensored');
+        if (col.slug === 'scifi-cyberpunk') return catLower === 'sci-fi' || tagsLower.includes('cyberpunk') || tagsLower.includes('sci-fi') || tagsLower.includes('mecha');
+        if (col.slug === 'fantasy-magic') return catLower === 'fantasy' || tagsLower.includes('magic') || tagsLower.includes('fantasy');
+        if (col.slug === 'action-martial-arts') return catLower === 'action' || tagsLower.includes('action') || titleLower.includes('ninja');
+        if (col.slug === 'harem-romance') return catLower === 'harem' || tagsLower.includes('harem') || tagsLower.includes('romance') || tagsLower.includes('school');
+        if (col.slug === 'supernatural-demons') return tagsLower.includes('supernatural') || tagsLower.includes('demons');
+        if (col.slug === 'top-rated-classics') return true;
+        if (col.slug === 'comedy-slice-of-life') return catLower === 'comedy' || tagsLower.includes('comedy');
+        if (col.slug === 'mystery-thriller') return catLower === 'mystery' || tagsLower.includes('mystery') || tagsLower.includes('thriller');
+        if (col.slug === 'historical-feudal') return catLower === 'historical' || tagsLower.includes('historical');
+        if (col.slug === 'super-power') return tagsLower.includes('super power') || catLower === 'action';
+        if (col.slug === 'ecchi-fanservice') return catLower === 'ecchi' || tagsLower.includes('ecchi');
+        return false;
+      });
 
-    const realMatchCount = matched.length;
+      const realMatchCount = matched.length;
 
-    // Backfill from seriesList if matched is sparse so stack graphic always has 3-4 images
-    if (matched.length < 3) {
-      const existingIds = new Set(matched.map(m => m.id));
-      for (const item of seriesList) {
-        if (!existingIds.has(item.id)) {
-          matched.push(item);
-          existingIds.add(item.id);
-          if (matched.length >= 4) break;
+      if (matched.length < 3) {
+        const existingIds = new Set(matched.map(m => m.id));
+        for (const item of seriesList) {
+          if (!existingIds.has(item.id)) {
+            matched.push(item);
+            existingIds.add(item.id);
+            if (matched.length >= 4) break;
+          }
         }
       }
-    }
 
-    // Dynamic count computation based on catalog volume
-    const calculatedCount = realMatchCount > 0 ? Math.max(realMatchCount, Math.min(seriesList.length, 6 + (col.slug.length % 7))) : Math.min(seriesList.length, 8);
+      const calculatedCount = realMatchCount > 0 ? Math.max(realMatchCount, Math.min(seriesList.length, 6 + (col.slug.length % 7))) : Math.min(seriesList.length, 8);
 
-    return {
-      ...col,
-      totalCount: calculatedCount,
-      series: matched.slice(0, 4) // Preview posters
-    };
-  });
-}
+      return {
+        ...col,
+        totalCount: calculatedCount,
+        series: matched.slice(0, 4)
+      };
+    });
+  },
+  ['all-collections-previews-cache-v1'],
+  { revalidate: 60, tags: ['collections_previews'] }
+);
