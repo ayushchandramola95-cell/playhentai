@@ -1,10 +1,14 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Search, X, ChevronLeft, ChevronRight, Grid, Box } from 'lucide-react';
 import SeriesCard from '../SeriesCard/SeriesCard';
 import AdBanner from '../AdBanner/AdBanner';
+import JsonLd from '../JsonLd/JsonLd';
 import styles from '../BrowseHub/BrowseHub.module.css';
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
 
 interface SeriesItem {
   id: string;
@@ -32,6 +36,7 @@ interface ThreeDHubProps {
 }
 
 export default function ThreeDHub({ initialSeries, isDbEmpty }: ThreeDHubProps) {
+  const searchParams = useSearchParams();
   const catalogRef = useRef<HTMLDivElement>(null);
   const filterBarRef = useRef<HTMLDivElement>(null);
 
@@ -41,6 +46,16 @@ export default function ThreeDHub({ initialSeries, isDbEmpty }: ThreeDHubProps) 
   const [currentPage, setCurrentPage] = useState<number>(1);
 
   const ITEMS_PER_PAGE = 25; // 5 rows x 5 columns
+
+  useEffect(() => {
+    const pageParam = searchParams.get('page');
+    if (pageParam) {
+      const parsedPage = parseInt(pageParam, 10);
+      if (!isNaN(parsedPage) && parsedPage > 0) {
+        setCurrentPage(parsedPage);
+      }
+    }
+  }, [searchParams]);
 
   const handleSearchFocus = () => {
     setIsSearchFocused(true);
@@ -139,8 +154,24 @@ export default function ThreeDHub({ initialSeries, isDbEmpty }: ThreeDHubProps) 
     }
   };
 
+  // ItemList JSON-LD Schema for Active Paginated 3D Results
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const itemListJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    'name': '3D Hentai & CGI Animations Catalog on PlayHentai',
+    'url': `${SITE_URL}/3d`,
+    'itemListElement': paginatedSeries.map((s, i) => ({
+      '@type': 'ListItem',
+      'position': startIndex + i + 1,
+      'name': s.title,
+      'url': `${SITE_URL}/series/${s.slug}`,
+    })),
+  };
+
   return (
     <div className={styles.hubContainer} ref={catalogRef}>
+      <JsonLd data={itemListJsonLd} />
       {/* Search Bar & Controls */}
       <div 
         ref={filterBarRef}
