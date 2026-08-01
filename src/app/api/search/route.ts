@@ -5,9 +5,10 @@ import { MOCK_SERIES } from '@/utils/mockData';
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const query = searchParams.get('q') || '';
+    const rawQuery = searchParams.get('q') || '';
+    const query = rawQuery.replace(/[,().%\\"]/g, '').trim();
 
-    if (!query.trim()) {
+    if (!query) {
       return NextResponse.json({ series: [] });
     }
 

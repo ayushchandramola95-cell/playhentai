@@ -413,7 +413,7 @@ export async function POST(req: NextRequest) {
 
     // 2. Cache Lookup
     let cacheTime = Date.now();
-    const cleanQuery = query.trim();
+    const cleanQuery = query.replace(/[,().%\\"]/g, '').trim();
     if (type === 'series') {
       const { data: matchedSeries } = await supabase
         .from('series')

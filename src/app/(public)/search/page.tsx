@@ -22,7 +22,8 @@ interface SearchPageProps {
 
 const getCachedSearchResults = unstable_cache(
   async (query: string) => {
-    if (!query) return { results: [], isDbEmpty: true };
+    const cleanQuery = query.replace(/[,().%\\"]/g, '').trim();
+    if (!cleanQuery) return { results: [], isDbEmpty: true };
     let results: any[] = [];
     let isDbEmpty = true;
 
@@ -39,7 +40,7 @@ const getCachedSearchResults = unstable_cache(
           )
         `)
         .eq('is_published', true)
-        .or(`title.ilike.%${query}%,description.ilike.%${query}%`);
+        .or(`title.ilike.%${cleanQuery}%,description.ilike.%${cleanQuery}%`);
 
       if (!error && data) {
         results = data;
