@@ -107,16 +107,26 @@ const getCachedSeriesDetails = unstable_cache(
 - **Metadata Type**: `Dynamic Metadata` function
 
 ### Search Intent & SEO Goal:
-- **Primary Search Intent**: Search series profiles, synopsis, episode catalog, studio info, ratings, and recommendations.
-- **Secondary Search Intent**: Search series title with streaming modifiers (`[Series Title] watch`, `[Series Title] stream`, `[Series Title] uncensored`, `[Series Title] episodes`).
-- **SEO Goal**: Rank #1 on Google for series title searches and long-tail query variations (`watch [Series Title] uncensored english sub hd`).
+- **Target User Intent**: Users searching for a specific anime title (`[Series Title]`).
+- **Detailed Intent Breakdown**:
+  - Watching full episodes (`/watch/[episodeId]`)
+  - Reading synopsis and story details
+  - Checking episode count & airing schedule
+  - Checking community ratings & reviews
+  - Finding similar titles & recommendations by studio
+- **SEO Goal**: Rank #1 on Google for exact series title searches (`[Series Title]`) and capture all long-tail supporting search queries (`watch [Series Title] uncensored english sub hd`).
 
-### Target Keyword Strategy & Primary Terms:
-- **Primary Keyword**: `watch [Series Title] uncensored`
-- **Secondary Keywords**: `[Series Title] english sub`, `[Series Title] episodes`, `[Series Title] stream online`, `[Series Title] hentai`
+### Target Keyword Strategy & Keyword Mapping:
+- **Primary Keyword**: `[Series Title]` (Highest-volume query for single show landing pages).
+- **Supporting / Secondary Keywords**:
+  - `Watch [Series Title]`
+  - `[Series Title] uncensored`
+  - `[Series Title] English sub` / `dub`
+  - `[Series Title] stream`
+  - `[Series Title] episodes`
 - **Primary Terms Present**:
+  - `Series Title` (Present in Title Tag, Meta Description, H1, H2s, JSON-LD, URL)
   - `Watch` (Present in Title Tag, Meta Description, H1 context, CTAs)
-  - `Series Title` (Present in Title Tag, Meta Description, H1, H2s, JSON-LD)
   - `English Sub` / `Dub` (Present in Title Tag & Meta Description)
   - `Uncensored` / `HD` (Present in Title Tag, Meta Description, Specifications)
   - `Brand Name` (`PlayHentai` present in Title Tag & Meta Description)
@@ -127,7 +137,7 @@ const getCachedSeriesDetails = unstable_cache(
 
 ### Technical Crawlability Matrix:
 - **Included in Sitemap**: `Yes` (via `/sitemap.ts` listing all published series slugs)
-- **Self Canonical**: `Yes` (`https://playhentai.live/series/[slug]`)
+- **Self Canonical**: `Yes` (`https://playhentai.live/series/[slug]`) - *Dynamic (uses current show slug)*
 - **Noindex**: `No` (`index: true, follow: true`)
 - **Robots Directives**: `index: true`, `follow: true`, `googleBot: { index: true, follow: true, max-image-preview: 'large', max-video-preview: -1, max-snippet: -1 }` (Inherited from Root Layout)
 - **Pagination**: `None`
@@ -135,7 +145,7 @@ const getCachedSeriesDetails = unstable_cache(
 ### Dynamic Metadata Inspection:
 - **Title Tag**: `${data.title} - Watch ${subOrDub} HD | PlayHentai`
 - **Meta Description**: `Watch ${data.title} with English subtitles in HD. Stream all available episodes, releases, and check out similar titles on PlayHentai.`
-- **Canonical URL**: `https://playhentai.live/series/[slug]`
+- **Canonical URL**: `https://playhentai.live/series/[slug]` (Dynamic per series slug)
 - **OpenGraph Metadata**: `og:title`, `og:description`, `og:url`, `og:type` (`video.tv_show`), `og:image`.
 - **OpenGraph Image (`og:image`)**: Cover image or poster image delivered via Cloudflare R2 CDN (`https://media.playhentai.live`). Default site banner fallback (`https://media.playhentai.live/og-banner.jpg`) applied if image key is missing.
 
@@ -155,14 +165,15 @@ const getCachedSeriesDetails = unstable_cache(
 1. **Implemented Schemas**:
    - `BreadcrumbList` (`Home` $\rightarrow$ `[Series Title]`)
    - `TVSeries` (with `@id`, `name`, `description`, `image`, `genre`, `numberOfSeasons`, `numberOfEpisodes`, `publisher`, `aggregateRating`)
-   - `FAQPage` (5 accordions covering Overview, Uncensored status, Episode count, Airing status, and Studio)
+     - *Schema Data Dependencies*: Depends directly on `series` table, `episodes` count, `rating`, `studio`, and `tags` (genres).
+   - `FAQPage` (5 accordions generated dynamically based on Series Data: Overview, Uncensored status, Episode count, Airing status, and Studio)
 2. **Not Implemented / Intentionally Omitted Schemas**:
    - `VideoObject`: (Omitted; reserved for single episode watch pages at `/watch/[episodeId]`)
 
 ### Internal Linking Map (`Series Detail Page Links To`):
 - **Episode Watch Player Pages**: `/watch/[episodeId]`
 - **Studio Profile Page**: `/studios/[studioSlug]`
-- **Genre / Category Filters**: `/categories?genre=[tag]`
+- **Tags & Genre Chips**: Clickable tag links to category filter pages (`/categories?genre=[tag]`)
 - **Header Navigation Links**: `/` (Home), `/categories` (Series), `/uncensored` (Uncensored), `/3d` (3D), `/playlists` (Playlists), `/studios` (Studios), `/surprise` (Surprise Me)
 - **User Activity Links**: `/watchlist` (Watchlist), `/history` (Watch History)
 - **Global Search**: Triggered via Header Search Bar
