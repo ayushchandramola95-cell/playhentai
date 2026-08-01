@@ -3,8 +3,12 @@ import { createClient } from '@/utils/supabase/server';
 import WatchlistClient from '@/components/WatchlistClient/WatchlistClient';
 
 export const metadata = {
-  title: 'My Anime Watchlist',
+  title: 'My Anime Watchlist | PlayHentai',
   description: 'Your saved series and bookmarked anime episodes on PlayHentai.',
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default async function WatchlistPage() {

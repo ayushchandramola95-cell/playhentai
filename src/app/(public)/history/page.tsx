@@ -3,8 +3,12 @@ import { createClient } from '@/utils/supabase/server';
 import HistoryClient from '@/components/HistoryClient/HistoryClient';
 
 export const metadata = {
-  title: 'Watch History - PlayHentai',
-  description: 'Resume your saved video playback locations.',
+  title: 'Watch History | PlayHentai',
+  description: 'Resume your saved video playback locations on PlayHentai.',
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 const MOCK_EPISODES: Record<string, any> = {
