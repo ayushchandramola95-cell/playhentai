@@ -9,8 +9,6 @@ import JsonLd from '@/components/JsonLd/JsonLd';
 import { tagToSlug } from '@/utils/constants';
 import styles from './tag.module.css';
 
-export const dynamic = 'force-dynamic';
-
 interface TagPageProps {
   params: Promise<{ slug: string }>;
   searchParams: Promise<{ page?: string }>;

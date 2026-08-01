@@ -8,8 +8,6 @@ import SeriesCard from '@/components/SeriesCard/SeriesCard';
 import JsonLd from '@/components/JsonLd/JsonLd';
 import styles from './year.module.css';
 
-export const dynamic = 'force-dynamic';
-
 interface YearPageProps {
   params: Promise<{ year: string }>;
   searchParams: Promise<{ page?: string }>;

@@ -2,8 +2,6 @@ import React from 'react';
 import { Metadata } from 'next';
 import StatusCatalog, { fetchSeriesByStatus, buildStatusMetadata } from '@/components/StatusCatalog/StatusCatalog';
 
-export const dynamic = 'force-dynamic';
-
 interface PageProps {
   searchParams: Promise<{ page?: string }>;
 }

@@ -8,15 +8,15 @@ import styles from './trending.module.css';
 import { MOCK_SERIES, MOCK_SERIES_DETAILS } from '@/utils/mockData';
 import { GENRES } from '@/utils/constants';
 
-export const dynamic = 'force-dynamic';
-
 export const metadata = {
-  title: 'Trending Hentai Anime Series - PlayHentai',
+  title: 'Trending Hentai Anime Series | PlayHentai',
   description: 'Discover the most popular and trending uncensored hentai anime series right now on PlayHentai.',
   alternates: {
     canonical: '/trending',
   },
   openGraph: {
+    title: 'Trending Hentai Anime Series | PlayHentai',
+    description: 'Discover the most popular and trending uncensored hentai anime series right now on PlayHentai.',
     url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live'}/trending`,
     type: 'website' as const,
   },

@@ -4,7 +4,6 @@ import Image from 'next/image';
 import { Clock, Play, ArrowLeft, Star, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
 import { createClient } from '@/utils/supabase/server';
 
-export const dynamic = 'force-dynamic';
 import { getR2Url } from '@/utils/r2';
 import { getEpisodeWatchUrl } from '@/utils/episodeUrl';
 import { MOCK_EPISODES } from '@/utils/mockData';
@@ -12,7 +11,7 @@ import RecentFilterBar from '@/components/RecentFilterBar/RecentFilterBar';
 import styles from '../recent.module.css';
 
 export const metadata = {
-  title: 'Recent Episodes - PlayHentai',
+  title: 'Recent Episodes | PlayHentai',
   description: 'Watch the latest released episodes on PlayHentai, updated daily with high-quality content.',
   alternates: {
     canonical: '/recent/episodes',

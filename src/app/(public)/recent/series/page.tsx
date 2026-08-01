@@ -4,7 +4,6 @@ import Image from 'next/image';
 import { TrendingUp, Play, ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
 import { createClient } from '@/utils/supabase/server';
 
-export const dynamic = 'force-dynamic';
 import { getR2Url } from '@/utils/r2';
 import { MOCK_SERIES } from '@/utils/mockData';
 import SeriesCard from '@/components/SeriesCard/SeriesCard';
@@ -13,7 +12,7 @@ import AdBanner from '@/components/AdBanner/AdBanner';
 import styles from '../recent.module.css';
 
 export const metadata = {
-  title: 'Recent Series - PlayHentai',
+  title: 'Recent Series | PlayHentai',
   description: 'Browse the latest added series on PlayHentai, updated daily with high-quality content.',
   alternates: {
     canonical: '/recent/series',
