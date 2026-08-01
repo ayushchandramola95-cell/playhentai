@@ -1,7 +1,8 @@
 import React from 'react';
 import { Metadata } from 'next';
 import Link from 'next/link';
-import { createClient } from '@/utils/supabase/server';
+import { unstable_cache } from 'next/cache';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { getR2Url } from '@/utils/r2';
 import { MOCK_SERIES, MOCK_SERIES_DETAILS } from '@/utils/mockData';
 import { parseEpisodeSlug, getEpisodeWatchUrl } from '@/utils/episodeUrl';
@@ -9,7 +10,11 @@ import WatchPageClient from './WatchPageClient';
 import JsonLd from '@/components/JsonLd/JsonLd';
 import styles from './watch.module.css';
 
-export const dynamic = 'force-dynamic';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://kdesazliquregjbptyhc.supabase.co';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const publicSupabaseClient = createSupabaseClient(supabaseUrl, supabaseAnonKey);
 
 const MOCK_EPISODES: Record<string, any> = {
   'mock-ep-1': { id: 'mock-ep-1', episode_number: 1, title: 'The Ghost Run', description: 'A high-stakes data heist goes sideways when a digital phantom intercepts the netrunner\'s neural connection.', duration_seconds: 1440, video_key: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4', series_title: 'Cyberpunk Odyssey', slug: 'cyberpunk-odyssey', next_episode_id: 'mock-ep-2' },
@@ -30,7 +35,6 @@ interface WatchPageProps {
 async function resolveEpisode(supabase: any, episodeId: string) {
   const parsed = parseEpisodeSlug(episodeId);
 
-  // 1. Try slug resolution if episodeId matches "series-slug-episode-1"
   if (parsed?.seriesSlug && parsed?.episodeNumber !== undefined) {
     try {
       const { data: seriesData } = await supabase
@@ -75,7 +79,6 @@ async function resolveEpisode(supabase: any, episodeId: string) {
     } catch (e) {}
   }
 
-  // 2. Try direct ID query (UUID or trailer-id)
   try {
     if (episodeId.startsWith('trailer-')) {
       const seriesId = episodeId.replace('trailer-', '');
@@ -133,7 +136,6 @@ async function resolveEpisode(supabase: any, episodeId: string) {
     }
   } catch (e) {}
 
-  // 3. Fallback mock resolution
   if (parsed?.seriesSlug && parsed?.episodeNumber !== undefined) {
     const mockDetail = MOCK_SERIES_DETAILS[parsed.seriesSlug] || MOCK_SERIES.find((s: any) => s.slug === parsed.seriesSlug);
     if (mockDetail && mockDetail.seasons) {
@@ -177,10 +179,17 @@ async function resolveEpisode(supabase: any, episodeId: string) {
   return null;
 }
 
+const getCachedResolvedEpisode = unstable_cache(
+  async (episodeId: string) => {
+    return await resolveEpisode(publicSupabaseClient, episodeId);
+  },
+  ['watch-episode-resolved-cache-v1'],
+  { revalidate: 60, tags: ['watch_episode'] }
+);
+
 export async function generateMetadata({ params }: WatchPageProps): Promise<Metadata> {
   const resolvedParams = await params;
   const episodeId = resolvedParams.episodeId;
-  const supabase = await createClient();
 
   let title = 'Watch Episode - PlayHentai';
   let description = 'Play and watch this episode in full HD streaming on PlayHentai.';
@@ -188,7 +197,7 @@ export async function generateMetadata({ params }: WatchPageProps): Promise<Meta
   let canonicalPath = `/watch/${episodeId}`;
 
   try {
-    const resolved = await resolveEpisode(supabase, episodeId);
+    const resolved = await getCachedResolvedEpisode(episodeId);
     if (resolved?.activeEpisode) {
       const ep = resolved.activeEpisode;
       title = `Watch ${resolved.seriesTitle} Episode ${ep.episode_number} English Sub HD | PlayHentai`;
@@ -200,9 +209,10 @@ export async function generateMetadata({ params }: WatchPageProps): Promise<Meta
     console.error('Error generating metadata:', err);
   }
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
-  const canonicalUrl = `${siteUrl}${canonicalPath}`;
-  const images = thumbnail ? [{ url: getR2Url(thumbnail, 'thumbnail') }] : [];
+  const canonicalUrl = `${SITE_URL}${canonicalPath}`;
+  const images = thumbnail
+    ? [{ url: getR2Url(thumbnail, 'thumbnail') }]
+    : [{ url: 'https://media.playhentai.live/og-banner.jpg', width: 1200, height: 630, alt: title }];
 
   return {
     title,
@@ -229,18 +239,17 @@ export async function generateMetadata({ params }: WatchPageProps): Promise<Meta
 export default async function WatchPage({ params }: WatchPageProps) {
   const resolvedParams = await params;
   const episodeId = resolvedParams.episodeId;
-  const supabase = await createClient();
 
   let allSeriesList: any[] = [];
   try {
-    const { data: allSeriesData } = await supabase
+    const { data: allSeriesData } = await publicSupabaseClient
       .from('series')
       .select('*')
       .eq('is_published', true);
     if (allSeriesData) allSeriesList = allSeriesData;
   } catch (e) {}
 
-  const resolved = await resolveEpisode(supabase, episodeId);
+  const resolved = await getCachedResolvedEpisode(episodeId);
 
   if (!resolved || !resolved.activeEpisode) {
     return (

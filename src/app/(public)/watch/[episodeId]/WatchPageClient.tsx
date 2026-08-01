@@ -197,7 +197,7 @@ export default function WatchPageClient({
                   PREVIEW / TRAILER
                 </span>
               )}
-              <h1>{activeEpisode.title.replace(/^\[Preview\]\s*/i, '').replace(/^\[Trailer\]\s*/i, '')}</h1>
+              <h1>Watch {seriesTitle} Episode {activeEpisode.episode_number}: {activeEpisode.title.replace(/^\[Preview\]\s*/i, '').replace(/^\[Trailer\]\s*/i, '')}</h1>
             </div>
 
             <div className={styles.epMetaRow}>
