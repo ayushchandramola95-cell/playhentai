@@ -4,6 +4,14 @@ import { createClient } from '@/utils/supabase/server';
 import AdminSidebar from './AdminSidebar';
 import styles from './admin.module.css';
 
+export const metadata = {
+  title: 'Admin Console | PlayHentai',
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
+
 export default async function AdminLayout({
   children,
 }: {
