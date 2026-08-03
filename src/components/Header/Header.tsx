@@ -114,7 +114,7 @@ export default function Header() {
             Home
           </Link>
           <Link href="/categories" className={`${styles.navLink} ${pathname === '/categories' && !currentGenre ? styles.activeLink : ''}`}>
-            Series
+            Browse
           </Link>
           <Link href="/uncensored" className={`${styles.navLink} ${pathname === '/uncensored' ? styles.activeLink : ''}`}>
             Uncensored
@@ -271,9 +271,13 @@ export default function Header() {
                 <span>Home</span>
               </Link>
 
-              <Link href="/categories" onClick={() => setMobileMenuOpen(false)} className={`${styles.mobileNavLink} ${pathname === '/categories' && !currentGenre ? styles.activeLink : ''}`}>
+              <Link
+                href="/categories"
+                className={`${styles.mobileNavLink} ${pathname === '/categories' ? styles.activeLink : ''}`}
+                onClick={() => setMobileMenuOpen(false)}
+              >
                 <Layers size={18} />
-                <span>Series Library</span>
+                <span>Browse</span>
               </Link>
 
               <Link href="/uncensored" onClick={() => setMobileMenuOpen(false)} className={`${styles.mobileNavLink} ${pathname === '/uncensored' ? styles.activeLink : ''}`}>
