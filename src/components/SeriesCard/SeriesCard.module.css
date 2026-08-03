@@ -3,7 +3,7 @@
   flex-direction: column;
   background: var(--surface, #121722);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
+  border-radius: 4px;
   position: relative;
   transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
   overflow: hidden;
@@ -30,7 +30,7 @@
   width: 100%;
   padding-top: 142%; /* Bulletproof 2:3 Aspect Ratio */
   overflow: hidden;
-  border-radius: 11px 11px 0 0;
+  border-radius: 4px 4px 0 0;
   background: var(--surface-hover);
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
