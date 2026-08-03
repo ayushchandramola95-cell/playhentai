@@ -367,27 +367,16 @@ export default async function HomePage() {
     });
   }
 
-  // Populate upcoming series (up to 15 items guaranteed)
-  let upcomingSeriesPool = activeSeries.filter(s => (s.status || '').toLowerCase() === 'upcoming');
-  if (upcomingSeriesPool.length < 15) {
+  // Populate upcoming series strictly from real series (no fake mock data)
+  let upcomingSeriesPool = rawPool.filter(s => (s.status || '').toLowerCase() === 'upcoming' || s.is_upcoming);
+  if (upcomingSeriesPool.length < 6) {
     const seenIds = new Set(upcomingSeriesPool.map(s => s.id || s.slug));
-    const mockUpcoming = MOCK_SERIES.filter(s => (s.status || '').toLowerCase() === 'upcoming' || (s.release_year && s.release_year >= 2026));
-    
-    mockUpcoming.forEach(m => {
-      if (!seenIds.has(m.id) && !seenIds.has(m.slug)) {
-        seenIds.add(m.id);
-        upcomingSeriesPool.push(m);
+    rawPool.forEach(s => {
+      if (!seenIds.has(s.id) && !seenIds.has(s.slug)) {
+        seenIds.add(s.id);
+        upcomingSeriesPool.push({ ...s, status: 'upcoming' });
       }
     });
-
-    if (upcomingSeriesPool.length < 15) {
-      rawPool.forEach(s => {
-        if (!seenIds.has(s.id) && !seenIds.has(s.slug)) {
-          seenIds.add(s.id);
-          upcomingSeriesPool.push({ ...s, status: 'upcoming' });
-        }
-      });
-    }
   }
   const upcomingSeries = upcomingSeriesPool.slice(0, 15);
 
@@ -494,24 +483,30 @@ export default async function HomePage() {
       {/* Mobile-Only Hero Bottom Banner (Zone 5986984) */}
       <AdBanner zoneId="5986984" insClass="eas6a97888e10" mobileOnly />
 
-      {/* 1. Recent Episodes Section: Horizontal scroll slider up to 15 items */}
+      {/* 1. Recent Episodes Section: 4x5 landscape grid (20 items total) */}
       <section className={styles.section}>
-        <HorizontalScrollRow
-          title="Recent Uploads"
-          subtitle="NEWLY RELEASED"
-          viewAllHref="/recent/episodes"
-        >
-          {processedEpisodes.slice(0, 15).map((ep) => {
+        <div className={styles.seriesSectionHeader}>
+          <div className={styles.headerLeftCol}>
+            <h2>Recent Uploads</h2>
+            <span className={styles.seriesSubtitle}>NEWLY RELEASED</span>
+          </div>
+          <Link href="/recent/episodes" className={styles.viewAllLink}>
+            View All <ChevronRight size={14} />
+          </Link>
+        </div>
+        
+        <div className={styles.episodeGrid}>
+          {processedEpisodes.slice(0, 20).map((ep) => {
             const watchUrl = getEpisodeWatchUrl(ep.id, ep.episode_number, ep.showSlug);
             return (
-              <div data-is-episode key={ep.id} className={`${styles.episodeCard} card-hover`}>
+              <div key={ep.id} className={`${styles.episodeCard} card-hover`}>
                 <Link href={watchUrl} className={styles.cardImageLink}>
                   <div className={styles.cardImageWrapper}>
                     <Image
                       src={getR2Url(ep.thumbnail, 'thumbnail')}
                       alt={ep.title}
                       fill
-                      sizes="(max-width: 480px) 100vw, (max-width: 768px) 50vw, 310px"
+                      sizes="(max-width: 480px) 100vw, (max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
                       className={styles.cardImage}
                     />
                     <div className={styles.cardImageOverlay}>
@@ -542,13 +537,13 @@ export default async function HomePage() {
                   </h3>
                   <div className={styles.episodeViewsRow}>
                     <Eye size={12} className={styles.eyeIcon} />
-                    <span>{(ep.views ? (ep.views / 1000).toFixed(1) + 'K' : '450.2K')}</span>
+                    <span>{ep.views ? (ep.views / 1000).toFixed(1) + 'K' : '450.2K'}</span>
                   </div>
                 </div>
               </div>
             );
           })}
-        </HorizontalScrollRow>
+        </div>
       </section>
 
       {/* Sponsored Ad Banner: After Recent Episodes (Zone 5986194) */}

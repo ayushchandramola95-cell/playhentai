@@ -126,10 +126,10 @@
   width: 310px;
 }
 
-/* Portrait Series Item Width in Slider */
+/* Portrait Series Item Width in Slider: Shows 6 full cards + peek of 7th card on desktop */
 .seriesItem {
-  flex: 0 0 210px;
-  width: 210px;
+  flex: 0 0 calc((100% - 4.2rem) / 6.25);
+  min-width: 175px;
 }
 
 /* Dash Indicators below Row */
@@ -162,14 +162,14 @@
   box-shadow: 0 0 8px rgba(168, 85, 247, 0.5);
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 1280px) {
   .episodeItem {
     flex: 0 0 270px;
     width: 270px;
   }
   .seriesItem {
-    flex: 0 0 180px;
-    width: 180px;
+    flex: 0 0 calc((100% - 3.2rem) / 4.8);
+    min-width: 160px;
   }
 }
 
@@ -179,8 +179,8 @@
     width: 240px;
   }
   .seriesItem {
-    flex: 0 0 155px;
-    width: 155px;
+    flex: 0 0 calc((100% - 1.8rem) / 2.6);
+    min-width: 140px;
   }
   .scrollContainer {
     gap: 0.6rem;
