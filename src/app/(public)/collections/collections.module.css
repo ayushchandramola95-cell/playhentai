@@ -1,7 +1,7 @@
 .container {
-  max-width: 1320px;
+  max-width: 1720px;
   margin: 0 auto;
-  padding: 2rem 1.6rem 4rem;
+  padding: 2rem 2rem 4rem;
   min-height: 80vh;
   position: relative;
 }

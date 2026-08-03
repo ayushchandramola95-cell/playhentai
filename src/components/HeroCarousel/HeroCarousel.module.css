@@ -62,9 +62,9 @@
 
 .heroContentWrapper {
   width: 100%;
-  max-width: 1380px;
+  max-width: 1720px;
   margin: 0 auto;
-  padding: 0 4.5rem;
+  padding: 0 2rem;
   position: relative;
   z-index: 10;
   pointer-events: none;
