@@ -108,7 +108,7 @@ For each page in the application, a dedicated markdown file will be created insi
 | 4 | **3D Animations Catalog** (`/3d`) | [`structur&seo/3d_page.md`](file:///c:/new%20website%20creation/hentaianime/structur&seo/3d_page.md) | ✅ **100% Executed** |
 | 5 | **Curated Playlists** (`/playlists`) | [`structur&seo/playlists_page.md`](file:///c:/new%20website%20creation/hentaianime/structur&seo/playlists_page.md) | ✅ **100% Executed** |
 | 6 | **Production Studios Directory** (`/studios`) | [`structur&seo/studios_page.md`](file:///c:/new%20website%20creation/hentaianime/structur&seo/studios_page.md) | ✅ **100% Executed** |
-| 7 | **Surprise Me Randomizer** (`/random`) | [`structur&seo/surprise_me_page.md`](file:///c:/new%20website%20creation/hentaianime/structur&seo/surprise_me_page.md) | ✅ **100% Executed** |
+| 7 | **Random Catalog & Generator** (`/random`) | [`structur&seo/random_page.md`](file:///c:/new%20website%20creation/hentaianime/structur&seo/random_page.md) | ✅ **100% Executed** |
 | 8 | **Single Series Detail Page** (`/series/[slug]`) | [`structur&seo/series_detail_page.md`](file:///c:/new%20website%20creation/hentaianime/structur&seo/series_detail_page.md) | ✅ **100% Executed** |
 | 9 | **Watch / Video Player Page** (`/watch/[episodeId]`) | [`structur&seo/watch_page.md`](file:///c:/new%20website%20creation/hentaianime/structur&seo/watch_page.md) | ✅ **100% Executed** |
 | 10 | **User Account Pages** (`/watchlist`, `/history`) | [`structur&seo/user_account_pages.md`](file:///c:/new%20website%20creation/hentaianime/structur&seo/user_account_pages.md) | ✅ **100% Executed** |

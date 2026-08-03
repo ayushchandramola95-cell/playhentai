@@ -4,7 +4,8 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
-import { Sparkles, Dices, Play, RefreshCw, Flame, Zap, Heart, Compass, Star, ArrowRight } from 'lucide-react';
+import { Sparkles, Dices, Play, RefreshCw, Flame, Zap, Heart, Compass, Star, ChevronLeft, ChevronRight, LayoutGrid, List, Shuffle } from 'lucide-react';
+import SeriesCard from '@/components/SeriesCard/SeriesCard';
 import { getR2Url } from '@/utils/r2';
 import styles from './random.module.css';
 
@@ -16,6 +17,8 @@ interface SeriesItem {
   poster_image_key: string;
   tags?: string[];
   category?: string;
+  views_count?: number;
+  rating?: number;
 }
 
 interface RandomizerPortalProps {
@@ -23,21 +26,33 @@ interface RandomizerPortalProps {
 }
 
 const GENRE_FILTERS = [
-  { id: 'all', label: '🎲 All Categories', icon: Dices },
-  { id: 'uncensored', label: '🔥 Uncensored', icon: Flame },
-  { id: 'action', label: '⚡ Action & Martial Arts', icon: Zap },
-  { id: 'fantasy', label: '✨ Fantasy & Magic', icon: Sparkles },
-  { id: 'harem', label: '💖 Harem & Romance', icon: Heart },
-  { id: 'scifi', label: '🌌 Sci-Fi & Cyberpunk', icon: Compass },
+  { id: 'all', label: '🎲 All Categories' },
+  { id: 'uncensored', label: '🔥 Uncensored' },
+  { id: 'action', label: '⚡ Action' },
+  { id: 'fantasy', label: '✨ Fantasy' },
+  { id: 'harem', label: '💖 Harem' },
+  { id: 'scifi', label: '🌌 Sci-Fi' },
 ];
 
 export default function RandomizerPortal({ seriesList }: RandomizerPortalProps) {
   const searchParams = useSearchParams();
   const [selectedGenre, setSelectedGenre] = useState<string>('all');
-  const [isSpinning, setIsSpinning] = useState<boolean>(true);
-  const [slotImageIndex, setSlotImageIndex] = useState<number>(0);
-  const [winner, setWinner] = useState<SeriesItem | null>(null);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [shuffledList, setShuffledList] = useState<SeriesItem[]>([]);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [isShuffling, setIsShuffling] = useState<boolean>(false);
+  const pageSize = 24;
 
+  const shuffleArray = (array: SeriesItem[]) => {
+    const arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  };
+
+  // Sync initial genre param
   useEffect(() => {
     const genreParam = searchParams.get('genre');
     if (genreParam) {
@@ -65,49 +80,58 @@ export default function RandomizerPortal({ seriesList }: RandomizerPortalProps) 
     });
   }, [seriesList, selectedGenre]);
 
-  // Roll the slot machine & pick winner
-  const handleRoll = useCallback(() => {
-    if (filteredPool.length === 0) return;
-    setIsSpinning(true);
-    setWinner(null);
+  // Handle live randomize reshuffle
+  const handleRandomize = useCallback(() => {
+    setIsShuffling(true);
+    setTimeout(() => {
+      setShuffledList(shuffleArray(filteredPool));
+      setCurrentPage(1);
+      setIsShuffling(false);
+    }, 250);
+  }, [filteredPool]);
 
-    let count = 0;
-    const interval = setInterval(() => {
-      setSlotImageIndex((prev) => (prev + 1) % seriesList.length);
-      count++;
-      if (count >= 14) {
-        clearInterval(interval);
-        // Pick winner from filtered pool
-        const randomIndex = Math.floor(Math.random() * filteredPool.length);
-        const pickedWinner = filteredPool[randomIndex] || filteredPool[0];
-        setWinner(pickedWinner);
-        setIsSpinning(false);
-      }
-    }, 90);
-  }, [filteredPool, seriesList]);
-
-  // Initial spin on mount or when genre changes
+  // Initial random shuffle on load / filter change
   useEffect(() => {
-    handleRoll();
-  }, [selectedGenre]);
+    setShuffledList(shuffleArray(filteredPool));
+    setCurrentPage(1);
+  }, [filteredPool]);
 
-  const currentReelPoster = seriesList[slotImageIndex]?.poster_image_key || seriesList[0]?.poster_image_key;
+  // Pagination calculation
+  const totalPages = Math.ceil(shuffledList.length / pageSize) || 1;
+  const paginatedItems = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return shuffledList.slice(start, start + pageSize);
+  }, [shuffledList, currentPage, pageSize]);
 
   return (
     <div className={styles.container}>
-      {/* Pulsing Background Glows */}
-      <div className={styles.backgroundGlows}>
-        <div className={`${styles.glowCircle} ${styles.glowPurple}`} />
-        <div className={`${styles.glowCircle} ${styles.glowCyan}`} />
-      </div>
-
       <div className={styles.portalContent}>
-        {/* Header Section */}
+        {/* Breadcrumb Row */}
+        <nav className={styles.breadcrumbs} aria-label="Breadcrumbs">
+          <Link href="/">Browse</Link>
+          <span className={styles.crumbDivider}>/</span>
+          <span className={styles.activeCrumb}>Random</span>
+        </nav>
+
+        {/* Page Header */}
         <div className={styles.portalHeader}>
-          <h1>Random Hentai Anime Generator</h1>
+          <h1 className={styles.pageTitle}>Random</h1>
           <p className={styles.portalSubtext}>
-            Can't decide what to watch next? Filter by vibe or spin the wheel for instant recommendations.
+            Feelin' lucky? Here's the whole library in a random order — filter it, sort it, or hit randomize for a fresh shuffle.
           </p>
+        </div>
+
+        {/* Action Bar: Big Randomize Button, View Mode, Pagination */}
+        <div className={styles.actionBar}>
+          <button
+            type="button"
+            onClick={handleRandomize}
+            className={`${styles.randomizeBtn} ${isShuffling ? styles.btnSpinning : ''}`}
+            disabled={isShuffling}
+          >
+            <Shuffle size={18} className={styles.shuffleIcon} />
+            <span>Randomize</span>
+          </button>
 
           {/* Genre Filter Chips */}
           <div className={styles.filterChipsRow}>
@@ -125,67 +149,87 @@ export default function RandomizerPortal({ seriesList }: RandomizerPortalProps) 
               );
             })}
           </div>
-        </div>
 
-        {/* Reel Box or Winner Card */}
-        {isSpinning || !winner ? (
-          <div className={styles.slotMachineBox}>
-            <div className={styles.spinningReel}>
-              {currentReelPoster && (
-                <Image
-                  src={getR2Url(currentReelPoster, 'poster')}
-                  alt="Spinning series"
-                  fill
-                  sizes="220px"
-                  className={styles.slotImage}
-                />
-              )}
-              <div className={styles.slotOverlay}>
-                <RefreshCw size={44} className={styles.spinningRingIcon} />
-              </div>
+          {/* Controls Right: View Toggle & Pagination */}
+          <div className={styles.controlsRight}>
+            <div className={styles.viewToggleGroup}>
+              <button
+                type="button"
+                className={`${styles.viewBtn} ${viewMode === 'grid' ? styles.activeView : ''}`}
+                onClick={() => setViewMode('grid')}
+                aria-label="Grid View"
+              >
+                <LayoutGrid size={16} />
+              </button>
+              <button
+                type="button"
+                className={`${styles.viewBtn} ${viewMode === 'list' ? styles.activeView : ''}`}
+                onClick={() => setViewMode('list')}
+                aria-label="List View"
+              >
+                <List size={16} />
+              </button>
+            </div>
+
+            <div className={styles.miniPagination}>
+              <button
+                type="button"
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage <= 1}
+                className={styles.pageArrowBtn}
+              >
+                <ChevronLeft size={16} />
+              </button>
+              <span className={styles.pageIndicator}>
+                Page {currentPage} / {totalPages}
+              </span>
+              <button
+                type="button"
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage >= totalPages}
+                className={styles.pageArrowBtn}
+              >
+                <ChevronRight size={16} />
+              </button>
             </div>
           </div>
-        ) : (
-          <div className={styles.winnerShowcaseCard}>
-            {/* Winner Poster */}
-            <div className={styles.winnerPosterWrapper}>
-              <Image
-                src={getR2Url(winner.poster_image_key, 'poster')}
-                alt={winner.title}
-                fill
-                sizes="160px"
-                className={styles.winnerPoster}
-              />
-            </div>
+        </div>
 
-            {/* Winner Details */}
-            <div className={styles.winnerDetails}>
-              <div>
-                <div className={styles.winnerBadgeRow}>
-                  <span className={styles.winnerTag}>
-                    <Star size={11} style={{ verticalAlign: 'middle', marginRight: '4px' }} fill="currentColor" />
-                    Random Choice
-                  </span>
-                  {winner.category && <span className={styles.winnerCategory}>{winner.category}</span>}
-                </div>
+        {/* Randomized Catalog Grid / List */}
+        <div className={`${styles.catalogGrid} ${isShuffling ? styles.gridFade : ''}`}>
+          {paginatedItems.map((item) => (
+            <SeriesCard key={item.id} item={item} />
+          ))}
+        </div>
 
-                <h2 className={styles.winnerTitle}>{winner.title}</h2>
-                <p className={styles.winnerSynopsis}>{winner.description}</p>
-              </div>
-
-              {/* Action Row */}
-              <div className={styles.actionRow}>
-                <Link href={`/series/${winner.slug}`} className={styles.watchBtn}>
-                  <Play size={18} fill="currentColor" />
-                  <span>Watch Series Now</span>
-                </Link>
-
-                <button type="button" onClick={handleRoll} className={styles.rerollBtn}>
-                  <Dices size={18} />
-                  <span>Spin Again</span>
-                </button>
-              </div>
-            </div>
+        {/* Bottom Pagination */}
+        {totalPages > 1 && (
+          <div className={styles.bottomPagination}>
+            <button
+              type="button"
+              onClick={() => {
+                setCurrentPage((p) => Math.max(1, p - 1));
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              disabled={currentPage <= 1}
+              className={styles.paginationBtn}
+            >
+              Previous Page
+            </button>
+            <span className={styles.pageInfoText}>
+              Showing Page {currentPage} of {totalPages} ({shuffledList.length} Random Titles)
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                setCurrentPage((p) => Math.min(totalPages, p + 1));
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              disabled={currentPage >= totalPages}
+              className={styles.paginationBtn}
+            >
+              Next Page
+            </button>
           </div>
         )}
       </div>

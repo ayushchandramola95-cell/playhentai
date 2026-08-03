@@ -1,0 +1,205 @@
+.sectionContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  width: 100%;
+}
+
+.headerRow {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  width: 100%;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.headerTitles {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.sectionTitle {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0;
+  letter-spacing: -0.015em;
+  line-height: 1.25;
+}
+
+.sectionSubtitle {
+  font-size: 0.8rem;
+  color: #eab308; /* Warm Gold */
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.headerControls {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.shuffleBtn {
+  background: rgba(168, 85, 247, 0.15);
+  border: 1px solid rgba(168, 85, 247, 0.35);
+  color: #c084fc;
+  font-size: 0.8rem;
+  font-weight: 800;
+  padding: 0.45rem 1.05rem;
+  border-radius: 4px;
+  letter-spacing: 0.06em;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+}
+
+.shuffleBtn:hover {
+  background: rgba(168, 85, 247, 0.3);
+  border-color: rgba(168, 85, 247, 0.6);
+  color: #ffffff;
+  box-shadow: 0 0 12px rgba(168, 85, 247, 0.4);
+}
+
+.viewAllBtn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #f1f5f9;
+  font-size: 0.85rem;
+  font-weight: 800;
+  padding: 0.45rem 1.05rem;
+  border-radius: 4px;
+  text-decoration: none;
+  letter-spacing: 0.06em;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.viewAllBtn:hover {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.35);
+  color: #ffffff;
+}
+
+.arrowBtn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #f1f5f9;
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.arrowBtn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+  color: #ffffff;
+}
+
+.arrowBtn:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
+.scrollWrapper {
+  position: relative;
+  width: 100%;
+}
+
+.scrollContainer {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 0.45rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+  width: 100%;
+  padding: 0.2rem 0 0.5rem;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.scrollContainer::-webkit-scrollbar {
+  display: none;
+}
+
+/* Portrait Series Item Width in Slider: Tight gap, 6 full cards + peek of 7th card on desktop */
+.seriesItem {
+  flex: 0 0 calc((100% - 2.5rem) / 6.25);
+  min-width: 175px;
+  scroll-snap-align: start;
+}
+
+/* Dash Indicators below Row */
+.indicatorRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding-top: 0.3rem;
+}
+
+.indicatorDash {
+  height: 3px;
+  width: 22px;
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  border-radius: 2px;
+  padding: 0;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.indicatorDash:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.activeDash {
+  background: var(--primary, #a855f7);
+  width: 36px;
+  box-shadow: 0 0 8px rgba(168, 85, 247, 0.5);
+}
+
+@media (max-width: 1280px) {
+  .seriesItem {
+    flex: 0 0 calc((100% - 2rem) / 5.25);
+  }
+}
+
+@media (max-width: 1024px) {
+  .seriesItem {
+    flex: 0 0 calc((100% - 1.5rem) / 4.25);
+  }
+}
+
+@media (max-width: 768px) {
+  .sectionTitle {
+    font-size: 1.4rem;
+  }
+  .seriesItem {
+    flex: 0 0 calc((100% - 1rem) / 3.25);
+    min-width: 140px;
+  }
+}
+
+@media (max-width: 480px) {
+  .seriesItem {
+    flex: 0 0 calc((100% - 0.5rem) / 2.25);
+    min-width: 130px;
+  }
+}

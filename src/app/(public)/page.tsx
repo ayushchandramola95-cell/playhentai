@@ -9,6 +9,7 @@ import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import HeroCarousel from '@/components/HeroCarousel/HeroCarousel';
 import SeriesCard from '@/components/SeriesCard/SeriesCard';
 import HorizontalScrollRow from '@/components/HorizontalScrollRow/HorizontalScrollRow';
+import RandomRowSection from '@/components/RandomRowSection/RandomRowSection';
 import AdBanner from '@/components/AdBanner/AdBanner';
 import JsonLd from '@/components/JsonLd/JsonLd';
 import { createClient } from '@/utils/supabase/server';
@@ -563,6 +564,11 @@ export default async function HomePage() {
             <SeriesCard key={item.id} item={item} />
           ))}
         </HorizontalScrollRow>
+      </section>
+
+      {/* 2b. Random Section: Live Shuffle slider of active series */}
+      <section className={styles.section}>
+        <RandomRowSection seriesPool={rawPool} />
       </section>
 
       {/* Sponsored Native Recommendation Feed Widget (Zone 5986302) - Desktop Only */}

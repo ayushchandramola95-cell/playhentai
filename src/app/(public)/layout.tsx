@@ -11,7 +11,7 @@ export default function PublicLayout({
   return (
     <>
       <Header />
-      <main style={{ flex: '1 0 auto', display: 'flex', flexDirection: 'column', paddingTop: '64px' }}>
+      <main style={{ flex: '1 0 auto', display: 'flex', flexDirection: 'column', paddingTop: '74px' }}>
         {children}
       </main>
       {/* Before Footer Sponsored Ad Banner (Zone 5986212) */}
