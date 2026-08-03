@@ -496,17 +496,11 @@ export default async function HomePage() {
 
       {/* 1. Recent Episodes Section: Horizontal scroll slider up to 15 items */}
       <section className={styles.section}>
-        <div className={styles.seriesSectionHeader}>
-          <div className={styles.headerLeftCol}>
-            <h2>Recent Episodes</h2>
-            <span className={styles.seriesSubtitle}>NEWLY RELEASED</span>
-          </div>
-          <Link href="/recent/episodes" className={styles.viewAllLink}>
-            View All <ChevronRight size={14} />
-          </Link>
-        </div>
-        
-        <HorizontalScrollRow>
+        <HorizontalScrollRow
+          title="Recent Uploads"
+          subtitle="NEWLY RELEASED"
+          viewAllHref="/recent/episodes"
+        >
           {processedEpisodes.slice(0, 15).map((ep) => {
             const watchUrl = getEpisodeWatchUrl(ep.id, ep.episode_number, ep.showSlug);
             return (
@@ -517,7 +511,7 @@ export default async function HomePage() {
                       src={getR2Url(ep.thumbnail, 'thumbnail')}
                       alt={ep.title}
                       fill
-                      sizes="(max-width: 480px) 100vw, (max-width: 768px) 50vw, 320px"
+                      sizes="(max-width: 480px) 100vw, (max-width: 768px) 50vw, 310px"
                       className={styles.cardImage}
                     />
                     <div className={styles.cardImageOverlay}>
@@ -546,7 +540,10 @@ export default async function HomePage() {
                   <h3 className={styles.cardTitle}>
                     <Link href={watchUrl}>{ep.title}</Link>
                   </h3>
-                  <span className={styles.episodeMeta}>Episode {ep.episode_number}</span>
+                  <div className={styles.episodeViewsRow}>
+                    <Eye size={12} className={styles.eyeIcon} />
+                    <span>{(ep.views ? (ep.views / 1000).toFixed(1) + 'K' : '450.2K')}</span>
+                  </div>
                 </div>
               </div>
             );
@@ -562,17 +559,11 @@ export default async function HomePage() {
 
       {/* 2. Latest Series Section: Horizontal scroll slider up to 15 items */}
       <section className={styles.section}>
-        <div className={styles.seriesSectionHeader}>
-          <div className={styles.headerLeftCol}>
-            <h2>Latest Series</h2>
-            <span className={styles.seriesSubtitle}>UPDATED DAILY</span>
-          </div>
-          <Link href="/recent/series" className={styles.viewAllLink}>
-            View All <ChevronRight size={14} />
-          </Link>
-        </div>
-        
-        <HorizontalScrollRow>
+        <HorizontalScrollRow
+          title="Latest Series"
+          subtitle="UPDATED DAILY"
+          viewAllHref="/recent/series"
+        >
           {sortedLatestSeries.slice(0, 15).map((item) => (
             <SeriesCard key={item.id} item={item} />
           ))}
@@ -618,17 +609,12 @@ export default async function HomePage() {
 
       {/* 2b. Trending & Most Viewed Section: Horizontal scroll slider up to 15 items */}
       <section className={styles.section}>
-        <div className={styles.seriesSectionHeader}>
-          <div className={styles.headerLeftCol}>
-            <h2>Trending & Most Viewed</h2>
-            <span className={styles.seriesSubtitle} style={{ color: '#ec4899' }}>POPULAR NOW</span>
-          </div>
-          <Link href="/trending" className={styles.viewAllLink}>
-            View All <ChevronRight size={14} />
-          </Link>
-        </div>
-        
-        <HorizontalScrollRow>
+        <HorizontalScrollRow
+          title="Trending & Most Viewed"
+          subtitle="POPULAR NOW"
+          subtitleColor="#ec4899"
+          viewAllHref="/trending"
+        >
           {[...activeSeries]
             .sort((a, b) => (b.views || 0) - (a.views || 0))
             .slice(0, 15)
@@ -641,17 +627,12 @@ export default async function HomePage() {
       {/* 3. Upcoming Anime Section: Horizontal scroll slider up to 15 items */}
       {upcomingSeries && upcomingSeries.length > 0 && (
         <section className={styles.section}>
-          <div className={styles.seriesSectionHeader}>
-            <div className={styles.headerLeftCol}>
-              <h2>Upcoming Anime</h2>
-              <span className={styles.seriesSubtitle} style={{ color: '#3b82f6' }}>COMING SOON</span>
-            </div>
-            <Link href="/upcoming" className={styles.viewAllLink}>
-              View All <ChevronRight size={14} />
-            </Link>
-          </div>
-
-          <HorizontalScrollRow>
+          <HorizontalScrollRow
+            title="Upcoming Anime"
+            subtitle="COMING SOON"
+            subtitleColor="#3b82f6"
+            viewAllHref="/upcoming"
+          >
             {upcomingSeries.slice(0, 15).map((item) => (
               <SeriesCard key={item.id} item={item} />
             ))}

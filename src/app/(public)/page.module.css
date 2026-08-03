@@ -196,6 +196,21 @@
   font-weight: 500;
 }
 
+.episodeViewsRow {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.76rem;
+  color: #94a3b8;
+  font-weight: 500;
+  margin-top: 0.1rem;
+}
+
+.eyeIcon {
+  color: #94a3b8;
+  opacity: 0.85;
+}
+
 /* Latest Series Section & Grid Layout */
 .seriesSectionHeader {
   display: flex;

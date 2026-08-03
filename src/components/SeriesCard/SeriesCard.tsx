@@ -3,7 +3,18 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Play, Star } from 'lucide-react';
+import { Play, Star, Eye } from 'lucide-react';
+
+function formatViews(views?: number): string {
+  if (!views) return '500.5K';
+  if (views >= 1000000) {
+    return (views / 1000000).toFixed(1) + 'M';
+  }
+  if (views >= 1000) {
+    return (views / 1000).toFixed(1) + 'K';
+  }
+  return views.toString();
+}
 import { getR2Url } from '@/utils/r2';
 import styles from './SeriesCard.module.css';
 
@@ -182,9 +193,10 @@ export default function SeriesCard({ item, className = '' }: SeriesCardProps) {
         <h4 className={styles.seriesTitleText} title={item.title}>
           <Link href={`/series/${item.slug}`}>{item.title}</Link>
         </h4>
-        <span className={styles.seriesYearText}>
-          {releaseYear} • {isUpcoming ? 'Upcoming' : isOngoing ? 'Ongoing' : 'Completed'} • {epCount} EP
-        </span>
+        <div className={styles.seriesViewsRow}>
+          <Eye size={12} className={styles.eyeIcon} />
+          <span>{formatViews(item.views || getStableViews(item.id || item.title))}</span>
+        </div>
       </div>
 
       {/* Synchronous Vertically Centered Popover */}
