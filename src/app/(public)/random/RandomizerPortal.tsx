@@ -2,11 +2,8 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
-import { useSearchParams } from 'next/navigation';
-import { Sparkles, Dices, Play, RefreshCw, Flame, Zap, Heart, Compass, Star, ChevronLeft, ChevronRight, LayoutGrid, List, Shuffle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, LayoutGrid, List, Shuffle } from 'lucide-react';
 import SeriesCard from '@/components/SeriesCard/SeriesCard';
-import { getR2Url } from '@/utils/r2';
 import styles from './random.module.css';
 
 interface SeriesItem {
@@ -25,18 +22,7 @@ interface RandomizerPortalProps {
   seriesList: SeriesItem[];
 }
 
-const GENRE_FILTERS = [
-  { id: 'all', label: '🎲 All Categories' },
-  { id: 'uncensored', label: '🔥 Uncensored' },
-  { id: 'action', label: '⚡ Action' },
-  { id: 'fantasy', label: '✨ Fantasy' },
-  { id: 'harem', label: '💖 Harem' },
-  { id: 'scifi', label: '🌌 Sci-Fi' },
-];
-
 export default function RandomizerPortal({ seriesList }: RandomizerPortalProps) {
-  const searchParams = useSearchParams();
-  const [selectedGenre, setSelectedGenre] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [shuffledList, setShuffledList] = useState<SeriesItem[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -52,49 +38,21 @@ export default function RandomizerPortal({ seriesList }: RandomizerPortalProps) 
     return arr;
   };
 
-  // Sync initial genre param
-  useEffect(() => {
-    const genreParam = searchParams.get('genre');
-    if (genreParam) {
-      const matched = GENRE_FILTERS.find(g => g.id.toLowerCase() === genreParam.toLowerCase());
-      if (matched) {
-        setSelectedGenre(matched.id);
-      }
-    }
-  }, [searchParams]);
-
-  // Filter pool based on selected genre chip
-  const filteredPool = useMemo(() => {
-    if (selectedGenre === 'all') return seriesList;
-    return seriesList.filter((item) => {
-      const cat = (item.category || '').toLowerCase();
-      const tags = (item.tags || []).map((t) => t.toLowerCase());
-      const desc = (item.description || '').toLowerCase();
-
-      if (selectedGenre === 'uncensored') return tags.includes('uncensored') || desc.includes('uncensored');
-      if (selectedGenre === 'action') return cat === 'action' || tags.includes('action');
-      if (selectedGenre === 'fantasy') return cat === 'fantasy' || tags.includes('fantasy') || tags.includes('magic');
-      if (selectedGenre === 'harem') return cat === 'harem' || tags.includes('harem') || tags.includes('romance') || cat === 'romance';
-      if (selectedGenre === 'scifi') return cat === 'sci-fi' || tags.includes('sci-fi') || tags.includes('cyberpunk');
-      return true;
-    });
-  }, [seriesList, selectedGenre]);
-
   // Handle live randomize reshuffle
   const handleRandomize = useCallback(() => {
     setIsShuffling(true);
     setTimeout(() => {
-      setShuffledList(shuffleArray(filteredPool));
+      setShuffledList(shuffleArray(seriesList));
       setCurrentPage(1);
       setIsShuffling(false);
     }, 250);
-  }, [filteredPool]);
+  }, [seriesList]);
 
-  // Initial random shuffle on load / filter change
+  // Initial random shuffle on mount
   useEffect(() => {
-    setShuffledList(shuffleArray(filteredPool));
+    setShuffledList(shuffleArray(seriesList));
     setCurrentPage(1);
-  }, [filteredPool]);
+  }, [seriesList]);
 
   // Pagination calculation
   const totalPages = Math.ceil(shuffledList.length / pageSize) || 1;
@@ -117,7 +75,7 @@ export default function RandomizerPortal({ seriesList }: RandomizerPortalProps) 
         <div className={styles.portalHeader}>
           <h1 className={styles.pageTitle}>Random</h1>
           <p className={styles.portalSubtext}>
-            Feelin' lucky? Here's the whole library in a random order — filter it, sort it, or hit randomize for a fresh shuffle.
+            Feelin' lucky? Here's the whole library in a random order — hit randomize for a fresh shuffle.
           </p>
         </div>
 
@@ -132,23 +90,6 @@ export default function RandomizerPortal({ seriesList }: RandomizerPortalProps) 
             <Shuffle size={18} className={styles.shuffleIcon} />
             <span>Randomize</span>
           </button>
-
-          {/* Genre Filter Chips */}
-          <div className={styles.filterChipsRow}>
-            {GENRE_FILTERS.map((chip) => {
-              const isActive = selectedGenre === chip.id;
-              return (
-                <button
-                  key={chip.id}
-                  type="button"
-                  onClick={() => setSelectedGenre(chip.id)}
-                  className={`${styles.chipBtn} ${isActive ? styles.activeChip : ''}`}
-                >
-                  <span>{chip.label}</span>
-                </button>
-              );
-            })}
-          </div>
 
           {/* Controls Right: View Toggle & Pagination */}
           <div className={styles.controlsRight}>
