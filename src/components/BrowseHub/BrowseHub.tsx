@@ -60,6 +60,7 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre }: BrowseHubP
   // Active Main Filters
   const [includedTags, setIncludedTags] = useState<string[]>([]);
   const [blockedTags, setBlockedTags] = useState<string[]>([]);
+  const [isBroadMatches, setIsBroadMatches] = useState(false);
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortMode, setSortMode] = useState<string>('recent'); // Default: Recent Upload
@@ -73,6 +74,7 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre }: BrowseHubP
   // Draft States for Modals (so Cancel / Apply work accurately)
   const [tempIncludedTags, setTempIncludedTags] = useState<string[]>([]);
   const [tempBlockedTags, setTempBlockedTags] = useState<string[]>([]);
+  const [tempBroadMatches, setTempBroadMatches] = useState(false);
   const [tempSelectedBrands, setTempSelectedBrands] = useState<string[]>([]);
 
   // Search inside Modals
@@ -144,6 +146,7 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre }: BrowseHubP
   const openTagsModal = () => {
     setTempIncludedTags([...includedTags]);
     setTempBlockedTags([...blockedTags]);
+    setTempBroadMatches(isBroadMatches);
     setTagSearchQuery('');
     setIsTagsModalOpen(true);
   };
@@ -182,6 +185,7 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre }: BrowseHubP
   const handleApplyTags = () => {
     setIncludedTags([...tempIncludedTags]);
     setBlockedTags([...tempBlockedTags]);
+    setIsBroadMatches(tempBroadMatches);
     setIsTagsModalOpen(false);
     setCurrentPage(1);
   };
@@ -189,6 +193,7 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre }: BrowseHubP
   const handleResetTagsModal = () => {
     setTempIncludedTags([]);
     setTempBlockedTags([]);
+    setTempBroadMatches(false);
   };
 
   // Brand Modal Actions
@@ -216,6 +221,7 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre }: BrowseHubP
   const handleClearAllFilters = () => {
     setIncludedTags([]);
     setBlockedTags([]);
+    setIsBroadMatches(false);
     setSelectedBrands([]);
     setSearchQuery('');
     setSortMode('recent');
@@ -252,8 +258,13 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre }: BrowseHubP
 
       // 2. Included Tags Match
       if (includedTags.length > 0) {
-        const hasIncluded = includedTags.some((inc) => seriesTags.has(inc.toLowerCase()));
-        if (!hasIncluded) return false;
+        if (isBroadMatches) {
+          const hasAll = includedTags.every((inc) => seriesTags.has(inc.toLowerCase()));
+          if (!hasAll) return false;
+        } else {
+          const hasIncluded = includedTags.some((inc) => seriesTags.has(inc.toLowerCase()));
+          if (!hasIncluded) return false;
+        }
       }
 
       // 3. Blocked Tags Match
@@ -364,7 +375,7 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre }: BrowseHubP
               includedTags.length > 0 || blockedTags.length > 0 ? styles.activeTriggerBtn : ''
             }`}
           >
-            <Tag size={16} />
+            <Tag size={18} />
             <span>Tags</span>
             {includedTags.length + blockedTags.length > 0 && (
               <span className={styles.btnBadge}>{includedTags.length + blockedTags.length}</span>
@@ -379,7 +390,7 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre }: BrowseHubP
               selectedBrands.length > 0 ? styles.activeTriggerBtn : ''
             }`}
           >
-            <Building2 size={16} />
+            <Building2 size={18} />
             <span>Brands</span>
             {selectedBrands.length > 0 && (
               <span className={styles.btnBadge}>{selectedBrands.length}</span>
@@ -568,7 +579,7 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre }: BrowseHubP
 
               <div className={styles.modalHeaderActions}>
                 <button type="button" onClick={handleResetTagsModal} className={styles.modalResetBtn}>
-                  <RotateCcw size={14} />
+                  <RotateCcw size={15} />
                   <span>Reset</span>
                 </button>
                 <button
@@ -581,27 +592,47 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre }: BrowseHubP
               </div>
             </div>
 
-            {/* Modal Filter Sub-header */}
-            <div className={styles.modalFilterBar}>
-              <div className={styles.statusPillsRow}>
-                <span className={styles.includedPill}>{tempIncludedTags.length} included</span>
-                <span className={styles.blockedPill}>{tempBlockedTags.length} blocked</span>
-              </div>
-
-              <div className={styles.searchBox}>
-                <Search size={14} className={styles.searchIcon} />
-                <input
-                  type="text"
-                  placeholder="Filter tags..."
-                  value={tagSearchQuery}
-                  onChange={(e) => setTagSearchQuery(e.target.value)}
-                  className={styles.modalSearchInput}
-                />
-              </div>
-            </div>
-
-            {/* Tags Cards Grid */}
+            {/* Modal Body */}
             <div className={styles.modalBody}>
+              {/* Broad Matches Switch Card */}
+              <div className={styles.broadMatchesCard}>
+                <div className={styles.broadTextGroup}>
+                  <span className={styles.broadTitle}>Broad Matches</span>
+                  <span className={styles.broadSub}>Must match all selected tags</span>
+                </div>
+                <label className={styles.switchToggle}>
+                  <input
+                    type="checkbox"
+                    checked={tempBroadMatches}
+                    onChange={(e) => setTempBroadMatches(e.target.checked)}
+                  />
+                  <span className={styles.slider} />
+                </label>
+              </div>
+
+              {/* Tag Decisions Section Header & Search */}
+              <div className={styles.sectionHeaderRow}>
+                <h3 className={styles.sectionTitle}>Tag Decisions</h3>
+                <div className={styles.statusPillsRow}>
+                  <span className={styles.includedPill}>{tempIncludedTags.length} included</span>
+                  <span className={styles.blockedPill}>{tempBlockedTags.length} blocked</span>
+                </div>
+              </div>
+
+              <div className={styles.modalSearchWrapper}>
+                <div className={styles.searchBox}>
+                  <Search size={16} className={styles.searchIcon} />
+                  <input
+                    type="text"
+                    placeholder="Filter tags..."
+                    value={tagSearchQuery}
+                    onChange={(e) => setTagSearchQuery(e.target.value)}
+                    className={styles.modalSearchInput}
+                  />
+                </div>
+              </div>
+
+              {/* Tags Cards Grid */}
               <div className={styles.tagsGrid}>
                 {filteredModalTags.map((tag) => {
                   const isIncluded = tempIncludedTags.includes(tag);
