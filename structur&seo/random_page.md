@@ -33,7 +33,6 @@
   - Subtitle: *"Feelin' lucky? Here's the whole library in a random order — filter it, sort it, or hit randomize for a fresh shuffle."*
 - **Action & Filter Controls Bar**:
   - **`🔀 Randomize`** Button: Prominent amber `#f59e0b` action button with live rotation animation during reshuffle.
-  - **Genre Chips**: `All Categories`, `Uncensored`, `Action`, `Fantasy`, `Harem`, `Sci-Fi` filter chips with active glowing state (`rgba(245, 158, 11, 0.18)`).
   - **View Controls**: Toggle buttons for Grid (`6-column`) and List modes.
   - **Mini Pagination**: `< Page 1 / 140 >` fast top navigation.
 - **Series Catalog Grid**:
