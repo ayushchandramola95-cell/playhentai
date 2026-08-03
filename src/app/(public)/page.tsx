@@ -8,6 +8,7 @@ import { unstable_cache } from 'next/cache';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import HeroCarousel from '@/components/HeroCarousel/HeroCarousel';
 import SeriesCard from '@/components/SeriesCard/SeriesCard';
+import HorizontalScrollRow from '@/components/HorizontalScrollRow/HorizontalScrollRow';
 import AdBanner from '@/components/AdBanner/AdBanner';
 import JsonLd from '@/components/JsonLd/JsonLd';
 import { createClient } from '@/utils/supabase/server';
@@ -366,8 +367,29 @@ export default async function HomePage() {
     });
   }
 
-  // Sort upcoming series
-  const upcomingSeries = activeSeries.filter(s => (s.status || '').toLowerCase() === 'upcoming');
+  // Populate upcoming series (up to 15 items guaranteed)
+  let upcomingSeriesPool = activeSeries.filter(s => (s.status || '').toLowerCase() === 'upcoming');
+  if (upcomingSeriesPool.length < 15) {
+    const seenIds = new Set(upcomingSeriesPool.map(s => s.id || s.slug));
+    const mockUpcoming = MOCK_SERIES.filter(s => (s.status || '').toLowerCase() === 'upcoming' || (s.release_year && s.release_year >= 2026));
+    
+    mockUpcoming.forEach(m => {
+      if (!seenIds.has(m.id) && !seenIds.has(m.slug)) {
+        seenIds.add(m.id);
+        upcomingSeriesPool.push(m);
+      }
+    });
+
+    if (upcomingSeriesPool.length < 15) {
+      rawPool.forEach(s => {
+        if (!seenIds.has(s.id) && !seenIds.has(s.slug)) {
+          seenIds.add(s.id);
+          upcomingSeriesPool.push({ ...s, status: 'upcoming' });
+        }
+      });
+    }
+  }
+  const upcomingSeries = upcomingSeriesPool.slice(0, 15);
 
   // Group Explore Categories dynamically (3 rows of 6 cards = 18 items)
   const defaultExploreCategories = [
@@ -472,7 +494,7 @@ export default async function HomePage() {
       {/* Mobile-Only Hero Bottom Banner (Zone 5986984) */}
       <AdBanner zoneId="5986984" insClass="eas6a97888e10" mobileOnly />
 
-      {/* 1. Recent Episodes Section: 4*5 landscape grid */}
+      {/* 1. Recent Episodes Section: Horizontal scroll slider up to 15 items */}
       <section className={styles.section}>
         <div className={styles.seriesSectionHeader}>
           <div className={styles.headerLeftCol}>
@@ -484,18 +506,18 @@ export default async function HomePage() {
           </Link>
         </div>
         
-        <div className={styles.episodeGrid}>
-          {processedEpisodes.slice(0, 20).map((ep) => {
+        <HorizontalScrollRow>
+          {processedEpisodes.slice(0, 15).map((ep) => {
             const watchUrl = getEpisodeWatchUrl(ep.id, ep.episode_number, ep.showSlug);
             return (
-              <div key={ep.id} className={`${styles.episodeCard} card-hover`}>
+              <div data-is-episode key={ep.id} className={`${styles.episodeCard} card-hover`}>
                 <Link href={watchUrl} className={styles.cardImageLink}>
                   <div className={styles.cardImageWrapper}>
                     <Image
                       src={getR2Url(ep.thumbnail, 'thumbnail')}
                       alt={ep.title}
                       fill
-                      sizes="(max-width: 480px) 100vw, (max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+                      sizes="(max-width: 480px) 100vw, (max-width: 768px) 50vw, 320px"
                       className={styles.cardImage}
                     />
                     <div className={styles.cardImageOverlay}>
@@ -529,7 +551,7 @@ export default async function HomePage() {
               </div>
             );
           })}
-        </div>
+        </HorizontalScrollRow>
       </section>
 
       {/* Sponsored Ad Banner: After Recent Episodes (Zone 5986194) */}
@@ -538,7 +560,7 @@ export default async function HomePage() {
       {/* Mobile-Only After Recent Episodes Banner (Zone 5986994) */}
       <AdBanner zoneId="5986994" insClass="eas6a97888e10" mobileOnly />
 
-      {/* 2. Latest Series Section: 6-column Grid with views and status overlays */}
+      {/* 2. Latest Series Section: Horizontal scroll slider up to 15 items */}
       <section className={styles.section}>
         <div className={styles.seriesSectionHeader}>
           <div className={styles.headerLeftCol}>
@@ -550,11 +572,11 @@ export default async function HomePage() {
           </Link>
         </div>
         
-        <div className={styles.latestSeriesGrid}>
-          {sortedLatestSeries.slice(0, 24).map((item) => (
+        <HorizontalScrollRow>
+          {sortedLatestSeries.slice(0, 15).map((item) => (
             <SeriesCard key={item.id} item={item} />
           ))}
-        </div>
+        </HorizontalScrollRow>
       </section>
 
       {/* Sponsored Native Recommendation Feed Widget (Zone 5986302) - Desktop Only */}
@@ -594,7 +616,7 @@ export default async function HomePage() {
         </section>
       )}
 
-      {/* 2b. Trending & Most Viewed Section (Placed before Upcoming Anime) */}
+      {/* 2b. Trending & Most Viewed Section: Horizontal scroll slider up to 15 items */}
       <section className={styles.section}>
         <div className={styles.seriesSectionHeader}>
           <div className={styles.headerLeftCol}>
@@ -606,17 +628,17 @@ export default async function HomePage() {
           </Link>
         </div>
         
-        <div className={styles.latestSeriesGrid}>
+        <HorizontalScrollRow>
           {[...activeSeries]
             .sort((a, b) => (b.views || 0) - (a.views || 0))
-            .slice(0, 6)
+            .slice(0, 15)
             .map((item) => (
               <SeriesCard key={item.id} item={item} />
             ))}
-        </div>
+        </HorizontalScrollRow>
       </section>
 
-      {/* 3. Upcoming Anime Grid Section */}
+      {/* 3. Upcoming Anime Section: Horizontal scroll slider up to 15 items */}
       {upcomingSeries && upcomingSeries.length > 0 && (
         <section className={styles.section}>
           <div className={styles.seriesSectionHeader}>
@@ -629,11 +651,11 @@ export default async function HomePage() {
             </Link>
           </div>
 
-          <div className={styles.upcomingGrid}>
-            {upcomingSeries.slice(0, 6).map((item) => (
+          <HorizontalScrollRow>
+            {upcomingSeries.slice(0, 15).map((item) => (
               <SeriesCard key={item.id} item={item} />
             ))}
-          </div>
+          </HorizontalScrollRow>
         </section>
       )}
 

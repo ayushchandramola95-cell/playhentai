@@ -1,11 +1,13 @@
 .seriesCard {
   display: flex;
   flex-direction: column;
-  background: transparent;
-  border: none;
+  background: var(--surface, #121722);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
   position: relative;
   transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
-  gap: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
   min-width: 0;
   width: 100%;
 }
@@ -17,23 +19,24 @@
 }
 
 .seriesCard:hover {
+  border-color: var(--primary, #a855f7);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(168, 85, 247, 0.25);
   z-index: 99999 !important;
 }
 
 .seriesImageWrapper {
   position: relative;
   width: 100%;
-  padding-top: 150%; /* Bulletproof 2:3 Aspect Ratio */
+  padding-top: 142%; /* Bulletproof 2:3 Aspect Ratio */
   overflow: hidden;
-  border-radius: 8px;
+  border-radius: 11px 11px 0 0;
   background: var(--surface-hover);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
-  transition: border-color 0.25s ease;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .seriesCard:hover .seriesImageWrapper {
-  border-color: var(--primary);
+  border-color: rgba(168, 85, 247, 0.3);
 }
 
 .cardImage {
@@ -102,8 +105,9 @@
 .cardMetaContent {
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
-  padding: 0 0.1rem;
+  gap: 0.15rem;
+  padding: 0.55rem 0.65rem 0.65rem;
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .seriesTitleText {

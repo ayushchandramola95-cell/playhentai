@@ -1,0 +1,133 @@
+.scrollWrapper {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.scrollContainer {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 0.9rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+  width: 100%;
+  padding: 0.4rem 0.2rem 0.8rem;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Hide scrollbar for clean aesthetic while retaining scroll functionality */
+.scrollContainer::-webkit-scrollbar {
+  height: 6px;
+}
+
+.scrollContainer::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 10px;
+}
+
+.scrollContainer::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  transition: background 0.2s ease;
+}
+
+.scrollContainer::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+}
+
+.scrollItem {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+}
+
+/* Landscape Episode Item Width in Slider */
+.episodeItem {
+  flex: 0 0 320px;
+  width: 320px;
+}
+
+/* Portrait Series Item Width in Slider */
+.seriesItem {
+  flex: 0 0 215px;
+  width: 215px;
+}
+
+/* Navigation Arrow Buttons */
+.navButton {
+  position: absolute;
+  top: 45%;
+  transform: translateY(-50%);
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 20;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(12px);
+  transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+  opacity: 0.9;
+}
+
+.navButton:hover {
+  background: var(--primary);
+  color: #ffffff;
+  border-color: transparent;
+  transform: translateY(-50%) scale(1.1);
+  box-shadow: 0 8px 25px rgba(168, 85, 247, 0.4);
+  opacity: 1;
+}
+
+.leftButton {
+  left: -18px;
+}
+
+.rightButton {
+  right: -18px;
+}
+
+@media (max-width: 1024px) {
+  .episodeItem {
+    flex: 0 0 280px;
+    width: 280px;
+  }
+  .seriesItem {
+    flex: 0 0 185px;
+    width: 185px;
+  }
+  .leftButton {
+    left: -10px;
+  }
+  .rightButton {
+    right: -10px;
+  }
+}
+
+@media (max-width: 768px) {
+  .episodeItem {
+    flex: 0 0 250px;
+    width: 250px;
+  }
+  .seriesItem {
+    flex: 0 0 160px;
+    width: 160px;
+  }
+  .navButton {
+    display: none; /* Mobile uses native touch swipe */
+  }
+  .scrollContainer {
+    gap: 0.75rem;
+    padding-bottom: 0.5rem;
+  }
+}
