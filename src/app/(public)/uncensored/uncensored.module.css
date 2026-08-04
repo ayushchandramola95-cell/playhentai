@@ -21,7 +21,7 @@
 }
 
 .headerIcon {
-  color: var(--primary);
+  color: #10b981; /* Keep the emerald green for uncensored verified badge status */
 }
 
 .headerSection h1 {

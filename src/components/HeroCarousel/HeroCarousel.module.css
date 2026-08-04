@@ -2,8 +2,8 @@
   position: relative;
   width: 100%;
   max-width: 100%;
-  min-height: 520px;
-  height: 62vh;
+  min-height: 560px;
+  height: 65vh;
   max-height: 680px;
   overflow: hidden !important;
   display: flex;
@@ -54,9 +54,9 @@
   position: absolute;
   inset: 0;
   background: 
-    radial-gradient(circle at 75% 50%, rgba(9, 13, 22, 0.35) 0%, rgba(9, 13, 22, 0.95) 75%),
-    linear-gradient(to right, #090d16 0%, rgba(9, 13, 22, 0.95) 25%, rgba(9, 13, 22, 0.6) 55%, rgba(9, 13, 22, 0.4) 100%),
-    linear-gradient(to top, #090d16 0%, rgba(9, 13, 22, 0.6) 18%, transparent 40%);
+    radial-gradient(circle at 75% 50%, rgba(8, 8, 8, 0.35) 0%, rgba(8, 8, 8, 0.95) 75%),
+    linear-gradient(to right, #080808 0%, rgba(8, 8, 8, 0.95) 25%, rgba(8, 8, 8, 0.6) 55%, rgba(8, 8, 8, 0.4) 100%),
+    linear-gradient(to top, #080808 0%, rgba(8, 8, 8, 0.6) 18%, transparent 40%);
   z-index: 1;
 }
 
@@ -104,7 +104,7 @@
 
 .posterCardWrapper:hover {
   transform: scale(1.03) translateY(-6px);
-  box-shadow: 0 25px 55px rgba(0, 0, 0, 0.8), 0 0 0 1.5px #3b82f6;
+  box-shadow: 0 25px 55px rgba(0, 0, 0, 0.8), 0 0 0 1.5px var(--primary);
 }
 
 .posterLink {
@@ -152,9 +152,9 @@
 .dbAlert {
   font-size: 0.82rem;
   font-weight: 600;
-  color: #3b82f6;
-  background: rgba(59, 130, 246, 0.15);
-  border: 1px solid rgba(59, 130, 246, 0.3);
+  color: var(--primary);
+  background: rgba(var(--primary-rgb), 0.15);
+  border: 1px solid rgba(var(--primary-rgb), 0.3);
   padding: 0.45rem 1rem;
   border-radius: 20px;
   width: fit-content;
@@ -168,7 +168,7 @@
 }
 
 .qualityBadge {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
   color: #ffffff;
   font-size: 0.72rem;
   font-weight: 900;
@@ -190,7 +190,7 @@
 }
 
 .heroTitle {
-  font-size: 3.2rem;
+  font-size: clamp(2rem, 3.5vw, 2.8rem);
   font-weight: 900;
   line-height: 1.12;
   letter-spacing: -0.025em;
@@ -206,7 +206,7 @@
 }
 
 .heroTitle a:hover {
-  color: #3b82f6;
+  color: var(--primary);
 }
 
 .genreSubLine {
@@ -221,7 +221,7 @@
   line-height: 1.6;
   color: rgba(255, 255, 255, 0.82);
   display: -webkit-box;
-  -webkit-line-clamp: 4;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -241,7 +241,7 @@
 }
 
 .playBtn {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
   color: #ffffff;
   padding: 0.75rem 1.6rem;
   border-radius: 9px;
@@ -252,13 +252,13 @@
   gap: 0.55rem;
   text-decoration: none;
   transition: all 0.2s ease;
-  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.4);
+  box-shadow: 0 4px 16px rgba(var(--primary-rgb), 0.4);
   border: none;
 }
 
 .playBtn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.55);
+  box-shadow: 0 8px 24px rgba(var(--primary-rgb), 0.55);
   filter: brightness(1.08);
 }
 
@@ -306,7 +306,7 @@
 }
 
 .navBtn:hover {
-  background: #3b82f6;
+  background: var(--primary);
   color: #ffffff;
   border-color: transparent;
   transform: translateY(-50%) scale(1.08);
@@ -353,7 +353,7 @@
 .dotActive {
   width: 24px;
   border-radius: 10px;
-  background: #3b82f6;
+  background: var(--primary);
   opacity: 1;
 }
 

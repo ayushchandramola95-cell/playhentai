@@ -26,12 +26,40 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-weight: 800;
-  font-size: 1.3rem;
-  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
   text-decoration: none;
+  transition: opacity 0.2s ease;
+}
+
+.logoContainer:hover {
+  opacity: 0.85;
+}
+
+.logoText {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 1.3rem;
+  font-style: italic;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  letter-spacing: -0.02em;
+}
+
+.logoTextPlay {
+  font-weight: 600;
+  color: #ffffff;
+  opacity: 0.95;
+}
+
+.logoTextGold {
+  font-weight: 900;
+  color: #f59e0b;
+  margin-left: 2px;
+}
+
+.tagline {
+  font-size: 0.8rem;
+  color: var(--foreground-muted);
+  margin-top: 0.25rem;
 }
 
 .logoIcon {

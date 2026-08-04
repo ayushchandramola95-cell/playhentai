@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { getAllCollectionsWithPreviews } from '@/utils/collectionsData';
 import CollectionsClient from '@/components/CollectionsClient/CollectionsClient';
 import JsonLd from '@/components/JsonLd/JsonLd';
@@ -72,7 +72,9 @@ export default async function PlaylistsPage() {
   return (
     <>
       <JsonLd data={[breadcrumbJsonLd, collectionJsonLd]} />
-      <CollectionsClient collections={collections} />
+      <Suspense fallback={null}>
+        <CollectionsClient collections={collections} />
+      </Suspense>
     </>
   );
 }

@@ -11,6 +11,8 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
   Filter,
   Grid,
   ArrowUpDown,
@@ -63,7 +65,7 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre }: BrowseHubP
   const [isBroadMatches, setIsBroadMatches] = useState(false);
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortMode, setSortMode] = useState<string>('recent'); // Default: Recent Upload
+  const [sortMode, setSortMode] = useState<string>('random'); // Default: Random
   const [currentPage, setCurrentPage] = useState<number>(1);
   const ITEMS_PER_PAGE = 24;
 
@@ -224,7 +226,7 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre }: BrowseHubP
     setIsBroadMatches(false);
     setSelectedBrands([]);
     setSearchQuery('');
-    setSortMode('recent');
+    setSortMode('random');
     setCurrentPage(1);
     router.push('/categories');
   };
@@ -287,7 +289,13 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre }: BrowseHubP
 
     // Sort Results
     const sorted = [...list];
-    if (sortMode === 'recent') {
+    if (sortMode === 'random') {
+      // Fisher-Yates shuffle for true randomness
+      for (let i = sorted.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [sorted[i], sorted[j]] = [sorted[j], sorted[i]];
+      }
+    } else if (sortMode === 'recent') {
       sorted.sort((a, b) => {
         const dateA = new Date((a as any).release_date || (a as any).created_at || a.releaseYear || 0).getTime();
         const dateB = new Date((b as any).release_date || (b as any).created_at || b.releaseYear || 0).getTime();
@@ -440,6 +448,7 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre }: BrowseHubP
             }}
             className={styles.sortSelect}
           >
+            <option value="random">🎲 Random</option>
             <option value="recent">≡ Recent Upload</option>
             <option value="most_viewed">🔥 Most Viewed</option>
             <option value="rating">⭐ Highest Rated</option>
@@ -514,20 +523,22 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre }: BrowseHubP
                   onClick={() => handlePageChange(1)}
                   disabled={validPage <= 1}
                   className={`${styles.pageBtn} ${validPage <= 1 ? styles.pageBtnDisabled : ''}`}
+                  aria-label="First Page"
                 >
-                  |&lt;
+                  <ChevronsLeft size={16} />
                 </button>
                 <button
                   type="button"
                   onClick={() => handlePageChange(validPage - 1)}
                   disabled={validPage <= 1}
                   className={`${styles.pageBtn} ${validPage <= 1 ? styles.pageBtnDisabled : ''}`}
+                  aria-label="Previous Page"
                 >
-                  &lt;
+                  <ChevronLeft size={16} />
                 </button>
 
-                <span className={styles.pageBtn} style={{ cursor: 'default', background: 'transparent', border: 'none' }}>
-                  Page {validPage} / {totalPages}
+                <span className={styles.pageIndicator}>
+                  Page <strong>{validPage}</strong> of <strong>{totalPages}</strong>
                 </span>
 
                 <button
@@ -535,16 +546,18 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre }: BrowseHubP
                   onClick={() => handlePageChange(validPage + 1)}
                   disabled={validPage >= totalPages}
                   className={`${styles.pageBtn} ${validPage >= totalPages ? styles.pageBtnDisabled : ''}`}
+                  aria-label="Next Page"
                 >
-                  &gt;
+                  <ChevronRight size={16} />
                 </button>
                 <button
                   type="button"
                   onClick={() => handlePageChange(totalPages)}
                   disabled={validPage >= totalPages}
                   className={`${styles.pageBtn} ${validPage >= totalPages ? styles.pageBtnDisabled : ''}`}
+                  aria-label="Last Page"
                 >
-                  &gt;|
+                  <ChevronsRight size={16} />
                 </button>
               </div>
             )}
@@ -598,7 +611,7 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre }: BrowseHubP
               <div className={styles.broadMatchesCard}>
                 <div className={styles.broadTextGroup}>
                   <span className={styles.broadTitle}>Broad Matches</span>
-                  <span className={styles.broadSub}>Must match all selected tags</span>
+                  <span className={styles.broadDesc}>Must match all selected tags</span>
                 </div>
                 <label className={styles.switchToggle}>
                   <input

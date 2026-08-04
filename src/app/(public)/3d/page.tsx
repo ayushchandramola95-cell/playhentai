@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { unstable_cache } from 'next/cache';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { MOCK_SERIES } from '@/utils/mockData';
@@ -118,29 +118,28 @@ export default async function ThreeDPage() {
     <div className={styles.container}>
       <JsonLd data={[collectionJsonLd, breadcrumbJsonLd]} />
 
-      {/* Hero Banner Header */}
-      <div className={styles.heroBanner}>
-        <div className={styles.glowSphere} />
+      {/* Breadcrumbs */}
+      <nav className={styles.breadcrumbs} aria-label="Breadcrumbs">
+        <a href="/">Home</a>
+        <span className={styles.crumbDivider}>/</span>
+        <span className={styles.activeCrumb}>3D</span>
+      </nav>
 
-        <div className={styles.badgeRow}>
-          <div className={styles.badgeIcon}>
-            <Box size={20} />
-          </div>
-          <span className={styles.badgeText}>
-            3D CGI Catalog
-          </span>
+      {/* Clean & Simple Header Section */}
+      <div className={styles.headerSection}>
+        <div className={styles.titleRow}>
+          <Box size={28} className={styles.headerIcon} />
+          <h1>3D Hentai & CGI Animations</h1>
         </div>
-
-        <h1 className={styles.heroTitle}>
-          3D Hentai & CGI Animations
-        </h1>
-        <p className={styles.heroDescription}>
+        <p className={styles.subtext}>
           Explore our dedicated collection of high quality 3D CGI anime series, smooth 60fps CGI animation releases, and 3D titles available to stream in 1080p HD.
         </p>
       </div>
 
       {/* Main 3D Catalog Hub */}
-      <ThreeDHub initialSeries={activeSeries} isDbEmpty={isDbEmpty} />
+      <Suspense fallback={null}>
+        <ThreeDHub initialSeries={activeSeries} isDbEmpty={isDbEmpty} />
+      </Suspense>
     </div>
   );
 }

@@ -76,10 +76,10 @@
 }
 
 .activeTab {
-  background: linear-gradient(135deg, #ff5e00 0%, #f97316 100%) !important;
+  background: var(--primary) !important;
   border-color: transparent !important;
   color: #ffffff !important;
-  box-shadow: 0 4px 12px rgba(255, 94, 0, 0.35);
+  box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.35);
 }
 
 /* Collections Grid */
@@ -599,4 +599,35 @@
   .viewBtn {
     font-size: 0.74rem !important;
   }
+}
+
+/* Breadcrumbs Styling */
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--foreground-secondary);
+  margin-bottom: 1.25rem;
+  position: relative;
+  z-index: 10;
+}
+
+.breadcrumbs a {
+  color: var(--foreground-secondary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.breadcrumbs a:hover {
+  color: #ffffff;
+}
+
+.crumbDivider {
+  color: rgba(255, 255, 255, 0.25);
+}
+
+.activeCrumb {
+  color: #ffffff;
+  font-weight: 700;
 }

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { TrendingUp, Play, ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -235,7 +235,9 @@ export default async function RecentSeriesPage({
         </div>
 
         {/* Filter Controls Bar */}
-        <RecentFilterBar type="series" />
+        <Suspense fallback={null}>
+          <RecentFilterBar type="series" />
+        </Suspense>
 
         {/* Sponsored Ad Banner: Series After Filters (Zone 5986838) */}
         <AdBanner zoneId="5986838" />

@@ -123,9 +123,9 @@
 }
 
 .searchInput:focus {
-  border-color: #f59e0b;
+  border-color: var(--primary);
   width: 300px;
-  box-shadow: 0 0 14px rgba(245, 158, 11, 0.25);
+  box-shadow: 0 0 14px rgba(var(--primary-rgb), 0.25);
 }
 
 .clearSearch {
@@ -154,13 +154,12 @@
 }
 
 .sortSelect:focus {
-  border-color: #f59e0b;
+  border-color: var(--primary);
 }
 
 .sortSelect option {
   background: #18181b;
   color: #ffffff;
-  padding: 0.5rem;
 }
 
 /* ==========================================================================
@@ -258,8 +257,8 @@
   width: 100%;
   max-width: 900px;
   max-height: 90vh;
-  background: #232328;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 12px;
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.95);
   display: flex;
@@ -278,8 +277,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 1.35rem 1.75rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  background: #2a2a30;
+  border-bottom: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .modalTitleGroup {
@@ -295,7 +294,7 @@
 }
 
 .modalIcon {
-  color: #f59e0b;
+  color: var(--accent);
 }
 
 .modalTitle {
@@ -322,10 +321,10 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.55rem 1.1rem;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 6px;
-  color: #f59e0b;
+  color: var(--accent);
   font-size: 0.95rem;
   font-weight: 700;
   cursor: pointer;
@@ -361,6 +360,12 @@
   background: rgba(0, 0, 0, 0.25);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 8px;
+}
+
+.broadTextGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
 }
 
 .broadTitle {
@@ -414,7 +419,7 @@
 }
 
 .switchToggle input:checked + .slider {
-  background-color: #f59e0b;
+  background-color: var(--primary);
 }
 
 .switchToggle input:checked + .slider:before {
@@ -446,9 +451,9 @@
   font-size: 0.85rem;
   font-weight: 800;
   padding: 0.35rem 0.85rem;
-  background: rgba(245, 158, 11, 0.2);
-  border: 1px solid rgba(245, 158, 11, 0.5);
-  color: #fbbf24;
+  background: rgba(var(--accent-rgb), 0.15);
+  border: 1px solid rgba(var(--accent-rgb), 0.4);
+  color: var(--accent);
   border-radius: 14px;
 }
 
@@ -462,13 +467,22 @@
   border-radius: 14px;
 }
 
+.modalFilterBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1.1rem 1.6rem 0.6rem;
+  flex-wrap: wrap;
+}
+
 .selectedPill {
   font-size: 0.85rem;
   font-weight: 800;
   padding: 0.35rem 0.85rem;
-  background: rgba(245, 158, 11, 0.2);
-  border: 1px solid rgba(245, 158, 11, 0.5);
-  color: #fbbf24;
+  background: rgba(var(--accent-rgb), 0.15);
+  border: 1px solid rgba(var(--accent-rgb), 0.4);
+  color: var(--accent);
   border-radius: 14px;
 }
 
@@ -490,7 +504,7 @@
 }
 
 .modalSearchInput:focus {
-  border-color: #f59e0b;
+  border-color: var(--primary);
 }
 
 .sortToggleGroup {
@@ -512,11 +526,12 @@
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.15s ease;
+  white-space: nowrap;
 }
 
 .activeSortToggle {
-  background: #f59e0b;
-  color: #0f172a;
+  background: var(--primary);
+  color: #ffffff;
   font-weight: 800;
 }
 
@@ -607,8 +622,8 @@
 }
 
 .tagIncludeActive {
-  background: #f59e0b !important;
-  color: #0f172a !important;
+  background: #16a34a !important;
+  color: #ffffff !important;
   font-weight: 800 !important;
 }
 
@@ -646,9 +661,9 @@
 }
 
 .brandCardActive {
-  background: rgba(245, 158, 11, 0.2) !important;
-  border-color: rgba(245, 158, 11, 0.6) !important;
-  color: #fbbf24 !important;
+  background: rgba(var(--accent-rgb), 0.15) !important;
+  border-color: rgba(var(--accent-rgb), 0.6) !important;
+  color: var(--accent) !important;
 }
 
 .brandCount {
@@ -662,8 +677,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 1.25rem 1.75rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  background: #2a2a30;
+  border-top: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .cancelModalBtn {
@@ -682,21 +697,21 @@
 }
 
 .applyModalBtn {
-  background: #f59e0b;
+  background: var(--primary);
   border: none;
-  color: #0f172a;
+  color: #ffffff;
   font-size: 1.08rem;
   font-weight: 800;
   padding: 0.75rem 2.6rem;
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.18s ease;
-  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);
+  box-shadow: 0 4px 14px rgba(var(--primary-rgb), 0.35);
 }
 
 .applyModalBtn:hover {
-  background: #fbbf24;
-  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.5);
+  background: var(--primary-hover);
+  box-shadow: 0 6px 20px rgba(var(--primary-rgb), 0.5);
   transform: translateY(-1px);
 }
 
@@ -707,8 +722,8 @@
 
 .seriesGrid {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 1.2rem;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1.25rem;
 }
 
 .paginationContainer {
@@ -749,6 +764,19 @@
   cursor: not-allowed;
 }
 
+.pageIndicator {
+  font-size: 0.95rem;
+  color: var(--foreground-secondary);
+  font-weight: 500;
+  margin: 0 0.5rem;
+}
+
+.pageIndicator strong {
+  color: var(--foreground-primary);
+  font-weight: 700;
+}
+
+
 .emptyState {
   display: flex;
   flex-direction: column;
@@ -782,8 +810,8 @@
 .clearFiltersBtn {
   margin-top: 0.5rem;
   padding: 0.75rem 1.6rem;
-  background: #f59e0b;
-  color: #0f172a;
+  background: var(--primary);
+  color: #ffffff;
   border: none;
   border-radius: 6px;
   font-size: 0.95rem;
@@ -793,43 +821,136 @@
 }
 
 .clearFiltersBtn:hover {
-  background: #fbbf24;
+  background: var(--primary-hover);
   transform: translateY(-1px);
 }
 
 /* Responsive Overrides */
 @media (max-width: 1280px) {
   .seriesGrid {
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(4, 1fr);
   }
 }
 
 @media (max-width: 1024px) {
   .seriesGrid {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
   }
   .brandsGrid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
-@media (max-width: 768px) {
+/* Dedicated Tablet Styling (769px to 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
   .filterActionBar {
+    display: flex;
     flex-direction: column;
     align-items: stretch;
+    gap: 0.85rem;
+    padding: 1rem 1.25rem;
   }
-  .leftControls, .rightControls {
+  .leftControls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.85rem;
     width: 100%;
-    justify-content: space-between;
   }
-  .searchInput {
+  .leftControls .actionTriggerBtn {
+    justify-content: center;
+    width: 100%;
+    padding: 0.75rem 1rem;
+  }
+  .rightControls {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr auto;
+    gap: 0.85rem;
+    width: 100%;
+    align-items: center;
+  }
+  .rightControls .searchBox {
     width: 100%;
   }
-  .searchInput:focus {
+  .rightControls .searchInput,
+  .rightControls .searchInput:focus {
     width: 100%;
+  }
+  .rightControls select {
+    width: 100%;
+  }
+
+  /* Custom Filter Bar (Uncensored & 3D pages on tablet) */
+  .customFilterBar {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 0.85rem;
+    padding: 1rem 1.25rem;
+    margin: 1.5rem 0 2rem;
+  }
+  .customFilterBarLeft {
+    display: none;
+  }
+  .customFilterBarCenter {
+    justify-self: stretch;
+    width: 100%;
+  }
+  .customFilterBarCenter .searchBox,
+  .customFilterBarCenter .searchInput,
+  .customFilterBarCenter .searchInput:focus {
+    width: 100% !important;
+  }
+  .customFilterBarRight {
+    justify-self: stretch;
+    width: 100%;
+  }
+  .customFilterBarRight select {
+    width: 100%;
+  }
+}
+
+/* Dedicated Mobile Styling (max-width: 768px) */
+@media (max-width: 768px) {
+  .filterActionBar {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+    padding: 0.85rem 1rem;
+  }
+  .leftControls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    width: 100%;
+  }
+  .leftControls .actionTriggerBtn {
+    justify-content: center;
+    width: 100%;
+    padding: 0.7rem 0.85rem;
+    font-size: 0.95rem;
+  }
+  .rightControls {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 100%;
+  }
+  .rightControls .searchBox {
+    width: 100%;
+  }
+  .rightControls .searchInput,
+  .rightControls .searchInput:focus {
+    width: 100%;
+  }
+  .rightControls select {
+    width: 100%;
+  }
+  .rightControls .resetBtn {
+    width: 100%;
+    justify-content: center;
   }
   .seriesGrid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 0.85rem;
   }
   .tagsGrid {
@@ -838,11 +959,125 @@
   .brandsGrid {
     grid-template-columns: 1fr;
   }
-}
 
-@media (max-width: 480px) {
-  .seriesGrid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.65rem;
+  /* Modals Layout & Padding Adjustments for Mobile */
+  .modalOverlay {
+    padding: 0.5rem;
+  }
+  .modalBox {
+    max-height: 95vh;
+  }
+  .modalHeader {
+    padding: 1rem 1.25rem;
+  }
+  .modalTitle {
+    font-size: 1.3rem;
+  }
+  .modalResetBtn {
+    padding: 0.45rem 0.85rem;
+    font-size: 0.88rem;
+  }
+  .broadMatchesCard {
+    margin: 0.75rem 1rem 0.5rem;
+    padding: 0.85rem 1rem;
+  }
+  .sectionHeaderRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 1rem 1.25rem 0.6rem;
+  }
+  .modalSearchWrapper {
+    padding: 0 1.25rem 0.5rem;
+  }
+  .modalFilterBar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem 0.6rem;
+  }
+  .modalFilterBar > div {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    width: 100%;
+    gap: 0.75rem !important;
+  }
+  .modalFilterBar .searchBox {
+    width: 100%;
+  }
+  .modalFilterBar .modalSearchInput {
+    width: 100%;
+  }
+  .sortToggleGroup {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+  }
+  .sortToggleBtn {
+    width: 100%;
+    justify-content: center;
+    display: flex;
+    padding: 0.55rem;
+  }
+  .modalBody {
+    padding: 0.5rem 1.25rem 1rem;
   }
 }
+
+.customFilterBar {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background: rgba(18, 18, 22, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  width: 100%;
+  gap: 1rem;
+  margin: 1.75rem 0 2.25rem;
+}
+
+.customFilterBarLeft {
+  justify-self: start;
+}
+
+.customFilterBarCenter {
+  justify-self: center;
+}
+
+.customFilterBarCenter .searchBox,
+.customFilterBarCenter .searchInput {
+  width: 480px;
+}
+
+.customFilterBarCenter .searchInput:focus {
+  width: 520px;
+}
+
+.customFilterBarRight {
+  justify-self: end;
+}
+
+@media (max-width: 768px) {
+  .customFilterBar {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+    padding: 0.85rem 1rem;
+    margin: 1.25rem 0 1.75rem;
+  }
+  .customFilterBarLeft, .customFilterBarCenter, .customFilterBarRight {
+    justify-self: stretch;
+    width: 100%;
+  }
+  .customFilterBarLeft select, .customFilterBarRight select {
+    width: 100%;
+  }
+  .customFilterBarCenter .searchBox,
+  .customFilterBarCenter .searchInput,
+  .customFilterBarCenter .searchInput:focus {
+    width: 100% !important;
+  }
+}
+

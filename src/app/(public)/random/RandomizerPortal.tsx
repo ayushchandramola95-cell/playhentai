@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
-import { ChevronLeft, ChevronRight, LayoutGrid, List, Shuffle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Shuffle } from 'lucide-react';
 import SeriesCard from '@/components/SeriesCard/SeriesCard';
 import styles from './random.module.css';
 
@@ -23,7 +23,6 @@ interface RandomizerPortalProps {
 }
 
 export default function RandomizerPortal({ seriesList }: RandomizerPortalProps) {
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [shuffledList, setShuffledList] = useState<SeriesItem[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [isShuffling, setIsShuffling] = useState<boolean>(false);
@@ -66,7 +65,7 @@ export default function RandomizerPortal({ seriesList }: RandomizerPortalProps) 
       <div className={styles.portalContent}>
         {/* Breadcrumb Row */}
         <nav className={styles.breadcrumbs} aria-label="Breadcrumbs">
-          <Link href="/">Browse</Link>
+          <Link href="/">Home</Link>
           <span className={styles.crumbDivider}>/</span>
           <span className={styles.activeCrumb}>Random</span>
         </nav>
@@ -81,37 +80,22 @@ export default function RandomizerPortal({ seriesList }: RandomizerPortalProps) 
 
         {/* Action Bar: Big Randomize Button, View Mode, Pagination */}
         <div className={styles.actionBar}>
-          <button
-            type="button"
-            onClick={handleRandomize}
-            className={`${styles.randomizeBtn} ${isShuffling ? styles.btnSpinning : ''}`}
-            disabled={isShuffling}
-          >
-            <Shuffle size={18} className={styles.shuffleIcon} />
-            <span>Randomize</span>
-          </button>
+          <div className={styles.actionBarLeft}>
+            <button
+              type="button"
+              onClick={handleRandomize}
+              className={`${styles.randomizeBtn} ${isShuffling ? styles.btnSpinning : ''}`}
+              disabled={isShuffling}
+            >
+              <Shuffle size={16} className={styles.shuffleIcon} />
+              <span>Randomize</span>
+            </button>
+          </div>
 
-          {/* Controls Right: View Toggle & Pagination */}
-          <div className={styles.controlsRight}>
-            <div className={styles.viewToggleGroup}>
-              <button
-                type="button"
-                className={`${styles.viewBtn} ${viewMode === 'grid' ? styles.activeView : ''}`}
-                onClick={() => setViewMode('grid')}
-                aria-label="Grid View"
-              >
-                <LayoutGrid size={16} />
-              </button>
-              <button
-                type="button"
-                className={`${styles.viewBtn} ${viewMode === 'list' ? styles.activeView : ''}`}
-                onClick={() => setViewMode('list')}
-                aria-label="List View"
-              >
-                <List size={16} />
-              </button>
-            </div>
+          {/* Empty center column to balance layout and keep action items on opposite ends */}
+          <div style={{ pointerEvents: 'none' }} />
 
+          <div className={styles.actionBarRight}>
             <div className={styles.miniPagination}>
               <button
                 type="button"

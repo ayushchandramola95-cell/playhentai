@@ -294,3 +294,32 @@
     gap: 0.65rem !important;
   }
 }
+
+/* Breadcrumbs Styling */
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--foreground-secondary);
+  margin-bottom: 1.25rem;
+}
+
+.breadcrumbs a {
+  color: var(--foreground-secondary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.breadcrumbs a:hover {
+  color: #ffffff;
+}
+
+.crumbDivider {
+  color: rgba(255, 255, 255, 0.25);
+}
+
+.activeCrumb {
+  color: #ffffff;
+  font-weight: 700;
+}

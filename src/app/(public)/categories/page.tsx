@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { Layers } from 'lucide-react';
 import { unstable_cache } from 'next/cache';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
@@ -201,6 +201,13 @@ export default async function CategoriesPage() {
       <JsonLd data={breadcrumbJsonLd} />
       <div className="ambient-glow" />
 
+      {/* Breadcrumbs */}
+      <nav className={styles.breadcrumbs} aria-label="Breadcrumbs">
+        <a href="/">Home</a>
+        <span className={styles.crumbDivider}>/</span>
+        <span className={styles.activeCrumb}>Browse</span>
+      </nav>
+
       {/* Header */}
       <div className={styles.headerSection}>
         <div className={styles.titleRow}>
@@ -213,7 +220,9 @@ export default async function CategoriesPage() {
       </div>
 
       {/* Filterable Browse Hub */}
-      <BrowseHub initialSeries={activeSeries} isDbEmpty={isDbEmpty} />
+      <Suspense fallback={null}>
+        <BrowseHub initialSeries={activeSeries} isDbEmpty={isDbEmpty} />
+      </Suspense>
     </div>
   );
 }

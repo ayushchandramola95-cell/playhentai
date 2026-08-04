@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Clock, Play, ArrowLeft, Star, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -226,7 +226,9 @@ export default async function RecentEpisodesPage({
         </div>
 
         {/* Filter Controls Bar */}
-        <RecentFilterBar type="episodes" />
+        <Suspense fallback={null}>
+          <RecentFilterBar type="episodes" />
+        </Suspense>
 
         {currentEpisodes.length === 0 ? (
           <div style={{

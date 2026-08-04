@@ -16,6 +16,9 @@ export async function generateMetadata({ params }: CollectionDetailPageProps) {
   return {
     title: collection ? `${collection.name} - Playlists` : 'Playlist Not Found',
     description: collection?.description || 'The requested curated series playlist details.',
+    alternates: {
+      canonical: `/playlists/${slug}`,
+    },
   };
 }
 

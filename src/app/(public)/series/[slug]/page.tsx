@@ -603,7 +603,8 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
     '@type': 'BreadcrumbList',
     'itemListElement': [
       { '@type': 'ListItem', 'position': 1, 'name': 'Home', 'item': siteUrl },
-      { '@type': 'ListItem', 'position': 2, 'name': activeSeries.title, 'item': seriesCanonicalUrl }
+      { '@type': 'ListItem', 'position': 2, 'name': 'Browse', 'item': `${siteUrl}/categories` },
+      { '@type': 'ListItem', 'position': 3, 'name': activeSeries.title, 'item': seriesCanonicalUrl }
     ]
   };
 
@@ -1030,21 +1031,9 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
           </section>
         </div>
 
-        {/* More From Studio Section */}
-        {moreFromStudio.length > 0 && (
-          <section className={styles.moreFromStudioSection}>
-            <div className={styles.moreFromStudioTitleRow}>
-              <h2>More From {studio.split(',')[0].trim()}</h2>
-              <Link href={`/studios/${convertStudioNameToSlug(studio.split(',')[0].trim())}`} className={styles.moreFromStudioViewAll}>
-                View All
-              </Link>
-            </div>
-            <div className={styles.moreFromStudioGrid}>
-              {moreFromStudio.map((item: any) => (
-                <SeriesCard key={item.id} item={item} />
-              ))}
-            </div>
-          </section>
+        {/* Similar Titles Section */}
+        {similarSeries.length > 0 && (
+          <SimilarTitles list={similarSeries} />
         )}
 
         {/* Frequently Asked Questions accordion */}
@@ -1070,11 +1059,23 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
         )}
       </div>
 
-      {/* Full-Width Bottom Sections (Similar Titles & Discussion) */}
+      {/* Full-Width Bottom Sections (More From Studio & Discussion) */}
       <div className={styles.fullWidthSectionContainer}>
-        {/* Similar Titles Section */}
-        {similarSeries.length > 0 && (
-          <SimilarTitles list={similarSeries} />
+        {/* More From Studio Section */}
+        {moreFromStudio.length > 0 && (
+          <section className={styles.moreFromStudioSection}>
+            <div className={styles.moreFromStudioTitleRow}>
+              <h2>More From {studio.split(',')[0].trim()}</h2>
+              <Link href={`/studios/${convertStudioNameToSlug(studio.split(',')[0].trim())}`} className={styles.moreFromStudioViewAll}>
+                View All
+              </Link>
+            </div>
+            <div className={styles.moreFromStudioGrid}>
+              {moreFromStudio.map((item: any) => (
+                <SeriesCard key={item.id} item={item} />
+              ))}
+            </div>
+          </section>
         )}
 
         {/* Discussion / Comments Section */}

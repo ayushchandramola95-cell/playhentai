@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, usePathname } from 'next/navigation';
 import { Layers, ArrowRight, Play, Sparkles, Compass, Flame } from 'lucide-react';
 import { getR2Url } from '@/utils/r2';
 import JsonLd from '../JsonLd/JsonLd';
@@ -41,7 +41,11 @@ const TABS = [
 
 export default function CollectionsClient({ collections }: CollectionsClientProps) {
   const searchParams = useSearchParams();
+  const pathname = usePathname();
   const [activeTab, setActiveTab] = useState<string>('all');
+
+  const routePrefix = pathname?.startsWith('/playlists') ? '/playlists' : '/collections';
+  const tabLabel = routePrefix === '/playlists' ? 'Playlists' : 'Collections';
 
   useEffect(() => {
     const tabParam = searchParams.get('tab');
@@ -62,13 +66,13 @@ export default function CollectionsClient({ collections }: CollectionsClientProp
   const itemListJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
-    'name': 'Curated Hentai Anime Playlists on PlayHentai',
-    'url': `${SITE_URL}/playlists`,
+    'name': `Curated Hentai Anime ${tabLabel} on PlayHentai`,
+    'url': `${SITE_URL}${routePrefix}`,
     'itemListElement': filteredCollections.map((col, idx) => ({
       '@type': 'ListItem',
       'position': idx + 1,
       'name': col.name,
-      'url': `${SITE_URL}/collections/${col.slug}`,
+      'url': `${SITE_URL}${routePrefix}/${col.slug}`,
     })),
   };
 
@@ -76,6 +80,13 @@ export default function CollectionsClient({ collections }: CollectionsClientProp
     <div className={styles.container}>
       <JsonLd data={itemListJsonLd} />
       <div className="ambient-glow" />
+
+      {/* Breadcrumbs */}
+      <nav className={styles.breadcrumbs} aria-label="Breadcrumbs">
+        <a href="/">Home</a>
+        <span className={styles.crumbDivider}>/</span>
+        <span className={styles.activeCrumb}>{tabLabel}</span>
+      </nav>
 
       {/* Header Section */}
       <div className={styles.headerSection}>
@@ -112,7 +123,7 @@ export default function CollectionsClient({ collections }: CollectionsClientProp
         {filteredCollections.map((col) => (
           <Link
             key={col.id}
-            href={`/collections/${col.slug}`}
+            href={`${routePrefix}/${col.slug}`}
             className={`${styles.collectionCard} glass`}
             style={{ '--accent-gradient': col.gradient } as React.CSSProperties}
           >

@@ -89,7 +89,7 @@ export default async function RandomPage() {
     '@type': 'BreadcrumbList',
     'itemListElement': [
       { '@type': 'ListItem', 'position': 1, 'name': 'Home', 'item': SITE_URL },
-      { '@type': 'ListItem', 'position': 2, 'name': 'Surprise Me', 'item': `${SITE_URL}/random` },
+      { '@type': 'ListItem', 'position': 2, 'name': 'Random', 'item': `${SITE_URL}/random` },
     ],
   };
 

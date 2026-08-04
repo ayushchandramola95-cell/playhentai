@@ -31,7 +31,7 @@
 }
 
 .breadcrumbs a:hover {
-  color: #a855f7;
+  color: var(--primary);
 }
 
 .breadDivider {
@@ -39,7 +39,7 @@
 }
 
 .breadActive {
-  color: #c084fc;
+  color: #a78bfa;
   font-weight: 700;
 }
 
@@ -80,7 +80,7 @@
   aspect-ratio: 21 / 9;
   max-height: 75vh;
   border-radius: 24px;
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85), 0 0 40px rgba(168, 85, 247, 0.2);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85), 0 0 40px rgba(124, 58, 237, 0.2);
 }
 
 /* Server Selector Row */
@@ -119,10 +119,10 @@
 }
 
 .activeServerChip {
-  background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%) !important;
+  background: var(--primary) !important;
   border-color: transparent !important;
   color: #ffffff !important;
-  box-shadow: 0 4px 14px rgba(168, 85, 247, 0.35);
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35);
 }
 
 .actionButtons {
@@ -339,7 +339,7 @@
 }
 
 .sidebarSeriesTitle:hover {
-  color: #a855f7;
+  color: var(--primary);
 }
 
 .sidebarRatingBlock {
@@ -406,9 +406,9 @@
 }
 
 .sidebarTag:hover {
-  background: rgba(168, 85, 247, 0.12);
-  border-color: rgba(168, 85, 247, 0.3);
-  color: #c084fc;
+  background: rgba(124, 58, 237, 0.12);
+  border-color: rgba(124, 58, 237, 0.3);
+  color: #a78bfa;
 }
 
 /* Episodes Queue Playlist (Aligned precisely with Description Box bottom) */
@@ -433,7 +433,7 @@
 }
 
 .sidebarIcon {
-  color: #a855f7;
+  color: var(--primary);
 }
 
 .queueHeader h3 {
@@ -446,11 +446,11 @@
   margin-left: auto;
   font-size: 0.72rem;
   font-weight: 800;
-  color: #c084fc;
-  background: rgba(168, 85, 247, 0.12);
+  color: #a78bfa;
+  background: rgba(124, 58, 237, 0.12);
   padding: 0.2rem 0.65rem;
   border-radius: 20px;
-  border: 1px solid rgba(168, 85, 247, 0.3);
+  border: 1px solid rgba(124, 58, 237, 0.3);
 }
 
 .queueList {

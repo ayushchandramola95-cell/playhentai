@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { ShieldCheck } from 'lucide-react';
 import { unstable_cache } from 'next/cache';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import UncensoredHub from '@/components/UncensoredHub/UncensoredHub';
 import JsonLd from '@/components/JsonLd/JsonLd';
-import styles from '../categories/categories.module.css';
+import styles from './uncensored.module.css';
 import { MOCK_SERIES } from '@/utils/mockData';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
@@ -117,21 +117,29 @@ export default async function UncensoredPage() {
   return (
     <div className={styles.container}>
       <JsonLd data={[breadcrumbJsonLd, collectionJsonLd]} />
-      <div className="ambient-glow" />
 
-      {/* Header */}
+      {/* Breadcrumbs */}
+      <nav className={styles.breadcrumbs} aria-label="Breadcrumbs">
+        <a href="/">Home</a>
+        <span className={styles.crumbDivider}>/</span>
+        <span className={styles.activeCrumb}>Uncensored</span>
+      </nav>
+
+      {/* Clean & Simple Header Section */}
       <div className={styles.headerSection}>
         <div className={styles.titleRow}>
-          <ShieldCheck size={28} className={styles.headerIcon} style={{ color: '#10b981' }} />
+          <ShieldCheck size={28} className={styles.headerIcon} />
           <h1>Uncensored Hentai Anime</h1>
         </div>
         <p className={styles.subtext}>
-          Explore our complete library of uncensored 1080p anime series, episodes, and releases.
+          Explore our complete library of uncensored 1080p anime series, episodes, and releases — streamed in full HD with zero censorship.
         </p>
       </div>
 
       {/* Dedicated Standalone Uncensored Catalog View */}
-      <UncensoredHub initialSeries={activeSeries} isDbEmpty={isDbEmpty} />
+      <Suspense fallback={null}>
+        <UncensoredHub initialSeries={activeSeries} isDbEmpty={isDbEmpty} />
+      </Suspense>
     </div>
   );
 }

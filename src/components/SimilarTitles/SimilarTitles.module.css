@@ -52,8 +52,8 @@
 }
 
 .similarGrid > div {
-  flex: 0 0 190px;
-  width: 190px;
+  flex: 0 0 230px;
+  width: 230px;
 }
 
 /* Disable hover popovers inside the horizontally scrollable track to prevent overflow-x boundary clipping */

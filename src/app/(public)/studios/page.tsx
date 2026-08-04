@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { Calendar, MapPin } from 'lucide-react';
+import { Calendar, MapPin, Building2 } from 'lucide-react';
 import { getAllStudiosWithStats } from '@/utils/studiosData';
 import JsonLd from '@/components/JsonLd/JsonLd';
 import styles from './studiosIndex.module.css';
@@ -69,8 +69,18 @@ export default async function StudiosIndexPage() {
       <JsonLd data={[breadcrumbJsonLd, itemListJsonLd]} />
       <div className="ambient-glow" />
 
+      {/* Breadcrumbs */}
+      <nav className={styles.breadcrumbs} aria-label="Breadcrumbs">
+        <a href="/">Home</a>
+        <span className={styles.crumbDivider}>/</span>
+        <span className={styles.activeCrumb}>Studios</span>
+      </nav>
+
       <div className={styles.titleSection}>
-        <h1>Hentai Production Studios</h1>
+        <div className={styles.titleIconRow}>
+          <Building2 size={30} className={styles.titleIcon} />
+          <h1>Hentai Production Studios</h1>
+        </div>
         <p className={styles.subtitle}>
           Browse full profiles, ratings, release calendars, and watch catalogs of your favorite animation production houses on PlayHentai.
         </p>
@@ -110,9 +120,16 @@ export default async function StudiosIndexPage() {
               </div>
               <div className={styles.statBox}>
                 <span className={styles.statLabel}>Avg Rating</span>
-                <span className={styles.statValue} style={{ color: 'var(--primary)' }}>
-                  {typeof studio.stats.averageRating === 'number' 
-                    ? studio.stats.averageRating.toFixed(1) 
+                <span
+                  className={styles.statValue}
+                  style={{
+                    color: typeof studio.stats.averageRating === 'number'
+                      ? 'var(--primary)'
+                      : 'var(--foreground-muted)'
+                  }}
+                >
+                  {typeof studio.stats.averageRating === 'number'
+                    ? studio.stats.averageRating.toFixed(1)
                     : studio.stats.averageRating}
                 </span>
               </div>

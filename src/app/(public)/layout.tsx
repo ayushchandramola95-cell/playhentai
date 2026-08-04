@@ -2,6 +2,7 @@ import React from 'react';
 import Header from '@/components/Header/Header';
 import Footer from '@/components/Footer/Footer';
 import AdBanner from '@/components/AdBanner/AdBanner';
+import BackToTop from '@/components/BackToTop/BackToTop';
 
 export default function PublicLayout({
   children,
@@ -19,6 +20,7 @@ export default function PublicLayout({
       {/* Mobile-Only Footer Banner (Zone 5986980) */}
       <AdBanner zoneId="5986980" insClass="eas6a97888e10" mobileOnly />
       <Footer />
+      <BackToTop />
     </>
   );
 }

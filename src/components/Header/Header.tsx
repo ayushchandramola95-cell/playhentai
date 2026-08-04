@@ -13,7 +13,7 @@ const LogoIcon = () => (
     <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.tvIconSvg}>
       <rect x="2" y="7" width="20" height="14" rx="3" ry="3" stroke="#ffffff" strokeWidth="2" fill="none" />
       <path d="M17 2l-5 5-5-5" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      <polygon points="10,11 15,14 10,17" fill="#eab308" stroke="#eab308" strokeWidth="1" strokeLinejoin="round" />
+      <polygon points="10,11 15,14 10,17" fill="#f59e0b" stroke="#f59e0b" strokeWidth="1" strokeLinejoin="round" />
     </svg>
   </div>
 );
@@ -125,11 +125,8 @@ export default function Header() {
           <Link href="/playlists" className={`${styles.navLink} ${pathname.startsWith('/playlists') || pathname.startsWith('/collections') ? styles.activeLink : ''}`}>
             Playlists
           </Link>
-          <Link href="/studios" className={`${styles.navLink} ${pathname.startsWith('/studios') ? styles.activeLink : ''}`}>
-            Studios
-          </Link>
           <Link href="/random" className={`${styles.navLink} ${pathname === '/random' ? styles.activeLink : ''}`}>
-            Surprise Me
+            Random
           </Link>
         </nav>
       </div>
@@ -196,6 +193,15 @@ export default function Header() {
                 >
                   <History size={16} />
                   <span>Watch History</span>
+                </Link>
+
+                <Link 
+                  href="/studios" 
+                  onClick={() => setDropdownOpen(false)} 
+                  className={styles.dropdownItem}
+                >
+                  <Tv size={16} />
+                  <span>Studios Catalog</span>
                 </Link>
 
                 <Link 
@@ -302,7 +308,7 @@ export default function Header() {
 
               <Link href="/random" onClick={() => setMobileMenuOpen(false)} className={`${styles.mobileNavLink} ${pathname === '/random' ? styles.activeLink : ''}`}>
                 <Dices size={18} />
-                <span>Surprise Me</span>
+                <span>Random</span>
               </Link>
 
               <hr className={styles.drawerDivider} />

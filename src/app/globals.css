@@ -8,32 +8,32 @@
   --foreground-secondary: #475569;
   --foreground-muted: #94a3b8;
   
-  --primary: #8b5cf6;
-  --primary-hover: #7c3aed;
-  --primary-rgb: 139, 92, 246;
-  --accent: #ec4899;
-  --accent-rgb: 236, 72, 153;
+  --primary: #7c3aed;
+  --primary-hover: #6d28d9;
+  --primary-rgb: 124, 58, 237;
+  --accent: #f59e0b;
+  --accent-rgb: 245, 158, 11;
   
   --border: #e2e8f0;
-  --border-glow: rgba(139, 92, 246, 0.1);
+  --border-glow: rgba(124, 58, 237, 0.1);
   --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.05), 0 4px 6px -4px rgb(0 0 0 / 0.05);
   --glass-bg: rgba(255, 255, 255, 0.7);
   --glass-border: rgba(226, 232, 240, 0.6);
-  --glow-opacity: 0.03;
+  --glow-opacity: 0.04;
 
   /* Hero Section Variables (Universal Dark style) */
   --hero-title-color: #ffffff;
   --hero-desc-color: #e2e8f0;
   --hero-text-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
-  --hero-btn-bg: #ffffff;
-  --hero-btn-color: #0f172a;
-  --hero-btn-hover-bg: #f1f5f9;
+  --hero-btn-bg: #7c3aed;
+  --hero-btn-color: #ffffff;
+  --hero-btn-hover-bg: #6d28d9;
   --hero-watchlist-bg: rgba(255, 255, 255, 0.12);
   --hero-watchlist-border: rgba(255, 255, 255, 0.25);
   --hero-watchlist-color: #ffffff;
-  --hero-bg-color: #090d16;
-  --hero-bg-rgb-raw: 9, 13, 22;
+  --hero-bg-color: #080808;
+  --hero-bg-rgb-raw: 8, 8, 8;
 
   /* Header Background (Light Theme) */
   --header-bg: rgba(248, 250, 252, 0.94);
@@ -41,45 +41,53 @@
 }
 
 [data-theme='dark'] {
-  /* Dark Theme Palette (Default) */
-  --background: #090d16;
-  --surface: #111726;
-  --surface-hover: #192135;
+  /* ────────────────────────────────────────────────
+     PREMIUM BLACK & CHARCOAL THEME
+     Background:  Pure black → charcoal dark surfaces
+     Primary CTA: Deep purple (#7c3aed) — elegant, premium
+     Accent:      Warm amber (#f59e0b) — star/ratings
+     ──────────────────────────────────────────────── */
+  --background: #080808;
+  --surface: #111111;
+  --surface-hover: #1a1a1a;
   
-  --foreground-primary: #f8fafc;
-  --foreground-secondary: #94a3b8;
-  --foreground-muted: #64748b;
+  --foreground-primary: #f5f5f5;
+  --foreground-secondary: #999999;
+  --foreground-muted: #555555;
   
-  --primary: #a78bfa;
-  --primary-hover: #8b5cf6;
-  --primary-rgb: 167, 139, 250;
-  --accent: #f472b6;
-  --accent-rgb: 244, 114, 182;
-  
-  --border: #1e293b;
-  --border-glow: rgba(167, 139, 250, 0.15);
-  --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.3);
-  --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.4), 0 8px 10px -6px rgb(0 0 0 / 0.4);
-  --glass-bg: rgba(17, 23, 38, 0.75);
-  --glass-border: rgba(30, 41, 59, 0.5);
-  --glow-opacity: 0.08;
+  /* Primary = deep purple — hero CTAs, hovers, links */
+  --primary: #7c3aed;
+  --primary-hover: #6d28d9;
+  --primary-rgb: 124, 58, 237;
 
-  /* Hero Section Variables (Dark Theme) */
+  /* Accent = warm amber — stars, ratings, highlights */
+  --accent: #f59e0b;
+  --accent-rgb: 245, 158, 11;
+  
+  --border: #1f1f1f;
+  --border-glow: rgba(124, 58, 237, 0.14);
+  --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.5), 0 2px 4px -2px rgb(0 0 0 / 0.5);
+  --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.7), 0 8px 10px -6px rgb(0 0 0 / 0.7);
+  --glass-bg: rgba(17, 17, 17, 0.82);
+  --glass-border: rgba(31, 31, 31, 0.7);
+  --glow-opacity: 0.09;
+
+  /* Hero Section Variables */
   --hero-title-color: #ffffff;
-  --hero-desc-color: #e2e8f0;
-  --hero-text-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
-  --hero-btn-bg: #ffffff;
-  --hero-btn-color: #0f172a;
-  --hero-btn-hover-bg: #f1f5f9;
-  --hero-watchlist-bg: rgba(255, 255, 255, 0.12);
-  --hero-watchlist-border: rgba(255, 255, 255, 0.25);
+  --hero-desc-color: #d4d4d4;
+  --hero-text-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
+  --hero-btn-bg: #7c3aed;
+  --hero-btn-color: #ffffff;
+  --hero-btn-hover-bg: #6d28d9;
+  --hero-watchlist-bg: rgba(255, 255, 255, 0.08);
+  --hero-watchlist-border: rgba(255, 255, 255, 0.18);
   --hero-watchlist-color: #ffffff;
-  --hero-bg-color: #090d16;
-  --hero-bg-rgb-raw: 9, 13, 22;
+  --hero-bg-color: #080808;
+  --hero-bg-rgb-raw: 8, 8, 8;
 
   /* Header Background (Dark Theme) */
-  --header-bg: rgba(9, 13, 22, 0.95);
-  --bg-rgb-raw: 9, 13, 22;
+  --header-bg: rgba(8, 8, 8, 0.97);
+  --bg-rgb-raw: 8, 8, 8;
 }
 
 /* Base Reset & Configuration */
@@ -123,8 +131,8 @@ body {
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {

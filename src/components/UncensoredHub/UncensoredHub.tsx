@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Search, X, ChevronLeft, ChevronRight, Grid } from 'lucide-react';
+import { Search, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import SeriesCard from '../SeriesCard/SeriesCard';
 import AdBanner from '../AdBanner/AdBanner';
 import JsonLd from '../JsonLd/JsonLd';
@@ -42,10 +42,15 @@ export default function UncensoredHub({ initialSeries, isDbEmpty }: UncensoredHu
 
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const [sortMode, setSortMode] = useState<string>('a_z'); // DEFAULT: A to Z
+  const [sortMode, setSortMode] = useState<string>('random'); // DEFAULT: Random
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [hasHydrated, setHasHydrated] = useState(false);
 
   const ITEMS_PER_PAGE = 25; // 5 rows x 5 columns
+
+  useEffect(() => {
+    setHasHydrated(true);
+  }, []);
 
   useEffect(() => {
     const pageParam = searchParams.get('page');
@@ -77,9 +82,21 @@ export default function UncensoredHub({ initialSeries, isDbEmpty }: UncensoredHu
     setCurrentPage(1);
   }, [searchQuery, sortMode]);
 
-  // Filter series for uncensored items (or all items if tagged as uncensored or empty)
+  // Filter series specifically for uncensored content
   const uncensoredFilteredSeries = useMemo(() => {
-    return initialSeries.filter((series) => {
+    const baseList = initialSeries.filter((series) => {
+      const tags = (series.tags || []).map(t => (typeof t === 'string' ? t.toLowerCase().trim() : ''));
+      const cat = (series.category || '').toLowerCase().trim();
+      const desc = (series.description || '').toLowerCase().trim();
+
+      const matchesUncensoredTag = tags.some(t => t === 'uncensored');
+      const matchesUncensoredCat = cat === 'uncensored';
+      const matchesUncensoredDesc = desc.includes('uncensored');
+
+      return matchesUncensoredTag || matchesUncensoredCat || matchesUncensoredDesc;
+    });
+
+    return baseList.filter((series) => {
       // If searchQuery is entered, match query
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase().trim();
@@ -102,25 +119,29 @@ export default function UncensoredHub({ initialSeries, isDbEmpty }: UncensoredHu
   // Sort filtered series
   const sortedSeries = useMemo(() => {
     const list = [...uncensoredFilteredSeries];
-    if (sortMode === 'a_z') {
+    if (sortMode === 'random' && hasHydrated) {
+      // Fisher-Yates shuffle for true randomness
+      for (let i = list.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [list[i], list[j]] = [list[j], list[i]];
+      }
+    } else if (sortMode === 'recent') {
+      list.sort((a, b) => {
+        const dateA = new Date((a as any).release_date || (a as any).created_at || a.release_year || a.releaseYear || 0).getTime();
+        const dateB = new Date((b as any).release_date || (b as any).created_at || b.release_year || b.releaseYear || 0).getTime();
+        return dateB - dateA;
+      });
+    } else if (sortMode === 'most_viewed') {
+      list.sort((a, b) => ((b as any).views || (b as any).views_count || 0) - ((a as any).views || (a as any).views_count || 0));
+    } else if (sortMode === 'rating') {
+      list.sort((a, b) => ((b as any).rating || 0) - ((a as any).rating || 0));
+    } else if (sortMode === 'a_z') {
       list.sort((a, b) => a.title.localeCompare(b.title));
     } else if (sortMode === 'z_a') {
       list.sort((a, b) => b.title.localeCompare(a.title));
-    } else if (sortMode === 'newest') {
-      list.sort((a, b) => {
-        const yearA = a.release_year || a.releaseYear || 0;
-        const yearB = b.release_year || b.releaseYear || 0;
-        return yearB - yearA;
-      });
-    } else if (sortMode === 'oldest') {
-      list.sort((a, b) => {
-        const yearA = a.release_year || a.releaseYear || 0;
-        const yearB = b.release_year || b.releaseYear || 0;
-        return yearA - yearB;
-      });
     }
     return list;
-  }, [uncensoredFilteredSeries, sortMode]);
+  }, [uncensoredFilteredSeries, sortMode, hasHydrated]);
 
   // Pagination calculation
   const totalPages = Math.ceil(sortedSeries.length / ITEMS_PER_PAGE) || 1;
@@ -161,58 +182,58 @@ export default function UncensoredHub({ initialSeries, isDbEmpty }: UncensoredHu
       {/* Search Bar & Controls */}
       <div 
         ref={filterBarRef}
-        className={`${styles.filterBar} ${isSearchFocused ? styles.filterBarFocused : ''}`}
+        className={styles.customFilterBar}
       >
-        <div className={styles.searchWrapper}>
-          <Search size={18} className={styles.searchIcon} />
-          <input
-            type="text"
-            placeholder="Search uncensored titles, tags, descriptions..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onFocus={handleSearchFocus}
-            onBlur={handleSearchBlur}
-            className={styles.searchInput}
-          />
-          {searchQuery && (
-            <button 
-              onClick={() => setSearchQuery('')}
-              className={styles.clearSearchBtn}
-              title="Clear search"
-            >
-              <X size={16} />
-            </button>
-          )}
-        </div>
-      </div>
+        {/* Dummy div to balance grid left column and keep search centered */}
+        <div style={{ pointerEvents: 'none' }} />
 
-      {/* Sponsored Ad Banner */}
-      <AdBanner zoneId="5986838" />
-
-      {/* Header & Controls */}
-      <div className={styles.catalogHeader}>
-        <div className={styles.catalogTitle}>
-          <Grid size={20} className={styles.gridIcon} />
-          <h2>Uncensored Releases</h2>
-          <span className={styles.itemCount}>({sortedSeries.length} titles)</span>
+        {/* Centered Search box */}
+        <div className={styles.customFilterBarCenter}>
+          <div className={styles.searchBox}>
+            <Search size={16} className={styles.searchIcon} />
+            <input
+              type="text"
+              placeholder="Search..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={handleSearchFocus}
+              onBlur={handleSearchBlur}
+              className={styles.searchInput}
+            />
+            {searchQuery && (
+              <button 
+                onClick={() => setSearchQuery('')}
+                className={styles.clearSearch}
+                title="Clear search"
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
         </div>
 
-        {/* Sort Controls */}
-        <div className={styles.sortControls}>
-          <label htmlFor="uncensored-sort-select" className={styles.sortLabel}>Sort By:</label>
+        {/* Sort select dropdown aligned on the right */}
+        <div className={styles.customFilterBarRight}>
           <select 
             id="uncensored-sort-select"
             value={sortMode} 
             onChange={(e) => setSortMode(e.target.value)}
             className={styles.sortSelect}
           >
-            <option value="a_z">Name: A to Z (Default)</option>
-            <option value="z_a">Name: Z to A</option>
-            <option value="newest">Release Year: Newest First</option>
-            <option value="oldest">Release Year: Oldest First</option>
+            <option value="random">🎲 Random</option>
+            <option value="recent">≡ Recent Upload</option>
+            <option value="most_viewed">🔥 Most Viewed</option>
+            <option value="rating">⭐ Highest Rated</option>
+            <option value="a_z">🔤 Name: A-Z</option>
+            <option value="z_a">🔤 Name: Z-A</option>
           </select>
         </div>
       </div>
+
+      {/* Sponsored Ad Banner */}
+      <AdBanner zoneId="5986838" />
+
+      {/* Catalog Grid Area */}
 
       {/* Grid of Series Cards */}
       {paginatedSeries.length > 0 ? (

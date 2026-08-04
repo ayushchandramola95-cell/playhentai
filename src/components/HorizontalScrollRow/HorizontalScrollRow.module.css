@@ -126,10 +126,10 @@
   width: 310px;
 }
 
-/* Portrait Series Item Width in Slider: Tight gap, 6 full cards + peek of 7th card on desktop */
+/* Portrait Series Item Width in Slider: Tight gap, 5.7 full cards + peek of 6th card on desktop */
 .seriesItem {
-  flex: 0 0 calc((100% - 2.5rem) / 6.25);
-  min-width: 175px;
+  flex: 0 0 calc((100% - 2.5rem) / 5.7);
+  min-width: 195px;
 }
 
 /* Dash Indicators below Row */
@@ -157,9 +157,9 @@
 }
 
 .activeDash {
-  background: var(--primary, #a855f7);
+  background: var(--primary, #7c3aed);
   width: 36px;
-  box-shadow: 0 0 8px rgba(168, 85, 247, 0.5);
+  box-shadow: 0 0 8px rgba(124, 58, 237, 0.5);
 }
 
 @media (max-width: 1280px) {
@@ -168,8 +168,8 @@
     width: 270px;
   }
   .seriesItem {
-    flex: 0 0 calc((100% - 3.2rem) / 4.8);
-    min-width: 160px;
+    flex: 0 0 calc((100% - 3.2rem) / 4.3);
+    min-width: 175px;
   }
 }
 
@@ -179,8 +179,8 @@
     width: 240px;
   }
   .seriesItem {
-    flex: 0 0 calc((100% - 1.8rem) / 2.6);
-    min-width: 140px;
+    flex: 0 0 calc((100% - 1.8rem) / 2.3);
+    min-width: 155px;
   }
   .scrollContainer {
     gap: 0.6rem;

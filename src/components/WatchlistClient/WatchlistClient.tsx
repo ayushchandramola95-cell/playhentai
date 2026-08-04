@@ -60,6 +60,12 @@ export default function WatchlistClient({ initialSeries, user }: WatchlistClient
   if (!user) {
     return (
       <div className={styles.container}>
+        <nav className={styles.breadcrumbs} aria-label="Breadcrumbs">
+          <Link href="/">Home</Link>
+          <span className={styles.crumbDivider}>/</span>
+          <span className={styles.activeCrumb}>Watchlist</span>
+        </nav>
+
         <div className={`${styles.cardShell} glass`}>
           <UserX size={48} className={styles.iconMuted} />
           <h2>Access Restricted</h2>
@@ -73,6 +79,13 @@ export default function WatchlistClient({ initialSeries, user }: WatchlistClient
   return (
     <div className={styles.container}>
       <div className="ambient-glow" />
+
+      {/* Breadcrumbs */}
+      <nav className={styles.breadcrumbs} aria-label="Breadcrumbs">
+        <Link href="/">Home</Link>
+        <span className={styles.crumbDivider}>/</span>
+        <span className={styles.activeCrumb}>Watchlist</span>
+      </nav>
 
       {/* Header */}
       <div className={styles.headerSection}>

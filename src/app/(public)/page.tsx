@@ -401,6 +401,38 @@ export default async function HomePage() {
     ? customExploreCategories
     : defaultExploreCategories;
 
+  // Emoji icon map for Explore Collections grid
+  const CATEGORY_EMOJI: Record<string, string> = {
+    'Uncensored': '🔞',
+    'Action': '⚔️',
+    'Romance': '💕',
+    'Fantasy': '🧙',
+    'Drama': '🎭',
+    'Sci-Fi': '🚀',
+    'Supernatural': '👻',
+    'Ecchi': '🌸',
+    'Comedy': '😂',
+    'Harem': '💫',
+    'School': '🏫',
+    'Adventure': '🗺️',
+    'Psychological': '🧠',
+    'Mystery': '🔍',
+    'Slice of Life': '☕',
+    'Demon': '😈',
+    'Mature': '🔥',
+    'All Genres': '🎬',
+    'Vanilla': '🍦',
+    '3D': '📐',
+    'Historical': '🏯',
+    'Magic': '✨',
+    'Thriller': '🎯',
+    'NTR': '💔',
+    'MILF': '👩',
+    'Yuri': '🌺',
+    'Monster Girl': '🐉',
+    'Elf': '🏹',
+  };
+
   const trendingSeriesForSchema = activeSeries.slice(0, 10);
   const itemListJsonLd = {
     '@context': 'https://schema.org',
@@ -522,6 +554,13 @@ export default async function HomePage() {
                       </div>
                     )}
 
+                    {/* Episode Number badge — bottom-left */}
+                    {ep.episode_number && (
+                      <div className={styles.epNumBadge}>
+                        EP {ep.episode_number}
+                      </div>
+                    )}
+
                     {/* Black UNCENSORED pill badge */}
                     {ep.isUncensored && (
                       <div className={styles.uncensoredBadge}>
@@ -538,7 +577,7 @@ export default async function HomePage() {
                   </h3>
                   <div className={styles.episodeViewsRow}>
                     <Eye size={12} className={styles.eyeIcon} />
-                    <span>{ep.views ? (ep.views / 1000).toFixed(1) + 'K' : '450.2K'}</span>
+                    <span>{ep.views ? (ep.views >= 1000 ? (ep.views / 1000).toFixed(1) + 'K' : ep.views) : '—'}</span>
                   </div>
                 </div>
               </div>
@@ -590,7 +629,7 @@ export default async function HomePage() {
         </section>
       ) : (
         <section className={`${styles.section} ${styles.recommendationBanner} glass`}>
-          <div className={styles.recIconWrapper} style={{ background: 'rgba(59, 130, 246, 0.15)', color: '#3b82f6' }}>
+          <div className={styles.recIconWrapper}>
             <Award size={36} />
           </div>
           <div className={styles.recContent}>
@@ -598,10 +637,10 @@ export default async function HomePage() {
             <p>Quickly access your saved bookmarks in Watchlist or resume watching from your Watch History.</p>
           </div>
           <div style={{ display: 'flex', gap: '0.8rem', flexWrap: 'wrap' }}>
-            <Link href="/watchlist" className={styles.recBtn} style={{ background: '#3b82f6', color: '#ffffff' }}>
+            <Link href="/watchlist" className={styles.recBtn}>
               My Watchlist
             </Link>
-            <Link href="/history" className={styles.recBtn} style={{ background: 'rgba(255, 255, 255, 0.08)', border: '1px solid rgba(255, 255, 255, 0.2)', color: '#ffffff' }}>
+            <Link href="/history" className={`${styles.recBtn} ${styles.recBtnOutline}`}>
               Watch History
             </Link>
           </div>
@@ -631,7 +670,6 @@ export default async function HomePage() {
           <HorizontalScrollRow
             title="Upcoming Anime"
             subtitle="COMING SOON"
-            subtitleColor="#3b82f6"
             viewAllHref="/upcoming"
           >
             {upcomingSeries.slice(0, 15).map((item) => (
@@ -657,13 +695,16 @@ export default async function HomePage() {
           {exploreCategories.map((cat: any, idx: number) => {
             const title = typeof cat === 'string' ? cat : (cat.title || cat.filter);
             const filterVal = typeof cat === 'string' ? cat : (cat.filter || cat.title);
+            const emoji = CATEGORY_EMOJI[title] || '🎌';
+            const isAll = filterVal === 'All Genres';
             return (
               <Link
                 key={idx}
-                href={`/categories?genre=${encodeURIComponent(filterVal === 'All Genres' ? 'all' : filterVal)}`}
-                className={styles.categoryCard}
+                href={`/categories?genre=${encodeURIComponent(isAll ? 'all' : filterVal)}`}
+                className={`${styles.categoryCard} ${isAll ? styles.categoryCardAll : ''}`}
               >
-                <span>{title}</span>
+                <span className={styles.categoryEmoji}>{emoji}</span>
+                <span className={styles.categoryLabel}>{title}</span>
               </Link>
             );
           })}

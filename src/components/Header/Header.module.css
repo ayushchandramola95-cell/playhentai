@@ -186,8 +186,8 @@
 
 .logoTextGold {
   font-weight: 900; /* Extra bold focus on HENTAI */
-  color: #eab308;
-  text-shadow: 0 0 14px rgba(234, 179, 8, 0.35);
+  color: #f59e0b;
+  text-shadow: 0 0 14px rgba(245, 158, 11, 0.35);
   margin-left: 2px;
 }
 
@@ -232,10 +232,9 @@
 .activeLink {
   color: #ffffff !important;
   font-weight: 800 !important;
-  background: linear-gradient(135deg, rgba(168, 85, 247, 0.28) 0%, rgba(99, 102, 241, 0.28) 100%) !important;
-  border: 1px solid rgba(168, 85, 247, 0.45) !important;
-  box-shadow: 0 4px 16px rgba(168, 85, 247, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
-  text-shadow: 0 0 12px rgba(168, 85, 247, 0.6) !important;
+  background: rgba(var(--primary-rgb), 0.15) !important;
+  border: 1px solid rgba(var(--primary-rgb), 0.4) !important;
+  box-shadow: 0 2px 12px rgba(var(--primary-rgb), 0.25) !important;
 }
 
 .centerSection {
@@ -623,7 +622,7 @@
   justify-content: center;
   padding: 0.85rem;
   border-radius: 12px;
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
   color: #ffffff;
   font-weight: 700;
   font-size: 0.95rem;

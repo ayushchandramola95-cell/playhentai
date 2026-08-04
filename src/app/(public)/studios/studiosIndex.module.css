@@ -1,7 +1,7 @@
 .container {
-  max-width: 1200px;
+  max-width: 1720px;
   margin: 0 auto;
-  padding: 2.5rem 1.5rem;
+  padding: 1.5rem 2rem 4rem;
   min-height: 80vh;
   position: relative;
 }
@@ -12,12 +12,35 @@
   z-index: 10;
 }
 
+.titleIconRow {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin-bottom: 0.5rem;
+}
+
 .titleSection h1 {
   font-size: 2.5rem;
   font-weight: 900;
   color: #fff;
   letter-spacing: -0.02em;
   margin-bottom: 0.5rem;
+  position: relative;
+  display: inline-block;
+}
+
+.titleSection h1::after {
+  content: '';
+  display: block;
+  width: 80px;
+  height: 3px;
+  background: linear-gradient(90deg, var(--primary) 0%, rgba(var(--primary-rgb), 0.1) 100%);
+  margin-top: 0.35rem;
+  border-radius: 2px;
+}
+
+.titleIcon {
+  color: var(--primary);
 }
 
 .subtitle {
@@ -174,4 +197,35 @@
   font-size: 1.1rem;
   font-weight: 850;
   color: #fff;
+}
+
+/* Breadcrumbs Styling */
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--foreground-secondary);
+  margin-bottom: 1.25rem;
+  position: relative;
+  z-index: 10;
+}
+
+.breadcrumbs a {
+  color: var(--foreground-secondary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.breadcrumbs a:hover {
+  color: #ffffff;
+}
+
+.crumbDivider {
+  color: rgba(255, 255, 255, 0.25);
+}
+
+.activeCrumb {
+  color: #ffffff;
+  font-weight: 700;
 }
