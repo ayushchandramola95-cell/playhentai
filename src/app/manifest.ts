@@ -2,8 +2,8 @@ import { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'PlayHentai - Premium Video Streaming',
-    short_name: 'PlayHentai',
+    name: 'Play Hentai — Premium Video Streaming',
+    short_name: 'Play Hentai',
     description: 'Watch high-definition uncensored anime series and episodes online for free.',
     start_url: '/',
     display: 'standalone',

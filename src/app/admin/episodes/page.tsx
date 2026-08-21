@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Video, Plus, Search, Edit2, Trash2, X, AlertCircle, Clock, Camera, Image as ImageIcon } from 'lucide-react';
+import { Video, Plus, Search, Edit2, Trash2, X, AlertCircle, Clock, Camera, Image as ImageIcon, UploadCloud, Minimize2, Maximize2 } from 'lucide-react';
 import FileUploader from '@/components/FileUploader/FileUploader';
 import { getR2Url } from '@/utils/r2';
 import styles from '../admin.module.css';
@@ -41,6 +41,21 @@ interface Episode {
       title: string;
     };
   };
+}
+
+interface BatchEpisodeFile {
+  id: string;
+  file: File;
+  episodeNumber: number;
+  title: string;
+  durationSeconds: number;
+  videoKey: string;
+  thumbnailKey: string;
+  status: 'metadata' | 'pending' | 'uploading' | 'saving' | 'success' | 'error';
+  progress: number;
+  errorMsg?: string;
+  isPublished: boolean;
+  isPreview: boolean;
 }
 
 export default function AdminEpisodesPage() {
@@ -91,6 +106,33 @@ export default function AdminEpisodesPage() {
   const [isGeneratingThumbnail, setIsGeneratingThumbnail] = useState(false);
   const [savedThumbnails, setSavedThumbnails] = useState<string[]>([]);
   const [hasDraft, setHasDraft] = useState(false);
+
+  // Batch Upload Modal states
+  interface UploadBatch {
+    id: string;
+    seriesId: string;
+    seasonId: string;
+    files: BatchEpisodeFile[];
+    schedulingType: 'none' | '1day' | '1week';
+    baseReleaseDate: string;
+    status: 'editing' | 'pending' | 'uploading' | 'success' | 'error';
+    isMinimized: boolean;
+  }
+
+  const [batches, setBatches] = useState<UploadBatch[]>([]);
+  const batchesRef = useRef<UploadBatch[]>([]);
+  useEffect(() => {
+    batchesRef.current = batches;
+  }, [batches]);
+  const [activeBatchId, setActiveBatchId] = useState<string | null>(null);
+  const activeBatch = batches.find(b => b.id === activeBatchId);
+  const activeBatchFiles = activeBatch?.files || [];
+  const isActiveUploading = activeBatch?.status === 'uploading';
+  const activeSeriesId = activeBatch?.seriesId || '';
+  const activeSeasonId = activeBatch?.seasonId || '';
+  const activeBaseReleaseDate = activeBatch?.baseReleaseDate || '';
+  const activeSchedulingType = activeBatch?.schedulingType || 'none';
+  const batchInputRef = useRef<HTMLInputElement>(null);
 
   // Thumbnail Studio Modal states
   const [isThumbModalOpen, setIsThumbModalOpen] = useState(false);
@@ -210,6 +252,7 @@ export default function AdminEpisodesPage() {
   const [savingThumbStudio, setSavingThumbStudio] = useState(false);
   const [thumbStudioError, setThumbStudioError] = useState<string | null>(null);
   const [isThumbStudioSaving, setIsThumbStudioSaving] = useState(false);
+  const [zoomImageUrl, setZoomImageUrl] = useState<string | null>(null);
 
   // Memoize scrubVideoSrc so the video element never reloads or resets to 0:00 on state re-renders
   const scrubVideoSrc = useMemo(() => {
@@ -331,8 +374,10 @@ export default function AdminEpisodesPage() {
 
     video.onseeked = () => {
       const canvas = document.createElement('canvas');
-      canvas.width = 640;
-      canvas.height = 360;
+      const width = video.videoWidth || 1280;
+      const height = video.videoHeight || 720;
+      canvas.width = width;
+      canvas.height = height;
       const ctx = canvas.getContext('2d');
       if (ctx) {
         try {
@@ -369,7 +414,7 @@ export default function AdminEpisodesPage() {
               setIsGeneratingThumbnail(false);
               if (!isRemote) URL.revokeObjectURL(videoUrl);
             }
-          }, 'image/jpeg', 0.85);
+          }, 'image/jpeg', 0.95);
         } catch (canvasErr) {
           console.error('SecurityError or canvas drawing failed:', canvasErr);
           setError('Could not generate thumbnail from remote video due to browser security restrictions. Please select the video file locally to extract frames.');
@@ -594,6 +639,406 @@ export default function AdminEpisodesPage() {
     }
   };
 
+  // --- Batch Upload Handlers ---
+  const cleanFilenameToTitle = (filename: string, defaultEpNum: number): string => {
+    const nameWithoutExt = filename.substring(0, filename.lastIndexOf('.')) || filename;
+    let cleaned = nameWithoutExt.replace(/[.\-_]+/g, ' ');
+    const epMatch = cleaned.match(/(?:ep|episode|e|part|p)[ ]*(\d+)/i);
+    if (epMatch && epMatch[1]) {
+      return `Episode ${parseInt(epMatch[1], 10)}`;
+    }
+    const numMatch = cleaned.match(/\b(\d+)\b/);
+    if (numMatch && numMatch[1]) {
+      return `Episode ${parseInt(numMatch[1], 10)}`;
+    }
+    return `Episode ${defaultEpNum}`;
+  };
+
+  const extractEpisodeNumberFromFilename = (filename: string, defaultVal: number): number => {
+    const nameWithoutExt = filename.substring(0, filename.lastIndexOf('.')) || filename;
+    const cleaned = nameWithoutExt.replace(/[.\-_]+/g, ' ');
+    const epMatch = cleaned.match(/(?:ep|episode|e|part|p)[ ]*(\d+)/i);
+    if (epMatch && epMatch[1]) {
+      return parseInt(epMatch[1], 10);
+    }
+    const numMatch = cleaned.match(/\b(\d+)\b/);
+    if (numMatch && numMatch[1]) {
+      return parseInt(numMatch[1], 10);
+    }
+    return defaultVal;
+  };
+
+  const extractVideoMetadataAndUploadThumb = (file: File): Promise<{ duration: number; thumbnailKey: string }> => {
+    return new Promise((resolve) => {
+      const videoUrl = URL.createObjectURL(file);
+      const video = document.createElement('video');
+      video.src = videoUrl;
+      video.preload = 'metadata';
+      video.muted = true;
+      video.playsInline = true;
+
+      video.onloadedmetadata = () => {
+        const duration = Math.round(video.duration);
+        const randomPercent = 0.15 + Math.random() * 0.7;
+        video.currentTime = video.duration * randomPercent;
+
+        video.onseeked = () => {
+          const canvas = document.createElement('canvas');
+          const width = video.videoWidth || 1280;
+          const height = video.videoHeight || 720;
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            try {
+              ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+              canvas.toBlob(async (blob) => {
+                if (!blob) {
+                  URL.revokeObjectURL(videoUrl);
+                  resolve({ duration, thumbnailKey: '' });
+                  return;
+                }
+                try {
+                  const filename = `auto-thumb-${Date.now()}.jpg`;
+                  const presignRes = await fetch('/api/admin/presign', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ filename, contentType: 'image/jpeg' })
+                  });
+                  const presignData = await presignRes.json();
+                  if (presignRes.ok) {
+                    const { url, key } = presignData;
+                    const uploadRes = await fetch(url, {
+                      method: 'PUT',
+                      headers: { 'Content-Type': 'image/jpeg' },
+                      body: blob
+                    });
+                    if (uploadRes.ok) {
+                      URL.revokeObjectURL(videoUrl);
+                      resolve({ duration, thumbnailKey: key });
+                      return;
+                    }
+                  }
+                } catch (e) {
+                  console.error('Failed to upload batch auto thumbnail:', e);
+                }
+                URL.revokeObjectURL(videoUrl);
+                resolve({ duration, thumbnailKey: '' });
+              }, 'image/jpeg', 0.95);
+            } catch (canvasErr) {
+              console.error('Canvas error in batch metadata:', canvasErr);
+              URL.revokeObjectURL(videoUrl);
+              resolve({ duration, thumbnailKey: '' });
+            }
+          } else {
+            URL.revokeObjectURL(videoUrl);
+            resolve({ duration, thumbnailKey: '' });
+          }
+        };
+      };
+
+      video.onerror = () => {
+        URL.revokeObjectURL(videoUrl);
+        resolve({ duration: 1440, thumbnailKey: '' });
+      };
+    });
+  };
+  const handleOpenBatchCreate = (preselectedSeriesId?: string, preselectedSeasonId?: string) => {
+    const newBatchId = 'batch-group-' + Date.now() + '-' + Math.random().toString(36).substring(2, 7);
+    const seriesId = preselectedSeriesId || (seriesList[0]?.id || '');
+    const relevantSeasons = seasonsList.filter(s => s.series_id === seriesId);
+    const seasonId = preselectedSeasonId || (relevantSeasons[0]?.id || '');
+
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+
+    const newBatch: UploadBatch = {
+      id: newBatchId,
+      seriesId,
+      seasonId,
+      files: [],
+      schedulingType: 'none',
+      baseReleaseDate: now.toISOString().slice(0, 16),
+      status: 'editing',
+      isMinimized: false
+    };
+
+    setBatches(prev => [...prev, newBatch]);
+    setActiveBatchId(newBatchId);
+  };
+
+  const handleBatchSeriesChange = (seriesIdVal: string) => {
+    const relevantSeasons = seasonsList.filter(s => s.series_id === seriesIdVal);
+    const seasonIdVal = relevantSeasons[0]?.id || '';
+    
+    updateActiveBatch(b => {
+      let updatedFiles = b.files;
+      if (b.files.length > 0) {
+        const seriesEpisodes = episodesList.filter(e => {
+          const season = seasonsList.find(s => s.id === e.season_id);
+          return season && season.series_id === seriesIdVal;
+        });
+        const startEpNum = seriesEpisodes.length > 0 ? Math.max(...seriesEpisodes.map(e => e.episode_number)) + 1 : 1;
+        updatedFiles = b.files.map((bf, idx) => {
+          const parsedEp = extractEpisodeNumberFromFilename(bf.file.name, startEpNum + idx);
+          return {
+            ...bf,
+            episodeNumber: parsedEp,
+            title: cleanFilenameToTitle(bf.file.name, parsedEp)
+          };
+        });
+      }
+      return {
+        seriesId: seriesIdVal,
+        seasonId: seasonIdVal,
+        files: updatedFiles
+      };
+    });
+  };
+
+  const updateActiveBatch = (updater: (b: UploadBatch) => Partial<UploadBatch>) => {
+    if (!activeBatchId) return;
+    setBatches(prev => prev.map(b => b.id === activeBatchId ? { ...b, ...updater(b) } : b));
+  };
+
+  const processBatchSelectedFiles = async (files: FileList | null) => {
+    if (!files || files.length === 0 || !activeBatchId) return;
+    const active = batches.find(b => b.id === activeBatchId);
+    if (!active) return;
+
+    const newVideoFiles = Array.from(files).filter(f => f.type.startsWith('video/'));
+    if (newVideoFiles.length === 0) return;
+
+    const seriesEpisodes = episodesList.filter(e => {
+      const season = seasonsList.find(s => s.id === e.season_id);
+      return season && season.series_id === active.seriesId;
+    });
+    const startEpNum = seriesEpisodes.length > 0 ? Math.max(...seriesEpisodes.map(e => e.episode_number)) + 1 : 1;
+
+    const newItems: BatchEpisodeFile[] = newVideoFiles.map((file, idx) => {
+      const epNum = extractEpisodeNumberFromFilename(file.name, startEpNum + idx);
+      return {
+        id: `batch-${Date.now()}-${idx}-${Math.random().toString(36).substring(2, 7)}`,
+        file,
+        episodeNumber: epNum,
+        title: cleanFilenameToTitle(file.name, epNum),
+        durationSeconds: 1440,
+        videoKey: '',
+        thumbnailKey: '',
+        status: 'metadata',
+        progress: 0,
+        isPublished: false,
+        isPreview: false
+      };
+    });
+
+    setBatches(prev => prev.map(b => b.id === activeBatchId ? { ...b, files: [...b.files, ...newItems] } : b));
+
+    for (const item of newItems) {
+      try {
+        const meta = await extractVideoMetadataAndUploadThumb(item.file);
+        setBatches(prev => prev.map(b => b.id === activeBatchId ? {
+          ...b,
+          files: b.files.map(bf => bf.id === item.id ? { ...bf, durationSeconds: meta.duration, thumbnailKey: meta.thumbnailKey, status: 'pending' } : bf)
+        } : b));
+      } catch (err) {
+        console.error('Error generating batch item metadata:', err);
+        setBatches(prev => prev.map(b => b.id === activeBatchId ? {
+          ...b,
+          files: b.files.map(bf => bf.id === item.id ? { ...bf, status: 'pending' } : bf)
+        } : b));
+      }
+    }
+  };
+
+  const handleBatchDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    processBatchSelectedFiles(e.dataTransfer.files);
+  };
+
+  const handleBatchFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    processBatchSelectedFiles(e.target.files);
+  };
+
+  const updateBatchItemField = (id: string, field: keyof BatchEpisodeFile, value: any) => {
+    setBatches(prev => prev.map(b => {
+      // Find which batch contains this item
+      const hasItem = b.files.some(f => f.id === id);
+      if (hasItem) {
+        return {
+          ...b,
+          files: b.files.map(f => f.id === id ? { ...f, [field]: value } : f)
+        };
+      }
+      return b;
+    }));
+  };
+
+  const handleCloseBatchModal = () => {
+    if (!activeBatchId) return;
+    const active = batches.find(b => b.id === activeBatchId);
+    if (!active) {
+      setActiveBatchId(null);
+      return;
+    }
+    if (active.status === 'uploading') return;
+
+    if (active.status === 'pending' && active.files.length === 0) {
+      setBatches(prev => prev.filter(b => b.id !== activeBatchId));
+    }
+    if (active.status === 'success' || active.status === 'error') {
+      setBatches(prev => prev.filter(b => b.id !== activeBatchId));
+    }
+    setActiveBatchId(null);
+  };
+
+  const handleStartBatchUpload = () => {
+    if (!activeBatchId) return;
+    const active = batches.find(b => b.id === activeBatchId);
+    if (!active || active.files.length === 0) return;
+
+    setBatches(prev => prev.map(b => b.id === activeBatchId ? { ...b, isMinimized: true, status: 'pending' } : b));
+    setActiveBatchId(null);
+  };
+
+  const uploadSingleBatch = async (batchId: string) => {
+    setBatches(prev => prev.map(b => b.id === batchId ? { ...b, status: 'uploading' } : b));
+
+    // Allow React state update to flush, then read from ref
+    await new Promise(resolve => setTimeout(resolve, 50));
+
+    const initialBatch = batchesRef.current.find(b => b.id === batchId);
+    if (!initialBatch) return;
+
+    const filesToUpload = initialBatch.files;
+
+    for (let i = 0; i < filesToUpload.length; i++) {
+      const currentBatch = batchesRef.current.find(b => b.id === batchId);
+      const bf = currentBatch?.files?.[i];
+      if (!bf || bf.status === 'success') continue;
+
+      setBatches(prev => prev.map(b => b.id === batchId ? {
+        ...b,
+        files: b.files.map(item => item.id === bf.id ? { ...item, status: 'uploading', progress: 0 } : item)
+      } : b));
+
+      try {
+        const presignRes = await fetch('/api/admin/presign', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            filename: bf.file.name,
+            contentType: bf.file.type
+          })
+        });
+
+        const presignData = await presignRes.json();
+        if (!presignRes.ok) throw new Error(presignData.error || 'Failed to initialize video upload');
+
+        const { url, key: videoKeyVal } = presignData;
+
+        await new Promise<void>((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('PUT', url, true);
+          xhr.setRequestHeader('Content-Type', bf.file.type);
+
+          xhr.upload.onprogress = (event) => {
+            if (event.lengthComputable) {
+              const pct = Math.round((event.loaded / event.total) * 100);
+              setBatches(prev => prev.map(b => b.id === batchId ? {
+                ...b,
+                files: b.files.map(item => item.id === bf.id ? { ...item, progress: pct } : item)
+              } : b));
+            }
+          };
+
+          xhr.onload = () => {
+            if (xhr.status === 200 || xhr.status === 204 || xhr.status === 201) {
+              resolve();
+            } else {
+              reject(new Error(`Video upload failed (Status: ${xhr.status})`));
+            }
+          };
+
+          xhr.onerror = () => reject(new Error('Network error during video upload'));
+          xhr.send(bf.file);
+        });
+
+        setBatches(prev => prev.map(b => b.id === batchId ? {
+          ...b,
+          files: b.files.map(item => item.id === bf.id ? { ...item, status: 'saving', videoKey: videoKeyVal } : item)
+        } : b));
+
+        const freshBatch = batchesRef.current.find(b => b.id === batchId);
+        if (!freshBatch) throw new Error('Batch data lost during upload');
+
+        const baseDate = new Date(freshBatch.baseReleaseDate);
+        if (freshBatch.schedulingType === '1day') {
+          baseDate.setDate(baseDate.getDate() + i);
+        } else if (freshBatch.schedulingType === '1week') {
+          baseDate.setDate(baseDate.getDate() + (i * 7));
+        }
+        const finalReleaseDate = baseDate.toISOString();
+
+        const cleanTitle = bf.title.replace(/^\[Preview\]\s*/i, '').replace(/^\[Trailer\]\s*/i, '');
+        const finalTitle = bf.isPreview ? `[Preview] ${cleanTitle}` : cleanTitle;
+
+        const payload = {
+          season_id: freshBatch.seasonId,
+          episode_number: bf.episodeNumber,
+          title: finalTitle,
+          description: '',
+          video_key: videoKeyVal,
+          thumbnail_key: bf.thumbnailKey || null,
+          thumbnail_options: bf.thumbnailKey ? [bf.thumbnailKey] : [],
+          duration_seconds: bf.durationSeconds,
+          release_date: finalReleaseDate,
+          is_published: bf.isPublished,
+          metadata_locks: {},
+          metadata_provenance: {},
+          metadata_versions: [],
+          raw_provider_payload: {}
+        };
+
+        const saveRes = await fetch('/api/admin/episodes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const saveData = await saveRes.json();
+        if (!saveRes.ok) throw new Error(saveData.error || 'Failed to save episode details');
+
+        setBatches(prev => prev.map(b => b.id === batchId ? {
+          ...b,
+          files: b.files.map(item => item.id === bf.id ? { ...item, status: 'success' } : item)
+        } : b));
+
+      } catch (err: any) {
+        console.error('Error uploading batch item:', err);
+        setBatches(prev => prev.map(b => b.id === batchId ? {
+          ...b,
+          files: b.files.map(item => item.id === bf.id ? { ...item, status: 'error', errorMsg: err.message || 'Unknown error' } : item)
+        } : b));
+      }
+    }
+
+    setBatches(prev => prev.map(b => {
+      if (b.id === batchId) {
+        const hasError = b.files.some(f => f.status === 'error');
+        return {
+          ...b,
+          status: hasError ? 'error' : 'success'
+        };
+      }
+      return b;
+    }));
+
+    fetchInitialData();
+  };
+
   const handleDelete = async (id: string) => {
     if (!confirm('Are you absolutely sure you want to delete this episode? Playback tracking and view logs will be removed!')) return;
 
@@ -684,15 +1129,6 @@ export default function AdminEpisodesPage() {
     setBatchOptions([]);
     setThumbStudioError(null);
 
-    const activeSpan = getActiveTimeframeDuration(selectedMinutes, reqWindow);
-    let effectiveCount = 60;
-    if (stepSec > 0) {
-      effectiveCount = Math.max(1, Math.floor(activeSpan / stepSec));
-    } else {
-      effectiveCount = preset === 'smart' ? 24 : 60;
-    }
-
-    setGenProgress({ current: 0, total: effectiveCount });
     const fpsValue = preset === '30fps' ? 30 : preset === '60fps' ? 60 : 24;
     const FRAME_STEP = 1 / fpsValue;
 
@@ -720,6 +1156,8 @@ export default function AdminEpisodesPage() {
     // Explicitly tell Chromium/Edge that getImageData is called frequently to optimize buffer memory
     const ctx = canvas.getContext('2d', { willReadFrequently: true, alpha: false });
 
+    let effectiveCount = 60;
+
     try {
       // Wait for video metadata to load on GPU
       await new Promise<void>((resolve, reject) => {
@@ -735,6 +1173,25 @@ export default function AdminEpisodesPage() {
         tempVideo.addEventListener('loadedmetadata', handleMetadata);
         tempVideo.addEventListener('error', handleError);
       });
+
+      // Recalculate timeframe counts based on exact loaded video duration
+      const trueDuration = tempVideo.duration || 1440;
+      let windowFraction = 1.0;
+      if (reqWindow === 'first25' || reqWindow === 'last25') windowFraction = 0.25;
+      else if (reqWindow === 'first50' || reqWindow === 'last50' || reqWindow === 'middle50') windowFraction = 0.50;
+      else if (reqWindow === 'first75' || reqWindow === 'last75') windowFraction = 0.75;
+
+      const activeSpan = selectedMinutes.length > 0
+        ? selectedMinutes.length * 60 * windowFraction
+        : trueDuration * windowFraction;
+
+      if (stepSec > 0) {
+        effectiveCount = Math.max(1, Math.floor(activeSpan / stepSec));
+      } else {
+        effectiveCount = preset === 'smart' ? 24 : 60;
+      }
+
+      setGenProgress({ current: 0, total: effectiveCount });
 
       const collected: { dataUrl: string; sizeKb: number; time: number }[] = [];
 
@@ -934,11 +1391,26 @@ export default function AdminEpisodesPage() {
         }
 
         if (ctx) {
-          ctx.drawImage(tempVideo, 0, 0, canvas.width, canvas.height);
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
-          const sizeInBytes = Math.round((dataUrl.split(',')[1].length * 3) / 4);
-          const sizeKb = Math.round((sizeInBytes / 1024) * 10) / 10;
-          collected.push({ dataUrl, sizeKb, time: currentTime });
+          // Draw high-resolution preview frame to collected options array
+          const highResCanvas = document.createElement('canvas');
+          const hWidth = tempVideo.videoWidth || 1280;
+          const hHeight = tempVideo.videoHeight || 720;
+          highResCanvas.width = hWidth;
+          highResCanvas.height = hHeight;
+          const hrCtx = highResCanvas.getContext('2d');
+          if (hrCtx) {
+            hrCtx.drawImage(tempVideo, 0, 0, highResCanvas.width, highResCanvas.height);
+            const dataUrl = highResCanvas.toDataURL('image/jpeg', 0.94);
+            const sizeInBytes = Math.round((dataUrl.split(',')[1].length * 3) / 4);
+            const sizeKb = Math.round((sizeInBytes / 1024) * 10) / 10;
+            collected.push({ dataUrl, sizeKb, time: currentTime });
+          } else {
+            ctx.drawImage(tempVideo, 0, 0, canvas.width, canvas.height);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+            const sizeInBytes = Math.round((dataUrl.split(',')[1].length * 3) / 4);
+            const sizeKb = Math.round((sizeInBytes / 1024) * 10) / 10;
+            collected.push({ dataUrl, sizeKb, time: currentTime });
+          }
           
           // Stream results into state continuously
           const sorted = [...collected].sort((a, b) => (a.time || 0) - (b.time || 0));
@@ -1219,7 +1691,34 @@ export default function AdminEpisodesPage() {
 
   const filteredSeasonsFormList = seasonsList.filter(
     s => s.series_id === formSeriesId
-  );
+  );  // Auto-Process queue loop inside useEffect
+  useEffect(() => {
+    const processQueue = async () => {
+      const activeUploadingBatch = batches.find(b => b.status === 'uploading');
+      if (activeUploadingBatch) return;
+
+      const nextBatch = batches.find(b => b.status === 'pending' && b.files.length > 0 && b.files.some(f => f.status === 'pending' || f.status === 'uploading' || f.status === 'saving'));
+      if (!nextBatch) return;
+
+      await uploadSingleBatch(nextBatch.id);
+    };
+
+    processQueue();
+  }, [batches]);
+
+  // Prevent accidental navigation during uploads
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      const anyUploading = batches.some(b => b.status === 'uploading');
+      if (anyUploading) {
+        e.preventDefault();
+        e.returnValue = 'An upload is currently in progress. Leaving this page will abort the upload.';
+        return e.returnValue;
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [batches]);
 
 
   return (
@@ -1231,10 +1730,16 @@ export default function AdminEpisodesPage() {
             Upload content routes, thumbnail previews, video length, and schedule releases.
           </p>
         </div>
-        <button onClick={() => handleOpenCreate()} disabled={seasonsList.length === 0} className={styles.createBtn}>
-          <Plus size={16} />
-          <span>Add Episode</span>
-        </button>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <button onClick={() => handleOpenBatchCreate()} disabled={seasonsList.length === 0} className={styles.createBtn} style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', color: 'white', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+            <Plus size={16} />
+            <span>Add Multiple Episodes</span>
+          </button>
+          <button onClick={() => handleOpenCreate()} disabled={seasonsList.length === 0} className={styles.createBtn}>
+            <Plus size={16} />
+            <span>Add Episode</span>
+          </button>
+        </div>
       </div>
 
       {hasDraft && (
@@ -1400,6 +1905,30 @@ export default function AdminEpisodesPage() {
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }} onClick={(e) => e.stopPropagation()}>
+                      <button
+                        onClick={() => handleOpenBatchCreate(series.id, seriesSeasons[0]?.id)}
+                        disabled={seriesSeasons.length === 0}
+                        style={{
+                          background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                          color: 'white',
+                          border: 'none',
+                          padding: '0.45rem 1rem',
+                          borderRadius: '20px',
+                          fontSize: '0.75rem',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.3rem',
+                          boxShadow: '0 4px 12px rgba(16, 185, 129, 0.25)',
+                          transition: 'all 0.15s ease'
+                        }}
+                        title="Add multiple episodes to this show at once"
+                      >
+                        <Plus size={12} />
+                        <span>Add Multiple</span>
+                      </button>
+
                       <button
                         onClick={() => handleOpenCreate(series.id, seriesSeasons[0]?.id)}
                         disabled={seriesSeasons.length === 0}
@@ -2485,7 +3014,9 @@ export default function AdminEpisodesPage() {
                                   borderRadius: '4px',
                                   fontSize: '0.68rem',
                                   fontWeight: 700,
-                                  cursor: 'pointer'
+                                  cursor: 'pointer',
+                                  width: '85%',
+                                  textAlign: 'center'
                                 }}
                               >
                                 Set Active
@@ -2501,10 +3032,38 @@ export default function AdminEpisodesPage() {
                                   borderRadius: '4px',
                                   fontSize: '0.65rem',
                                   fontWeight: 700,
-                                  cursor: 'pointer'
+                                  cursor: 'pointer',
+                                  width: '85%',
+                                  textAlign: 'center'
                                 }}
                               >
                                 Save Option
+                              </button>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setZoomImageUrl(opt.dataUrl);
+                                }}
+                                style={{
+                                  background: 'rgba(15, 23, 42, 0.85)',
+                                  color: 'white',
+                                  border: '1px solid rgba(255,255,255,0.25)',
+                                  padding: '0.3rem 0.6rem',
+                                  borderRadius: '4px',
+                                  fontSize: '0.65rem',
+                                  fontWeight: 700,
+                                  cursor: 'pointer',
+                                  width: '85%',
+                                  textAlign: 'center',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  gap: '0.3rem'
+                                }}
+                              >
+                                <Maximize2 size={11} />
+                                <span>Zoom Preview</span>
                               </button>
                             </div>
                           </div>
@@ -2656,13 +3215,15 @@ export default function AdminEpisodesPage() {
                           const video = scrubVideoRef.current;
                           if (video) {
                             const canvas = document.createElement('canvas');
-                            canvas.width = 640;
-                            canvas.height = 360;
+                            const width = video.videoWidth || 1280;
+                            const height = video.videoHeight || 720;
+                            canvas.width = width;
+                            canvas.height = height;
                             const ctx = canvas.getContext('2d');
                             if (ctx) {
                               try {
                                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                                const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+                                const dataUrl = canvas.toDataURL('image/jpeg', 0.94);
                                 const sizeInBytes = Math.round((dataUrl.split(',')[1].length * 3) / 4);
                                 const sizeKb = Math.round((sizeInBytes / 1024) * 10) / 10;
                                 setCapturedFrameUrl(dataUrl);
@@ -2687,7 +3248,7 @@ export default function AdminEpisodesPage() {
                           boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)'
                         }}
                       >
-                        📸 Capture Current Player Frame (640x360)
+                        📸 Capture Current Player Frame (HD)
                       </button>
                     </div>
 
@@ -2696,12 +3257,35 @@ export default function AdminEpisodesPage() {
                       <label style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', color: '#f8fafc' }}>Captured Frame Preview</label>
                       {capturedFrameUrl ? (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-                          <div style={{ aspectRatio: '16/9', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--border)', background: '#0f172a' }}>
+                          <div style={{ position: 'relative', aspectRatio: '16/9', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--border)', background: '#0f172a' }}>
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img src={capturedFrameUrl} alt="Captured preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            <button
+                              type="button"
+                              onClick={() => setZoomImageUrl(capturedFrameUrl)}
+                              style={{
+                                position: 'absolute',
+                                bottom: '8px',
+                                right: '8px',
+                                background: 'rgba(15, 23, 42, 0.85)',
+                                border: '1px solid rgba(255,255,255,0.25)',
+                                borderRadius: '4px',
+                                padding: '0.2rem 0.5rem',
+                                fontSize: '0.65rem',
+                                color: 'white',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.25rem',
+                                fontWeight: 700
+                              }}
+                            >
+                              <Maximize2 size={11} />
+                              <span>Zoom</span>
+                            </button>
                           </div>
                           <div style={{ fontSize: '0.72rem', color: '#94a3b8', display: 'flex', justifyContent: 'space-between', padding: '0 0.2rem', fontWeight: 600 }}>
-                            <span>Resolution: 640x360</span>
+                            <span>Resolution: Native HD</span>
                             <span style={{ fontWeight: 700, color: '#f8fafc' }}>Size: {capturedFrameSizeKb} KB</span>
                           </div>
                           <div style={{ display: 'flex', gap: '0.4rem' }}>
@@ -2893,6 +3477,32 @@ export default function AdminEpisodesPage() {
                         >
                           <X size={10} />
                         </button>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setZoomImageUrl(getR2Url(key, 'thumbnail'));
+                          }}
+                          style={{
+                            position: 'absolute',
+                            bottom: '3px',
+                            left: '3px',
+                            background: 'rgba(15, 23, 42, 0.85)',
+                            border: '1px solid rgba(255,255,255,0.2)',
+                            borderRadius: '50%',
+                            width: '18px',
+                            height: '18px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: 'white',
+                            cursor: 'pointer',
+                            padding: 0
+                          }}
+                          title="Zoom preview"
+                        >
+                          <Maximize2 size={9} />
+                        </button>
                       </div>
                     );
                   })}
@@ -2903,6 +3513,445 @@ export default function AdminEpisodesPage() {
         </div>
       )}
 
+      {activeBatch && !activeBatch.isMinimized && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalContent} style={{ maxWidth: '1000px', width: '95%' }}>
+            <div className={styles.modalHeader}>
+              <h3>Add Multiple Episodes (Batch Upload)</h3>
+              <button
+                type="button"
+                onClick={() => {
+                  setBatches(prev => prev.map(b => b.id === activeBatchId ? { ...b, isMinimized: true } : b));
+                  setActiveBatchId(null);
+                }}
+                style={{ position: 'absolute', top: '2rem', right: '4.5rem', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--foreground-secondary)' }}
+                title="Minimize upload panel"
+              >
+                <Minimize2 size={20} />
+              </button>
+              <button
+                onClick={handleCloseBatchModal}
+                disabled={isActiveUploading}
+                style={{ position: 'absolute', top: '2rem', right: '2rem', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--foreground-secondary)' }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className={styles.formRow}>
+              <div className={styles.formGroup}>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--foreground-secondary)', marginBottom: '0.4rem' }}>Parent Series</label>
+                <select
+                  required
+                  disabled={isActiveUploading}
+                  className={styles.selectField}
+                  value={activeSeriesId}
+                  onChange={(e) => handleBatchSeriesChange(e.target.value)}
+                >
+                  {seriesList.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className={styles.formGroup}>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--foreground-secondary)', marginBottom: '0.4rem' }}>Parent Season</label>
+                <select
+                  required
+                  disabled={isActiveUploading}
+                  className={styles.selectField}
+                  value={activeSeasonId}
+                  onChange={(e) => updateActiveBatch(b => ({ seasonId: e.target.value }))}
+                >
+                  {seasonsList.filter(s => s.series_id === activeSeriesId).map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className={styles.formRow} style={{ marginTop: '0.5rem', marginBottom: '1.2rem' }}>
+              <div className={styles.formGroup} style={{ flex: '1 0 50%' }}>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--foreground-secondary)', marginBottom: '0.4rem' }}>Base Release Date</label>
+                <input
+                  type="datetime-local"
+                  required
+                  disabled={isActiveUploading}
+                  className={styles.inputField}
+                  value={activeBaseReleaseDate}
+                  onChange={(e) => updateActiveBatch(b => ({ baseReleaseDate: e.target.value }))}
+                />
+              </div>
+
+              <div className={styles.formGroup} style={{ flex: '1 0 50%' }}>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--foreground-secondary)', marginBottom: '0.4rem' }}>Incremental Scheduling</label>
+                <select
+                  disabled={isActiveUploading}
+                  className={styles.selectField}
+                  value={activeSchedulingType}
+                  onChange={(e) => updateActiveBatch(b => ({ schedulingType: e.target.value as any }))}
+                >
+                  <option value="none">No Increment (All air at base date)</option>
+                  <option value="1day">Add 1 Day per subsequent episode</option>
+                  <option value="1week">Add 1 Week per subsequent episode</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Dropper Area */}
+            {activeBatchFiles.length === 0 && (
+              <div
+                className={styles.dropzone}
+                style={{ height: '200px', marginBottom: '1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', border: '2px dashed var(--border)', borderRadius: '12px', cursor: 'pointer', background: 'var(--surface-hover)', padding: '2rem' }}
+                onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                onDrop={handleBatchDrop}
+                onClick={() => batchInputRef.current?.click()}
+              >
+                <input
+                  ref={batchInputRef}
+                  type="file"
+                  className="hidden"
+                  style={{ display: 'none' }}
+                  accept="video/*"
+                  multiple
+                  onChange={handleBatchFileChange}
+                />
+                <UploadCloud size={32} style={{ color: 'var(--primary)', marginBottom: '0.8rem' }} />
+                <div style={{ fontWeight: 700, marginBottom: '0.2rem', color: 'var(--foreground)' }}>Drag & drop multiple video files or click to browse</div>
+                <div style={{ fontSize: '0.78rem', color: 'var(--foreground-secondary)' }}>Supported format: video/*</div>
+              </div>
+            )}
+
+            {/* Selected Files List / Progress */}
+            {activeBatchFiles.length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', maxHeight: '400px', overflowY: 'auto', paddingRight: '0.5rem', marginBottom: '1.5rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--foreground-secondary)' }}>
+                    📂 Queued Video Files ({activeBatchFiles.length})
+                  </span>
+                  {!isActiveUploading && (
+                    <button
+                      onClick={() => updateActiveBatch(b => ({ files: [] }))}
+                      style={{ fontSize: '0.75rem', color: '#ef4444', background: 'transparent', border: 'none', cursor: 'pointer', fontWeight: 700 }}
+                    >
+                      Clear All
+                    </button>
+                  )}
+                </div>
+
+                <div className={styles.tableContainer} style={{ margin: 0, border: '1px solid var(--border)' }}>
+                  <table className={styles.adminTable} style={{ fontSize: '0.85rem' }}>
+                    <thead>
+                      <tr>
+                        <th style={{ width: '80px' }}>Thumbnail</th>
+                        <th>File Name</th>
+                        <th style={{ width: '100px' }}>Ep #</th>
+                        <th>Episode Title</th>
+                        <th style={{ width: '120px', textAlign: 'center' }}>Is Preview?</th>
+                        <th style={{ width: '120px', textAlign: 'center' }}>Publish?</th>
+                        <th style={{ width: '160px' }}>Status / Progress</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {activeBatchFiles.map((bf) => {
+                        return (
+                          <tr key={bf.id}>
+                            <td>
+                              <div style={{ width: '70px', height: '40px', borderRadius: '4px', overflow: 'hidden', background: 'var(--surface-hover)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+                                {bf.thumbnailKey ? (
+                                  <img
+                                    src={getR2Url(bf.thumbnailKey, 'thumbnail')}
+                                    alt="Auto-Thumb"
+                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                  />
+                                ) : bf.status === 'metadata' ? (
+                                  <div className={styles.loadingSpinner} style={{ width: '12px', height: '12px', border: '2px solid rgba(var(--primary-rgb), 0.3)', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                                ) : (
+                                  <Camera size={12} style={{ color: 'var(--foreground-muted)' }} />
+                                )}
+                              </div>
+                            </td>
+                            <td style={{ maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={bf.file.name}>
+                              {bf.file.name}
+                            </td>
+                            <td>
+                              <input
+                                type="number"
+                                required
+                                disabled={isActiveUploading}
+                                min={1}
+                                className={styles.inputField}
+                                style={{ padding: '0.3rem 0.5rem', textAlign: 'center', background: 'var(--surface-hover)' }}
+                                value={bf.episodeNumber}
+                                onChange={(e) => updateBatchItemField(bf.id, 'episodeNumber', parseInt(e.target.value) || 1)}
+                              />
+                            </td>
+                            <td>
+                              <input
+                                type="text"
+                                required
+                                disabled={isActiveUploading}
+                                className={styles.inputField}
+                                style={{ padding: '0.3rem 0.5rem', background: 'var(--surface-hover)' }}
+                                value={bf.title}
+                                onChange={(e) => updateBatchItemField(bf.id, 'title', e.target.value)}
+                              />
+                            </td>
+                            <td style={{ textAlign: 'center' }}>
+                              <input
+                                type="checkbox"
+                                disabled={isActiveUploading}
+                                checked={bf.isPreview}
+                                onChange={(e) => updateBatchItemField(bf.id, 'isPreview', e.target.checked)}
+                              />
+                            </td>
+                            <td style={{ textAlign: 'center' }}>
+                              <input
+                                type="checkbox"
+                                disabled={isActiveUploading}
+                                checked={bf.isPublished}
+                                onChange={(e) => updateBatchItemField(bf.id, 'isPublished', e.target.checked)}
+                              />
+                            </td>
+                            <td>
+                              {bf.status === 'metadata' && (
+                                <span style={{ color: 'var(--foreground-muted)', fontSize: '0.75rem' }}>Analyzing...</span>
+                              )}
+                              {bf.status === 'pending' && (
+                                <span style={{ color: 'var(--foreground-secondary)', fontSize: '0.75rem' }}>Queued</span>
+                              )}
+                              {bf.status === 'uploading' && (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                                  <span style={{ fontSize: '0.75rem', color: 'var(--primary)', fontWeight: 700 }}>Uploading: {bf.progress}%</span>
+                                  <div className={styles.track} style={{ height: '4px', background: 'var(--border)', borderRadius: '2px', overflow: 'hidden' }}>
+                                    <div className={styles.bar} style={{ width: `${bf.progress}%`, height: '100%', background: 'var(--primary)', transition: 'width 0.1s ease' }} />
+                                  </div>
+                                </div>
+                              )}
+                              {bf.status === 'saving' && (
+                                <span style={{ color: '#f59e0b', fontSize: '0.75rem', fontWeight: 700 }}>Saving show...</span>
+                              )}
+                              {bf.status === 'success' && (
+                                <span style={{ color: '#10b981', fontSize: '0.75rem', fontWeight: 700 }}>✓ Done</span>
+                              )}
+                              {bf.status === 'error' && (
+                                <span style={{ color: '#ef4444', fontSize: '0.75rem', fontWeight: 700 }} title={bf.errorMsg}>
+                                  ✗ Failed
+                                </span>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            <div className={styles.modalActions}>
+              {activeBatchFiles.length > 0 && activeBatchFiles.every(bf => bf.status === 'success') ? (
+                <button
+                  type="button"
+                  onClick={handleCloseBatchModal}
+                  className={styles.saveBtn}
+                  style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', border: 'none', color: 'white', width: '100%', textAlign: 'center' }}
+                >
+                  Done / Close
+                </button>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={handleCloseBatchModal}
+                    disabled={isActiveUploading}
+                    className={styles.cancelBtn}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleStartBatchUpload}
+                    disabled={isActiveUploading || activeBatchFiles.length === 0 || activeBatchFiles.some(bf => bf.status === 'metadata')}
+                    className={styles.saveBtn}
+                    style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', border: 'none', color: 'white' }}
+                  >
+                    {isActiveUploading ? 'Uploading Batch...' : 'Start Batch Upload'}
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {batches.filter(b => b.isMinimized).map((b, index) => {
+        const completedCount = b.files.filter(f => f.status === 'success').length;
+        const totalCount = b.files.length;
+        const isSuccess = b.status === 'success';
+        const isUploading = b.status === 'uploading';
+        const isPending = b.status === 'pending';
+        const bottomOffset = 20 + index * 125;
+
+        return (
+          <div
+            key={b.id}
+            style={{
+              position: 'fixed',
+              bottom: `${bottomOffset}px`,
+              right: '20px',
+              width: '340px',
+              background: 'rgba(15, 23, 42, 0.95)',
+              backdropFilter: 'blur(8px)',
+              border: isSuccess ? '1px solid #10b981' : '1px solid var(--border)',
+              borderRadius: '12px',
+              boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
+              padding: '1rem',
+              zIndex: 9999,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.6rem',
+              color: 'var(--foreground)'
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h4 style={{ margin: 0, fontSize: '0.88rem', fontWeight: 800 }}>
+                {isUploading ? 'Uploading Episodes...' : isSuccess ? 'Upload Done' : isPending ? 'Queued in line...' : 'Upload Status'}
+              </h4>
+              <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveBatchId(b.id);
+                    setBatches(prev => prev.map(item => item.id === b.id ? { ...item, isMinimized: false } : item));
+                  }}
+                  style={{ background: 'transparent', border: 'none', color: 'var(--foreground-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0.2rem' }}
+                  title="Expand upload panel"
+                >
+                  <Maximize2 size={16} />
+                </button>
+                {(isSuccess || b.status === 'error') && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBatches(prev => prev.filter(item => item.id !== b.id));
+                    }}
+                    style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0.2rem' }}
+                    title="Close panel"
+                  >
+                    <X size={16} />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div style={{ fontSize: '0.78rem', color: 'var(--foreground-secondary)', maxWidth: '280px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              Parent Show: <strong>{seriesList.find(s => s.id === b.seriesId)?.title || 'Selected Show'}</strong>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: 'var(--foreground-muted)' }}>
+                <span>
+                  Progress: {completedCount} / {totalCount} done
+                </span>
+                {isUploading && (
+                  <span style={{ maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    Active: {b.files.find(f => f.status === 'uploading')?.file.name || 'Saving...'}
+                  </span>
+                )}
+              </div>
+              <div className={styles.track} style={{ height: '6px', background: 'var(--border)', borderRadius: '3px', overflow: 'hidden' }}>
+                <div
+                  className={styles.bar}
+                  style={{
+                    width: `${totalCount > 0 ? (completedCount / totalCount) * 100 : 0}%`,
+                    height: '100%',
+                    background: isSuccess ? '#10b981' : 'linear-gradient(90deg, #10b981 0%, #059669 100%)',
+                    transition: 'width 0.3s ease'
+                  }}
+                />
+              </div>
+            </div>
+            {isSuccess && (
+              <div style={{ fontSize: '0.75rem', color: '#10b981', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.3rem', marginTop: '0.2rem' }}>
+                <span>✓ All uploads completed successfully!</span>
+              </div>
+            )}
+          </div>
+        );
+      })}
+
+      {/* DYNAMIC LIGHTBOX MODAL FOR ZOOM PREVIEWS */}
+      {zoomImageUrl && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.9)',
+            backdropFilter: 'blur(10px)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 999999,
+            padding: '2rem'
+          }}
+          onClick={() => setZoomImageUrl(null)}
+        >
+          <div 
+            style={{
+              position: 'relative',
+              maxWidth: '90%',
+              maxHeight: '90%',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setZoomImageUrl(null)}
+              style={{
+                position: 'absolute',
+                top: '-40px',
+                right: '-10px',
+                background: 'transparent',
+                border: 'none',
+                color: 'white',
+                cursor: 'pointer',
+                padding: '0.5rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                fontWeight: 700,
+                fontSize: '0.9rem'
+              }}
+            >
+              <X size={20} />
+              <span>Close</span>
+            </button>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img 
+              src={zoomImageUrl} 
+              alt="Zoomed Preview" 
+              style={{ 
+                maxWidth: '100%', 
+                maxHeight: '80vh', 
+                borderRadius: '12px', 
+                boxShadow: '0 10px 40px rgba(0,0,0,0.8)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                objectFit: 'contain'
+              }} 
+            />
+          </div>
+        </div>
+      )}
 
     </div>
   );

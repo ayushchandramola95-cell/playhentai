@@ -888,3 +888,120 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* Homepage Intro Section */
+.introSection {
+  padding: 3rem 2rem 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  text-align: left;
+}
+
+.introContent {
+  background: rgba(15, 15, 15, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 2.5rem;
+  backdrop-filter: blur(10px);
+}
+
+.mainTitle {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 1.2rem;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, #ffffff 0%, #f59e0b 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.introText {
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: var(--foreground-secondary, #94a3b8);
+  margin-bottom: 1rem;
+}
+
+.introSubtext {
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: var(--foreground-secondary, #94a3b8);
+  margin-bottom: 0;
+}
+
+/* Homepage SEO Content Section */
+.seoContentSection {
+  padding: 4rem 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.seoContentWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.seoContentGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2rem;
+}
+
+.seoCard {
+  background: rgba(15, 15, 15, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 2rem;
+  backdrop-filter: blur(10px);
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.seoCard:hover {
+  border-color: rgba(245, 158, 11, 0.2);
+  transform: translateY(-2px);
+}
+
+.seoCard h3 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 1rem;
+  letter-spacing: -0.01em;
+}
+
+.seoCard p {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--foreground-secondary, #94a3b8);
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .seoContentGrid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .introSection {
+    padding: 1.5rem 1rem 0.5rem;
+  }
+  
+  .introContent {
+    padding: 1.5rem;
+  }
+  
+  .mainTitle {
+    font-size: 1.4rem;
+  }
+  
+  .seoContentSection {
+    padding: 2.5rem 1rem;
+  }
+  
+  .seoCard {
+    padding: 1.5rem;
+  }
+}

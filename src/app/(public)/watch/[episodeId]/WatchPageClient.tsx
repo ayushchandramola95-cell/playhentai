@@ -45,6 +45,9 @@ export default function WatchPageClient({
   const activeItemRef = useRef<HTMLAnchorElement | null>(null);
 
   const mins = Math.floor((activeEpisode.duration_seconds || 1440) / 60);
+  const posterUrl =
+    getR2Url(activeEpisode.thumbnail_key || activeEpisode.thumbnail, 'thumbnail') ||
+    getR2Url(seriesDetails?.cover_image_key || seriesDetails?.poster_image_key, 'cover');
 
   // Auto-scroll page to top & active playing episode into view inside queue
   useEffect(() => {
@@ -123,6 +126,7 @@ export default function WatchPageClient({
               episodeNumber={activeEpisode.episode_number}
               nextEpisodeUrl={nextEpisode ? getEpisodeWatchUrl(nextEpisode.id, nextEpisode.episode_number, seriesSlug) : null}
               onToggleTheater={() => setIsTheatreMode(prev => !prev)}
+              posterUrl={posterUrl}
             />
           </div>
 

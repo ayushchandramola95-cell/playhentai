@@ -17,6 +17,7 @@ import styles from './page.module.css';
 import { MOCK_SERIES, MOCK_EPISODES, MOCK_SERIES_DETAILS } from '@/utils/mockData';
 import { getR2Url } from '@/utils/r2';
 import { getEpisodeWatchUrl } from '@/utils/episodeUrl';
+import { getSeriesViewsMap, getEpisodeViewsMap } from '@/utils/views';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,8 +28,8 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const publicSupabaseClient = createSupabaseClient(supabaseUrl, supabaseAnonKey);
 
 export const metadata = {
-  title: 'PlayHentai - Watch Uncensored Hentai Anime Online in HD',
-  description: 'Stream high quality uncensored hentai anime series online for free. Watch full HD episodes, trending playlists, and popular uncensored titles on PlayHentai.',
+  title: 'Play Hentai — Hentai Anime Streaming & Series Database',
+  description: 'Welcome to Play Hentai. Stream high quality uncensored hentai anime series online for free. Watch full HD episodes, trending playlists, and popular adult animation titles on Play Hentai.',
   alternates: {
     canonical: '/',
   },
@@ -55,6 +56,9 @@ const getCachedCatalogData = unstable_cache(
     let isDbEmpty = true;
 
     try {
+      const viewsMap = await getSeriesViewsMap();
+      const episodeViewsMap = await getEpisodeViewsMap();
+
       const { data: seriesData } = await publicSupabaseClient
         .from('series')
         .select(`
@@ -73,7 +77,10 @@ const getCachedCatalogData = unstable_cache(
 
       if (seriesData && seriesData.length > 0) {
         isDbEmpty = false;
-        dbSeries = seriesData;
+        dbSeries = seriesData.map((s: any) => ({
+          ...s,
+          views: viewsMap[s.id] || 0
+        }));
       }
 
       const { data: episodeData } = await publicSupabaseClient
@@ -95,7 +102,10 @@ const getCachedCatalogData = unstable_cache(
         .order('created_at', { ascending: false });
 
       if (episodeData && episodeData.length > 0) {
-        dbEpisodes = episodeData;
+        dbEpisodes = episodeData.map((ep: any) => ({
+          ...ep,
+          views: episodeViewsMap[ep.id] || 0
+        }));
       }
     } catch (err) {
       console.error('Error fetching catalog data from Supabase:', err);
@@ -344,7 +354,8 @@ export default async function HomePage() {
           created_at: ep.created_at,
           effectiveDate: epTime,
           isNew,
-          isUncensored
+          isUncensored,
+          views: ep.views || 0
         };
       })
       .filter(Boolean);
@@ -497,11 +508,6 @@ export default async function HomePage() {
         <JsonLd key={`series-${idx}`} data={schema} />
       ))}
 
-      {/* Visually-hidden fallback H1 tag for 100% crawl guarantee */}
-      <h1 className="sr-only" style={{ position: 'absolute', width: '1px', height: '1px', padding: 0, margin: '-1px', overflow: 'hidden', clip: 'rect(0, 0, 0, 0)', whiteSpace: 'nowrap', border: 0 }}>
-        Watch Uncensored Hentai Anime Online in HD - PlayHentai
-      </h1>
-
       {/* Ambient Glows */}
       <div className="ambient-glow" />
       <div className="ambient-glow-2" />
@@ -516,6 +522,8 @@ export default async function HomePage() {
       {/* Mobile-Only Hero Bottom Banner (Zone 5986984) */}
       <AdBanner zoneId="5986984" insClass="eas6a97888e10" mobileOnly />
 
+
+
       {/* 1. Recent Episodes Section: 4x5 landscape grid (20 items total) */}
       <section className={styles.section}>
         <div className={styles.seriesSectionHeader}>
@@ -523,7 +531,7 @@ export default async function HomePage() {
             <h2>Recent Uploads</h2>
             <span className={styles.seriesSubtitle}>NEWLY RELEASED</span>
           </div>
-          <Link href="/recent/episodes" className={styles.viewAllLink}>
+          <Link href="/recent/episodes" prefetch={false} className={styles.viewAllLink}>
             View All <ChevronRight size={14} />
           </Link>
         </div>
@@ -533,7 +541,7 @@ export default async function HomePage() {
             const watchUrl = getEpisodeWatchUrl(ep.id, ep.episode_number, ep.showSlug);
             return (
               <div key={ep.id} className={`${styles.episodeCard} card-hover`}>
-                <Link href={watchUrl} className={styles.cardImageLink}>
+                <Link href={watchUrl} prefetch={false} className={styles.cardImageLink}>
                   <div className={styles.cardImageWrapper}>
                     <Image
                       src={getR2Url(ep.thumbnail, 'thumbnail')}
@@ -573,11 +581,15 @@ export default async function HomePage() {
 
                 <div className={styles.cardContent}>
                   <h3 className={styles.cardTitle}>
-                    <Link href={watchUrl}>{ep.title}</Link>
+                    <Link href={watchUrl} prefetch={false}>{ep.title}</Link>
                   </h3>
                   <div className={styles.episodeViewsRow}>
                     <Eye size={12} className={styles.eyeIcon} />
-                    <span>{ep.views ? (ep.views >= 1000 ? (ep.views / 1000).toFixed(1) + 'K' : ep.views) : '—'}</span>
+                    <span>
+                      {ep.views !== undefined && ep.views !== null
+                        ? (ep.views >= 1000 ? (ep.views / 1000).toFixed(1) + 'K' : ep.views)
+                        : '0'}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -623,7 +635,7 @@ export default async function HomePage() {
             <h3>Want personalized recommendations?</h3>
             <p>Sign in to record views, calculate trending statistics, and keep track of your watch history.</p>
           </div>
-          <Link href="/login" className={styles.recBtn}>
+          <Link href="/login" prefetch={false} className={styles.recBtn}>
             Sign In Now
           </Link>
         </section>
@@ -637,10 +649,10 @@ export default async function HomePage() {
             <p>Quickly access your saved bookmarks in Watchlist or resume watching from your Watch History.</p>
           </div>
           <div style={{ display: 'flex', gap: '0.8rem', flexWrap: 'wrap' }}>
-            <Link href="/watchlist" className={styles.recBtn}>
+            <Link href="/watchlist" prefetch={false} className={styles.recBtn}>
               My Watchlist
             </Link>
-            <Link href="/history" className={`${styles.recBtn} ${styles.recBtnOutline}`}>
+            <Link href="/history" prefetch={false} className={`${styles.recBtn} ${styles.recBtnOutline}`}>
               Watch History
             </Link>
           </div>
@@ -686,7 +698,7 @@ export default async function HomePage() {
             <h2>Explore Collections</h2>
             <span className={styles.seriesSubtitle}>CURATED CATEGORIES</span>
           </div>
-          <Link href="/categories" className={styles.viewAllLink}>
+          <Link href="/categories" prefetch={false} className={styles.viewAllLink}>
             View All <ChevronRight size={14} />
           </Link>
         </div>
@@ -701,6 +713,7 @@ export default async function HomePage() {
               <Link
                 key={idx}
                 href={`/categories?genre=${encodeURIComponent(isAll ? 'all' : filterVal)}`}
+                prefetch={false}
                 className={`${styles.categoryCard} ${isAll ? styles.categoryCardAll : ''}`}
               >
                 <span className={styles.categoryEmoji}>{emoji}</span>
@@ -708,6 +721,111 @@ export default async function HomePage() {
               </Link>
             );
           })}
+        </div>
+      </section>
+
+      {/* Large SEO Content Section */}
+      <section className={styles.seoContentSection}>
+        <div className={styles.seoContentWrapper}>
+          
+          {/* Main Title and Expanded Intro Block */}
+          <div className={styles.introContent} style={{ background: 'rgba(15, 15, 15, 0.65)', border: '1px solid rgba(245, 158, 11, 0.15)', boxShadow: '0 8px 32px rgba(245, 158, 11, 0.04)' }}>
+            <h1 className={styles.mainTitle}>Play Hentai — Hentai Anime &amp; Adult Animation</h1>
+            
+            <p className={styles.introText}>
+              Welcome to <strong>Play Hentai</strong>, the premier online database and high-definition streaming platform for adult animation and hentai series. Our library catalogs an extensive range of premium uncensored hentai anime titles, ensuring you can discover legendary classics alongside the latest 3D CGI releases. We systematically organize our content by genres, tags, production studios, and release years to deliver a seamless, high-performance browsing experience.
+            </p>
+            
+            <p className={styles.introText}>
+              Every series profile on Play Hentai features detailed synopses, verified alternative titles (including Japanese Kanji characters and Romaji spellings), and aggregate community ratings. From there, you can access individual watch pages with our custom theater-mode HTML5 video player. Whether you prefer English subbed episodes, English dubbed releases, or raw uncensored animation, Play Hentai is fully optimized for speed, discoverability, and clean viewing.
+            </p>
+
+            <p className={styles.introText} style={{ marginTop: '1.2rem', marginBottom: '0.8rem', fontWeight: 700, color: '#ffffff', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              🚀 Quick Navigation &amp; Discovery Hub
+            </p>
+
+            {/* Quick Links Grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '0.8rem', marginTop: '0.8rem' }}>
+              <Link href="/uncensored" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '8px', padding: '0.6rem 0.8rem', color: '#f59e0b', fontSize: '0.8rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.4rem', textDecoration: 'none' }} className="card-hover">
+                ✨ Uncensored Hentai
+              </Link>
+              <Link href="/3d" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '8px', padding: '0.6rem 0.8rem', color: '#f59e0b', fontSize: '0.8rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.4rem', textDecoration: 'none' }} className="card-hover">
+                🎥 3D CGI Animation
+              </Link>
+              <Link href="/categories" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '8px', padding: '0.6rem 0.8rem', color: '#ffffff', fontSize: '0.8rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.4rem', textDecoration: 'none' }} className="card-hover">
+                📂 Browse All Genres
+              </Link>
+              <Link href="/studios" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '8px', padding: '0.6rem 0.8rem', color: '#ffffff', fontSize: '0.8rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.4rem', textDecoration: 'none' }} className="card-hover">
+                🏢 Production Studios
+              </Link>
+              <Link href="/trending" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '8px', padding: '0.6rem 0.8rem', color: '#ffffff', fontSize: '0.8rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.4rem', textDecoration: 'none' }} className="card-hover">
+                🔥 Trending Catalog
+              </Link>
+              <Link href="/playlists" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '8px', padding: '0.6rem 0.8rem', color: '#ffffff', fontSize: '0.8rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.4rem', textDecoration: 'none' }} className="card-hover">
+                🎵 Custom Playlists
+              </Link>
+            </div>
+          </div>
+
+          <div className={styles.seoContentGrid}>
+            
+            <div className={styles.seoCard}>
+              <h3>What Is Play Hentai?</h3>
+              <p>
+                Play Hentai is a dedicated online database and streaming platform designed specifically for fans of adult animation and Japanese hentai series. Our goal is to provide a central, organized resource where users can explore comprehensive metadata, track active releases, and stream high-definition content in a clean, high-performance environment. Instead of simple link aggregates, we build rich series profiles that catalog everything from release history to studio details, making it easier than ever to discover new and classic titles.
+              </p>
+            </div>
+
+            <div className={styles.seoCard}>
+              <h3>Browse Hentai Anime Online</h3>
+              <p>
+                Our library is structured to support multiple styles of navigation. If you are looking for what is currently popular, the trending section aggregates real-time view data to show what the community is watching. For users who prefer chronologically fresh uploads, our recent additions grid lists the latest releases daily. You can also filter shows by their production status—whether they are currently ongoing and releasing new weekly episodes, or completed series that are fully available for binge-watching.
+              </p>
+            </div>
+
+            <div className={styles.seoCard}>
+              <h3>Discover Complete Series and Individual Episodes</h3>
+              <p>
+                In adult animation, single shows are often split into multiple seasons or release formats. Play Hentai preserves this structure by maintaining a strict parent-child relationship between a series profile and its child episodes. When you visit a series page, you are presented with a complete overview of the show, including its global rating, total episode count, synopsis, and associated tags. This ensures that you can understand the context of the story before clicking through to watch individual episodes in our specialized theater-mode video player.
+              </p>
+            </div>
+
+            <div className={styles.seoCard}>
+              <h3>Japanese, Romaji, and English Titles</h3>
+              <p>
+                Anime titles are frequently translated or romanized in multiple ways, making them difficult to track down. A single series might be known by its official Japanese Kanji name, its Romaji transliteration, or a literal English translation. Play Hentai solves this by archiving alternative titles for every series. By indexing all variations, our search engine helps you locate the correct page whether you search for a show's original Japanese title or its translated western counterpart.
+              </p>
+            </div>
+
+            <div className={styles.seoCard}>
+              <h3>Taxonomy: Genres and Tag-Based Discovery</h3>
+              <p>
+                Finding similar content is simple thanks to our tag taxonomy. Every series is mapped to specific tags and genres that describe its themes, animation styles, and storylines. Whether you are looking for classic hand-drawn uncensored animation, modern 3D CGI releases, or specific narrative elements like harem, action, supernatural, and comedy, clicking on any tag pill takes you to a filtered list of all matching titles in our database.
+              </p>
+            </div>
+
+            <div className={styles.seoCard}>
+              <h3>The Production Studio Catalog</h3>
+              <p>
+                Behind every great animation is a talented studio. Play Hentai features a dedicated studios directory that groups anime by their creators. Exploring show profiles by studio allows you to track the historical work of famous production houses, discover their visual signatures, and find hidden gems that share the same high-quality art style, voice acting, and animation flow as your favorite series.
+              </p>
+            </div>
+
+            <div className={styles.seoCard}>
+              <h3>Smart Search & Filtering</h3>
+              <p>
+                If you are not browsing catalog rows, our active search bar offers real-time suggestions as you type. The search index looks through primary titles, alternative English translations, studios, and genres to find matches instantly. Combined with our advanced filters, you can sort search results by ratings, release years, or upload dates to isolate exactly what you want to watch.
+              </p>
+            </div>
+
+            <div className={styles.seoCard}>
+              <h3>Trust, Safety, and Content Standards</h3>
+              <p>
+                Play Hentai is committed to maintaining a safe, transparent, and compliant platform for adult audiences. All characters depicted in the animated works cataloged on our site are fictional and represented as 18 years of age or older. We maintain clear legal frameworks, including our copyright DMCA policies, Terms of Service, and Privacy Policies, to ensure a trustworthy environment for users and content creators alike.
+              </p>
+            </div>
+
+          </div>
         </div>
       </section>
     </div>

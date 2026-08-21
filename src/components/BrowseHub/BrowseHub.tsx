@@ -54,6 +54,14 @@ interface BrowseHubProps {
   initialGenre?: string;
 }
 
+function getStableHash(str: string): number {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return Math.abs(hash);
+}
+
 function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre }: BrowseHubProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -290,11 +298,12 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre }: BrowseHubP
     // Sort Results
     const sorted = [...list];
     if (sortMode === 'random') {
-      // Fisher-Yates shuffle for true randomness
-      for (let i = sorted.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [sorted[i], sorted[j]] = [sorted[j], sorted[i]];
-      }
+      // Stable pseudo-random sorting based on static item hashes to prevent hydration mismatches
+      sorted.sort((a, b) => {
+        const hashA = getStableHash(a.id || a.slug || '');
+        const hashB = getStableHash(b.id || b.slug || '');
+        return hashA - hashB;
+      });
     } else if (sortMode === 'recent') {
       sorted.sort((a, b) => {
         const dateA = new Date((a as any).release_date || (a as any).created_at || a.releaseYear || 0).getTime();
@@ -351,26 +360,11 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre }: BrowseHubP
     return sorted;
   }, [allBrands, brandSearchQuery, brandSortMode, brandCounts]);
 
-  // JSON-LD Schema
-  const itemListJsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'ItemList',
-    name: 'Browse Hentai Anime Categories & Series on PlayHentai',
-    url: `${SITE_URL}/categories`,
-    itemListElement: currentSeries.map((s, i) => ({
-      '@type': 'ListItem',
-      position: startIndex + i + 1,
-      name: s.title,
-      url: `${SITE_URL}/series/${s.slug}`,
-    })),
-  };
-
   const hasActiveFilters =
     includedTags.length > 0 || blockedTags.length > 0 || selectedBrands.length > 0 || searchQuery !== '';
 
   return (
     <div className={styles.hubContainer}>
-      <JsonLd data={itemListJsonLd} />
 
       {/* Top Filter Action Bar */}
       <div className={styles.filterActionBar}>

@@ -91,7 +91,7 @@ export default function HorizontalScrollRow({
 
           <div className={styles.headerControls}>
             {viewAllHref && (
-              <Link href={viewAllHref} className={styles.viewAllBtn}>
+              <Link href={viewAllHref} prefetch={false} className={styles.viewAllBtn}>
                 ALL
               </Link>
             )}

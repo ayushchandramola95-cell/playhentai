@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Film, Plus, Search, Edit2, Trash2, X, AlertCircle, Image } from 'lucide-react';
+import { Film, Plus, Search, Edit2, Trash2, X, AlertCircle, Image, Key } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import FileUploader from '@/components/FileUploader/FileUploader';
 import { GENRES, STUDIOS, RELEASE_YEARS } from '@/utils/constants';
@@ -104,6 +104,511 @@ export default function AdminSeriesPage() {
   const [isGeneratingSection, setIsGeneratingSection] = useState<Record<string, boolean>>({});
   const [aboutModel, setAboutModel] = useState('gemini-3.6-flash');
 
+  // Custom Gemini API Keys states
+  interface CustomGeminiKey {
+    id: string;
+    nickname: string;
+    key: string;
+  }
+
+  const [customKeys, setCustomKeys] = useState<CustomGeminiKey[]>([]);
+  const [activeKeyId, setActiveKeyId] = useState<string>('default');
+  const [isKeyModalOpen, setIsKeyModalOpen] = useState(false);
+  const [newKeyNickname, setNewKeyNickname] = useState('');
+  const [newKeyValue, setNewKeyValue] = useState('');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const storedKeys = localStorage.getItem('admin_gemini_keys');
+        if (storedKeys) {
+          setCustomKeys(JSON.parse(storedKeys));
+        }
+        const activeId = localStorage.getItem('admin_gemini_active_key_id');
+        if (activeId) {
+          setActiveKeyId(activeId);
+        }
+      } catch (e) {
+        console.error('Failed to load Gemini keys from localStorage:', e);
+      }
+    }
+  }, []);
+
+  const handleSelectKey = (keyId: string) => {
+    setActiveKeyId(keyId);
+    localStorage.setItem('admin_gemini_active_key_id', keyId);
+  };
+
+  const handleAddCustomKey = () => {
+    if (!newKeyNickname.trim() || !newKeyValue.trim()) return;
+    const newKey: CustomGeminiKey = {
+      id: 'key-' + Date.now(),
+      nickname: newKeyNickname.trim(),
+      key: newKeyValue.trim()
+    };
+    const updated = [...customKeys, newKey];
+    setCustomKeys(updated);
+    localStorage.setItem('admin_gemini_keys', JSON.stringify(updated));
+    
+    // Automatically select the new key
+    handleSelectKey(newKey.id);
+
+    // Reset inputs
+    setNewKeyNickname('');
+    setNewKeyValue('');
+  };
+
+  const handleDeleteCustomKey = (keyId: string) => {
+    const updated = customKeys.filter(k => k.id !== keyId);
+    setCustomKeys(updated);
+    localStorage.setItem('admin_gemini_keys', JSON.stringify(updated));
+
+    if (activeKeyId === keyId) {
+      handleSelectKey('default');
+    }
+  };
+
+  const getActiveApiKey = () => {
+    if (activeKeyId === 'default') return '';
+    const found = customKeys.find(k => k.id === activeKeyId);
+    return found ? found.key : '';
+  };
+
+  // TSV Metadata Parser states
+  const [tsvInput, setTsvInput] = useState('');
+  const [tsvError, setTsvError] = useState<string | null>(null);
+  const [parsedPreview, setParsedPreview] = useState<Record<string, any> | null>(null);
+
+  const resetTsvParser = () => {
+    setTsvInput('');
+    setTsvError(null);
+    setParsedPreview(null);
+  };
+
+  const formatFieldLabel = (key: string): string => {
+    const labels: Record<string, string> = {
+      title: 'Series Title',
+      synopsis: 'Synopsis',
+      releaseYear: 'Release Year',
+      studio: 'Production Studio',
+      tagsInput: 'Tags / Genre',
+      altTitleJapanese: 'Japanese Title',
+      altTitleRomaji: 'Romaji Title',
+      altTitleEnglish: 'English Title',
+      status: 'Airing Status',
+      episodeCountOverride: 'Planned Episode Count',
+      firstAirDate: 'First Air Date',
+      lastAirDate: 'Last Air Date',
+      aliasesInput: 'Search Aliases',
+      aboutOverview: 'Overview',
+      aboutProduction: 'Production & Presentation',
+      aboutThemes: 'Themes & Style',
+      aboutRecommended: 'Recommended For'
+    };
+    return labels[key] || key;
+  };
+
+  const parseDateToYYYYMMDD = (dateStr: string): string => {
+    if (!dateStr || dateStr.trim() === '') return '';
+    const trimmed = dateStr.trim();
+    
+    // Try MM/DD/YYYY
+    const mdY = trimmed.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (mdY) {
+      const month = mdY[1].padStart(2, '0');
+      const day = mdY[2].padStart(2, '0');
+      const year = mdY[3];
+      return `${year}-${month}-${day}`;
+    }
+
+    // Try YYYY-MM-DD
+    const yMd = trimmed.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+    if (yMd) {
+      const year = yMd[1];
+      const month = yMd[2].padStart(2, '0');
+      const day = yMd[3].padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    // Try DD.MM.YYYY
+    const dMy = trimmed.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+    if (dMy) {
+      const day = dMy[1].padStart(2, '0');
+      const month = dMy[2].padStart(2, '0');
+      const year = dMy[3];
+      return `${year}-${month}-${day}`;
+    }
+
+    return '';
+  };
+
+  const parseTSV = (text: string): string[][] => {
+    // Normalize newlines
+    const normalized = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    
+    // Split by lines
+    const rawLines = normalized.split('\n');
+    const reconstructedRows: string[] = [];
+    let currentAccumulatedRow = '';
+
+    for (let i = 0; i < rawLines.length; i++) {
+      const line = rawLines[i];
+      if (currentAccumulatedRow === '') {
+        currentAccumulatedRow = line;
+      } else {
+        currentAccumulatedRow += '\n' + line;
+      }
+
+      // Count the number of tab characters in the accumulated row, ignoring tabs inside quotes if quotes are balanced
+      let tabCount = 0;
+      let inQuotes = false;
+      for (let j = 0; j < currentAccumulatedRow.length; j++) {
+        const char = currentAccumulatedRow[j];
+        if (char === '"') {
+          if (inQuotes && currentAccumulatedRow[j + 1] === '"') {
+            j++; // skip escaped quote
+          } else {
+            inQuotes = !inQuotes;
+          }
+        } else if (char === '\t' && !inQuotes) {
+          tabCount++;
+        }
+      }
+
+      // If we have at least 16 tabs (which means 17 columns), or if it's the last line, we commit the row
+      if (tabCount >= 16 || i === rawLines.length - 1) {
+        reconstructedRows.push(currentAccumulatedRow);
+        currentAccumulatedRow = '';
+      }
+    }
+
+    // Now parse each reconstructed row
+    const finalRows: string[][] = [];
+    for (const rowText of reconstructedRows) {
+      const rowFields: string[] = [];
+      let currentField = '';
+      let inQuotes = false;
+
+      for (let i = 0; i < rowText.length; i++) {
+        const char = rowText[i];
+        if (char === '"') {
+          if (inQuotes && rowText[i + 1] === '"') {
+            currentField += '"';
+            i++; // skip escaped quote
+          } else {
+            inQuotes = !inQuotes;
+          }
+        } else if (char === '\t' && !inQuotes) {
+          rowFields.push(currentField);
+          currentField = '';
+        } else {
+          currentField += char;
+        }
+      }
+      rowFields.push(currentField);
+      finalRows.push(rowFields.map(cell => cell.trim()));
+    }
+
+    return finalRows;
+  };
+
+  const handleParseMetadata = () => {
+    setTsvError(null);
+    setParsedPreview(null);
+
+    if (!tsvInput.trim()) {
+      setTsvError('Please paste some tab-separated metadata.');
+      return;
+    }
+
+    try {
+      const parsedRows = parseTSV(tsvInput).filter(r => r.length > 0 && r.some(cell => cell !== ''));
+      if (parsedRows.length === 0) {
+        throw new Error('No valid rows found in pasted text.');
+      }
+
+      let dataRow: string[] | null = null;
+      let hasHeader = false;
+
+      // Check if first row is header
+      const firstRow = parsedRows[0];
+      const headerKeywords = ['series title', 'synopsis', 'release year', 'production studio', 'tags'];
+      const isHeader = firstRow.some(cell => headerKeywords.includes(cell.toLowerCase().trim()));
+
+      if (isHeader) {
+        hasHeader = true;
+        if (parsedRows.length < 2) {
+          throw new Error('Header row detected, but no data row was found below it.');
+        }
+        dataRow = parsedRows[1];
+      } else {
+        dataRow = firstRow;
+      }
+
+      if (dataRow.length !== 17) {
+        throw new Error(`Metadata parser found ${dataRow.length} columns. Expected exactly 17.`);
+      }
+
+      // Validation
+      const errors: string[] = [];
+
+      const titleVal = dataRow[0].trim();
+      if (!titleVal) {
+        errors.push('Series Title (Column 1) is required and cannot be empty.');
+      }
+
+      const yearVal = dataRow[2].trim();
+      if (yearVal) {
+        const yearNum = Number(yearVal);
+        if (isNaN(yearNum) || yearNum < 1900 || yearNum > 2100) {
+          errors.push(`Invalid Release Year: "${yearVal}". Expected a valid year between 1900 and 2100.`);
+        }
+      }
+
+      const rawStatus = dataRow[8].trim();
+      const statusVal = rawStatus.toLowerCase();
+      const allowedStatuses = ['ongoing (airing)', 'ongoing', 'completed (finalized)', 'completed', 'upcoming'];
+      if (statusVal && !allowedStatuses.includes(statusVal)) {
+        errors.push(`Invalid Airing Status: "${rawStatus}". Expected Ongoing (Airing), Completed (Finalized), or Upcoming.`);
+      }
+
+      const epCountVal = dataRow[9].trim();
+      if (epCountVal) {
+        const epNum = Number(epCountVal);
+        if (isNaN(epNum) || epNum < 0) {
+          errors.push(`Invalid Planned Episode Count: "${epCountVal}". Expected a non-negative number.`);
+        }
+      }
+
+      const firstAirVal = dataRow[10].trim();
+      if (firstAirVal) {
+        const formatted = parseDateToYYYYMMDD(firstAirVal);
+        if (!formatted) {
+          errors.push(`Invalid First Air Date: "${firstAirVal}". Expected MM/DD/YYYY or YYYY-MM-DD.`);
+        }
+      }
+
+      const lastAirVal = dataRow[11].trim();
+      if (lastAirVal) {
+        const formatted = parseDateToYYYYMMDD(lastAirVal);
+        if (!formatted) {
+          errors.push(`Invalid Last Air Date: "${lastAirVal}". Expected MM/DD/YYYY or YYYY-MM-DD.`);
+        }
+      }
+
+      if (errors.length > 0) {
+        throw new Error(errors.join(' | '));
+      }
+
+      // Map airing status value
+      let mappedStatus = 'ongoing';
+      if (statusVal.includes('completed')) {
+        mappedStatus = 'completed';
+      } else if (statusVal.includes('upcoming')) {
+        mappedStatus = 'upcoming';
+      }
+
+      // Safe mapping preview
+      const previewData = {
+        title: titleVal,
+        synopsis: dataRow[1].trim(),
+        releaseYear: yearVal ? Number(yearVal) : '',
+        studio: dataRow[3].trim(),
+        tagsInput: dataRow[4].trim(),
+        altTitleJapanese: dataRow[5].trim(),
+        altTitleRomaji: dataRow[6].trim(),
+        altTitleEnglish: dataRow[7].trim(),
+        status: mappedStatus,
+        episodeCountOverride: epCountVal ? Number(epCountVal) : '',
+        firstAirDate: firstAirVal ? parseDateToYYYYMMDD(firstAirVal) : '',
+        lastAirDate: lastAirVal ? parseDateToYYYYMMDD(lastAirVal) : '',
+        aliasesInput: dataRow[12].trim(),
+        aboutOverview: dataRow[13].trim(),
+        aboutProduction: dataRow[14].trim(),
+        aboutThemes: dataRow[15].trim(),
+        aboutRecommended: dataRow[16].trim()
+      };
+
+      setParsedPreview(previewData);
+    } catch (err: any) {
+      setTsvError(err.message || 'Parsing failed.');
+    }
+  };
+
+  const handleApplyMetadata = () => {
+    if (!parsedPreview) return;
+
+    setTitle(parsedPreview.title);
+    
+    // Auto-generate slug from title if not editing
+    if (!editingId) {
+      setSlug(
+        parsedPreview.title
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/(^-|-$)+/g, '')
+      );
+    }
+
+    setDescription(parsedPreview.synopsis);
+    setReleaseYear(parsedPreview.releaseYear);
+    setStudio(parsedPreview.studio);
+    setTagsInput(parsedPreview.tagsInput);
+    setAltTitleJapanese(parsedPreview.altTitleJapanese);
+    setAltTitleRomaji(parsedPreview.altTitleRomaji);
+    setAltTitleEnglish(parsedPreview.altTitleEnglish);
+    setStatus(parsedPreview.status);
+    setEpisodeCountOverride(parsedPreview.episodeCountOverride);
+    setFirstAirDate(parsedPreview.firstAirDate);
+    setLastAirDate(parsedPreview.lastAirDate);
+    setAliasesInput(parsedPreview.aliasesInput);
+    setAboutOverview(parsedPreview.aboutOverview);
+    setAboutProduction(parsedPreview.aboutProduction);
+    setAboutThemes(parsedPreview.aboutThemes);
+    setAboutRecommended(parsedPreview.aboutRecommended);
+
+    // Close preview panel and keep textarea input so they know what was applied
+    setParsedPreview(null);
+    setTsvError(null);
+  };
+
+  const [savingTsv, setSavingTsv] = useState(false);
+
+  const handleDownloadTSV = () => {
+    if (!tsvInput) return;
+    const blob = new Blob([tsvInput], { type: 'text/tab-separated-values;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `${title ? title.replace(/[^a-z0-9]+/gi, '_').toLowerCase() : 'series'}_metadata.tsv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleSaveTsvOnly = async () => {
+    if (!editingId) return;
+    setSavingTsv(true);
+    try {
+      const tags = tagsInput
+        .split(',')
+        .map((t) => t.trim())
+        .filter((t) => t.length > 0);
+
+      // Preserve any existing internal featured tags
+      const originalSeries = seriesList.find((s) => s.id === editingId);
+      let finalTags = tags;
+      if (originalSeries && originalSeries.tags) {
+        const internalTags = originalSeries.tags.filter(
+          (t) => t.toLowerCase().startsWith('featured:') || t.toLowerCase() === 'featured'
+        );
+        finalTags = [...tags, ...internalTags];
+      }
+
+      const aliases = aliasesInput
+        .split(',')
+        .map((a) => a.trim())
+        .filter((a) => a.length > 0);
+
+      const contentWarnings = contentWarningsInput
+        .split(',')
+        .map((w) => w.trim())
+        .filter((w) => w.length > 0);
+
+      let faqOverride = [];
+      try {
+        if (faqOverrideInput.trim()) {
+          faqOverride = JSON.parse(faqOverrideInput);
+        }
+      } catch (e) {}
+
+      let finalPoster = posterKey;
+      let finalCover = coverKey;
+      let finalBanner = bannerKey;
+
+      if (finalPoster && !finalCover && !finalBanner) {
+        finalCover = finalPoster;
+        finalBanner = finalPoster;
+      } else if (finalCover && !finalPoster && !finalBanner) {
+        finalPoster = finalCover;
+        finalBanner = finalCover;
+      } else if (finalBanner && !finalPoster && !finalCover) {
+        finalPoster = finalBanner;
+        finalCover = finalBanner;
+      }
+
+      const payload = {
+        id: editingId,
+        title,
+        slug,
+        description,
+        poster_image_key: finalPoster || null,
+        cover_image_key: finalCover || null,
+        banner_image_key: finalBanner || null,
+        tags: finalTags,
+        studio: studio || null,
+        release_year: releaseYear ? Number(releaseYear) : null,
+        is_published: isPublished,
+        alt_title_japanese: altTitleJapanese || null,
+        alt_title_romaji: altTitleRomaji || null,
+        alt_title_english: altTitleEnglish || null,
+        original_language: originalLanguage,
+        original_source: originalSource || null,
+        content_warnings: contentWarnings,
+        about_text: [
+          aboutOverview.trim() ? `## Overview\n${aboutOverview.trim()}` : '',
+          aboutProduction.trim() ? `## Production & Presentation\n${aboutProduction.trim()}` : '',
+          aboutThemes.trim() ? `## Themes & Style\n${aboutThemes.trim()}` : '',
+          aboutRecommended.trim() ? `## Recommended For\n${aboutRecommended.trim()}` : ''
+        ].filter(Boolean).join('\n\n') || null,
+        about_data: {
+          overview: aboutOverview,
+          production: aboutProduction,
+          themes: aboutThemes,
+          recommended: aboutRecommended,
+          tsv: tsvInput
+        },
+        faq_override: faqOverride,
+        status,
+        episode_count_override: episodeCountOverride !== '' ? Number(episodeCountOverride) : null,
+        runtime: runtime !== '' ? Number(runtime) : 24,
+        age_rating: ageRating,
+        content_rating: contentRating,
+        country,
+        aliases,
+        featured_type: featuredType,
+        meta_title: metaTitle || null,
+        meta_description: metaDescription || null,
+        first_air_date: firstAirDate || null,
+        last_air_date: lastAirDate || null,
+        image_library: imageLibrary,
+        poster_position: (originalSeries?.poster_position) || '50% 50%',
+        cover_position: (originalSeries?.cover_position) || '50% 50%',
+        banner_position: (originalSeries?.banner_position) || '50% 50%',
+        metadata_locks: {},
+        metadata_provenance: {},
+        metadata_versions: [],
+        raw_provider_payload: {}
+      };
+
+      const res = await fetch('/api/admin/series', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to update series metadata');
+
+      fetchSeries();
+      alert('✓ TSV Metadata saved and updated successfully inside the database!');
+    } catch (err: any) {
+      alert(`Error updating TSV: ${err.message}`);
+    } finally {
+      setSavingTsv(false);
+    }
+  };
+
   // Parsing helper to support Option A and legacy plaintext fallback
   function parseAboutText(aboutData: any, aboutTextLegacy: string) {
     const sections = {
@@ -154,6 +659,7 @@ export default function AdminSeriesPage() {
   const [coverY, setCoverY] = useState<number>(50);
   const [bannerX, setBannerX] = useState<number>(50);
   const [bannerY, setBannerY] = useState<number>(50);
+  const [posterSqueeze, setPosterSqueeze] = useState<boolean>(false);
 
   const [lightboxKey, setLightboxKey] = useState<string | null>(null);
   const [activeCropRole, setActiveCropRole] = useState<'poster' | 'cover' | 'banner' | null>(null);
@@ -166,29 +672,10 @@ export default function AdminSeriesPage() {
   const fetchEpisodeThumbnails = async (seriesId: string) => {
     setLoadingEpisodeThumbs(true);
     try {
-      const supabase = createClient();
-      const { data: seasons } = await supabase
-        .from('seasons')
-        .select('id')
-        .eq('series_id', seriesId);
-
-      let epData: any[] = [];
-      if (seasons && seasons.length > 0) {
-        const seasonIds = seasons.map((sec: any) => sec.id);
-        const { data: episodes } = await supabase
-          .from('episodes')
-          .select('id, episode_number, title, thumbnail_key, thumbnail_options')
-          .in('season_id', seasonIds)
-          .order('episode_number', { ascending: true });
-        if (episodes) epData = episodes;
-      } else {
-        const { data: episodes } = await supabase
-          .from('episodes')
-          .select('id, episode_number, title, thumbnail_key, thumbnail_options')
-          .eq('series_id', seriesId)
-          .order('episode_number', { ascending: true });
-        if (episodes) epData = episodes;
-      }
+      const res = await fetch(`/api/admin/episodes?series_id=${seriesId}`);
+      if (!res.ok) throw new Error('Failed to fetch episode thumbnails');
+      const data = await res.json();
+      const epData = data.episodes || [];
 
       const collected: { episodeNumber: number; title: string; key: string }[] = [];
       const seenKeys = new Set<string>();
@@ -309,7 +796,8 @@ export default function AdminSeriesPage() {
           section: sectionKey,
           existingText: isImprove ? existingText : undefined,
           metadata,
-          model: aboutModel
+          model: aboutModel,
+          apiKey: getActiveApiKey()
         })
       });
 
@@ -359,7 +847,8 @@ export default function AdminSeriesPage() {
         body: JSON.stringify({
           mode: 'all',
           metadata,
-          model: aboutModel
+          model: aboutModel,
+          apiKey: getActiveApiKey()
         })
       });
 
@@ -404,6 +893,7 @@ export default function AdminSeriesPage() {
     setCoverY(parsePercent(s.cover_position, 1, 50));
     setBannerX(parsePercent(s.banner_position, 0, 50));
     setBannerY(parsePercent(s.banner_position, 1, 50));
+    setPosterSqueeze(s.poster_position === 'squeeze');
 
     setShowEpisodePicker(false);
     setEpisodeThumbnails([]);
@@ -424,6 +914,7 @@ export default function AdminSeriesPage() {
     setCoverY(50);
     setBannerX(50);
     setBannerY(50);
+    setPosterSqueeze(false);
     setActiveCropRole(null);
     setMediaModalOpen(false);
   };
@@ -459,7 +950,7 @@ export default function AdminSeriesPage() {
       cover_image_key: finalCover || null,
       banner_image_key: finalBanner || null,
       image_library: imageLibrary,
-      poster_position: `${posterX}% ${posterY}%`,
+      poster_position: posterSqueeze ? 'squeeze' : `${posterX}% ${posterY}%`,
       cover_position: `${coverX}% ${coverY}%`,
       banner_position: `${bannerX}% ${bannerY}%`
     };
@@ -727,6 +1218,7 @@ export default function AdminSeriesPage() {
     setFirstAirDate('');
     setLastAirDate('');
     setImageLibrary([]);
+    resetTsvParser();
     setIsModalOpen(false);
   };
 
@@ -766,8 +1258,7 @@ export default function AdminSeriesPage() {
     setFirstAirDate('');
     setLastAirDate('');
     setImageLibrary([]);
-
-
+    resetTsvParser();
 
     setError(null);
     setIsModalOpen(true);
@@ -811,8 +1302,10 @@ export default function AdminSeriesPage() {
     setFirstAirDate(s.first_air_date ? s.first_air_date.substring(0, 10) : '');
     setLastAirDate(s.last_air_date ? s.last_air_date.substring(0, 10) : '');
     setImageLibrary(s.image_library || []);
-
-
+    resetTsvParser();
+    if (s.about_data?.tsv) {
+      setTsvInput(s.about_data.tsv);
+    }
 
     setError(null);
     setIsModalOpen(true);
@@ -922,7 +1415,8 @@ export default function AdminSeriesPage() {
         overview: aboutOverview,
         production: aboutProduction,
         themes: aboutThemes,
-        recommended: aboutRecommended
+        recommended: aboutRecommended,
+        tsv: tsvInput
       },
       faq_override: faqOverride,
       status,
@@ -1269,6 +1763,7 @@ export default function AdminSeriesPage() {
                             src={getR2Url(imageKey, s.poster_image_key ? 'poster' : 'cover')}
                             alt={s.title}
                             className={styles.seriesThumbImg}
+                            style={{ objectFit: s.poster_image_key && s.poster_position === 'squeeze' ? 'fill' : 'cover' }}
                           />
                           <div className={styles.seriesThumbHover}>
                             <Image size={14} />
@@ -1489,7 +1984,211 @@ export default function AdminSeriesPage() {
             )}
 
             <form onSubmit={handleSave}>
-                <div className={styles.formGridWidescreen}>
+              {/* TSV Metadata Paste & Auto-Fill Parser */}
+              <div style={{
+                background: 'var(--surface-hover)',
+                border: '1px solid var(--border)',
+                borderRadius: '12px',
+                padding: '1.25rem',
+                marginBottom: '1.5rem',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.8rem'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <h4 style={{ margin: 0, fontSize: '0.9rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--primary)' }}>
+                    📋 Paste Metadata (TSV Auto-Fill)
+                  </h4>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--foreground-muted)' }}>
+                    Copy a 17-column TSV row from ChatGPT/Sheets and paste below
+                  </span>
+                </div>
+
+                <textarea
+                  placeholder="Paste the 17-column TSV metadata here..."
+                  value={tsvInput}
+                  onChange={(e) => setTsvInput(e.target.value)}
+                  style={{
+                    width: '100%',
+                    height: '80px',
+                    borderRadius: '8px',
+                    border: '1px solid var(--border)',
+                    background: 'var(--background)',
+                    color: 'var(--foreground)',
+                    padding: '0.6rem 0.8rem',
+                    fontSize: '0.82rem',
+                    fontFamily: 'monospace',
+                    resize: 'vertical',
+                    outline: 'none'
+                  }}
+                />
+
+                {tsvError && (
+                  <div style={{ color: '#ef4444', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                    <AlertCircle size={14} />
+                    <span>{tsvError}</span>
+                  </div>
+                )}
+
+                {parsedPreview && (
+                  <div style={{
+                    background: 'var(--background)',
+                    border: '1px solid var(--border)',
+                    borderRadius: '8px',
+                    padding: '0.8rem',
+                    fontSize: '0.8rem'
+                  }}>
+                    <div style={{ fontWeight: 700, marginBottom: '0.5rem', color: '#10b981' }}>
+                      ✓ 17 / 17 fields detected successfully!
+                    </div>
+                    
+                    <div style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+                      gap: '0.4rem',
+                      maxHeight: '120px',
+                      overflowY: 'auto',
+                      paddingRight: '0.5rem'
+                    }}>
+                      {Object.entries(parsedPreview).map(([key, val]) => (
+                        <div key={key} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                          <span style={{ color: '#10b981', fontWeight: 'bold' }}>✓</span>
+                          <span style={{ color: 'var(--foreground-muted)' }}>
+                            {formatFieldLabel(key)}:
+                          </span>
+                          <span style={{
+                            fontWeight: 600,
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            maxWidth: '120px'
+                          }} title={String(val)}>
+                            {String(val) || <span style={{ color: 'var(--foreground-muted)', fontStyle: 'italic' }}>empty</span>}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '0.8rem', marginTop: '0.8rem', justifyContent: 'flex-end' }}>
+                      <button
+                        type="button"
+                        onClick={resetTsvParser}
+                        style={{
+                          background: 'transparent',
+                          border: '1px solid var(--border)',
+                          color: 'var(--foreground)',
+                          padding: '0.4rem 1rem',
+                          borderRadius: '30px',
+                          fontSize: '0.78rem',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleApplyMetadata}
+                        style={{
+                          background: 'var(--primary)',
+                          color: 'white',
+                          border: 'none',
+                          padding: '0.4rem 1.2rem',
+                          borderRadius: '30px',
+                          fontSize: '0.78rem',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          boxShadow: '0 2px 8px rgba(168, 85, 247, 0.2)'
+                        }}
+                      >
+                        Apply to Form
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {!parsedPreview && (
+                  <div style={{ display: 'flex', gap: '0.8rem', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                    {tsvInput && (
+                      <button
+                        type="button"
+                        onClick={handleDownloadTSV}
+                        title="Download raw TSV as file"
+                        style={{
+                          background: 'rgba(59, 130, 246, 0.1)',
+                          border: '1px solid rgba(59, 130, 246, 0.2)',
+                          color: '#3b82f6',
+                          padding: '0.45rem 1.2rem',
+                          borderRadius: '30px',
+                          fontSize: '0.78rem',
+                          fontWeight: 700,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Download Mapped TSV
+                      </button>
+                    )}
+
+                    {tsvInput && editingId && (
+                      <button
+                        type="button"
+                        onClick={handleSaveTsvOnly}
+                        disabled={savingTsv}
+                        style={{
+                          background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                          border: 'none',
+                          color: 'white',
+                          padding: '0.45rem 1.5rem',
+                          borderRadius: '30px',
+                          fontSize: '0.78rem',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          boxShadow: '0 2px 8px rgba(16, 185, 129, 0.2)'
+                        }}
+                      >
+                        {savingTsv ? 'Saving...' : 'Update TSV in DB'}
+                      </button>
+                    )}
+
+                    {tsvInput && (
+                      <button
+                        type="button"
+                        onClick={resetTsvParser}
+                        style={{
+                          background: 'transparent',
+                          border: '1px solid var(--border)',
+                          color: 'var(--foreground)',
+                          padding: '0.45rem 1.2rem',
+                          borderRadius: '30px',
+                          fontSize: '0.78rem',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Clear
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={handleParseMetadata}
+                      disabled={!tsvInput.trim()}
+                      style={{
+                        background: tsvInput.trim() ? 'var(--primary)' : 'var(--border)',
+                        color: tsvInput.trim() ? 'white' : 'var(--foreground-muted)',
+                        border: 'none',
+                        padding: '0.45rem 1.5rem',
+                        borderRadius: '30px',
+                        fontSize: '0.78rem',
+                        fontWeight: 700,
+                        cursor: tsvInput.trim() ? 'pointer' : 'default',
+                        boxShadow: tsvInput.trim() ? '0 2px 8px rgba(168, 85, 247, 0.2)' : 'none'
+                      }}
+                    >
+                      Parse Metadata
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <div className={styles.formGridWidescreen}>
                 {/* Column 1: Core details & Media Uploads */}
                 <div>
                   <div className={styles.formGroup}>
@@ -1885,6 +2584,50 @@ export default function AdminSeriesPage() {
                               <option value="gemini-3.1-flash-lite">Gemini 3.1 Flash Lite</option>
                               <option value="gemini-3-flash-preview">Gemini 3 Flash Preview</option>
                             </select>
+                          </div>
+
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginLeft: '0.2rem' }}>
+                            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--foreground-muted)', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>Gemini Key:</span>
+                            <select
+                              value={activeKeyId}
+                              onChange={(e) => handleSelectKey(e.target.value)}
+                              style={{
+                                padding: '0.45rem 0.75rem',
+                                borderRadius: '8px',
+                                border: '1px solid var(--border)',
+                                background: 'var(--surface-hover)',
+                                color: 'var(--foreground-primary)',
+                                fontSize: '0.78rem',
+                                outline: 'none',
+                                cursor: 'pointer',
+                                fontWeight: 600,
+                                maxWidth: '160px'
+                              }}
+                            >
+                              <option value="default">System Default Key</option>
+                              {customKeys.map(k => (
+                                <option key={k.id} value={k.id}>{k.nickname}</option>
+                              ))}
+                            </select>
+                            <button
+                              type="button"
+                              onClick={() => setIsKeyModalOpen(true)}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                padding: '0.48rem',
+                                borderRadius: '8px',
+                                border: '1px solid var(--border)',
+                                background: 'var(--surface-hover)',
+                                color: 'var(--foreground-primary)',
+                                cursor: 'pointer',
+                                transition: 'all 0.15s ease'
+                              }}
+                              title="Manage Gemini API Keys"
+                            >
+                              <Key size={14} />
+                            </button>
                           </div>
 
                           <button
@@ -2380,7 +3123,7 @@ export default function AdminSeriesPage() {
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--foreground-secondary)' }}>POSTER ROLE (Card Image - 2:3)</span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                          {posterKey && (
+                          {posterKey && !posterSqueeze && (
                             <button
                               type="button"
                               onClick={() => setActiveCropRole('poster')}
@@ -2393,6 +3136,31 @@ export default function AdminSeriesPage() {
                           {posterKey && <span style={{ fontSize: '0.7rem', color: 'var(--primary)', fontWeight: 600 }}>✓ Assigned</span>}
                         </div>
                       </div>
+
+                      {posterKey && (
+                        <div style={{ display: 'flex', gap: '1rem', margin: '0.1rem 0 0.3rem 0', fontSize: '0.75rem' }}>
+                          <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', cursor: 'pointer', fontWeight: 600, color: 'var(--foreground-secondary)' }}>
+                            <input
+                              type="radio"
+                              name="poster_fit"
+                              checked={!posterSqueeze}
+                              onChange={() => setPosterSqueeze(false)}
+                              style={{ cursor: 'pointer' }}
+                            />
+                            Crop (Centered / Draggable)
+                          </label>
+                          <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', cursor: 'pointer', fontWeight: 600, color: 'var(--foreground-secondary)' }}>
+                            <input
+                              type="radio"
+                              name="poster_fit"
+                              checked={posterSqueeze}
+                              onChange={() => setPosterSqueeze(true)}
+                              style={{ cursor: 'pointer' }}
+                            />
+                            Full Image (Squeezed to Fit)
+                          </label>
+                        </div>
+                      )}
                       
                       {imageLibrary.length === 0 ? (
                         <div style={{ fontSize: '0.75rem', color: 'var(--foreground-muted)', fontStyle: 'italic', padding: '0.4rem' }}>Upload images to library first.</div>
@@ -2419,7 +3187,7 @@ export default function AdminSeriesPage() {
                                   }}
                                 >
                                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                                  <img src={getR2Url(key, 'poster')} alt={`Poster Choice ${i}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                  <img src={getR2Url(key, 'poster')} alt={`Poster Choice ${i}`} style={{ width: '100%', height: '100%', objectFit: isSelected && posterSqueeze ? 'fill' : 'cover' }} />
                                   {isSelected && (
                                     <div style={{ position: 'absolute', inset: 0, background: 'rgba(168, 85, 247, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                       <span style={{ color: '#ffffff', background: 'var(--primary)', borderRadius: '50%', width: '16px', height: '16px', fontSize: '9px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800 }}>✓</span>
@@ -3027,6 +3795,148 @@ export default function AdminSeriesPage() {
                 }}
               >
                 Apply Alignment
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isKeyModalOpen && (
+        <div className={styles.modalOverlay} style={{ zIndex: 99999 }}>
+          <div className={styles.modalContent} style={{ maxWidth: '600px', width: '90%' }}>
+            <div className={styles.modalHeader}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Key size={18} style={{ color: 'var(--primary)' }} />
+                <h3 style={{ margin: 0 }}>Manage Gemini API Keys</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsKeyModalOpen(false)}
+                style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--foreground-secondary)' }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem', margin: '1.5rem 0' }}>
+              
+              {/* Stored Keys List */}
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--foreground-secondary)', marginBottom: '0.6rem' }}>
+                  🔑 Stored API Keys ({customKeys.length})
+                </label>
+                
+                {customKeys.length === 0 ? (
+                  <div style={{ padding: '1rem', border: '1px dashed var(--border)', borderRadius: '8px', textAlign: 'center', color: 'var(--foreground-muted)', fontSize: '0.82rem' }}>
+                    No custom keys added yet. Using system environment key by default.
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '180px', overflowY: 'auto' }}>
+                    {customKeys.map(k => {
+                      const isActive = activeKeyId === k.id;
+                      return (
+                        <div
+                          key={k.id}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '0.6rem 0.8rem',
+                            border: isActive ? '1px solid var(--primary)' : '1px solid var(--border)',
+                            borderRadius: '8px',
+                            background: isActive ? 'rgba(var(--primary-rgb), 0.05)' : 'var(--surface-hover)',
+                            fontSize: '0.85rem'
+                          }}
+                        >
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+                            <span style={{ fontWeight: isActive ? 700 : 500, color: isActive ? 'var(--primary)' : 'var(--foreground)' }}>
+                              {k.nickname} {isActive && ' (Active)'}
+                            </span>
+                            <span style={{ fontSize: '0.72rem', color: 'var(--foreground-muted)' }}>
+                              Key: {k.key.substring(0, 6)}...{k.key.substring(k.key.length - 4)}
+                            </span>
+                          </div>
+                          
+                          <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            {!isActive && (
+                              <button
+                                type="button"
+                                onClick={() => handleSelectKey(k.id)}
+                                style={{ background: 'var(--primary)', color: 'white', border: 'none', padding: '0.3rem 0.6rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
+                              >
+                                Activate
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteCustomKey(k.id)}
+                              style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.2)', padding: '0.3rem 0.6rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Add New Key Form */}
+              <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1.2rem' }}>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--foreground-secondary)', marginBottom: '0.8rem' }}>
+                  ➕ Add New Gemini Key
+                </label>
+                
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                  <div className={styles.formGroup} style={{ margin: 0 }}>
+                    <input
+                      type="text"
+                      placeholder="Nickname (e.g. My Flash Key)"
+                      className={styles.inputField}
+                      value={newKeyNickname}
+                      onChange={(e) => setNewKeyNickname(e.target.value)}
+                    />
+                  </div>
+                  <div className={styles.formGroup} style={{ margin: 0 }}>
+                    <input
+                      type="password"
+                      placeholder="AIzaSy... Gemini API Key Value"
+                      className={styles.inputField}
+                      value={newKeyValue}
+                      onChange={(e) => setNewKeyValue(e.target.value)}
+                    />
+                  </div>
+                  
+                  <button
+                    type="button"
+                    onClick={handleAddCustomKey}
+                    disabled={!newKeyNickname.trim() || !newKeyValue.trim()}
+                    className={styles.saveBtn}
+                    style={{
+                      background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                      border: 'none',
+                      color: 'white',
+                      alignSelf: 'flex-end',
+                      padding: '0.45rem 1.2rem',
+                      fontSize: '0.8rem',
+                      marginTop: '0.2rem'
+                    }}
+                  >
+                    Save & Activate Key
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className={styles.modalActions} style={{ borderTop: '1px solid var(--border)', paddingTop: '1rem', marginTop: 0 }}>
+              <button
+                type="button"
+                onClick={() => setIsKeyModalOpen(false)}
+                className={styles.cancelBtn}
+                style={{ width: '100%', textAlign: 'center' }}
+              >
+                Close Settings
               </button>
             </div>
           </div>

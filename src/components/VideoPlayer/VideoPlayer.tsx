@@ -15,6 +15,7 @@ interface VideoPlayerProps {
   episodeNumber: number;
   nextEpisodeUrl?: string | null;
   onToggleTheater?: () => void;
+  posterUrl?: string;
 }
 
 // ExoClick VAST tag — replace with your actual VAST URL from ExoClick dashboard
@@ -32,7 +33,8 @@ export default function VideoPlayer({
   title,
   episodeNumber,
   nextEpisodeUrl,
-  onToggleTheater
+  onToggleTheater,
+  posterUrl
 }: VideoPlayerProps) {
   const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -259,7 +261,7 @@ export default function VideoPlayer({
         }
       }, 5000);
 
-      if (!viewLoggedRef.current && currentTime >= 10) {
+      if (!viewLoggedRef.current && currentTime >= 1) {
         viewLoggedRef.current = true;
         fetch('/api/views', {
           method: 'POST',
@@ -368,7 +370,11 @@ export default function VideoPlayer({
 
   const handleTimeUpdate = () => {
     if (videoRef.current) {
-      setCurrentTime(videoRef.current.currentTime);
+      const cur = videoRef.current.currentTime;
+      setCurrentTime(cur);
+      if (cur < 1) {
+        viewLoggedRef.current = false;
+      }
     }
   };
 
@@ -542,6 +548,7 @@ export default function VideoPlayer({
       <video
         ref={videoRef}
         src={videoUrl}
+        poster={posterUrl}
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
         onEnded={handleVideoEnded}

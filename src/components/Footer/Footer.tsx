@@ -18,7 +18,7 @@ export default function Footer() {
       <div className={styles.container}>
         <div className={styles.brandColumn}>
           {/* Logo — matches header exactly */}
-          <Link href="/" className={styles.logoContainer}>
+          <Link href="/" prefetch={false} className={styles.logoContainer}>
             <FooterLogoIcon />
             <span className={styles.logoText}>
               <span className={styles.logoTextPlay}>PLAY</span>
@@ -34,31 +34,31 @@ export default function Footer() {
         <div className={styles.linksColumn}>
           <h4 className={styles.heading}>Explore</h4>
           <ul className={styles.linksList}>
-            <li><Link href="/" className={styles.link}>Home</Link></li>
-            <li><Link href="/categories" className={styles.link}>Browse Library</Link></li>
-            <li><Link href="/trending" className={styles.link}>Trending</Link></li>
-            <li><Link href="/search" className={styles.link}>Search Catalog</Link></li>
-            <li><Link href="/studios" className={styles.link}>Studios</Link></li>
-            <li><Link href="/upcoming" className={styles.link}>Upcoming Titles</Link></li>
+            <li><Link href="/" prefetch={false} className={styles.link}>Home</Link></li>
+            <li><Link href="/categories" prefetch={false} className={styles.link}>Browse Library</Link></li>
+            <li><Link href="/trending" prefetch={false} className={styles.link}>Trending</Link></li>
+            <li><Link href="/search" prefetch={false} className={styles.link}>Search Catalog</Link></li>
+            <li><Link href="/studios" prefetch={false} className={styles.link}>Studios</Link></li>
+            <li><Link href="/upcoming" prefetch={false} className={styles.link}>Upcoming Titles</Link></li>
           </ul>
         </div>
 
         <div className={styles.linksColumn}>
           <h4 className={styles.heading}>User Account</h4>
           <ul className={styles.linksList}>
-            <li><Link href="/watchlist" className={styles.link}>My Watchlist</Link></li>
-            <li><Link href="/favorites" className={styles.link}>My Favorites</Link></li>
-            <li><Link href="/history" className={styles.link}>Watch History</Link></li>
-            <li><Link href="/login" className={styles.link}>Sign In / Register</Link></li>
+            <li><Link href="/watchlist" prefetch={false} className={styles.link}>My Watchlist</Link></li>
+            <li><Link href="/favorites" prefetch={false} className={styles.link}>My Favorites</Link></li>
+            <li><Link href="/history" prefetch={false} className={styles.link}>Watch History</Link></li>
+            <li><Link href="/login" prefetch={false} className={styles.link}>Sign In / Register</Link></li>
           </ul>
         </div>
 
         <div className={styles.linksColumn}>
           <h4 className={styles.heading}>Support & Legal</h4>
           <ul className={styles.linksList}>
-            <li><Link href="/faq" className={styles.link}>FAQ</Link></li>
-            <li><Link href="/terms" className={styles.link}>Terms of Service</Link></li>
-            <li><Link href="/privacy" className={styles.link}>Privacy Policy</Link></li>
+            <li><Link href="/faq" prefetch={false} className={styles.link}>FAQ</Link></li>
+            <li><Link href="/terms" prefetch={false} className={styles.link}>Terms of Service</Link></li>
+            <li><Link href="/privacy" prefetch={false} className={styles.link}>Privacy Policy</Link></li>
           </ul>
         </div>
       </div>

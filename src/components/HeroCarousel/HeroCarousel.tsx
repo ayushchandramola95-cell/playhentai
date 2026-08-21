@@ -136,7 +136,6 @@ export default function HeroCarousel({ activeSeries, isDbEmpty }: HeroCarouselPr
       <div className={styles.heroContentWrapper}>
         {activeSeries.map((series, index) => {
           const isActive = index === currentIndex;
-          if (!isActive) return null;
 
           const posterKey = series.poster_image_key || series.cover_image_key;
           const posterUrl = getR2Url(posterKey, 'poster');
@@ -146,7 +145,10 @@ export default function HeroCarousel({ activeSeries, isDbEmpty }: HeroCarouselPr
             .slice(0, 3);
 
           return (
-            <div key={series.id || index} className={styles.heroCardContainer}>
+            <div 
+              key={series.id || index} 
+              className={`${styles.heroCardContainer} ${isActive ? styles.heroCardActive : styles.heroCardInactive}`}
+            >
               {/* Left Poster Thumbnail Card */}
               <div className={styles.posterCardWrapper}>
                 <Link href={`/series/${series.slug}`} className={styles.posterLink}>

@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { Play, Star, Eye } from 'lucide-react';
 
 function formatViews(views?: number): string {
-  if (!views) return '500.5K';
+  if (views === undefined || views === null) return '0';
   if (views >= 1000000) {
     return (views / 1000000).toFixed(1) + 'M';
   }
@@ -47,18 +47,6 @@ export interface SeriesItem {
 interface SeriesCardProps {
   item: SeriesItem;
   className?: string;
-}
-
-function getStableViews(id: string): number {
-  let hash = 0;
-  for (let i = 0; i < id.length; i++) {
-    hash = id.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  const min = 1000;
-  const max = 50000;
-  const range = max - min;
-  const val = Math.abs(hash % range);
-  return min + val;
 }
 
 function getStableStatus(id: string): string {
@@ -142,18 +130,21 @@ export default function SeriesCard({ item, className = '' }: SeriesCardProps) {
       onMouseEnter={handleMouseEnter}
       data-side="right"
     >
-      <Link href={`/series/${item.slug}`} className={styles.cardImageLink}>
+      <Link href={`/series/${item.slug}`} prefetch={false} className={styles.cardImageLink}>
         <div className={styles.seriesImageWrapper}>
           <Image
             src={getR2Url(
               item.poster_image_key || item.cover_image_key || item.banner_image_key || (Array.isArray((item as any).image_library) && (item as any).image_library[0]),
               'poster'
             )}
-            alt={`Watch ${item.title} Hentai Anime - PlayHentai`}
+            alt={`Watch ${item.title} Hentai Anime - Play Hentai`}
             fill
             sizes="(max-width: 480px) 100vw, (max-width: 768px) 50vw, (max-width: 1200px) 25vw, 20vw"
             className={styles.cardImage}
-            style={{ objectPosition: item.poster_position || 'center' }}
+            style={{
+              objectFit: item.poster_position === 'squeeze' ? 'fill' : 'cover',
+              objectPosition: item.poster_position === 'squeeze' ? 'center' : (item.poster_position || 'center')
+            }}
           />
           
           {/* Rating Badge (Top Right) */}
@@ -191,11 +182,11 @@ export default function SeriesCard({ item, className = '' }: SeriesCardProps) {
       {/* Title and Meta (Below Card Image) */}
       <div className={styles.cardMetaContent}>
         <h4 className={styles.seriesTitleText} title={item.title}>
-          <Link href={`/series/${item.slug}`}>{item.title}</Link>
+          <Link href={`/series/${item.slug}`} prefetch={false}>{item.title}</Link>
         </h4>
         <div className={styles.seriesViewsRow}>
           <Eye size={12} className={styles.eyeIcon} />
-          <span>{formatViews(item.views || getStableViews(item.id || item.title))}</span>
+          <span>{formatViews(item.views || 0)}</span>
         </div>
       </div>
 
@@ -204,11 +195,14 @@ export default function SeriesCard({ item, className = '' }: SeriesCardProps) {
         <div className={styles.popoverPosterWrapper}>
           <Image
             src={getR2Url(item.poster_image_key || item.cover_image_key, 'poster')}
-            alt={`Stream ${item.title} Hentai online - PlayHentai`}
+            alt={`Stream ${item.title} Hentai online - Play Hentai`}
             fill
             sizes="80px"
             className={styles.popoverPoster}
-            style={{ objectPosition: item.poster_position || 'center' }}
+            style={{
+              objectFit: item.poster_position === 'squeeze' ? 'fill' : 'cover',
+              objectPosition: item.poster_position === 'squeeze' ? 'center' : (item.poster_position || 'center')
+            }}
           />
         </div>
         <div className={styles.popoverContent}>

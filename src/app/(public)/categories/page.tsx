@@ -4,6 +4,7 @@ import { unstable_cache } from 'next/cache';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import JsonLd from '@/components/JsonLd/JsonLd';
 import BrowseHub from '@/components/BrowseHub/BrowseHub';
+import { getSeriesViewsMap } from '@/utils/views';
 import styles from './categories.module.css';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
@@ -75,6 +76,8 @@ const getCachedCategoriesSeries = unstable_cache(
     let isDbEmpty = true;
 
     try {
+      const viewsMap = await getSeriesViewsMap();
+
       const { data: seriesData } = await publicSupabaseClient
         .from('series')
         .select(`
@@ -90,7 +93,10 @@ const getCachedCategoriesSeries = unstable_cache(
         .order('created_at', { ascending: false });
 
       if (seriesData && seriesData.length > 0) {
-        dbSeries = seriesData;
+        dbSeries = seriesData.map((s: any) => ({
+          ...s,
+          views: viewsMap[s.id] || 0
+        }));
         isDbEmpty = false;
       }
     } catch (err) {
@@ -196,9 +202,22 @@ export default async function CategoriesPage() {
     ],
   };
 
+  const itemListJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    'name': 'Browse Hentai Anime Categories & Series on PlayHentai',
+    'url': `${SITE_URL}/categories`,
+    'itemListElement': activeSeries.slice(0, 24).map((s: any, i: number) => ({
+      '@type': 'ListItem',
+      'position': i + 1,
+      'name': s.title,
+      'url': `${SITE_URL}/series/${s.slug}`,
+    })),
+  };
+
   return (
     <div className={styles.container}>
-      <JsonLd data={breadcrumbJsonLd} />
+      <JsonLd data={[breadcrumbJsonLd, itemListJsonLd]} />
       <div className="ambient-glow" />
 
       {/* Breadcrumbs */}

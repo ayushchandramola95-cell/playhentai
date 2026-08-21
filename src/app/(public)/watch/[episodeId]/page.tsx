@@ -200,8 +200,15 @@ export async function generateMetadata({ params }: WatchPageProps): Promise<Meta
     const resolved = await getCachedResolvedEpisode(episodeId);
     if (resolved?.activeEpisode) {
       const ep = resolved.activeEpisode;
-      title = `Watch ${resolved.seriesTitle} Episode ${ep.episode_number} English Sub HD | PlayHentai`;
-      description = `Watch ${resolved.seriesTitle} Episode ${ep.episode_number} English Sub HD online on PlayHentai. Stream the latest episodes in high definition.`;
+      const series = resolved.seriesDetails || {};
+      
+      let titleText = resolved.seriesTitle;
+      if (series.alt_title_english && series.alt_title_english.toLowerCase() !== resolved.seriesTitle.toLowerCase()) {
+        titleText += ` (${series.alt_title_english})`;
+      }
+      
+      title = `${titleText} Episode ${ep.episode_number} — Watch Online | Play Hentai`;
+      description = `Watch ${titleText} Episode ${ep.episode_number} online for free. Stream the latest adult anime episodes in high definition on Play Hentai.`;
       thumbnail = ep.thumbnail_key || ep.thumbnail || '';
       canonicalPath = getEpisodeWatchUrl(ep.id, ep.episode_number, resolved.seriesSlug);
     }
@@ -324,10 +331,14 @@ export default async function WatchPage({ params }: WatchPageProps) {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
   const canonicalUrl = `${siteUrl}${getEpisodeWatchUrl(activeEpisode.id, activeEpisode.episode_number, seriesSlug)}`;
 
-  const thumbnailUrl =
+  const tempThumb =
     getR2Url(activeEpisode.thumbnail_key || activeEpisode.thumbnail, 'thumbnail') ||
     getR2Url(seriesDetails?.cover_image_key || seriesDetails?.poster_image_key, 'cover') ||
     '';
+
+  const verifiedThumbnailUrl = (!tempThumb || tempThumb.startsWith('data:'))
+    ? 'https://media.playhentai.live/og-banner.jpg'
+    : tempThumb;
 
   // Direct R2 video URL (MP4 publicly accessible) — required for Google video rich results
   const videoContentUrl = activeEpisode.video_key
@@ -343,11 +354,10 @@ export default async function WatchPage({ params }: WatchPageProps) {
     '@id': canonicalUrl,
     'name': `${seriesTitle} - Episode ${activeEpisode.episode_number}: ${activeEpisode.title}`,
     'description': activeEpisode.description || `Watch ${seriesTitle} Episode ${activeEpisode.episode_number} in HD online.`,
-    'thumbnailUrl': thumbnailUrl ? [thumbnailUrl] : undefined,
+    'thumbnailUrl': [verifiedThumbnailUrl],
     'uploadDate': activeEpisode.release_date || activeEpisode.created_at || new Date().toISOString(),
     'duration': activeEpisode.duration_seconds ? `PT${Math.floor(activeEpisode.duration_seconds / 60)}M` : 'PT24M',
     'contentUrl': videoContentUrl,
-    'embedUrl': canonicalUrl,
     'url': canonicalUrl,
     'inLanguage': 'en',
     'isFamilyFriendly': false,

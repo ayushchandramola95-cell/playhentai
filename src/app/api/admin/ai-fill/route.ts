@@ -98,9 +98,14 @@ class AniDBProvider implements MetadataProvider {
   supportsAdultTitles = true;
   supportsImages = false;
   supportsEpisodeMetadata = false;
+  customApiKey?: string;
+
+  constructor(apiKey?: string) {
+    this.customApiKey = apiKey;
+  }
 
   async search(query: string): Promise<SearchResult[]> {
-    const geminiKey = process.env.GEMINI_API_KEY;
+    const geminiKey = this.customApiKey || process.env.GEMINI_API_KEY;
     if (!geminiKey || geminiKey === 'your_gemini_api_key_here') return [];
 
     try {
@@ -144,7 +149,7 @@ class AniDBProvider implements MetadataProvider {
   }
 
   async getDetails(id: string): Promise<RawMetadata | null> {
-    const geminiKey = process.env.GEMINI_API_KEY;
+    const geminiKey = this.customApiKey || process.env.GEMINI_API_KEY;
     if (!geminiKey || geminiKey === 'your_gemini_api_key_here') return null;
 
     try {
@@ -404,7 +409,7 @@ export async function POST(req: NextRequest) {
     verifyTime = logStep('Authentication', verifyTime);
 
     const body = await req.json();
-    const { query, type = 'series', locks = {}, mode = 'auto' } = body;
+    const { query, type = 'series', locks = {}, mode = 'auto', apiKey } = body;
     if (!query) {
       return NextResponse.json({ error: 'Missing search query parameter' }, { status: 400 });
     }
@@ -455,7 +460,7 @@ export async function POST(req: NextRequest) {
 
     // 3. Provider Sourcing (Parallel search based on mode selection)
     let sourcingTime = Date.now();
-    const publicProviders: MetadataProvider[] = [new AniDBProvider(), new AniListProvider(), new KitsuProvider()];
+    const publicProviders: MetadataProvider[] = [new AniDBProvider(apiKey), new AniListProvider(), new KitsuProvider()];
     const authenticatedProviders: MetadataProvider[] = []; // Placeholder for AniDB, scrapers etc.
     
     let searchResults: SearchResult[] = [];
@@ -573,7 +578,7 @@ export async function POST(req: NextRequest) {
 
     // 5. AI Sourcing & Enhancement Stage (Gemini API)
     let aiTime = Date.now();
-    const geminiKey = process.env.GEMINI_API_KEY;
+    const geminiKey = apiKey || process.env.GEMINI_API_KEY;
     let aiEnhancedData: any = {};
     
     if (geminiKey) {

@@ -118,9 +118,9 @@ export default function AdminAnalyticsPage() {
   const [loadingComments, setLoadingComments] = useState(true);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   
-  const [mostViewedSeries, setMostViewedSeries] = useState<ViewedSeries[]>(MOCK_MOST_VIEWED_SERIES);
-  const [mostViewedEpisodes, setMostViewedEpisodes] = useState<ViewedEpisode[]>(MOCK_MOST_VIEWED_EPISODES);
-  const [totalGlobalViews, setTotalGlobalViews] = useState<number>(134100);
+  const [mostViewedSeries, setMostViewedSeries] = useState<ViewedSeries[]>([]);
+  const [mostViewedEpisodes, setMostViewedEpisodes] = useState<ViewedEpisode[]>([]);
+  const [totalGlobalViews, setTotalGlobalViews] = useState<number>(0);
 
   useEffect(() => {
     fetchGlobalComments();
@@ -132,11 +132,13 @@ export default function AdminAnalyticsPage() {
       const res = await fetch('/api/views');
       if (res.ok) {
         const data = await res.json();
-        if (data.totalViews) setTotalGlobalViews(data.totalViews);
-        if (data.mostViewedSeries && data.mostViewedSeries.length > 0) {
+        if (data.totalViews !== undefined && data.totalViews !== null) {
+          setTotalGlobalViews(data.totalViews);
+        }
+        if (data.mostViewedSeries) {
           setMostViewedSeries(data.mostViewedSeries);
         }
-        if (data.mostViewedEpisodes && data.mostViewedEpisodes.length > 0) {
+        if (data.mostViewedEpisodes) {
           setMostViewedEpisodes(data.mostViewedEpisodes);
         }
       }

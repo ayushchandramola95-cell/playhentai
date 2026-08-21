@@ -178,39 +178,12 @@ export default function Header() {
                 </Link>
 
                 <Link 
-                  href="/watchlist" 
-                  onClick={() => setDropdownOpen(false)} 
-                  className={styles.dropdownItem}
-                >
-                  <Bookmark size={16} />
-                  <span>My Watchlist</span>
-                </Link>
-
-                <Link 
                   href="/history" 
                   onClick={() => setDropdownOpen(false)} 
                   className={styles.dropdownItem}
                 >
-                  <History size={16} />
+                  <History size={16} style={{ color: '#8b5cf6' }} />
                   <span>Watch History</span>
-                </Link>
-
-                <Link 
-                  href="/studios" 
-                  onClick={() => setDropdownOpen(false)} 
-                  className={styles.dropdownItem}
-                >
-                  <Tv size={16} />
-                  <span>Studios Catalog</span>
-                </Link>
-
-                <Link 
-                  href="/settings" 
-                  onClick={() => setDropdownOpen(false)} 
-                  className={styles.dropdownItem}
-                >
-                  <Settings size={16} />
-                  <span>Account & Security</span>
                 </Link>
 
                 {profile?.role === 'admin' && (
@@ -219,7 +192,7 @@ export default function Header() {
                     onClick={() => setDropdownOpen(false)} 
                     className={styles.dropdownItem}
                   >
-                    <ShieldCheck size={16} />
+                    <Settings size={16} style={{ color: '#f59e0b' }} />
                     <span>Admin Dashboard</span>
                   </Link>
                 )}

@@ -75,20 +75,26 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Fetch published episodes with joined series slug for clean URLs
     const { data: episodes } = await supabase
       .from('episodes')
-      .select('id, episode_number, created_at, seasons(series(slug))')
+      .select('id, episode_number, created_at, seasons(series(slug, is_published))')
       .eq('is_published', true);
 
     if (episodes && episodes.length > 0) {
-      dbEpisodes = episodes.map((ep: any) => {
-        const season = Array.isArray(ep.seasons) ? ep.seasons[0] : ep.seasons;
-        const seriesObj = season ? (Array.isArray(season.series) ? season.series[0] : season.series) : null;
-        const seriesSlug = seriesObj?.slug;
-        const watchSlug = seriesSlug && ep.episode_number ? `${seriesSlug}-episode-${ep.episode_number}` : ep.id;
-        return {
-          id: watchSlug,
-          created_at: ep.created_at
-        };
-      });
+      dbEpisodes = episodes
+        .filter((ep: any) => {
+          const season = Array.isArray(ep.seasons) ? ep.seasons[0] : ep.seasons;
+          const seriesObj = season ? (Array.isArray(season.series) ? season.series[0] : season.series) : null;
+          return seriesObj?.is_published === true;
+        })
+        .map((ep: any) => {
+          const season = Array.isArray(ep.seasons) ? ep.seasons[0] : ep.seasons;
+          const seriesObj = season ? (Array.isArray(season.series) ? season.series[0] : season.series) : null;
+          const seriesSlug = seriesObj?.slug;
+          const watchSlug = seriesSlug && ep.episode_number ? `${seriesSlug}-episode-${ep.episode_number}` : ep.id;
+          return {
+            id: watchSlug,
+            created_at: ep.created_at
+          };
+        });
     }
 
     // Fetch all distinct tags from published series for tag pages

@@ -20,6 +20,7 @@ import styles from './series.module.css';
 import { MOCK_SERIES, MOCK_EPISODES, MOCK_SERIES_DETAILS } from '@/utils/mockData';
 import { convertStudioNameToSlug } from '@/utils/studiosData';
 import { tagToSlug } from '@/utils/constants';
+import { getSeriesViewsMap } from '@/utils/views';
 
 import SynopsisBox from './SynopsisBox';
 import MobileTagsRow from './MobileTagsRow';
@@ -52,10 +53,12 @@ export async function generateMetadata({ params }: SeriesPageProps): Promise<Met
       .single();
 
     if (data) {
-      const isDubbed = data.tags ? data.tags.some((t: string) => t.toLowerCase() === 'dub' || t.toLowerCase() === 'dubbed') : false;
-      const subOrDub = isDubbed ? 'English Dubbed/Subbed' : 'English Sub';
-      title = data.meta_title || `${data.title} - Watch ${subOrDub} HD | PlayHentai`;
-      description = data.meta_description || `Watch ${data.title} with English subtitles in HD. Stream all available episodes, releases, and check out similar titles on PlayHentai.`;
+      let titleText = data.title;
+      if (data.alt_title_english && data.alt_title_english.toLowerCase() !== data.title.toLowerCase()) {
+        titleText += ` (${data.alt_title_english})`;
+      }
+      title = `${titleText} — Episodes & Info | Play Hentai`;
+      description = data.meta_description || `Stream all episodes of ${data.title} (${data.alt_title_english || 'Uncensored Hentai Anime'}) online in HD. Find alternate titles, synopsis, studio details, ratings, and similar shows on Play Hentai.`;
       ogImage = data.cover_image_key || data.poster_image_key || '';
       
       const keywordsList = [
@@ -76,10 +79,12 @@ export async function generateMetadata({ params }: SeriesPageProps): Promise<Met
       keywords = Array.from(new Set(keywordsList));
     } else if (MOCK_SERIES_DETAILS[slug]) {
       const mock = MOCK_SERIES_DETAILS[slug];
-      const isDubbed = mock.tags ? mock.tags.some((t: string) => t.toLowerCase() === 'dub' || t.toLowerCase() === 'dubbed') : false;
-      const subOrDub = isDubbed ? 'English Dubbed/Subbed' : 'English Sub';
-      title = `${mock.title} - Watch ${subOrDub} HD | PlayHentai`;
-      description = `Watch ${mock.title} with English subtitles in HD. Stream all available episodes, releases, and check out similar titles on PlayHentai.`;
+      let titleText = mock.title;
+      if (mock.alt_title_english && mock.alt_title_english.toLowerCase() !== mock.title.toLowerCase()) {
+        titleText += ` (${mock.alt_title_english})`;
+      }
+      title = `${titleText} — Episodes & Info | Play Hentai`;
+      description = `Stream all episodes of ${mock.title} (${mock.alt_title_english || 'Uncensored Hentai Anime'}) online in HD. Find alternate titles, synopsis, studio details, ratings, and similar shows on Play Hentai.`;
       ogImage = mock.cover_image_key || mock.poster_image_key || '';
       
       const keywordsList = [
@@ -125,18 +130,6 @@ export async function generateMetadata({ params }: SeriesPageProps): Promise<Met
       images,
     },
   };
-}
-
-function getStableViews(id: string): number {
-  let hash = 0;
-  for (let i = 0; i < id.length; i++) {
-    hash = id.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  const min = 5000;
-  const max = 150000;
-  const range = max - min;
-  const val = Math.abs(hash % range);
-  return min + val;
 }
 
 function getStableStatus(id: string): string {
@@ -265,12 +258,17 @@ const getCachedSeriesData = unstable_cache(
     let allSeriesList: any[] = [];
 
     try {
+      const viewsMap = await getSeriesViewsMap();
+
       const { data: allSeriesData } = await publicSupabaseClient
         .from('series')
         .select('*')
         .eq('is_published', true);
       if (allSeriesData) {
-        allSeriesList = allSeriesData;
+        allSeriesList = allSeriesData.map((s: any) => ({
+          ...s,
+          views: viewsMap[s.id] || 0
+        }));
       }
 
       const { data: seriesData } = await publicSupabaseClient
@@ -281,7 +279,10 @@ const getCachedSeriesData = unstable_cache(
         .single();
 
       if (seriesData) {
-        dbSeries = seriesData;
+        dbSeries = {
+          ...seriesData,
+          views: viewsMap[seriesData.id] || 0
+        };
         isDbEmpty = false;
 
         const { data: seasonsData } = await publicSupabaseClient
@@ -396,7 +397,7 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
     : `${currentEpCount}`;
   const rating = activeSeries.rating || getStableRating(activeSeries.id || activeSeries.title);
   const status = (activeSeries.status || getStableStatus(activeSeries.id || activeSeries.title)).toLowerCase();
-  const views = activeSeries.views || getStableViews(activeSeries.id || activeSeries.title);
+  const views = activeSeries.views || 0;
   const studio = activeSeries.studio || 'Juicymango';
   const releaseYear = activeSeries.release_year || activeSeries.releaseYear || 2026;
   
@@ -576,7 +577,12 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
     '@id': seriesCanonicalUrl,
     'url': seriesCanonicalUrl,
     'name': activeSeries.title,
-    'description': activeSeries.description || `Watch ${activeSeries.title} online in HD on PlayHentai.`,
+    'alternateName': [
+      activeSeries.alt_title_english,
+      activeSeries.alt_title_romaji,
+      activeSeries.alt_title_japanese
+    ].filter(Boolean),
+    'description': activeSeries.description || `Watch ${activeSeries.title} online in HD on Play Hentai.`,
     'image': getR2Url(activeSeries.cover_image_key || activeSeries.poster_image_key, 'cover'),
     'genre': Array.isArray(activeSeries.tags) && activeSeries.tags.length > 0 ? activeSeries.tags[0] : 'Animation',
     'numberOfSeasons': activeSeries.seasons?.length || 1,
@@ -912,7 +918,7 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
             </div>
 
             <div className={styles.heroInfoRight}>
-              <h1 className={styles.seriesTitleMobile}>{activeSeries.title}</h1>
+              <p className={styles.seriesTitleMobile} aria-hidden="true">{activeSeries.title}</p>
 
               {/* Rating Row */}
               <div className={styles.ratingRow}>

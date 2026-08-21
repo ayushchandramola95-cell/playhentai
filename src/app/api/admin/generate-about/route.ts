@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
 
     // 2. Parse request payload
     const body = await req.json();
-    const { mode, section, existingText, metadata, model } = body;
+    const { mode, section, existingText, metadata, model, apiKey } = body;
 
     if (!mode || !['all', 'single', 'improve'].includes(mode)) {
       return NextResponse.json({ error: 'Invalid generation mode' }, { status: 400 });
@@ -50,29 +50,31 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Series title is required for metadata context' }, { status: 400 });
     }
 
-    let geminiKey = process.env.GEMINI_API_KEY;
-    if (process.env.NODE_ENV === 'development') {
-      try {
-        const fs = require('fs');
-        const path = require('path');
-        const envPath = path.join(process.cwd(), '.env.local');
-        if (fs.existsSync(envPath)) {
-          const envContent = fs.readFileSync(envPath, 'utf8');
-          const match = envContent.match(/GEMINI_API_KEY\s*=\s*(.+)/);
-          if (match) {
-            const parsedKey = match[1].trim().replace(/['"]/g, '');
-            if (parsedKey) {
-              geminiKey = parsedKey;
+    let geminiKey = apiKey || process.env.GEMINI_API_KEY;
+    if (!geminiKey || geminiKey === 'your_gemini_api_key_here') {
+      if (process.env.NODE_ENV === 'development') {
+        try {
+          const fs = require('fs');
+          const path = require('path');
+          const envPath = path.join(process.cwd(), '.env.local');
+          if (fs.existsSync(envPath)) {
+            const envContent = fs.readFileSync(envPath, 'utf8');
+            const match = envContent.match(/GEMINI_API_KEY\s*=\s*(.+)/);
+            if (match) {
+              const parsedKey = match[1].trim().replace(/['"]/g, '');
+              if (parsedKey) {
+                geminiKey = parsedKey;
+              }
             }
           }
+        } catch (e) {
+          console.error('Failed to dynamically read .env.local:', e);
         }
-      } catch (e) {
-        console.error('Failed to dynamically read .env.local:', e);
       }
     }
 
     if (!geminiKey || geminiKey === 'your_gemini_api_key_here') {
-      return NextResponse.json({ error: 'Gemini API Key is not configured on the server.' }, { status: 500 });
+      return NextResponse.json({ error: 'Gemini API Key is not configured on the server. Please configure it in Settings or supply a custom key.' }, { status: 500 });
     }
 
     // Define section constraints and guidelines

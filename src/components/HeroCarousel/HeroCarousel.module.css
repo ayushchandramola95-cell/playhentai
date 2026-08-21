@@ -74,8 +74,15 @@
   display: flex;
   align-items: center;
   gap: 3rem;
-  animation: slide-up-fade 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   pointer-events: auto;
+}
+
+.heroCardActive {
+  animation: slide-up-fade 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.heroCardInactive {
+  display: none !important;
 }
 
 @keyframes slide-up-fade {

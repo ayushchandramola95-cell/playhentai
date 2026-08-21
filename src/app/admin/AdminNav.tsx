@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Film, FolderOpen, Video, Tag, BarChart3, Tv, Settings } from 'lucide-react';
+import { Home, Film, FolderOpen, Video, Tag, BarChart3, Tv, Settings, Sparkles } from 'lucide-react';
 import styles from './admin.module.css';
 
 interface AdminNavProps {
@@ -21,6 +21,7 @@ export default function AdminNav({ isCollapsed }: AdminNavProps) {
     { href: '/admin/episodes', label: 'Episodes', icon: Video },
     { href: '/admin/filters', label: 'Genres & Studios', icon: Tag },
     { href: '/admin/analytics', label: 'Analytics & Mod', icon: BarChart3 },
+    { href: '/admin/developer/seo', label: 'Developer SEO', icon: Sparkles },
     { href: '/admin/settings', label: 'Site Settings', icon: Settings },
   ];
 

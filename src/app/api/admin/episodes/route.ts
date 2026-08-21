@@ -7,6 +7,30 @@ export async function GET(request: Request) {
     const adminSupabase = createAdminClient();
     const { searchParams } = new URL(request.url);
     const seasonId = searchParams.get('season_id');
+    const seriesId = searchParams.get('series_id');
+
+    if (seriesId) {
+      const { data: seasons, error: seasonsError } = await adminSupabase
+        .from('seasons')
+        .select('id')
+        .eq('series_id', seriesId);
+
+      if (seasonsError) throw seasonsError;
+
+      if (!seasons || seasons.length === 0) {
+        return NextResponse.json({ episodes: [] });
+      }
+
+      const seasonIds = seasons.map((s: any) => s.id);
+      const { data: episodes, error: episodesError } = await adminSupabase
+        .from('episodes')
+        .select('id, episode_number, title, thumbnail_key, thumbnail_options')
+        .in('season_id', seasonIds)
+        .order('episode_number', { ascending: true });
+
+      if (episodesError) throw episodesError;
+      return NextResponse.json({ episodes });
+    }
 
     let query = adminSupabase.from('episodes').select('*, seasons(title, series(title))');
     
