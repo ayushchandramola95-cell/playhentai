@@ -617,6 +617,9 @@ export default async function HomePage() {
         </HorizontalScrollRow>
       </section>
 
+      {/* Sponsored Ad Banner: After Latest Series (Zone 5986226) - Desktop Only */}
+      <AdBanner zoneId="5986226" desktopOnly />
+
       {/* 2b. Random Section: Live Shuffle slider of active series */}
       <section className={styles.section}>
         <RandomRowSection seriesPool={rawPool} />
