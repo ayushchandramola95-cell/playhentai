@@ -213,3 +213,30 @@ body {
   box-shadow: var(--shadow-lg);
   border-color: var(--primary);
 }
+
+/* Mobile-only Sticky Footer Ad Container */
+.mobile-sticky-ad {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  width: 100%;
+  max-width: 320px;
+  min-height: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: transparent;
+  pointer-events: none;
+}
+
+.mobile-sticky-ad * {
+  pointer-events: auto;
+}
+
+@media (min-width: 769px) {
+  .mobile-sticky-ad {
+    display: none !important;
+  }
+}

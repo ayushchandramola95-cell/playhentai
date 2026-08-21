@@ -138,6 +138,14 @@ export default function RootLayout({
           {`(window.AdProvider = window.AdProvider || []).push({"serve": {}});`}
         </Script>
 
+        {/* Exoclick Mobile-Only Sticky Footer Ad (Zone 6008718) */}
+        <div className="mobile-sticky-ad">
+          <ins className="eas6a97888e10" data-zoneid="6008718"></ins>
+          <Script id="exoclick-mobile-sticky" strategy="afterInteractive">
+            {`(window.AdProvider = window.AdProvider || []).push({"serve": {}});`}
+          </Script>
+        </div>
+
         <Providers>
           {children}
         </Providers>
