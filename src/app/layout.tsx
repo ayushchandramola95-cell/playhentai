@@ -146,6 +146,12 @@ export default function RootLayout({
           </Script>
         </div>
 
+        {/* Exoclick Global In-Page Push Notifications Ad (Zone 6008722) */}
+        <ins className="eas6a9788e42" data-zoneid="6008722"></ins>
+        <Script id="exoclick-in-page-push" strategy="afterInteractive">
+          {`(window.AdProvider = window.AdProvider || []).push({"serve": {}});`}
+        </Script>
+
         <Providers>
           {children}
         </Providers>
