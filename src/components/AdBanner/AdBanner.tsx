@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import styles from './AdBanner.module.css';
 
 interface AdBannerProps {
@@ -13,9 +13,22 @@ interface AdBannerProps {
 
 export default function AdBanner({ zoneId = '5986176', insClass, mobileOnly = false, desktopOnly = false, className = '' }: AdBannerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [isBlocked, setIsBlocked] = useState(false);
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    // Check if banners are globally blocked
+    fetch('/api/settings')
+      .then(res => res.json())
+      .then(data => {
+        if (data.ads_block_banners) {
+          setIsBlocked(true);
+        }
+      })
+      .catch(err => console.warn('Ad blocker settings load failed:', err));
+  }, []);
+
+  useEffect(() => {
+    if (isBlocked || !containerRef.current) return;
 
     // Clear previous ad nodes if re-rendered
     containerRef.current.innerHTML = '';
@@ -38,7 +51,11 @@ export default function AdBanner({ zoneId = '5986176', insClass, mobileOnly = fa
     containerRef.current.appendChild(scriptObj);
     containerRef.current.appendChild(insObj);
     containerRef.current.appendChild(pushScript);
-  }, [zoneId, insClass]);
+  }, [zoneId, insClass, isBlocked]);
+
+  if (isBlocked) {
+    return null; // Do not render anything at all if banners are hidden
+  }
 
   return (
     <div className={`${styles.adContainer} ${mobileOnly ? styles.mobileOnly : ''} ${desktopOnly ? styles.desktopOnly : ''} ${className}`}>

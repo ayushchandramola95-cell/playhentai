@@ -1,51 +1,29 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabase/server';
 import fs from 'fs';
 import path from 'path';
 
 export const dynamic = 'force-dynamic';
 
-function getLocalSettings(): Record<string, string> {
-  const defaultSettings = { 
-    latest_series_sort_mode: 'latest_episode',
-    hero_banner_source: 'featured_tags',
-    hero_banner_slide_count: '5'
-  };
+export async function GET() {
   try {
     const filePath = path.join(process.cwd(), 'src', 'utils', 'site_settings.json');
     if (fs.existsSync(filePath)) {
       const fileData = fs.readFileSync(filePath, 'utf-8');
-      return { ...defaultSettings, ...JSON.parse(fileData) };
+      const data = JSON.parse(fileData);
+      return NextResponse.json({
+        ads_block_banners: data.ads_block_banners === 'true',
+        ads_block_popunder: data.ads_block_popunder === 'true',
+        ads_block_instant_message: data.ads_block_instant_message === 'true',
+        ads_block_in_page_push: data.ads_block_in_page_push === 'true',
+      });
     }
   } catch (err) {
-    console.error('Error reading local settings file:', err);
+    console.error('Error fetching public ad settings:', err);
   }
-  return defaultSettings;
-}
-
-export async function GET() {
-  const localSettings = getLocalSettings();
-
-  try {
-    const supabase = await createClient();
-    
-    const { data, error } = await supabase
-      .from('site_settings')
-      .select('key, value');
-
-    if (error || !data || data.length === 0) {
-      return NextResponse.json({ settings: localSettings });
-    }
-
-    const settingsMap = { ...localSettings };
-    data.forEach((row: { key: string; value: string }) => {
-      if (row.key && row.value) {
-        settingsMap[row.key] = row.value;
-      }
-    });
-
-    return NextResponse.json({ settings: settingsMap });
-  } catch (err: any) {
-    return NextResponse.json({ settings: localSettings });
-  }
+  return NextResponse.json({
+    ads_block_banners: false,
+    ads_block_popunder: false,
+    ads_block_instant_message: false,
+    ads_block_in_page_push: false,
+  });
 }
