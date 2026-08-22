@@ -137,7 +137,7 @@ export default function SeriesCard({ item, className = '' }: SeriesCardProps) {
               item.poster_image_key || item.cover_image_key || item.banner_image_key || (Array.isArray((item as any).image_library) && (item as any).image_library[0]),
               'poster'
             )}
-            alt={`Watch ${item.title} Hentai Anime - Play Hentai`}
+            alt={`${item.title} poster`}
             fill
             sizes="(max-width: 480px) 100vw, (max-width: 768px) 50vw, (max-width: 1200px) 25vw, 20vw"
             className={styles.cardImage}
@@ -195,7 +195,7 @@ export default function SeriesCard({ item, className = '' }: SeriesCardProps) {
         <div className={styles.popoverPosterWrapper}>
           <Image
             src={getR2Url(item.poster_image_key || item.cover_image_key, 'poster')}
-            alt={`Stream ${item.title} Hentai online - Play Hentai`}
+            alt={`${item.title} poster`}
             fill
             sizes="80px"
             className={styles.popoverPoster}

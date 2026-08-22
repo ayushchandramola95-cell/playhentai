@@ -12,6 +12,13 @@ import styles from './search.module.css';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
 
+export const metadata = {
+  title: 'Search Results | PlayHentai',
+  robots: {
+    index: false,
+  },
+};
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://kdesazliquregjbptyhc.supabase.co';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const publicSupabaseClient = createSupabaseClient(supabaseUrl, supabaseAnonKey);

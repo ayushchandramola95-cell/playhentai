@@ -458,55 +458,16 @@ export default async function HomePage() {
     })),
   };
 
-  // VideoObject JSON-LD Schema for All 20 Visible Recent Episodes on Homepage
-  const topRecentEpisodesForSchema = processedEpisodes.slice(0, 20);
-  const videoObjectSchemas = topRecentEpisodesForSchema.map((ep: any) => {
-    const watchUrl = `${SITE_URL}${getEpisodeWatchUrl(ep.id, ep.episode_number, ep.showSlug)}`;
-    const thumbUrl = getR2Url(ep.thumbnail, 'thumbnail');
-    const uploadDateStr = ep.release_date || ep.created_at || '2026-01-01T00:00:00Z';
-    return {
-      '@context': 'https://schema.org',
-      '@type': 'VideoObject',
-      'name': ep.title,
-      'description': `Watch ${ep.title} full HD uncensored episode online for free on PlayHentai. Fast CDN streaming with high quality playback.`,
-      'thumbnailUrl': [thumbUrl],
-      'uploadDate': new Date(uploadDateStr).toISOString(),
-      'contentUrl': watchUrl,
-      'embedUrl': watchUrl,
-      'duration': 'PT24M',
-      'isFamilyFriendly': false,
-    };
-  });
-
-  // TVSeries JSON-LD Schemas for All 24 Visible Latest Series on Homepage
-  const topLatestSeriesForSchema = sortedLatestSeries.slice(0, 24);
-  const tvSeriesSchemas = topLatestSeriesForSchema.map((s: any) => {
-    const seriesUrl = `${SITE_URL}/series/${s.slug}`;
-    const posterUrl = getR2Url(s.poster_image_key || s.cover_image_key, 'poster');
-    return {
-      '@context': 'https://schema.org',
-      '@type': 'TVSeries',
-      'name': s.title,
-      'description': s.description || `Watch ${s.title} uncensored hentai anime series in HD on PlayHentai. Stream full episodes online.`,
-      'url': seriesUrl,
-      'image': posterUrl,
-      'genre': s.category || 'Anime',
-      'productionCompany': {
-        '@type': 'Organization',
-        'name': s.studio || 'Juicymango'
-      }
-    };
-  });
+  const websiteJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    'name': 'PlayHentai',
+    'url': `${SITE_URL}/`
+  };
 
   return (
     <div className={styles.container}>
-      <JsonLd data={itemListJsonLd} />
-      {videoObjectSchemas.map((schema, idx) => (
-        <JsonLd key={`video-${idx}`} data={schema} />
-      ))}
-      {tvSeriesSchemas.map((schema, idx) => (
-        <JsonLd key={`series-${idx}`} data={schema} />
-      ))}
+      <JsonLd data={[itemListJsonLd, websiteJsonLd]} />
 
       {/* Ambient Glows */}
       <div className="ambient-glow" />
@@ -736,7 +697,7 @@ export default async function HomePage() {
             <h1 className={styles.mainTitle}>Play Hentai — Hentai Anime &amp; Adult Animation</h1>
             
             <p className={styles.introText}>
-              Welcome to <strong>Play Hentai</strong>, the premier online database and high-definition streaming platform for adult animation and hentai series. Our library catalogs an extensive range of premium uncensored hentai anime titles, ensuring you can discover legendary classics alongside the latest 3D CGI releases. We systematically organize our content by genres, tags, production studios, and release years to deliver a seamless, high-performance browsing experience.
+              Welcome to <strong>Play Hentai</strong>, the premier online database and high-definition streaming platform for adult animation and hentai series. Our library catalogs an extensive range of premium uncensored hentai anime titles, ensuring you can discover legendary classics alongside the latest 3D CGI releases. We systematically organize our content by <Link href="/categories" style={{ color: '#f59e0b', textDecoration: 'underline' }}>genres</Link>, <Link href="/categories" style={{ color: '#f59e0b', textDecoration: 'underline' }}>tags</Link>, <Link href="/studios" style={{ color: '#f59e0b', textDecoration: 'underline' }}>production studios</Link>, and <Link href="/categories" style={{ color: '#f59e0b', textDecoration: 'underline' }}>release years</Link> to deliver a seamless, high-performance browsing experience.
             </p>
             
             <p className={styles.introText}>
@@ -775,56 +736,49 @@ export default async function HomePage() {
             <div className={styles.seoCard}>
               <h3>What Is Play Hentai?</h3>
               <p>
-                Play Hentai is a dedicated online database and streaming platform designed specifically for fans of adult animation and Japanese hentai series. Our goal is to provide a central, organized resource where users can explore comprehensive metadata, track active releases, and stream high-definition content in a clean, high-performance environment. Instead of simple link aggregates, we build rich series profiles that catalog everything from release history to studio details, making it easier than ever to discover new and classic titles.
+                Play Hentai is a dedicated online database and streaming platform designed specifically for fans of adult animation and Japanese hentai series. Our goal is to provide a central, organized resource where users can explore comprehensive metadata, track active releases, and stream high-definition content in a clean, high-performance environment. Instead of simple link aggregates, we build rich series profiles that catalog everything from release history to studio details.
               </p>
             </div>
 
             <div className={styles.seoCard}>
-              <h3>Browse Hentai Anime Online</h3>
+              <h3>Browse Hentai Anime</h3>
               <p>
-                Our library is structured to support multiple styles of navigation. If you are looking for what is currently popular, the trending section aggregates real-time view data to show what the community is watching. For users who prefer chronologically fresh uploads, our recent additions grid lists the latest releases daily. You can also filter shows by their production status—whether they are currently ongoing and releasing new weekly episodes, or completed series that are fully available for binge-watching.
+                Our library is structured to support multiple styles of navigation. If you are looking for what is currently popular, the trending section aggregates real-time view data to show what the community is watching. For users who prefer chronologically fresh uploads, our recent additions grid lists the latest releases daily. You can also filter shows by their production status—whether they are currently ongoing or completed series that are fully available for binge-watching.
               </p>
             </div>
 
             <div className={styles.seoCard}>
-              <h3>Discover Complete Series and Individual Episodes</h3>
+              <h3>Hentai Anime Series &amp; Episodes</h3>
               <p>
-                In adult animation, single shows are often split into multiple seasons or release formats. Play Hentai preserves this structure by maintaining a strict parent-child relationship between a series profile and its child episodes. When you visit a series page, you are presented with a complete overview of the show, including its global rating, total episode count, synopsis, and associated tags. This ensures that you can understand the context of the story before clicking through to watch individual episodes in our specialized theater-mode video player.
+                In adult animation, single shows are often split into multiple seasons or release formats. Play Hentai preserves this structure by maintaining a strict parent-child relationship between a series profile and its child episodes. When you visit a series page, you are presented with a complete overview of the show, including its global rating, total episode count, synopsis, and associated tags.
               </p>
             </div>
 
             <div className={styles.seoCard}>
-              <h3>Japanese, Romaji, and English Titles</h3>
+              <h3>Find Anime by Alternative Titles</h3>
               <p>
-                Anime titles are frequently translated or romanized in multiple ways, making them difficult to track down. A single series might be known by its official Japanese Kanji name, its Romaji transliteration, or a literal English translation. Play Hentai solves this by archiving alternative titles for every series. By indexing all variations, our search engine helps you locate the correct page whether you search for a show's original Japanese title or its translated western counterpart.
+                Anime titles are frequently translated or romanized in multiple ways, making them difficult to track down. A single series might be known by its official Japanese Kanji name, its Romaji transliteration, or a literal English translation. Play Hentai solves this by archiving alternative titles for every series, helping you locate the correct page whether you search for a show's original Japanese title or its translated western counterpart.
               </p>
             </div>
 
             <div className={styles.seoCard}>
-              <h3>Taxonomy: Genres and Tag-Based Discovery</h3>
+              <h3>Browse by Genre, Tags &amp; Studio</h3>
               <p>
-                Finding similar content is simple thanks to our tag taxonomy. Every series is mapped to specific tags and genres that describe its themes, animation styles, and storylines. Whether you are looking for classic hand-drawn uncensored animation, modern 3D CGI releases, or specific narrative elements like harem, action, supernatural, and comedy, clicking on any tag pill takes you to a filtered list of all matching titles in our database.
+                Finding similar content is simple thanks to our tag taxonomy. Every series is mapped to specific tags, genres, and production studios that describe its themes, animation styles, and storylines. Whether you are looking for classic hand-drawn uncensored animation, modern 3D CGI releases, or specific narrative elements like harem, action, supernatural, and comedy, clicking on any tag or studio name takes you directly to a filtered list of matching titles.
               </p>
             </div>
 
             <div className={styles.seoCard}>
-              <h3>The Production Studio Catalog</h3>
+              <h3>Smart Search &amp; Filtering</h3>
               <p>
-                Behind every great animation is a talented studio. Play Hentai features a dedicated studios directory that groups anime by their creators. Exploring show profiles by studio allows you to track the historical work of famous production houses, discover their visual signatures, and find hidden gems that share the same high-quality art style, voice acting, and animation flow as your favorite series.
-              </p>
-            </div>
-
-            <div className={styles.seoCard}>
-              <h3>Smart Search & Filtering</h3>
-              <p>
-                If you are not browsing catalog rows, our active search bar offers real-time suggestions as you type. The search index looks through primary titles, alternative English translations, studios, and genres to find matches instantly. Combined with our advanced filters, you can sort search results by ratings, release years, or upload dates to isolate exactly what you want to watch.
+                If you are not browsing catalog rows, our active search bar offers real-time suggestions as you type. The search index looks through primary titles, alternative English translations, studios, and genres to find matches instantly. Combined with our advanced filters, you can sort search results by ratings, release years, or upload dates.
               </p>
             </div>
 
             <div className={styles.seoCard}>
               <h3>Trust, Safety, and Content Standards</h3>
               <p>
-                Play Hentai is committed to maintaining a safe, transparent, and compliant platform for adult audiences. All characters depicted in the animated works cataloged on our site are fictional and represented as 18 years of age or older. We maintain clear legal frameworks, including our copyright DMCA policies, Terms of Service, and Privacy Policies, to ensure a trustworthy environment for users and content creators alike.
+                Play Hentai is committed to maintaining a safe, transparent, and compliant platform for adult audiences. All characters depicted in the animated works cataloged on our site are fictional and represented as 18 years of age or older. We maintain clear legal frameworks, including copyright DMCA policies, Terms of Service, and Privacy Policies.
               </p>
             </div>
 
