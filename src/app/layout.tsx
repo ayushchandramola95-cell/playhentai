@@ -21,16 +21,16 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live'),
     title: {
-      default: "Play Hentai — Hentai Anime Streaming & Series Database",
+      default: "Play Hentai – Watch Hentai Anime Online Free in HD",
       template: "%s | Play Hentai"
     },
-    description: "Welcome to Play Hentai. Stream high quality uncensored hentai anime series online for free. Watch full HD episodes, trending playlists, and popular adult animation titles on Play Hentai.",
+    description: "Watch hentai anime online free in HD on Play Hentai. Stream uncensored hentai series and episodes with English subtitles, discover new releases, and explore popular titles by genre and studio.",
     authors: [{ name: "PlayHentai Team" }],
     creator: "PlayHentai",
     publisher: "PlayHentai",
     openGraph: {
-      title: "Play Hentai — Hentai Anime Streaming & Series Database",
-      description: "Welcome to Play Hentai. Stream high quality uncensored hentai anime series online for free. Watch full HD episodes, trending playlists, and popular adult animation titles.",
+      title: "Play Hentai – Watch Hentai Anime Online Free in HD",
+      description: "Watch hentai anime online free in HD on Play Hentai. Stream uncensored hentai series and episodes with English subtitles, discover new releases, and explore popular titles by genre and studio.",
       url: "https://playhentai.live",
       siteName: "PlayHentai",
       locale: "en_US",
@@ -38,8 +38,8 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     twitter: {
       card: "summary_large_image",
-      title: "Play Hentai — Hentai Anime Streaming & Series Database",
-      description: "Welcome to Play Hentai. Stream high quality uncensored hentai anime series online for free.",
+      title: "Play Hentai – Watch Hentai Anime Online Free in HD",
+      description: "Watch hentai anime online free in HD on Play Hentai. Stream uncensored hentai series and episodes with English subtitles, discover new releases, and explore popular titles by genre and studio.",
     },
     alternates: {
       canonical: 'https://playhentai.live',
