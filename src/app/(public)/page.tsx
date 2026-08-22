@@ -528,7 +528,7 @@ export default async function HomePage() {
       <section className={styles.section}>
         <div className={styles.seriesSectionHeader}>
           <div className={styles.headerLeftCol}>
-            <h2>Recent Uploads</h2>
+            <h2>Latest Hentai Episodes</h2>
             <span className={styles.seriesSubtitle}>NEWLY RELEASED</span>
           </div>
           <Link href="/recent/episodes" prefetch={false} className={styles.viewAllLink}>
@@ -607,7 +607,7 @@ export default async function HomePage() {
       {/* 2. Latest Series Section: Horizontal scroll slider up to 15 items */}
       <section className={styles.section}>
         <HorizontalScrollRow
-          title="Latest Series"
+          title="Latest Hentai Anime Series"
           subtitle="UPDATED DAILY"
           viewAllHref="/recent/series"
         >
@@ -683,7 +683,7 @@ export default async function HomePage() {
       {upcomingSeries && upcomingSeries.length > 0 && (
         <section className={styles.section}>
           <HorizontalScrollRow
-            title="Upcoming Anime"
+            title="Upcoming Hentai Anime"
             subtitle="COMING SOON"
             viewAllHref="/upcoming"
           >
@@ -698,7 +698,7 @@ export default async function HomePage() {
       <section className={styles.section}>
         <div className={styles.seriesSectionHeader}>
           <div className={styles.headerLeftCol}>
-            <h2>Explore Collections</h2>
+            <h2>Browse Hentai Anime by Genre & Tags</h2>
             <span className={styles.seriesSubtitle}>CURATED CATEGORIES</span>
           </div>
           <Link href="/categories" prefetch={false} className={styles.viewAllLink}>

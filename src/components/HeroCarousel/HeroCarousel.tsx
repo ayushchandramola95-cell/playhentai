@@ -179,9 +179,9 @@ export default function HeroCarousel({ activeSeries, isDbEmpty }: HeroCarouselPr
                   <span className={styles.categoryBadge}>{series.category || 'Anime'}</span>
                 </div>
 
-                <h1 className={styles.heroTitle}>
+                <h2 className={styles.heroTitle}>
                   <Link href={`/series/${series.slug}`}>{series.title}</Link>
-                </h1>
+                </h2>
 
                 {cleanTags.length > 0 && (
                   <div className={styles.genreSubLine}>
