@@ -158,10 +158,15 @@ export default function RootLayout({
           `}
           </Script>
         )}
+
+        {/* Exoclick Ad Provider Script (Loaded if any zone requires it) */}
+        {(!ads.block_instant_message || !ads.block_banners || !ads.block_in_page_push) && (
+          <Script src="https://a.magsrv.com/ad-provider.js" strategy="afterInteractive" />
+        )}
+
         {/* Exoclick Floating Instant Message Chat Box Ad (Zone 6008712) */}
         {!ads.block_instant_message && (
           <>
-            <Script src="https://a.magsrv.com/ad-provider.js" strategy="afterInteractive" />
             <ins className="eas6a9788e6" data-zoneid="6008712"></ins>
             <Script id="exoclick-instant-message" strategy="afterInteractive">
               {`(window.AdProvider = window.AdProvider || []).push({"serve": {}});`}
