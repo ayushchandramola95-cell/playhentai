@@ -412,9 +412,11 @@ export default async function WatchPage({ params }: WatchPageProps) {
     ]
   };
 
+  const showVideoSchema = !!activeEpisode.video_key && activeEpisode.video_key.trim() !== '';
+
   return (
     <>
-      <JsonLd data={[videoJsonLd, breadcrumbJsonLd]} />
+      <JsonLd data={showVideoSchema ? [videoJsonLd, breadcrumbJsonLd] : [breadcrumbJsonLd]} />
       <WatchPageClient
         activeEpisode={activeEpisode}
         seasonEpisodes={seasonEpisodes}

@@ -37,11 +37,11 @@ export async function GET() {
       .eq('is_published', true);
 
     if (episodes && episodes.length > 0) {
-      // Filter out episodes whose parent series is not published
+      // Filter out episodes whose parent series is not published and must have video_key
       const publishedEpisodes = episodes.filter((ep: any) => {
         const season = Array.isArray(ep.seasons) ? ep.seasons[0] : ep.seasons;
         const seriesObj = season ? (Array.isArray(season.series) ? season.series[0] : season.series) : null;
-        return seriesObj?.is_published === true;
+        return seriesObj?.is_published === true && ep.video_key && ep.video_key.trim() !== '';
       });
 
       for (const ep of publishedEpisodes) {
@@ -80,7 +80,7 @@ export async function GET() {
         const videoDescription = ep.description || `Watch ${seriesTitle} Episode ${ep.episode_number} online in HD with English subtitles on Play Hentai.`;
 
         // 5. Video content MP4 URL (direct file URL)
-        const videoContentUrl = ep.video_key ? getR2Url(ep.video_key, 'video') : watchPageUrl;
+        const videoContentUrl = getR2Url(ep.video_key, 'video');
 
         // 6. Publication Date
         const pubDateStr = ep.release_date || ep.created_at || new Date().toISOString();
@@ -97,7 +97,6 @@ export async function GET() {
       <video:title>${escapeXml(videoTitle)}</video:title>
       <video:description>${escapeXml(videoDescription)}</video:description>
       <video:content_loc>${escapeXml(videoContentUrl)}</video:content_loc>
-      <video:player_loc>${escapeXml(watchPageUrl)}</video:player_loc>
       <video:duration>${durationSeconds}</video:duration>
       <video:publication_date>${formattedDate}</video:publication_date>
       <video:family_friendly>no</video:family_friendly>
