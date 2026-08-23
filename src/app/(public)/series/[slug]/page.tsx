@@ -42,7 +42,6 @@ export async function generateMetadata({ params }: SeriesPageProps): Promise<Met
   let title = 'Series Details - PlayHentai';
   let description = 'View details and watch episodes of this series on PlayHentai.';
   let ogImage = '';
-  let keywords: string[] = [];
 
   try {
     const { data } = await publicSupabaseClient
@@ -53,52 +52,62 @@ export async function generateMetadata({ params }: SeriesPageProps): Promise<Met
       .single();
 
     if (data) {
-      let titleText = data.title;
-      if (data.alt_title_english && data.alt_title_english.toLowerCase() !== data.title.toLowerCase()) {
-        titleText += ` (${data.alt_title_english})`;
-      }
-      title = `${titleText} — Episodes & Info | Play Hentai`;
-      description = data.meta_description || `Stream all episodes of ${data.title} (${data.alt_title_english || 'Uncensored Hentai Anime'}) online in HD. Find alternate titles, synopsis, studio details, ratings, and similar shows on Play Hentai.`;
       ogImage = data.cover_image_key || data.poster_image_key || '';
       
-      const keywordsList = [
-        `${data.title} watch`,
-        `${data.title} stream`,
-        `${data.title} online`,
-        `${data.title} uncensored`,
-        `${data.title} subbed`,
-        `${data.title} episodes`,
-        `${data.title} hentai`,
-        data.studio ? `${data.studio} anime` : '',
-        data.studio ? `${data.studio} hentai` : '',
-        ...(data.alt_title_japanese ? [data.alt_title_japanese] : []),
-        ...(data.alt_title_romaji ? [data.alt_title_romaji] : []),
-        ...(data.alt_title_english ? [data.alt_title_english] : []),
-        ...(data.tags || [])
-      ].filter(Boolean);
-      keywords = Array.from(new Set(keywordsList));
+      // Dynamic Title System (Length-Sensitive & Em-Dash)
+      if (data.meta_title) {
+        title = data.meta_title;
+      } else {
+        const englishTitle = data.alt_title_english;
+        let titleText = data.title;
+        if (englishTitle && englishTitle !== data.title) {
+          const combined = `${data.title} (${englishTitle})`;
+          if (combined.length <= 60) {
+            titleText = combined;
+          }
+        }
+        title = `${titleText} — Watch & Episodes | Play Hentai`;
+      }
+
+      // Description Template (Strict Uncensored Check)
+      if (data.meta_description) {
+        description = data.meta_description;
+      } else {
+        const isUncensored = 
+          data.content_rating?.toLowerCase() === 'uncensored' ||
+          data.tags?.some((t: string) => t.toLowerCase() === 'uncensored');
+
+        if (isUncensored) {
+          description = `Watch ${data.title} uncensored hentai anime online in HD with English subtitles. Stream all available episodes for free on Play Hentai.`;
+        } else {
+          description = `Watch ${data.title} hentai anime online in HD with English subtitles. Stream all available episodes for free on Play Hentai.`;
+        }
+      }
     } else if (MOCK_SERIES_DETAILS[slug]) {
       const mock = MOCK_SERIES_DETAILS[slug];
-      let titleText = mock.title;
-      if (mock.alt_title_english && mock.alt_title_english.toLowerCase() !== mock.title.toLowerCase()) {
-        titleText += ` (${mock.alt_title_english})`;
-      }
-      title = `${titleText} — Episodes & Info | Play Hentai`;
-      description = `Stream all episodes of ${mock.title} (${mock.alt_title_english || 'Uncensored Hentai Anime'}) online in HD. Find alternate titles, synopsis, studio details, ratings, and similar shows on Play Hentai.`;
       ogImage = mock.cover_image_key || mock.poster_image_key || '';
       
-      const keywordsList = [
-        `${mock.title} watch`,
-        `${mock.title} stream`,
-        `${mock.title} online`,
-        `${mock.title} uncensored`,
-        `${mock.title} subbed`,
-        `${mock.title} episodes`,
-        `${mock.title} hentai`,
-        mock.studio ? `${mock.studio} anime` : '',
-        ...(mock.tags || [])
-      ].filter(Boolean);
-      keywords = Array.from(new Set(keywordsList));
+      // Dynamic Title System for mock data
+      const englishTitle = mock.alt_title_english;
+      let titleText = mock.title;
+      if (englishTitle && englishTitle !== mock.title) {
+        const combined = `${mock.title} (${englishTitle})`;
+        if (combined.length <= 60) {
+          titleText = combined;
+        }
+      }
+      title = `${titleText} — Watch & Episodes | Play Hentai`;
+
+      // Description Template for mock data
+      const isUncensored = 
+        mock.content_rating?.toLowerCase() === 'uncensored' ||
+        mock.tags?.some((t: string) => t.toLowerCase() === 'uncensored');
+
+      if (isUncensored) {
+        description = `Watch ${mock.title} uncensored hentai anime online in HD with English subtitles. Stream all available episodes for free on Play Hentai.`;
+      } else {
+        description = `Watch ${mock.title} hentai anime online in HD with English subtitles. Stream all available episodes for free on Play Hentai.`;
+      }
     }
   } catch (err) {
     console.error('Error generating metadata:', err);
@@ -112,7 +121,6 @@ export async function generateMetadata({ params }: SeriesPageProps): Promise<Met
   return {
     title,
     description,
-    keywords,
     alternates: {
       canonical: `/series/${slug}`,
     },
@@ -593,7 +601,7 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
     'aggregateRating': {
       '@type': 'AggregateRating',
       'ratingValue': rating,
-      'ratingCount': views,
+      'ratingCount': Math.round(views / 15) || 1,
       'bestRating': 10,
       'worstRating': 1
     },

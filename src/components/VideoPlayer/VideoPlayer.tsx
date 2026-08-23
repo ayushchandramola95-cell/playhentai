@@ -548,6 +548,7 @@ export default function VideoPlayer({
       <video
         ref={videoRef}
         src={videoUrl}
+        poster={posterUrl}
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
         onEnded={handleVideoEnded}

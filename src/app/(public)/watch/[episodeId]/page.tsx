@@ -204,11 +204,24 @@ export async function generateMetadata({ params }: WatchPageProps): Promise<Meta
       
       let titleText = resolved.seriesTitle;
       if (series.alt_title_english && series.alt_title_english.toLowerCase() !== resolved.seriesTitle.toLowerCase()) {
-        titleText += ` (${series.alt_title_english})`;
+        const combined = `${resolved.seriesTitle} (${series.alt_title_english})`;
+        if (combined.length <= 60) {
+          titleText = combined;
+        }
       }
       
       title = `${titleText} Episode ${ep.episode_number} — Watch Online | Play Hentai`;
-      description = `Watch ${titleText} Episode ${ep.episode_number} online for free. Stream the latest adult anime episodes in high definition on Play Hentai.`;
+      
+      const isUncensored = 
+        series.content_rating?.toLowerCase() === 'uncensored' ||
+        series.tags?.some((t: string) => t.toLowerCase() === 'uncensored');
+
+      if (isUncensored) {
+        description = `Watch ${resolved.seriesTitle} Episode ${ep.episode_number} uncensored in HD with English subtitles. Stream the hentai anime episode for free on Play Hentai.`;
+      } else {
+        description = `Watch ${resolved.seriesTitle} Episode ${ep.episode_number} online in HD with English subtitles. Stream the hentai anime episode for free on Play Hentai.`;
+      }
+
       thumbnail = ep.thumbnail_key || ep.thumbnail || '';
       canonicalPath = getEpisodeWatchUrl(ep.id, ep.episode_number, resolved.seriesSlug);
     }
@@ -226,6 +239,10 @@ export async function generateMetadata({ params }: WatchPageProps): Promise<Meta
     description,
     alternates: {
       canonical: canonicalPath,
+    },
+    robots: {
+      index: true,
+      follow: true,
     },
     openGraph: {
       title,
@@ -348,18 +365,30 @@ export default async function WatchPage({ params }: WatchPageProps) {
   const seriesPageUrl = `${siteUrl}/series/${seriesSlug}`;
 
 
+  const epTitleClean = activeEpisode.title?.trim();
+  const isGenericEpTitle = !epTitleClean || 
+    epTitleClean.toLowerCase() === `episode ${activeEpisode.episode_number}` ||
+    epTitleClean.toLowerCase() === `episode ${activeEpisode.episode_number}:` ||
+    epTitleClean.toLowerCase() === `episode ${activeEpisode.episode_number} -` ||
+    /^episode\s*\d+$/i.test(epTitleClean);
+    
+  const videoName = isGenericEpTitle
+    ? `${seriesTitle} Episode ${activeEpisode.episode_number}`
+    : `${seriesTitle} Episode ${activeEpisode.episode_number} — ${epTitleClean.replace(/^\[Preview\]\s*/i, '').replace(/^\[Trailer\]\s*/i, '')}`;
+
+  const fallbackDescription = `Watch ${seriesTitle} Episode ${activeEpisode.episode_number} online in HD with English subtitles on Play Hentai.`;
+
   const videoJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'VideoObject',
     '@id': canonicalUrl,
-    'name': `${seriesTitle} - Episode ${activeEpisode.episode_number}: ${activeEpisode.title}`,
-    'description': activeEpisode.description || `Watch ${seriesTitle} Episode ${activeEpisode.episode_number} in HD online.`,
+    'name': videoName,
+    'description': activeEpisode.description || fallbackDescription,
     'thumbnailUrl': [verifiedThumbnailUrl],
     'uploadDate': activeEpisode.release_date || activeEpisode.created_at || new Date().toISOString(),
     'duration': activeEpisode.duration_seconds ? `PT${Math.floor(activeEpisode.duration_seconds / 60)}M` : 'PT24M',
     'contentUrl': videoContentUrl,
     'url': canonicalUrl,
-    'inLanguage': 'en',
     'isFamilyFriendly': false,
     'publisher': {
       '@type': 'Organization',
