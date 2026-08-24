@@ -73,18 +73,18 @@ export async function generateMetadata({ params }: YearPageProps): Promise<Metad
 
   // Strict validation: if not a number, metadata is minimal (page will 404 anyway)
   if (isNaN(yearNum)) {
-    return { title: 'Invalid Year - PlayHentai' };
+    return { title: 'Invalid Year - Play Hentai' };
   }
 
   const seriesList = await getSeriesByYear(yearNum);
   if (seriesList.length === 0) {
-    return { title: 'Year Not Found - PlayHentai' };
+    return { title: 'Year Not Found - Play Hentai' };
   }
 
   const count = seriesList.length;
   const canonicalUrl = `${SITE_URL}/year/${year}`;
-  const title = `${year} Hentai Anime | PlayHentai`;
-  const description = `Browse ${count} hentai anime series released in ${year} on PlayHentai. Find completed and ongoing releases from ${year}.`;
+  const title = `${year} Hentai Anime | Play Hentai`;
+  const description = `Browse ${count} hentai anime series released in ${year} on Play Hentai. Find completed and ongoing releases from ${year}.`;
 
   return {
     title,
@@ -197,7 +197,7 @@ export default async function YearPage({ params, searchParams }: YearPageProps) 
       <div className={styles.seoIntro}>
         <h2 className={styles.seoIntroTitle}>{year} Hentai Anime</h2>
         <p className={styles.seoIntroText}>
-          Browse all {totalCount} hentai anime series released in {year}{statusConnector} and newly added titles available in HD on PlayHentai.
+          Browse all {totalCount} hentai anime series released in {year}{statusConnector} and newly added titles available in HD on Play Hentai.
           Explore the full {year} release schedule catalog listed below sorted by actual release date.
           All videos are streamable instantly without registration.
         </p>

@@ -69,15 +69,15 @@ export async function fetchSeriesByStatus(status: string): Promise<any[]> {
 export function buildStatusMetadata(status: string, count: number): Metadata {
   const capStatus = status === 'ongoing' ? 'Ongoing' : status === 'completed' ? 'Completed' : 'Upcoming';
   const routePath = `/${status.toLowerCase()}`;
-  const title = `${capStatus} Hentai Anime Series | PlayHentai`;
-  let description = `Browse all ${count} ${status} hentai anime series available to stream in HD on PlayHentai.`;
+  const title = `${capStatus} Hentai Anime Series | Play Hentai`;
+  let description = `Browse all ${count} ${status} hentai anime series available to stream in HD on Play Hentai.`;
 
   if (status === 'completed') {
-    description = `Browse ${count} completed hentai anime series available to stream in 1080p HD. Watch full finished series from start to finish on PlayHentai.`;
+    description = `Browse ${count} completed hentai anime series available to stream in 1080p HD. Watch full finished series from start to finish on Play Hentai.`;
   } else if (status === 'ongoing') {
-    description = `Browse ${count} ongoing hentai anime series with fresh airing episode releases available to stream in 1080p HD on PlayHentai.`;
+    description = `Browse ${count} ongoing hentai anime series with fresh airing episode releases available to stream in 1080p HD on Play Hentai.`;
   } else if (status === 'upcoming') {
-    description = `Browse ${count} upcoming hentai anime series scheduled for release soon. Check premiere dates and scheduled releases on PlayHentai.`;
+    description = `Browse ${count} upcoming hentai anime series scheduled for release soon. Check premiere dates and scheduled releases on Play Hentai.`;
   }
 
   return {
@@ -151,10 +151,10 @@ export default async function StatusCatalog({ status, searchParams }: StatusCata
 
   const introText = (() => {
     if (normalizedStatus === 'completed') {
-      return `Explore all ${totalCount} completed hentai anime series on PlayHentai. These series are fully finalized and ready for high-fidelity 1080p streaming.`;
+      return `Explore all ${totalCount} completed hentai anime series on Play Hentai. These series are fully finalized and ready for high-fidelity 1080p streaming.`;
     }
     if (normalizedStatus === 'ongoing') {
-      return `Explore all ${totalCount} ongoing hentai anime series currently airing on PlayHentai. Stay updated with the latest episodes and airing releases.`;
+      return `Explore all ${totalCount} ongoing hentai anime series currently airing on Play Hentai. Stay updated with the latest episodes and airing releases.`;
     }
     return `Explore all ${totalCount} upcoming hentai anime series scheduled for release soon. Stay tuned for upcoming premiere dates and trailers.`;
   })();

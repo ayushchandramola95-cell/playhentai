@@ -88,15 +88,15 @@ export async function generateMetadata({ params }: TagPageProps): Promise<Metada
   const exactTag = allTags.find(t => tagToSlug(t) === slug);
 
   if (!exactTag) {
-    return { title: 'Tag Not Found - PlayHentai' };
+    return { title: 'Tag Not Found - Play Hentai' };
   }
 
   const seriesList = await getSeriesByTag(exactTag);
   const count = seriesList.length;
   const canonicalUrl = `${SITE_URL}/tag/${slug}`;
 
-  const title = `${exactTag} Hentai Anime | PlayHentai`;
-  const description = `Browse ${count} ${exactTag.toLowerCase()} hentai anime series with English subtitles in HD. Find completed and ongoing ${exactTag.toLowerCase()} titles on PlayHentai.`;
+  const title = `${exactTag} Hentai Anime | Play Hentai`;
+  const description = `Browse ${count} ${exactTag.toLowerCase()} hentai anime series with English subtitles in HD. Find completed and ongoing ${exactTag.toLowerCase()} titles on Play Hentai.`;
 
   return {
     title,
@@ -204,7 +204,7 @@ export default async function TagPage({ params, searchParams }: TagPageProps) {
       <div className={styles.seoIntro}>
         <h2 className={styles.seoIntroTitle}>{exactTag} Hentai Anime</h2>
         <p className={styles.seoIntroText}>
-          Browse {totalCount} {exactTag.toLowerCase()} hentai anime {totalCount === 1 ? 'series' : 'series'} available on PlayHentai.
+          Browse {totalCount} {exactTag.toLowerCase()} hentai anime {totalCount === 1 ? 'series' : 'series'} available on Play Hentai.
           Discover {statusBreakdown} {exactTag.toLowerCase()} series featuring HD streaming and complete episode collections.
           All titles are available to watch instantly — no registration required.
           Use the series cards below to explore the full {exactTag.toLowerCase()} catalog, sorted by popularity.

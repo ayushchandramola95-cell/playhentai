@@ -28,7 +28,7 @@ export default function Footer() {
           <p className={styles.description}>
             Experience ultra-smooth high-definition uncensored video streaming. Bookmark favorites, track your watch progress, and stream with zero limits.
           </p>
-          <p className={styles.tagline}>© {new Date().getFullYear()} PlayHentai (playhentai.live)</p>
+          <p className={styles.tagline}>© {new Date().getFullYear()} Play Hentai (playhentai.live)</p>
         </div>
 
         <div className={styles.linksColumn}>

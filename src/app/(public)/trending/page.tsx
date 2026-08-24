@@ -9,14 +9,14 @@ import { MOCK_SERIES, MOCK_SERIES_DETAILS } from '@/utils/mockData';
 import { GENRES } from '@/utils/constants';
 
 export const metadata = {
-  title: 'Trending Hentai Anime Series | PlayHentai',
-  description: 'Discover the most popular and trending uncensored hentai anime series right now on PlayHentai.',
+  title: 'Trending Hentai Anime Series | Play Hentai',
+  description: 'Discover the most popular and trending uncensored hentai anime series right now on Play Hentai.',
   alternates: {
     canonical: '/trending',
   },
   openGraph: {
-    title: 'Trending Hentai Anime Series | PlayHentai',
-    description: 'Discover the most popular and trending uncensored hentai anime series right now on PlayHentai.',
+    title: 'Trending Hentai Anime Series | Play Hentai',
+    description: 'Discover the most popular and trending uncensored hentai anime series right now on Play Hentai.',
     url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live'}/trending`,
     type: 'website' as const,
   },

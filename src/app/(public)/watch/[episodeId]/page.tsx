@@ -191,8 +191,8 @@ export async function generateMetadata({ params }: WatchPageProps): Promise<Meta
   const resolvedParams = await params;
   const episodeId = resolvedParams.episodeId;
 
-  let title = 'Watch Episode - PlayHentai';
-  let description = 'Play and watch this episode in full HD streaming on PlayHentai.';
+  let title = 'Watch Episode - Play Hentai';
+  let description = 'Play and watch this episode in full HD streaming on Play Hentai.';
   let thumbnail = '';
   let canonicalPath = `/watch/${episodeId}`;
 
@@ -392,7 +392,7 @@ export default async function WatchPage({ params }: WatchPageProps) {
     'isFamilyFriendly': false,
     'publisher': {
       '@type': 'Organization',
-      'name': 'PlayHentai',
+      'name': 'Play Hentai',
       'url': siteUrl
     },
     'partOfSeries': {

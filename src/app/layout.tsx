@@ -25,14 +25,14 @@ export async function generateMetadata(): Promise<Metadata> {
       template: "%s | Play Hentai"
     },
     description: "Watch hentai anime online free in HD on Play Hentai. Stream uncensored hentai series and episodes with English subtitles, discover new releases, and explore popular titles by genre and studio.",
-    authors: [{ name: "PlayHentai Team" }],
-    creator: "PlayHentai",
-    publisher: "PlayHentai",
+    authors: [{ name: "Play Hentai Team" }],
+    creator: "Play Hentai",
+    publisher: "Play Hentai",
     openGraph: {
       title: "Play Hentai – Watch Hentai Anime Online Free in HD",
       description: "Watch hentai anime online free in HD on Play Hentai. Stream uncensored hentai series and episodes with English subtitles, discover new releases, and explore popular titles by genre and studio.",
       url: "https://playhentai.live",
-      siteName: "PlayHentai",
+      siteName: "Play Hentai",
       locale: "en_US",
       type: "website",
     },
