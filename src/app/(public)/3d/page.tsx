@@ -4,6 +4,7 @@ import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { MOCK_SERIES } from '@/utils/mockData';
 import ThreeDHub from '@/components/ThreeDHub/ThreeDHub';
 import JsonLd from '@/components/JsonLd/JsonLd';
+import { isThreeDSeries } from '@/utils/constants';
 import { Box } from 'lucide-react';
 import styles from './ThreeD.module.css';
 
@@ -28,16 +29,16 @@ export async function generateMetadata({ searchParams }: PageProps) {
     : '/3d';
 
   return {
-    title: 'Watch 3D Hentai Anime Series & CGI Animations in HD | PlayHentai',
-    description: 'Browse and stream 1080p high quality 3D CGI hentai anime series, 3D animations, and top CGI releases online for free on PlayHentai.',
+    title: '3D Hentai Anime — Watch CGI Animations in HD | Play Hentai',
+    description: 'Watch 3D hentai anime and CGI animation series online in HD with English subtitles. Browse complete series, available episodes, new releases, and popular 3D titles on Play Hentai.',
     alternates: {
       canonical: canonicalPath,
     },
     openGraph: {
-      title: 'Watch 3D Hentai Anime Series & CGI Animations in HD | PlayHentai',
-      description: 'Browse and stream 1080p high quality 3D CGI hentai anime series, 3D animations, and top CGI releases online for free on PlayHentai.',
+      title: '3D Hentai Anime — Watch CGI Animations in HD | Play Hentai',
+      description: 'Watch 3D hentai anime and CGI animation series online in HD with English subtitles. Browse complete series, available episodes, new releases, and popular 3D titles on Play Hentai.',
       url: `${SITE_URL}${canonicalPath}`,
-      siteName: 'PlayHentai',
+      siteName: 'Play Hentai',
       locale: 'en_US',
       type: 'website' as const,
       images: [
@@ -45,14 +46,14 @@ export async function generateMetadata({ searchParams }: PageProps) {
           url: 'https://media.playhentai.live/og-banner.jpg',
           width: 1200,
           height: 630,
-          alt: 'PlayHentai 3D Hentai & CGI Animations',
+          alt: 'Play Hentai 3D Hentai & CGI Animations',
         },
       ],
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'Watch 3D Hentai Anime Series & CGI Animations in HD | PlayHentai',
-      description: 'Browse and stream 1080p high quality 3D CGI hentai anime series, 3D animations, and top CGI releases online for free on PlayHentai.',
+      title: '3D Hentai Anime — Watch CGI Animations in HD | Play Hentai',
+      description: 'Watch 3D hentai anime and CGI animation series online in HD with English subtitles. Browse complete series, available episodes, new releases, and popular 3D titles on Play Hentai.',
       images: ['https://media.playhentai.live/og-banner.jpg'],
     },
   };
@@ -93,17 +94,17 @@ const getCached3DSeries = unstable_cache(
   { revalidate: 60, tags: ['3d_catalog'] }
 );
 
-export default async function ThreeDPage() {
+export default async function ThreeDPage({ searchParams }: PageProps) {
+  const params = await searchParams;
+  const pageParam = params.page;
+  const currentPage = pageParam ? parseInt(pageParam, 10) || 1 : 1;
+  const ITEMS_PER_PAGE = 25;
+
   const { dbSeries, isDbEmpty } = await getCached3DSeries();
   const activeSeries = isDbEmpty ? MOCK_SERIES : dbSeries;
 
-  const collectionJsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'CollectionPage',
-    name: '3D Hentai & CGI Animations Catalog',
-    url: `${SITE_URL}/3d`,
-    description: 'Browse and stream 1080p high quality 3D CGI hentai anime series and CGI animation releases.',
-  };
+  // Filter series using strict tag / category constraints on the server side
+  const threedSeries = activeSeries.filter(isThreeDSeries);
 
   const breadcrumbJsonLd = {
     '@context': 'https://schema.org',
@@ -114,9 +115,25 @@ export default async function ThreeDPage() {
     ],
   };
 
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const pageSeries = threedSeries.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+  const itemListJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    'name': '3D Hentai & CGI Animations Catalog',
+    'url': `${SITE_URL}/3d`,
+    'itemListElement': pageSeries.map((s: any, i: number) => ({
+      '@type': 'ListItem',
+      'position': startIndex + i + 1,
+      'name': s.title,
+      'url': `${SITE_URL}/series/${s.slug}`,
+    })),
+  };
+
   return (
     <div className={styles.container}>
-      <JsonLd data={[collectionJsonLd, breadcrumbJsonLd]} />
+      <JsonLd data={[breadcrumbJsonLd, itemListJsonLd]} />
 
       {/* Breadcrumbs */}
       <nav className={styles.breadcrumbs} aria-label="Breadcrumbs">
@@ -125,20 +142,25 @@ export default async function ThreeDPage() {
         <span className={styles.activeCrumb}>3D</span>
       </nav>
 
-      {/* Clean & Simple Header Section */}
+      {/* Dynamic Header Section */}
       <div className={styles.headerSection}>
         <div className={styles.titleRow}>
           <Box size={28} className={styles.headerIcon} />
           <h1>3D Hentai & CGI Animations</h1>
         </div>
         <p className={styles.subtext}>
-          Explore our dedicated collection of high quality 3D CGI anime series, smooth 60fps CGI animation releases, and 3D titles available to stream in 1080p HD.
+          Browse 3D hentai anime series and CGI animation releases with English subtitles in HD. Explore complete series, available episodes, new releases, and popular 3D titles on Play Hentai.
         </p>
       </div>
 
       {/* Main 3D Catalog Hub */}
       <Suspense fallback={null}>
-        <ThreeDHub initialSeries={activeSeries} isDbEmpty={isDbEmpty} />
+        <ThreeDHub 
+          initialSeries={threedSeries} 
+          isDbEmpty={isDbEmpty} 
+          basePath="/3d"
+          currentPage={currentPage}
+        />
       </Suspense>
     </div>
   );

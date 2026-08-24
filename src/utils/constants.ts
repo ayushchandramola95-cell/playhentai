@@ -67,4 +67,11 @@ export function isUncensoredSeries(series: CensorshipSeriesItem): boolean {
   return cat === 'uncensored' || tags.includes('uncensored');
 }
 
+export function isThreeDSeries(series: CensorshipSeriesItem): boolean {
+  const cat = (series.category || '').toLowerCase().trim();
+  const tags = (series.tags || []).map(t => (typeof t === 'string' ? t.toLowerCase().trim() : ''));
+  return cat.includes('3d') || cat.includes('cgi') || tags.includes('3d') || tags.includes('cgi');
+}
+
+
 

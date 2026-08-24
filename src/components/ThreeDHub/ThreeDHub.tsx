@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { Search, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, X, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import SeriesCard from '../SeriesCard/SeriesCard';
 import AdBanner from '../AdBanner/AdBanner';
 import JsonLd from '../JsonLd/JsonLd';
@@ -33,9 +34,24 @@ interface SeriesItem {
 interface ThreeDHubProps {
   initialSeries: SeriesItem[];
   isDbEmpty: boolean;
+  basePath?: string;
+  currentPage?: number;
 }
 
-export default function ThreeDHub({ initialSeries, isDbEmpty }: ThreeDHubProps) {
+function getStableHash(str: string): number {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return Math.abs(hash);
+}
+
+export default function ThreeDHub({ 
+  initialSeries, 
+  isDbEmpty,
+  basePath = '/3d',
+  currentPage: serverPage = 1
+}: ThreeDHubProps) {
   const searchParams = useSearchParams();
   const catalogRef = useRef<HTMLDivElement>(null);
   const filterBarRef = useRef<HTMLDivElement>(null);
@@ -43,10 +59,19 @@ export default function ThreeDHub({ initialSeries, isDbEmpty }: ThreeDHubProps) 
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [sortMode, setSortMode] = useState<string>('random'); // DEFAULT: Random
-  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [currentPage, setCurrentPage] = useState<number>(serverPage);
   const [hasHydrated, setHasHydrated] = useState(false);
 
   const ITEMS_PER_PAGE = 25; // 5 rows x 5 columns
+
+  const getPageLink = (pageNumber: number) => {
+    if (pageNumber === 1) return basePath;
+    return `${basePath}?page=${pageNumber}`;
+  };
+
+  const handlePageClick = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   useEffect(() => {
     setHasHydrated(true);
@@ -82,27 +107,9 @@ export default function ThreeDHub({ initialSeries, isDbEmpty }: ThreeDHubProps) 
     setCurrentPage(1);
   }, [searchQuery, sortMode]);
 
-  // Filter series specifically for 3D & CGI animation content
+  // Filter series based on search query (initialSeries is already strictly pre-filtered by isThreeDSeries)
   const threeDFilteredSeries = useMemo(() => {
-    // First check if any items contain 3d/cgi tags
-    const tagged3D = initialSeries.filter((series) => {
-      const tags = (series.tags || []).map(t => (typeof t === 'string' ? t.toLowerCase().trim() : ''));
-      const cat = (series.category || '').toLowerCase().trim();
-      const title = (series.title || '').toLowerCase().trim();
-      const desc = (series.description || '').toLowerCase().trim();
-
-      const matches3DTag = tags.some(t => t.includes('3d') || t.includes('cgi'));
-      const matches3DCat = cat.includes('3d') || cat.includes('cgi');
-      const matches3DTitle = title.includes('3d') || title.includes('cgi');
-      const matches3DDesc = desc.includes('3d animation') || desc.includes('3d hentai') || desc.includes('cgi');
-
-      return matches3DTag || matches3DCat || matches3DTitle || matches3DDesc;
-    });
-
-    const baseList = tagged3D;
-
-    // Apply searchQuery if user typed in search box
-    return baseList.filter((series) => {
+    return initialSeries.filter((series) => {
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase().trim();
         const matchesTitle = series.title.toLowerCase().includes(query);
@@ -118,15 +125,15 @@ export default function ThreeDHub({ initialSeries, isDbEmpty }: ThreeDHubProps) 
     });
   }, [initialSeries, searchQuery]);
 
-  // Sort filtered series
+  // Sort filtered series stably
   const sortedSeries = useMemo(() => {
     const list = [...threeDFilteredSeries];
-    if (sortMode === 'random' && hasHydrated) {
-      // Fisher-Yates shuffle for true randomness
-      for (let i = list.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [list[i], list[j]] = [list[j], list[i]];
-      }
+    if (sortMode === 'random') {
+      list.sort((a, b) => {
+        const hashA = getStableHash(a.id || a.slug || '');
+        const hashB = getStableHash(b.id || b.slug || '');
+        return hashA - hashB;
+      });
     } else if (sortMode === 'recent') {
       list.sort((a, b) => {
         const dateA = new Date((a as any).release_date || (a as any).created_at || a.release_year || a.releaseYear || 0).getTime();
@@ -143,44 +150,19 @@ export default function ThreeDHub({ initialSeries, isDbEmpty }: ThreeDHubProps) 
       list.sort((a, b) => b.title.localeCompare(a.title));
     }
     return list;
-  }, [threeDFilteredSeries, sortMode, hasHydrated]);
+  }, [threeDFilteredSeries, sortMode]);
 
   // Pagination calculation
   const totalPages = Math.ceil(sortedSeries.length / ITEMS_PER_PAGE) || 1;
+  const validPage = Math.min(currentPage, totalPages);
+
   const paginatedSeries = useMemo(() => {
-    const startIdx = (currentPage - 1) * ITEMS_PER_PAGE;
+    const startIdx = (validPage - 1) * ITEMS_PER_PAGE;
     return sortedSeries.slice(startIdx, startIdx + ITEMS_PER_PAGE);
-  }, [sortedSeries, currentPage]);
-
-  const handlePageChange = (newPage: number) => {
-    if (newPage >= 1 && newPage <= totalPages) {
-      setCurrentPage(newPage);
-      if (catalogRef.current) {
-        const rect = catalogRef.current.getBoundingClientRect();
-        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-        window.scrollTo({ top: Math.max(0, rect.top + scrollTop - 100), behavior: 'smooth' });
-      }
-    }
-  };
-
-  // ItemList JSON-LD Schema for Active Paginated 3D Results
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const itemListJsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'ItemList',
-    'name': '3D Hentai & CGI Animations Catalog on PlayHentai',
-    'url': `${SITE_URL}/3d`,
-    'itemListElement': paginatedSeries.map((s, i) => ({
-      '@type': 'ListItem',
-      'position': startIndex + i + 1,
-      'name': s.title,
-      'url': `${SITE_URL}/series/${s.slug}`,
-    })),
-  };
+  }, [sortedSeries, validPage]);
 
   return (
     <div className={styles.hubContainer} ref={catalogRef}>
-      <JsonLd data={itemListJsonLd} />
       {/* Search Bar & Controls */}
       <div 
         ref={filterBarRef}
@@ -259,35 +241,82 @@ export default function ThreeDHub({ initialSeries, isDbEmpty }: ThreeDHubProps) 
       {/* Pagination Controls */}
       {totalPages > 1 && (
         <div className={styles.paginationContainer}>
-          <button 
-            disabled={currentPage === 1}
-            onClick={() => handlePageChange(currentPage - 1)}
-            className={`${styles.pageBtn} ${currentPage === 1 ? styles.pageBtnDisabled : ''}`}
-            title="Previous Page"
-          >
-            <ChevronLeft size={18} />
-            <span>Prev</span>
-          </button>
+          {validPage <= 1 ? (
+            <span className={`${styles.pageBtn} ${styles.pageBtnDisabled}`} aria-disabled="true">
+              <ChevronsLeft size={16} />
+            </span>
+          ) : (
+            <Link
+              href={getPageLink(1)}
+              onClick={handlePageClick}
+              className={styles.pageBtn}
+              aria-label="First Page"
+            >
+              <ChevronsLeft size={16} />
+            </Link>
+          )}
+
+          {validPage <= 1 ? (
+            <span className={`${styles.pageBtn} ${styles.pageBtnDisabled}`} aria-disabled="true">
+              <ChevronLeft size={16} />
+            </span>
+          ) : (
+            <Link
+              href={getPageLink(validPage - 1)}
+              onClick={handlePageClick}
+              className={styles.pageBtn}
+              aria-label="Previous Page"
+            >
+              <ChevronLeft size={16} />
+            </Link>
+          )}
 
           {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
-            <button
-              key={pageNum}
-              onClick={() => handlePageChange(pageNum)}
-              className={`${styles.pageBtn} ${currentPage === pageNum ? styles.pageBtnActive : ''}`}
-            >
-              {pageNum}
-            </button>
+            validPage === pageNum ? (
+              <span key={pageNum} className={`${styles.pageBtn} ${styles.pageBtnActive}`}>
+                {pageNum}
+              </span>
+            ) : (
+              <Link
+                key={pageNum}
+                href={getPageLink(pageNum)}
+                onClick={handlePageClick}
+                className={styles.pageBtn}
+              >
+                {pageNum}
+              </Link>
+            )
           ))}
 
-          <button 
-            disabled={currentPage === totalPages}
-            onClick={() => handlePageChange(currentPage + 1)}
-            className={`${styles.pageBtn} ${currentPage === totalPages ? styles.pageBtnDisabled : ''}`}
-            title="Next Page"
-          >
-            <span>Next</span>
-            <ChevronRight size={18} />
-          </button>
+          {validPage >= totalPages ? (
+            <span className={`${styles.pageBtn} ${styles.pageBtnDisabled}`} aria-disabled="true">
+              <ChevronRight size={16} />
+            </span>
+          ) : (
+            <Link
+              href={getPageLink(validPage + 1)}
+              onClick={handlePageClick}
+              className={styles.pageBtn}
+              aria-label="Next Page"
+            >
+              <ChevronRight size={16} />
+            </Link>
+          )}
+
+          {validPage >= totalPages ? (
+            <span className={`${styles.pageBtn} ${styles.pageBtnDisabled}`} aria-disabled="true">
+              <ChevronsRight size={16} />
+            </span>
+          ) : (
+            <Link
+              href={getPageLink(totalPages)}
+              onClick={handlePageClick}
+              className={styles.pageBtn}
+              aria-label="Last Page"
+            >
+              <ChevronsRight size={16} />
+            </Link>
+          )}
         </div>
       )}
     </div>
