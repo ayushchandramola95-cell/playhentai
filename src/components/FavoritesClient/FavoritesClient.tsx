@@ -69,6 +69,21 @@ export default function FavoritesClient() {
   if (!user) {
     return (
       <div className={styles.container}>
+        <Link href="/" className={styles.backLink}>
+          <ArrowLeft size={16} /> Back to Catalog
+        </Link>
+
+        {/* Header */}
+        <div className={styles.headerSection}>
+          <div className={styles.titleRow}>
+            <Heart size={32} className={styles.headerIcon} />
+            <h1>My Favorites</h1>
+          </div>
+          <p className={styles.subtext}>
+            Your personal collection of top-rated favorite series. Access them anytime.
+          </p>
+        </div>
+
         <div className={`${styles.cardShell} glass`}>
           <Lock size={48} className={styles.iconMuted} />
           <h2>Access Restricted</h2>
