@@ -73,9 +73,9 @@ export default function RandomizerPortal({ seriesList }: RandomizerPortalProps) 
     }, 250);
   }, [seriesList]);
 
-  // Sync stable list on mount / data updates without auto-shuffling
+  // Shuffle client-side on mount to ensure the user gets a random order immediately, while keeping hydration stable
   useEffect(() => {
-    setShuffledList(seriesList);
+    setShuffledList(shuffleArray(seriesList));
     setCurrentPage(1);
   }, [seriesList]);
 
