@@ -72,7 +72,7 @@ export default function RandomizerPortal({ seriesList }: RandomizerPortalProps) 
 
         {/* Page Header */}
         <div className={styles.portalHeader}>
-          <h1 className={styles.pageTitle}>Random</h1>
+          <h1 className={styles.pageTitle}>Random Hentai Anime Generator</h1>
           <p className={styles.portalSubtext}>
             Feelin' lucky? Here's the whole library in a random order — hit randomize for a fresh shuffle.
           </p>

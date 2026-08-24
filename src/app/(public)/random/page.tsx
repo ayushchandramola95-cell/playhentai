@@ -25,16 +25,16 @@ export async function generateMetadata({ searchParams }: PageProps) {
     : '/random';
 
   return {
-    title: 'Random Hentai Anime Generator & Surprise Picker | PlayHentai',
-    description: 'Let our random hentai generator pick your next anime binge-watch. Filter by genre or roll the dice for instant 1080p recommendations on PlayHentai.',
+    title: 'Random Hentai Anime Generator & Surprise Picker | Play Hentai',
+    description: 'Let our random hentai generator pick your next anime binge-watch. Filter by genre or roll the dice for instant 1080p recommendations on Play Hentai.',
     alternates: {
       canonical: canonicalPath,
     },
     openGraph: {
-      title: 'Random Hentai Anime Generator & Surprise Picker | PlayHentai',
-      description: 'Let our random hentai generator pick your next anime binge-watch. Filter by genre or roll the dice for instant 1080p recommendations on PlayHentai.',
+      title: 'Random Hentai Anime Generator & Surprise Picker | Play Hentai',
+      description: 'Let our random hentai generator pick your next anime binge-watch. Filter by genre or roll the dice for instant 1080p recommendations on Play Hentai.',
       url: `${SITE_URL}${canonicalPath}`,
-      siteName: 'PlayHentai',
+      siteName: 'Play Hentai',
       locale: 'en_US',
       type: 'website' as const,
       images: [
@@ -42,14 +42,14 @@ export async function generateMetadata({ searchParams }: PageProps) {
           url: 'https://media.playhentai.live/og-banner.jpg',
           width: 1200,
           height: 630,
-          alt: 'PlayHentai Random Hentai Anime Generator',
+          alt: 'Play Hentai Random Hentai Anime Generator',
         },
       ],
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'Random Hentai Anime Generator & Surprise Picker | PlayHentai',
-      description: 'Let our random hentai generator pick your next anime binge-watch. Filter by genre or roll the dice for instant 1080p recommendations on PlayHentai.',
+      title: 'Random Hentai Anime Generator & Surprise Picker | Play Hentai',
+      description: 'Let our random hentai generator pick your next anime binge-watch. Filter by genre or roll the dice for instant 1080p recommendations on Play Hentai.',
       images: ['https://media.playhentai.live/og-banner.jpg'],
     },
   };
@@ -100,7 +100,7 @@ export default async function RandomPage() {
     url: `${SITE_URL}/random`,
     applicationCategory: 'EntertainmentApplication',
     operatingSystem: 'All',
-    description: 'Interactive random anime picker and series recommendation generator on PlayHentai.',
+    description: 'Interactive random anime picker and series recommendation generator on Play Hentai.',
   };
 
   return (
