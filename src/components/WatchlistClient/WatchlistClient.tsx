@@ -66,6 +66,17 @@ export default function WatchlistClient({ initialSeries, user }: WatchlistClient
           <span className={styles.activeCrumb}>Watchlist</span>
         </nav>
 
+        {/* Header */}
+        <div className={styles.headerSection}>
+          <div className={styles.titleRow}>
+            <Heart size={28} className={styles.headerIcon} fill="currentColor" />
+            <h1>My Watchlist</h1>
+          </div>
+          <p className={styles.subtext}>
+            Your saved series and bookmarked movies. Manage or remove items anytime.
+          </p>
+        </div>
+
         <div className={`${styles.cardShell} glass`}>
           <UserX size={48} className={styles.iconMuted} />
           <h2>Access Restricted</h2>

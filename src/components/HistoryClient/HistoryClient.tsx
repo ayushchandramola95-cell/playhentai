@@ -58,6 +58,17 @@ export default function HistoryClient({ initialHistory, user }: HistoryClientPro
           <span className={styles.activeCrumb}>Watch History</span>
         </nav>
 
+        {/* Header */}
+        <div className={styles.headerSection}>
+          <div className={styles.titleRow}>
+            <HistoryIcon size={28} className={styles.headerIcon} />
+            <h1>Watch History</h1>
+          </div>
+          <p className={styles.subtext}>
+            Resume episodes you've started or keep track of what you've finished.
+          </p>
+        </div>
+
         <div className={`${styles.cardShell} glass`}>
           <UserX size={48} className={styles.iconMuted} />
           <h2>Access Restricted</h2>
