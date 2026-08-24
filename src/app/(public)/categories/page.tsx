@@ -5,6 +5,7 @@ import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import JsonLd from '@/components/JsonLd/JsonLd';
 import BrowseHub from '@/components/BrowseHub/BrowseHub';
 import { getSeriesViewsMap } from '@/utils/views';
+import { tagToSlug } from '@/utils/constants';
 import styles from './categories.module.css';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
@@ -19,32 +20,55 @@ interface PageProps {
     studio?: string;
     year?: string;
     sort?: string;
+    page?: string;
   }>;
 }
+
+const GENRE_INTRODUCTIONS: Record<string, string> = {
+  action: "Explore action hentai anime featuring intense stories, battles, supernatural conflicts, and adventure. Browse available series and episodes and discover related titles on Play Hentai.",
+  fantasy: "Step into fantasy hentai anime worlds filled with magic, mythical beasts, epic quests, and otherworldly encounters. Stream complete episodes online.",
+  romance: "Discover romance hentai anime focusing on deep relationships, emotional bonds, love stories, and intimate encounters. Watch full series on Play Hentai.",
+  comedy: "Enjoy comedy hentai anime combining hilarious situational humor, parody elements, lighthearted stories, and intimate scenes.",
+  'sci-fi': "Dive into sci-fi hentai anime featuring futuristic settings, advanced technology, space exploration, cybernetics, and intense encounters.",
+  adventure: "Follow adventure hentai anime journeys across uncharted territories, dangerous dungeons, and heroic quests with exciting encounters.",
+  drama: "Experience drama hentai anime with deep storytelling, emotional conflicts, complex character relationships, and intense plots.",
+  mystery: "Uncover mystery hentai anime filled with suspense, detective work, supernatural puzzles, and dark secrets.",
+  supernatural: "Explore supernatural hentai anime involving spirits, ghosts, yokai, and occult mysteries alongside intimate relationships.",
+  harem: "Watch harem hentai anime where multiple characters compete for the affection of a single lead, full of comedy, drama, and intimate encounters.",
+  ecchi: "Browse ecchi anime series featuring highly suggestive comedy, fan service, playful themes, and romantic encounters.",
+  uncensored: "Explore uncensored hentai anime series in high definition. Stream the absolute best uncensored adult anime episodes.",
+  '3d': "Browse 3D hentai anime series rendered with stunning modern CGI graphics, detailed animations, and realistic adult encounters."
+};
 
 export async function generateMetadata({ searchParams }: PageProps) {
   const params = await searchParams;
   const genre = params.genre;
   const studio = params.studio;
   const year = params.year;
+  const page = params.page;
 
-  let title = 'Browse Hentai Anime Categories & Series | PlayHentai';
-  let description = 'Browse all uncensored hentai anime series, genres, studios, and release years. Filter the complete anime library on PlayHentai.';
+  let title = 'Browse Hentai Anime — Genres, Studios & Years | Play Hentai';
+  let description = 'Browse hentai anime series by genre, tags, production studio, and release year. Discover new releases, popular titles, and complete series on Play Hentai.';
   let canonicalPath = '/categories';
 
   if (genre && genre.toLowerCase() !== 'all' && genre.toLowerCase() !== 'all genres') {
     const formattedGenre = genre.charAt(0).toUpperCase() + genre.slice(1);
-    title = `${formattedGenre} Hentai Anime Series & Collections | PlayHentai`;
-    description = `Watch and stream ${formattedGenre} uncensored hentai anime series in HD for free on PlayHentai. Explore all ${formattedGenre} anime titles.`;
-    canonicalPath = `/categories?genre=${encodeURIComponent(genre)}`;
+    title = `${formattedGenre} Hentai Anime — Watch Online | Play Hentai`;
+    description = `Browse ${formattedGenre} hentai anime series on Play Hentai. Discover available episodes, popular titles, and new releases in the ${formattedGenre} category.`;
+    canonicalPath = `/categories/${tagToSlug(genre)}`;
   } else if (studio) {
-    title = `${studio} Studio Hentai Anime Series | PlayHentai`;
-    description = `Explore all uncensored hentai anime series produced by ${studio} studio on PlayHentai. High quality HD streaming.`;
-    canonicalPath = `/categories?studio=${encodeURIComponent(studio)}`;
+    title = `${studio} Hentai Anime — Browse Studio | Play Hentai`;
+    description = `Browse hentai anime from ${studio} on Play Hentai. Explore the studio's series, available episodes, genres, and related titles.`;
+    canonicalPath = `/studios/${tagToSlug(studio)}`;
   } else if (year) {
-    title = `${year} Hentai Anime Releases & Series | PlayHentai`;
-    description = `Stream all uncensored hentai anime series released in ${year} on PlayHentai. Watch full HD episodes online.`;
-    canonicalPath = `/categories?year=${encodeURIComponent(year)}`;
+    title = `${year} Hentai Anime — Browse Releases | Play Hentai`;
+    description = `Browse hentai anime released in ${year} on Play Hentai. Discover series, available episodes, genres, and popular titles from ${year}.`;
+    canonicalPath = `/year/${year}`;
+  }
+
+  if (page && page !== '1') {
+    const querySymbol = canonicalPath.includes('?') ? '&' : '?';
+    canonicalPath += `${querySymbol}page=${page}`;
   }
 
   return {
@@ -57,7 +81,7 @@ export async function generateMetadata({ searchParams }: PageProps) {
       title,
       description,
       url: `${SITE_URL}${canonicalPath}`,
-      siteName: 'PlayHentai',
+      siteName: 'Play Hentai',
       locale: 'en_US',
       type: 'website' as const,
     },
@@ -179,7 +203,15 @@ const MOCK_SERIES = [
   }
 ];
 
-export default async function CategoriesPage() {
+export default async function CategoriesPage({ searchParams }: PageProps) {
+  const params = await searchParams;
+  const genre = params.genre;
+  const studio = params.studio;
+  const year = params.year;
+  const pageParam = params.page;
+  const currentPage = pageParam ? parseInt(pageParam, 10) || 1 : 1;
+  const ITEMS_PER_PAGE = 24;
+
   const { dbSeries, isDbEmpty } = await getCachedCategoriesSeries();
   const activeSeries = isDbEmpty ? MOCK_SERIES : dbSeries;
 
@@ -202,18 +234,41 @@ export default async function CategoriesPage() {
     ],
   };
 
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const pageSeries = activeSeries.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
   const itemListJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
-    'name': 'Browse Hentai Anime Categories & Series on PlayHentai',
+    'name': 'Browse Hentai Anime Categories & Series on Play Hentai',
     'url': `${SITE_URL}/categories`,
-    'itemListElement': activeSeries.slice(0, 24).map((s: any, i: number) => ({
+    'itemListElement': pageSeries.map((s: any, i: number) => ({
       '@type': 'ListItem',
       'position': i + 1,
       'name': s.title,
       'url': `${SITE_URL}/series/${s.slug}`,
     })),
   };
+
+  let h1Text = 'Browse Hentai Anime';
+  let introText = 'Filter through our complete collection of hentai anime series by genres, tags, production studios, and release years.';
+  let basePath = '/categories';
+
+  if (genre && genre.toLowerCase() !== 'all' && genre.toLowerCase() !== 'all genres') {
+    const formattedGenre = genre.charAt(0).toUpperCase() + genre.slice(1);
+    h1Text = `${formattedGenre} Hentai Anime`;
+    const key = genre.toLowerCase().trim();
+    introText = GENRE_INTRODUCTIONS[key] || `Browse ${formattedGenre} hentai anime series on Play Hentai. Discover available episodes, popular titles, and new releases in the ${formattedGenre} category.`;
+    basePath = `/categories/${tagToSlug(genre)}`;
+  } else if (studio) {
+    h1Text = `${studio} Hentai Anime`;
+    introText = `Browse hentai anime from ${studio} on Play Hentai. Explore the studio's series, available episodes, genres, and related titles.`;
+    basePath = `/studios/${tagToSlug(studio)}`;
+  } else if (year) {
+    h1Text = `${year} Hentai Anime`;
+    introText = `Browse hentai anime released in ${year} on Play Hentai. Discover series, available episodes, genres, and popular titles from ${year}.`;
+    basePath = `/year/${year}`;
+  }
 
   return (
     <div className={styles.container}>
@@ -231,16 +286,16 @@ export default async function CategoriesPage() {
       <div className={styles.headerSection}>
         <div className={styles.titleRow}>
           <Layers size={28} className={styles.headerIcon} />
-          <h1>Browse Hentai Anime Library</h1>
+          <h1>{h1Text}</h1>
         </div>
         <p className={styles.subtext}>
-          Filter through our complete collection by genres, studios, and release years.
+          {introText}
         </p>
       </div>
 
       {/* Filterable Browse Hub */}
       <Suspense fallback={null}>
-        <BrowseHub initialSeries={activeSeries} isDbEmpty={isDbEmpty} />
+        <BrowseHub initialSeries={activeSeries} isDbEmpty={isDbEmpty} basePath={basePath} />
       </Suspense>
     </div>
   );

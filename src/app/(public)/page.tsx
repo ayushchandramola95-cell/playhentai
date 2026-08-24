@@ -18,6 +18,7 @@ import { MOCK_SERIES, MOCK_EPISODES, MOCK_SERIES_DETAILS } from '@/utils/mockDat
 import { getR2Url } from '@/utils/r2';
 import { getEpisodeWatchUrl } from '@/utils/episodeUrl';
 import { getSeriesViewsMap, getEpisodeViewsMap } from '@/utils/views';
+import { tagToSlug } from '@/utils/constants';
 
 export const dynamic = 'force-dynamic';
 
@@ -676,7 +677,7 @@ export default async function HomePage() {
             return (
               <Link
                 key={idx}
-                href={`/categories?genre=${encodeURIComponent(isAll ? 'all' : filterVal)}`}
+                href={isAll ? '/categories' : `/categories/${tagToSlug(filterVal)}`}
                 prefetch={false}
                 className={`${styles.categoryCard} ${isAll ? styles.categoryCardAll : ''}`}
               >

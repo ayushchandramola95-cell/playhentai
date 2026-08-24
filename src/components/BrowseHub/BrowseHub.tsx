@@ -52,6 +52,7 @@ interface BrowseHubProps {
   initialSeries: SeriesItem[];
   isDbEmpty: boolean;
   initialGenre?: string;
+  basePath?: string;
 }
 
 function getStableHash(str: string): number {
@@ -62,7 +63,7 @@ function getStableHash(str: string): number {
   return Math.abs(hash);
 }
 
-function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre }: BrowseHubProps) {
+function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '/categories' }: BrowseHubProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const catalogRef = useRef<HTMLDivElement>(null);
@@ -76,6 +77,16 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre }: BrowseHubP
   const [sortMode, setSortMode] = useState<string>('random'); // Default: Random
   const [currentPage, setCurrentPage] = useState<number>(1);
   const ITEMS_PER_PAGE = 24;
+
+  const getPageLink = (pageNumber: number) => {
+    if (pageNumber === 1) return basePath;
+    const querySymbol = basePath.includes('?') ? '&' : '?';
+    return `${basePath}${querySymbol}page=${pageNumber}`;
+  };
+
+  const handlePageClick = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   // Modal Open States
   const [isTagsModalOpen, setIsTagsModalOpen] = useState(false);
@@ -512,47 +523,69 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre }: BrowseHubP
             {/* Pagination Controls */}
             {totalPages > 1 && (
               <div className={styles.paginationContainer}>
-                <button
-                  type="button"
-                  onClick={() => handlePageChange(1)}
-                  disabled={validPage <= 1}
-                  className={`${styles.pageBtn} ${validPage <= 1 ? styles.pageBtnDisabled : ''}`}
-                  aria-label="First Page"
-                >
-                  <ChevronsLeft size={16} />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handlePageChange(validPage - 1)}
-                  disabled={validPage <= 1}
-                  className={`${styles.pageBtn} ${validPage <= 1 ? styles.pageBtnDisabled : ''}`}
-                  aria-label="Previous Page"
-                >
-                  <ChevronLeft size={16} />
-                </button>
+                {validPage <= 1 ? (
+                  <span className={`${styles.pageBtn} ${styles.pageBtnDisabled}`} aria-disabled="true">
+                    <ChevronsLeft size={16} />
+                  </span>
+                ) : (
+                  <Link
+                    href={getPageLink(1)}
+                    onClick={handlePageClick}
+                    className={styles.pageBtn}
+                    aria-label="First Page"
+                  >
+                    <ChevronsLeft size={16} />
+                  </Link>
+                )}
+
+                {validPage <= 1 ? (
+                  <span className={`${styles.pageBtn} ${styles.pageBtnDisabled}`} aria-disabled="true">
+                    <ChevronLeft size={16} />
+                  </span>
+                ) : (
+                  <Link
+                    href={getPageLink(validPage - 1)}
+                    onClick={handlePageClick}
+                    className={styles.pageBtn}
+                    aria-label="Previous Page"
+                  >
+                    <ChevronLeft size={16} />
+                  </Link>
+                )}
 
                 <span className={styles.pageIndicator}>
                   Page <strong>{validPage}</strong> of <strong>{totalPages}</strong>
                 </span>
 
-                <button
-                  type="button"
-                  onClick={() => handlePageChange(validPage + 1)}
-                  disabled={validPage >= totalPages}
-                  className={`${styles.pageBtn} ${validPage >= totalPages ? styles.pageBtnDisabled : ''}`}
-                  aria-label="Next Page"
-                >
-                  <ChevronRight size={16} />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handlePageChange(totalPages)}
-                  disabled={validPage >= totalPages}
-                  className={`${styles.pageBtn} ${validPage >= totalPages ? styles.pageBtnDisabled : ''}`}
-                  aria-label="Last Page"
-                >
-                  <ChevronsRight size={16} />
-                </button>
+                {validPage >= totalPages ? (
+                  <span className={`${styles.pageBtn} ${styles.pageBtnDisabled}`} aria-disabled="true">
+                    <ChevronRight size={16} />
+                  </span>
+                ) : (
+                  <Link
+                    href={getPageLink(validPage + 1)}
+                    onClick={handlePageClick}
+                    className={styles.pageBtn}
+                    aria-label="Next Page"
+                  >
+                    <ChevronRight size={16} />
+                  </Link>
+                )}
+
+                {validPage >= totalPages ? (
+                  <span className={`${styles.pageBtn} ${styles.pageBtnDisabled}`} aria-disabled="true">
+                    <ChevronsRight size={16} />
+                  </span>
+                ) : (
+                  <Link
+                    href={getPageLink(totalPages)}
+                    onClick={handlePageClick}
+                    className={styles.pageBtn}
+                    aria-label="Last Page"
+                  >
+                    <ChevronsRight size={16} />
+                  </Link>
+                )}
               </div>
             )}
           </>

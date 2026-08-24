@@ -685,7 +685,7 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
 
               {/* Category & Tags Badges */}
               <div className={styles.categoryBadgeRow}>
-                <Link href={`/categories?genre=${encodeURIComponent(activeSeries.category || 'Anime')}`} className={styles.categoryBadge}>
+                <Link href={`/categories/${tagToSlug(activeSeries.category || 'Anime')}`} className={styles.categoryBadge}>
                   {activeSeries.category || 'Anime'}
                 </Link>
                 {activeSeries.tags && activeSeries.tags
