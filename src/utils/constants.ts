@@ -56,3 +56,15 @@ export function tagToSlug(tag: string): string {
   return tag.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 }
 
+interface CensorshipSeriesItem {
+  category?: string;
+  tags?: string[];
+}
+
+export function isUncensoredSeries(series: CensorshipSeriesItem): boolean {
+  const cat = (series.category || '').toLowerCase().trim();
+  const tags = (series.tags || []).map(t => (typeof t === 'string' ? t.toLowerCase().trim() : ''));
+  return cat === 'uncensored' || tags.includes('uncensored');
+}
+
+

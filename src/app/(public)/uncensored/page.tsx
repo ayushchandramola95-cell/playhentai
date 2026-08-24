@@ -4,6 +4,7 @@ import { unstable_cache } from 'next/cache';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import UncensoredHub from '@/components/UncensoredHub/UncensoredHub';
 import JsonLd from '@/components/JsonLd/JsonLd';
+import { isUncensoredSeries } from '@/utils/constants';
 import styles from './uncensored.module.css';
 import { MOCK_SERIES } from '@/utils/mockData';
 
@@ -28,16 +29,16 @@ export async function generateMetadata({ searchParams }: PageProps) {
     : '/uncensored';
 
   return {
-    title: 'Watch Uncensored Hentai Anime Series & Episodes in HD | PlayHentai',
-    description: 'Browse and stream all 1080p uncensored hentai anime series, full HD episodes, and popular uncensored titles online for free on PlayHentai.',
+    title: 'Uncensored Hentai Anime — Watch Online in HD | Play Hentai',
+    description: 'Watch uncensored hentai anime online in HD with English subtitles. Browse complete series, available episodes, new releases, and popular titles on Play Hentai.',
     alternates: {
       canonical: canonicalPath,
     },
     openGraph: {
-      title: 'Watch Uncensored Hentai Anime Series & Episodes in HD | PlayHentai',
-      description: 'Browse and stream all 1080p uncensored hentai anime series, full HD episodes, and popular uncensored titles online for free on PlayHentai.',
+      title: 'Uncensored Hentai Anime — Watch Online in HD | Play Hentai',
+      description: 'Watch uncensored hentai anime online in HD with English subtitles. Browse complete series, available episodes, new releases, and popular titles on Play Hentai.',
       url: `${SITE_URL}${canonicalPath}`,
-      siteName: 'PlayHentai',
+      siteName: 'Play Hentai',
       locale: 'en_US',
       type: 'website' as const,
       images: [
@@ -45,14 +46,14 @@ export async function generateMetadata({ searchParams }: PageProps) {
           url: 'https://media.playhentai.live/og-banner.jpg',
           width: 1200,
           height: 630,
-          alt: 'PlayHentai Uncensored Hentai Anime',
+          alt: 'Play Hentai Uncensored Hentai Anime',
         },
       ],
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'Watch Uncensored Hentai Anime Series & Episodes in HD | PlayHentai',
-      description: 'Browse and stream all 1080p uncensored hentai anime series, full HD episodes, and popular uncensored titles online for free on PlayHentai.',
+      title: 'Uncensored Hentai Anime — Watch Online in HD | Play Hentai',
+      description: 'Watch uncensored hentai anime online in HD with English subtitles. Browse complete series, available episodes, new releases, and popular titles on Play Hentai.',
       images: ['https://media.playhentai.live/og-banner.jpg'],
     },
   };
@@ -93,9 +94,17 @@ const getCachedUncensoredSeries = unstable_cache(
   { revalidate: 60, tags: ['uncensored_catalog'] }
 );
 
-export default async function UncensoredPage() {
+export default async function UncensoredPage({ searchParams }: PageProps) {
+  const params = await searchParams;
+  const pageParam = params.page;
+  const currentPage = pageParam ? parseInt(pageParam, 10) || 1 : 1;
+  const ITEMS_PER_PAGE = 25;
+
   const { dbSeries, isDbEmpty } = await getCachedUncensoredSeries();
   const activeSeries = isDbEmpty ? MOCK_SERIES : dbSeries;
+
+  // Filter series using strict genre (category) & tag constraints
+  const uncensoredSeries = activeSeries.filter(isUncensoredSeries);
 
   const breadcrumbJsonLd = {
     '@context': 'https://schema.org',
@@ -106,17 +115,25 @@ export default async function UncensoredPage() {
     ],
   };
 
-  const collectionJsonLd = {
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const pageSeries = uncensoredSeries.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+  const itemListJsonLd = {
     '@context': 'https://schema.org',
-    '@type': 'CollectionPage',
-    name: 'Uncensored Hentai Anime Series & Catalog',
-    url: `${SITE_URL}/uncensored`,
-    description: 'Complete collection of 1080p uncensored hentai anime series and full HD episodes.',
+    '@type': 'ItemList',
+    'name': 'Uncensored Hentai Anime Series & Catalog',
+    'url': `${SITE_URL}/uncensored`,
+    'itemListElement': pageSeries.map((s: any, i: number) => ({
+      '@type': 'ListItem',
+      'position': startIndex + i + 1,
+      'name': s.title,
+      'url': `${SITE_URL}/series/${s.slug}`,
+    })),
   };
 
   return (
     <div className={styles.container}>
-      <JsonLd data={[breadcrumbJsonLd, collectionJsonLd]} />
+      <JsonLd data={[breadcrumbJsonLd, itemListJsonLd]} />
 
       {/* Breadcrumbs */}
       <nav className={styles.breadcrumbs} aria-label="Breadcrumbs">
@@ -125,20 +142,25 @@ export default async function UncensoredPage() {
         <span className={styles.activeCrumb}>Uncensored</span>
       </nav>
 
-      {/* Clean & Simple Header Section */}
+      {/* Dynamic Header Section */}
       <div className={styles.headerSection}>
         <div className={styles.titleRow}>
           <ShieldCheck size={28} className={styles.headerIcon} />
           <h1>Uncensored Hentai Anime</h1>
         </div>
         <p className={styles.subtext}>
-          Explore our complete library of uncensored 1080p anime series, episodes, and releases — streamed in full HD with zero censorship.
+          Browse uncensored hentai anime series with English subtitles in HD. Explore complete series, available episodes, new releases, and popular uncensored titles on Play Hentai.
         </p>
       </div>
 
       {/* Dedicated Standalone Uncensored Catalog View */}
       <Suspense fallback={null}>
-        <UncensoredHub initialSeries={activeSeries} isDbEmpty={isDbEmpty} />
+        <UncensoredHub 
+          initialSeries={uncensoredSeries} 
+          isDbEmpty={isDbEmpty} 
+          basePath="/uncensored"
+          currentPage={currentPage}
+        />
       </Suspense>
     </div>
   );
