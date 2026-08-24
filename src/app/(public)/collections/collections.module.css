@@ -67,12 +67,14 @@
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
+  text-decoration: none !important;
 }
 
 .tabBtn:hover {
   background: var(--surface-hover);
   border-color: var(--primary);
   color: var(--foreground-primary);
+  text-decoration: none !important;
 }
 
 .activeTab {
@@ -80,6 +82,7 @@
   border-color: transparent !important;
   color: #ffffff !important;
   box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.35);
+  text-decoration: none !important;
 }
 
 /* Collections Grid */
