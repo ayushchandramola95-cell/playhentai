@@ -18,17 +18,20 @@ export async function generateMetadata({ searchParams }: PageProps) {
     ? `/playlists?tab=${encodeURIComponent(tab)}`
     : '/playlists';
 
+  const title = 'Curated Hentai Playlists — Anime Collections | Play Hentai';
+  const description = 'Explore curated hentai anime playlists organized by theme, genre, and popular series. Discover hand-picked collections on Play Hentai.';
+
   return {
-    title: 'Curated Hentai Playlists & Collections | PlayHentai',
-    description: 'Explore hand-picked hentai playlists and thematic series collections of top 1080p anime series on PlayHentai.',
+    title,
+    description,
     alternates: {
       canonical: canonicalPath,
     },
     openGraph: {
-      title: 'Curated Hentai Playlists & Collections | PlayHentai',
-      description: 'Explore hand-picked hentai playlists and thematic series collections of top 1080p anime series on PlayHentai.',
+      title,
+      description,
       url: `${SITE_URL}${canonicalPath}`,
-      siteName: 'PlayHentai',
+      siteName: 'Play Hentai',
       locale: 'en_US',
       type: 'website' as const,
       images: [
@@ -36,14 +39,14 @@ export async function generateMetadata({ searchParams }: PageProps) {
           url: 'https://media.playhentai.live/og-banner.jpg',
           width: 1200,
           height: 630,
-          alt: 'PlayHentai Curated Hentai Playlists',
+          alt: 'Play Hentai Curated Hentai Playlists',
         },
       ],
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'Curated Hentai Playlists & Collections | PlayHentai',
-      description: 'Explore hand-picked hentai playlists and thematic series collections of top 1080p anime series on PlayHentai.',
+      title,
+      description,
       images: ['https://media.playhentai.live/og-banner.jpg'],
     },
   };
@@ -64,9 +67,9 @@ export default async function PlaylistsPage() {
   const collectionJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
-    name: 'Curated Anime Playlists',
+    name: 'Curated Hentai Playlists — Play Hentai',
     url: `${SITE_URL}/playlists`,
-    description: 'Hand-picked collections of top series, movies, and episodes grouped by genre and themes.',
+    description: 'Explore curated hentai anime playlists organized by theme, genre, and popular series. Discover hand-picked collections on Play Hentai.',
   };
 
   return (

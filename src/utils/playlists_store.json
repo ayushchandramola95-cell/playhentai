@@ -1,0 +1,110 @@
+[
+  {
+    "id": "col-1",
+    "name": "Uncensored Legends",
+    "slug": "uncensored-legends",
+    "categoryTag": "Featured",
+    "description": "Dive into our selection of raw, boundary-pushing series with no filters or compromises.",
+    "gradient": "linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%)",
+    "seriesSlugs": ["cyberpunk-odyssey", "neon-tokyo-noir", "celestial-guardians"]
+  },
+  {
+    "id": "col-2",
+    "name": "Sci-Fi & Cyberpunk Frontiers",
+    "slug": "scifi-cyberpunk",
+    "categoryTag": "Genre Specials",
+    "description": "Neon skylines, chrome enhancements, virtual netrunners, and high-tech retro futures.",
+    "gradient": "linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%)",
+    "seriesSlugs": ["cyberpunk-odyssey", "retro-arcade-rider"]
+  },
+  {
+    "id": "col-3",
+    "name": "Fantasy & Magical Journeys",
+    "slug": "fantasy-magic",
+    "categoryTag": "Genre Specials",
+    "description": "Enter worlds of runic secrets, flying islands, ancient mythical legends, and spells.",
+    "gradient": "linear-gradient(135deg, #10b981 0%, #6366f1 100%)",
+    "seriesSlugs": ["fantasy-chronicles-runes", "celestial-guardians", "shadow-ninja-legend"]
+  },
+  {
+    "id": "col-4",
+    "name": "Action & Martial Arts",
+    "slug": "action-martial-arts",
+    "categoryTag": "Genre Specials",
+    "description": "Adrenaline-fueled combat, banned ninja scrolls, sword mastery, and detective investigations.",
+    "gradient": "linear-gradient(135deg, #f59e0b 0%, #ef4444 100%)",
+    "seriesSlugs": ["neon-tokyo-noir", "shadow-ninja-legend"]
+  },
+  {
+    "id": "col-5",
+    "name": "Harem & School Romance",
+    "slug": "harem-romance",
+    "categoryTag": "Most Popular",
+    "description": "Charming encounters, school life drama, multi-heroine comedy, and heart-racing moments.",
+    "gradient": "linear-gradient(135deg, #ff5e00 0%, #ec4899 100%)",
+    "seriesSlugs": ["celestial-guardians", "retro-arcade-rider"]
+  },
+  {
+    "id": "col-6",
+    "name": "Dark Fantasy & Supernatural",
+    "slug": "supernatural-demons",
+    "categoryTag": "Genre Specials",
+    "description": "Demonic realms, vampire lords, occult powers, and dark magical battles.",
+    "gradient": "linear-gradient(135deg, #8b5cf6 0%, #4338ca 100%)",
+    "seriesSlugs": ["fantasy-chronicles-runes", "cyberpunk-odyssey"]
+  },
+  {
+    "id": "col-7",
+    "name": "Top Rated Masterpieces",
+    "slug": "top-rated-classics",
+    "categoryTag": "Featured",
+    "description": "Critically acclaimed fan favorites, top-scoring releases, and legendary series.",
+    "gradient": "linear-gradient(135deg, #eab308 0%, #f97316 100%)",
+    "seriesSlugs": ["cyberpunk-odyssey", "fantasy-chronicles-runes", "neon-tokyo-noir"]
+  },
+  {
+    "id": "col-8",
+    "name": "Comedy & Slice of Life",
+    "slug": "comedy-slice-of-life",
+    "categoryTag": "Most Popular",
+    "description": "Hilarious misadventures, relaxed slice-of-life moments, and fun lighthearted comedy.",
+    "gradient": "linear-gradient(135deg, #14b8a6 0%, #06b6d4 100%)",
+    "seriesSlugs": ["retro-arcade-rider", "celestial-guardians"]
+  },
+  {
+    "id": "col-9",
+    "name": "Mystery & Psychological Thrillers",
+    "slug": "mystery-thriller",
+    "categoryTag": "Genre Specials",
+    "description": "Mind-bending plots, psychological twists, suspenseful investigations, and dark secrets.",
+    "gradient": "linear-gradient(135deg, #6366f1 0%, #a855f7 100%)",
+    "seriesSlugs": ["neon-tokyo-noir", "cyberpunk-odyssey"]
+  },
+  {
+    "id": "col-10",
+    "name": "Historical & Feudal Samurai",
+    "slug": "historical-feudal",
+    "categoryTag": "Genre Specials",
+    "description": "Feudal Japan epics, ancient dynasty tales, katana duels, and historical legends.",
+    "gradient": "linear-gradient(135deg, #b91c1c 0%, #f59e0b 100%)",
+    "seriesSlugs": ["shadow-ninja-legend", "fantasy-chronicles-runes"]
+  },
+  {
+    "id": "col-11",
+    "name": "Super Power & Heroic Battles",
+    "slug": "super-power",
+    "categoryTag": "Most Popular",
+    "description": "Awakened abilities, elemental magic, grand tournament arenas, and superhero feats.",
+    "gradient": "linear-gradient(135deg, #3b82f6 0%, #10b981 100%)",
+    "seriesSlugs": ["celestial-guardians", "shadow-ninja-legend"]
+  },
+  {
+    "id": "col-12",
+    "name": "Ecchi & Spicy Fanservice",
+    "slug": "ecchi-fanservice",
+    "categoryTag": "Featured",
+    "description": "Playful fanservice, spicy comedy, ecchi antics, and provocative harem adventures.",
+    "gradient": "linear-gradient(135deg, #f43f5e 0%, #fb7185 100%)",
+    "seriesSlugs": ["celestial-guardians", "retro-arcade-rider"]
+  }
+]

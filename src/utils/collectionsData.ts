@@ -1,6 +1,8 @@
 import { MOCK_SERIES } from './mockData';
 import { unstable_cache } from 'next/cache';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import fs from 'fs';
+import path from 'path';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://kdesazliquregjbptyhc.supabase.co';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
@@ -14,6 +16,19 @@ export interface Collection {
   categoryTag?: string;
   gradient: string;
   seriesSlugs: string[];
+}
+
+export function getLocalPlaylists(): Collection[] {
+  try {
+    const filePath = path.join(process.cwd(), 'src', 'utils', 'playlists_store.json');
+    if (fs.existsSync(filePath)) {
+      const data = fs.readFileSync(filePath, 'utf-8');
+      return JSON.parse(data);
+    }
+  } catch (err) {
+    console.error('Error reading playlists store:', err);
+  }
+  return COLLECTIONS;
 }
 
 export const COLLECTIONS: Collection[] = [
@@ -128,7 +143,8 @@ export const COLLECTIONS: Collection[] = [
 ];
 
 export async function getCollectionWithSeries(slug: string) {
-  const collection = COLLECTIONS.find(c => c.slug === slug);
+  const localList = getLocalPlaylists();
+  const collection = localList.find(c => c.slug === slug);
   if (!collection) return null;
 
   let seriesList: any[] = [];
@@ -203,7 +219,9 @@ export const getAllCollectionsWithPreviews = unstable_cache(
       seriesList = MOCK_SERIES;
     }
 
-    return COLLECTIONS.map(col => {
+    const localList = getLocalPlaylists();
+    
+    return localList.map(col => {
       let matched = seriesList.filter(s => {
         if (col.seriesSlugs.includes(s.slug)) return true;
         const tagsLower = (s.tags || []).map((t: string) => t.toLowerCase());

@@ -51,6 +51,16 @@ const nextConfig: NextConfig = {
         destination: '/categories',
         permanent: true,
       },
+      {
+        source: '/collections',
+        destination: '/playlists',
+        permanent: true,
+      },
+      {
+        source: '/collections/:path*',
+        destination: '/playlists/:path*',
+        permanent: true,
+      },
     ];
   },
 };

@@ -66,7 +66,7 @@ export default function CollectionsClient({ collections }: CollectionsClientProp
   const itemListJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
-    'name': `Curated Hentai Anime ${tabLabel} on PlayHentai`,
+    'name': `Curated Hentai Anime ${tabLabel} on Play Hentai`,
     'url': `${SITE_URL}${routePrefix}`,
     'itemListElement': filteredCollections.map((col, idx) => ({
       '@type': 'ListItem',
@@ -95,7 +95,7 @@ export default function CollectionsClient({ collections }: CollectionsClientProp
           <h1>Curated Hentai Playlists</h1>
         </div>
         <p className={styles.subtext}>
-          Explore hand-picked series lists curated by our team of collectors. Find your next favorite genre niche.
+          Explore curated hentai anime playlists organized by theme, genre, and popular series. Discover hand-picked collections on Play Hentai.
         </p>
       </div>
 
@@ -104,16 +104,20 @@ export default function CollectionsClient({ collections }: CollectionsClientProp
         {TABS.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
+          const href = tab.id === 'all' ? routePrefix : `${routePrefix}?tab=${encodeURIComponent(tab.id)}`;
           return (
-            <button
+            <Link
               key={tab.id}
-              type="button"
-              onClick={() => setActiveTab(tab.id)}
+              href={href}
+              onClick={() => {
+                setActiveTab(tab.id);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
               className={`${styles.tabBtn} ${isActive ? styles.activeTab : ''}`}
             >
               <Icon size={15} />
               <span>{tab.label}</span>
-            </button>
+            </Link>
           );
         })}
       </div>
