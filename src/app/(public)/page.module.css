@@ -1005,3 +1005,11 @@
     padding: 1.5rem;
   }
 }
+
+/* Homepage Native Recommendation Feed Ad alignment overrides */
+.homepageNativeAd {
+  padding: 0 !important;
+  margin: 0 !important;
+  max-width: 100% !important;
+}
+

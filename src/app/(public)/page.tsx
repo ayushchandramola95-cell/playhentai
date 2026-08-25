@@ -588,7 +588,9 @@ export default async function HomePage() {
       </section>
 
       {/* Sponsored Native Recommendation Feed Widget (Zone 5986302) - Desktop Only */}
-      <AdBanner zoneId="5986302" insClass="eas6a97888e20" desktopOnly />
+      <section className={styles.section}>
+        <AdBanner zoneId="5986302" insClass="eas6a97888e20" desktopOnly className={styles.homepageNativeAd} />
+      </section>
 
       {/* Recommendations Banner */}
       {!user ? (
