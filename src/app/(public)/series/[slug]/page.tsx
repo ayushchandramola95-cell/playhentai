@@ -305,7 +305,7 @@ const getCachedSeriesData = unstable_cache(
             seasonsData.map(async (season) => {
               const { data: eps } = await publicSupabaseClient
                 .from('episodes')
-                .select('*')
+                .select('id, episode_number, title, description, duration_seconds, thumbnail_key, release_date, created_at, is_published')
                 .eq('season_id', season.id)
                 .eq('is_published', true)
                 .order('episode_number');
@@ -346,8 +346,7 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
         title: `${baseSeries.title} - Episode ${index + 1}`,
         description: `This is the detailed description for episode ${index + 1} of ${baseSeries.title}.`,
         duration_seconds: 1440,
-        thumbnail_key: e.thumbnail || baseSeries.cover_image_key,
-        video_key: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4'
+        thumbnail_key: e.thumbnail || baseSeries.cover_image_key
       }));
       
       if (relatedEps.length === 0) {
@@ -357,8 +356,7 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
           title: `Episode 1`,
           description: `This is the detailed description for episode 1 of ${baseSeries.title}.`,
           duration_seconds: 1440,
-          thumbnail_key: baseSeries.cover_image_key,
-          video_key: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4'
+          thumbnail_key: baseSeries.cover_image_key
         });
       }
       
