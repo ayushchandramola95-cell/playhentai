@@ -33,24 +33,31 @@ export default function AdBanner({ zoneId = '5986176', insClass, mobileOnly = fa
     // Clear previous ad nodes if re-rendered
     containerRef.current.innerHTML = '';
 
-    // Create script element for magsrv ad-provider.js
-    const scriptObj = document.createElement('script');
-    scriptObj.async = true;
-    scriptObj.type = 'application/javascript';
-    scriptObj.src = 'https://a.magsrv.com/ad-provider.js';
+    // Ensure magsrv ad-provider.js is loaded exactly once in document.head
+    const scriptSrc = 'https://a.magsrv.com/ad-provider.js';
+    let scriptObj = document.querySelector(`script[src="${scriptSrc}"]`);
+    if (!scriptObj) {
+      scriptObj = document.createElement('script');
+      scriptObj.setAttribute('src', scriptSrc);
+      scriptObj.setAttribute('type', 'application/javascript');
+      scriptObj.setAttribute('async', 'true');
+      document.head.appendChild(scriptObj);
+    }
 
     // Create ins element
     const insObj = document.createElement('ins');
     insObj.className = insClass || 'eas6a97888e2';
     insObj.setAttribute('data-zoneid', zoneId);
-
-    // Create serve push script
-    const pushScript = document.createElement('script');
-    pushScript.innerHTML = '(window.AdProvider = window.AdProvider || []).push({"serve": {}});';
-
-    containerRef.current.appendChild(scriptObj);
     containerRef.current.appendChild(insObj);
-    containerRef.current.appendChild(pushScript);
+
+    // Push to AdProvider to render this newly added zone
+    try {
+      const w = window as any;
+      w.AdProvider = w.AdProvider || [];
+      w.AdProvider.push({ serve: {} });
+    } catch (e) {
+      console.warn('AdProvider push failed:', e);
+    }
   }, [zoneId, insClass, isBlocked]);
 
   if (isBlocked) {

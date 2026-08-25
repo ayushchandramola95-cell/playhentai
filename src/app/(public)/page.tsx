@@ -588,7 +588,7 @@ export default async function HomePage() {
       </section>
 
       {/* Sponsored Native Recommendation Feed Widget (Zone 5986302) - Desktop Only */}
-      <AdBanner zoneId="5986302" insClass="eas6a9788e20" desktopOnly />
+      <AdBanner zoneId="5986302" insClass="eas6a97888e20" desktopOnly />
 
       {/* Recommendations Banner */}
       {!user ? (

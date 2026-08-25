@@ -76,7 +76,7 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
   const [searchQuery, setSearchQuery] = useState('');
   const [sortMode, setSortMode] = useState<string>('random'); // Default: Random
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const ITEMS_PER_PAGE = 24;
+  const ITEMS_PER_PAGE = 25;
 
   const getPageLink = (pageNumber: number) => {
     if (pageNumber === 1) return basePath;

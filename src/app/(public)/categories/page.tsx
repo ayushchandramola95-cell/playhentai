@@ -210,7 +210,7 @@ export default async function CategoriesPage({ searchParams }: PageProps) {
   const year = params.year;
   const pageParam = params.page;
   const currentPage = pageParam ? parseInt(pageParam, 10) || 1 : 1;
-  const ITEMS_PER_PAGE = 24;
+  const ITEMS_PER_PAGE = 25;
 
   const { dbSeries, isDbEmpty } = await getCachedCategoriesSeries();
   const activeSeries = isDbEmpty ? MOCK_SERIES : dbSeries;

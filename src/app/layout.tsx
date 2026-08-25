@@ -138,7 +138,7 @@ export default function RootLayout({
         {/* Exoclick Floating Instant Message Chat Box Ad (Zone 6008712) */}
         {!ads.block_instant_message && (
           <>
-            <ins className="eas6a9788e6" data-zoneid="6008712"></ins>
+            <ins className="eas6a97888e6" data-zoneid="6008712"></ins>
             <Script id="exoclick-instant-message" strategy="afterInteractive">
               {`(window.AdProvider = window.AdProvider || []).push({"serve": {}});`}
             </Script>
@@ -156,7 +156,7 @@ export default function RootLayout({
         {/* Exoclick Global In-Page Push Notifications Ad (Zone 6008722) */}
         {!ads.block_in_page_push && (
           <>
-            <ins className="eas6a9788e42" data-zoneid="6008722"></ins>
+            <ins className="eas6a97888e42" data-zoneid="6008722"></ins>
             <Script id="exoclick-in-page-push" strategy="afterInteractive">
               {`(window.AdProvider = window.AdProvider || []).push({"serve": {}});`}
             </Script>
