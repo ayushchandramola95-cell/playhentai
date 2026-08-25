@@ -5,6 +5,7 @@ import { Providers } from "./providers";
 import Script from "next/script";
 import fs from 'fs';
 import path from 'path';
+import GlobalAds from "@/components/GlobalAds/GlobalAds";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -125,44 +126,8 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
-        {/* Exoclick Global Popunder (1 ad every 5 minutes in background) */}
-        {!ads.block_popunder && (
-          <Script src="/js/popunder.js" strategy="afterInteractive" />
-        )}
-
-        {/* Exoclick Ad Provider Script (Loaded if any zone requires it) */}
-        {(!ads.block_instant_message || !ads.block_banners || !ads.block_in_page_push) && (
-          <Script src="https://a.magsrv.com/ad-provider.js" strategy="afterInteractive" />
-        )}
-
-        {/* Exoclick Floating Instant Message Chat Box Ad (Zone 6008712) */}
-        {!ads.block_instant_message && (
-          <>
-            <ins className="eas6a97888e6" data-zoneid="6008712"></ins>
-            <Script id="exoclick-instant-message" strategy="afterInteractive">
-              {`(window.AdProvider = window.AdProvider || []).push({"serve": {}});`}
-            </Script>
-          </>
-        )}
-        {/* Exoclick Mobile-Only Sticky Footer Ad (Zone 6008718) */}
-        {!ads.block_banners && (
-          <div className="mobile-sticky-ad">
-            <ins className="eas6a97888e10" data-zoneid="6008718"></ins>
-            <Script id="exoclick-mobile-sticky" strategy="afterInteractive">
-              {`(window.AdProvider = window.AdProvider || []).push({"serve": {}});`}
-            </Script>
-          </div>
-        )}
-        {/* Exoclick Global In-Page Push Notifications Ad (Zone 6008722) */}
-        {!ads.block_in_page_push && (
-          <>
-            <ins className="eas6a97888e42" data-zoneid="6008722"></ins>
-            <Script id="exoclick-in-page-push" strategy="afterInteractive">
-              {`(window.AdProvider = window.AdProvider || []).push({"serve": {}});`}
-            </Script>
-          </>
-        )}
         <Providers>
+          <GlobalAds adsSettings={ads} />
           {children}
         </Providers>
       </body>

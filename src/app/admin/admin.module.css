@@ -859,3 +859,17 @@
   box-shadow: 0 0 10px rgba(var(--primary-rgb), 0.3);
 }
 
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+

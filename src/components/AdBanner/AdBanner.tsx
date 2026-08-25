@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
+import { usePathname } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 import styles from './AdBanner.module.css';
 
 interface AdBannerProps {
@@ -14,6 +16,12 @@ interface AdBannerProps {
 export default function AdBanner({ zoneId = '5986176', insClass, mobileOnly = false, desktopOnly = false, className = '' }: AdBannerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isBlocked, setIsBlocked] = useState(false);
+  const pathname = usePathname();
+  const auth = useAuth();
+  const profile = auth?.profile;
+
+  const isAdminPath = pathname ? pathname.startsWith('/admin') : false;
+  const isAdminUser = profile?.role === 'admin';
 
   useEffect(() => {
     // Check if banners are globally blocked
@@ -60,8 +68,8 @@ export default function AdBanner({ zoneId = '5986176', insClass, mobileOnly = fa
     }
   }, [zoneId, insClass, isBlocked]);
 
-  if (isBlocked) {
-    return null; // Do not render anything at all if banners are hidden
+  if (isBlocked || isAdminPath || isAdminUser) {
+    return null; // Do not render anything at all if banners are hidden or user/path is admin
   }
 
   return (

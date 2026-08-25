@@ -40,6 +40,8 @@ export default function DeveloperSeoPage() {
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [isRevalidating, setIsRevalidating] = useState<boolean>(false);
+  const [isPinging, setIsPinging] = useState<boolean>(false);
 
   // Database series lists
   const [seriesList, setSeriesList] = useState<any[]>([]);
@@ -64,6 +66,56 @@ export default function DeveloperSeoPage() {
   // Keywords State
   const [seoKeywords, setSeoKeywords] = useState<string[]>([]);
   const [newKeywordInput, setNewKeywordInput] = useState<string>('');
+
+  const handleRevalidateSitemaps = async () => {
+    setIsRevalidating(true);
+    setSuccessMsg(null);
+    setErrorMsg(null);
+    try {
+      const res = await fetch('/api/admin/revalidate-sitemaps', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setSuccessMsg(data.message || 'Sitemaps revalidated successfully!');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        setErrorMsg(data.error || 'Failed to revalidate sitemaps.');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    } catch (err: any) {
+      setErrorMsg(err.message || 'An error occurred while updating sitemaps.');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } finally {
+      setIsRevalidating(false);
+    }
+  };
+
+  const handlePingSearchEngines = async () => {
+    setIsPinging(true);
+    setSuccessMsg(null);
+    setErrorMsg(null);
+    try {
+      const res = await fetch('/api/seo/ping-google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setSuccessMsg('Search engines notified successfully! Bing/Yahoo IndexNow updated. Google sitemap polled.');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        setErrorMsg(data.error || 'Failed to ping search engines.');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    } catch (err: any) {
+      setErrorMsg(err.message || 'An error occurred while pinging search engines.');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } finally {
+      setIsPinging(false);
+    }
+  };
 
   useEffect(() => {
     loadInitialData();
@@ -1055,6 +1107,35 @@ export default function DeveloperSeoPage() {
                       border: '1px solid var(--border)'
                     }}>
                       <div>
+                        <strong>dynamic sitemap-video.xml validation</strong>
+                        <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--foreground-secondary)', marginTop: '0.2rem' }}>
+                          Generates video-object metadata schemas for all published watch episode streaming links.
+                        </span>
+                      </div>
+                      <a href="/sitemap-video.xml" target="_blank" style={{
+                        fontSize: '0.85rem',
+                        fontWeight: 700,
+                        color: 'var(--primary)',
+                        textDecoration: 'none',
+                        background: 'rgba(var(--primary-rgb), 0.1)',
+                        padding: '0.5rem 1rem',
+                        borderRadius: '8px',
+                        border: '1px solid rgba(var(--primary-rgb), 0.2)'
+                      }}>
+                        View Video Sitemap
+                      </a>
+                    </div>
+
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '1rem 1.2rem',
+                      background: 'var(--surface-hover)',
+                      borderRadius: '12px',
+                      border: '1px solid var(--border)'
+                    }}>
+                      <div>
                         <strong>crawler robots.txt directives</strong>
                         <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--foreground-secondary)', marginTop: '0.2rem' }}>
                           Allows full search indexation while blocking user private areas (admin, accounts).
@@ -1072,6 +1153,99 @@ export default function DeveloperSeoPage() {
                       }}>
                         View Robots.txt
                       </a>
+                    </div>
+                  </div>
+                </div>
+
+                <div className={styles.panelCard}>
+                  <h2>Sitemap Management & Crawl Controls</h2>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--foreground-secondary)', marginTop: '0.2rem', marginBottom: '1.5rem' }}>
+                    Manually trigger sitemap cache revalidation or notify search engines about new changes right away.
+                  </p>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
+                    <div style={{
+                      padding: '1.2rem',
+                      background: 'var(--surface-hover)',
+                      borderRadius: '12px',
+                      border: '1px solid var(--border)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      gap: '1rem'
+                    }}>
+                      <div>
+                        <strong style={{ display: 'block', fontSize: '0.95rem' }}>Force Sitemap Revalidation</strong>
+                        <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--foreground-secondary)', marginTop: '0.4rem', lineHeight: '1.4' }}>
+                          By default, Next.js caches sitemap.xml for 1 hour. Click this to immediately purge the cache, forcing search engines to fetch new catalog items on their next crawl.
+                        </span>
+                      </div>
+                      <button
+                        onClick={handleRevalidateSitemaps}
+                        disabled={isRevalidating}
+                        style={{
+                          fontSize: '0.85rem',
+                          fontWeight: 700,
+                          color: '#ffffff',
+                          background: 'var(--primary)',
+                          border: 'none',
+                          padding: '0.6rem 1rem',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '0.5rem',
+                          opacity: isRevalidating ? 0.7 : 1,
+                          transition: 'all 0.2s ease',
+                          width: '100%'
+                        }}
+                      >
+                        <RefreshCw size={15} className={isRevalidating ? styles.spin : ''} />
+                        {isRevalidating ? 'Updating...' : 'Update Sitemaps Now'}
+                      </button>
+                    </div>
+
+                    <div style={{
+                      padding: '1.2rem',
+                      background: 'var(--surface-hover)',
+                      borderRadius: '12px',
+                      border: '1px solid var(--border)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      gap: '1rem'
+                    }}>
+                      <div>
+                        <strong style={{ display: 'block', fontSize: '0.95rem' }}>Ping Search Engines (IndexNow)</strong>
+                        <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--foreground-secondary)', marginTop: '0.4rem', lineHeight: '1.4' }}>
+                          Instantly submit your updated sitemap URL and public links to indexation protocols (IndexNow/Bing) to trigger immediate crawling.
+                        </span>
+                      </div>
+                      <button
+                        onClick={handlePingSearchEngines}
+                        disabled={isPinging}
+                        style={{
+                          fontSize: '0.85rem',
+                          fontWeight: 700,
+                          color: '#ffffff',
+                          background: '#10b981',
+                          border: 'none',
+                          padding: '0.6rem 1rem',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '0.5rem',
+                          opacity: isPinging ? 0.7 : 1,
+                          transition: 'all 0.2s ease',
+                          width: '100%'
+                        }}
+                      >
+                        <Globe size={15} className={isPinging ? styles.spin : ''} />
+                        {isPinging ? 'Pinging...' : 'Ping Search Engines'}
+                      </button>
                     </div>
                   </div>
                 </div>
