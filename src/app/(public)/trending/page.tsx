@@ -7,6 +7,18 @@ import TrendingGenreSelect from './TrendingGenreSelect';
 import styles from './trending.module.css';
 import { MOCK_SERIES, MOCK_SERIES_DETAILS } from '@/utils/mockData';
 import { GENRES } from '@/utils/constants';
+import { getSeriesViewsMap } from '@/utils/views';
+
+function getStableRating(id: string): number {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    hash = id.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const min = 50; // 5.0
+  const max = 95; // 9.5
+  const val = Math.abs(hash % (max - min));
+  return parseFloat(((min + val) / 10).toFixed(1));
+}
 
 export const metadata = {
   title: 'Trending Hentai Anime Series | Play Hentai',
@@ -83,7 +95,11 @@ export default async function TrendingPage({
 
     if (seriesData && seriesData.length > 0) {
       isDbEmpty = false;
-      seriesList = seriesData;
+      const viewsMap = await getSeriesViewsMap();
+      seriesList = seriesData.map((s: any) => ({
+        ...s,
+        views: viewsMap[s.id] || 0
+      }));
     }
   } catch (err) {
     console.error('Error fetching trending series:', err);
@@ -106,8 +122,10 @@ export default async function TrendingPage({
   // Hydrate series items
   let processedList = rawList.map((s, idx) => ({
     ...s,
-    views: s.views || Math.max(1200, 18500 - idx * 2400),
-    rating: s.rating || parseFloat((9.5 - idx * 0.2).toFixed(1)),
+    views: isDbEmpty 
+      ? (s.views || Math.max(1200, 18500 - idx * 2400))
+      : (s.views || 0),
+    rating: s.rating || getStableRating(s.id || s.title),
     firstEpisodeId: getFirstEpisodeId(s, isDbEmpty)
   }));
 

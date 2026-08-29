@@ -58,6 +58,77 @@ interface BatchEpisodeFile {
   isPreview: boolean;
 }
 
+const ImageSize = ({ r2Key }: { r2Key: string }) => {
+  const [size, setSize] = useState<string>('Loading...');
+
+  useEffect(() => {
+    let active = true;
+    const url = getR2Url(r2Key, 'thumbnail');
+
+    const fetchSize = async () => {
+      try {
+        const res = await fetch(url, { method: 'HEAD' });
+        if (!active) return;
+        
+        const contentLength = res.headers.get('content-length');
+        if (contentLength) {
+          const bytes = parseInt(contentLength, 10);
+          if (bytes > 0) {
+            setSize(formatBytes(bytes));
+            return;
+          }
+        }
+
+        const getRes = await fetch(url, { headers: { 'Range': 'bytes=0-0' } });
+        if (!active) return;
+        
+        const contentRange = getRes.headers.get('content-range');
+        if (contentRange) {
+          const match = contentRange.match(/\/(\d+)$/);
+          if (match && match[1]) {
+            const bytes = parseInt(match[1], 10);
+            setSize(formatBytes(bytes));
+            return;
+          }
+        }
+
+        setSize('Size Unknown');
+      } catch (e) {
+        if (active) setSize('Size Unknown');
+      }
+    };
+
+    const formatBytes = (bytes: number) => {
+      if (bytes >= 1024 * 1024) {
+        return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+      }
+      return `${(bytes / 1024).toFixed(1)} KB`;
+    };
+
+    fetchSize();
+    return () => {
+      active = false;
+    };
+  }, [r2Key]);
+
+  return (
+    <span 
+      style={{ 
+        fontSize: '0.65rem', 
+        color: 'var(--foreground-muted)', 
+        fontWeight: 'normal',
+        marginLeft: '0.5rem',
+        background: 'rgba(255, 255, 255, 0.05)',
+        padding: '0.08rem 0.3rem',
+        borderRadius: '4px',
+        border: '1px solid rgba(255, 255, 255, 0.08)'
+      }}
+    >
+      {size}
+    </span>
+  );
+};
+
 export default function AdminEpisodesPage() {
   const [episodesList, setEpisodesList] = useState<Episode[]>([]);
   const [seasonsList, setSeasonsList] = useState<Season[]>([]);
@@ -1546,6 +1617,50 @@ export default function AdminEpisodesPage() {
     }
   };
 
+  const handleMultipleCustomThumbnailsUploaded = async (keys: string[]) => {
+    if (!thumbModalEpisode || keys.length === 0) return;
+    setSavingThumbStudio(true);
+    setThumbStudioError(null);
+
+    try {
+      const nextList = [...thumbStudioSavedList];
+      keys.forEach(k => {
+        if (!nextList.includes(k)) nextList.push(k);
+      });
+      
+      setThumbStudioSavedList(nextList);
+      const lastKey = keys[keys.length - 1];
+      setThumbStudioActiveKey(lastKey);
+
+      const updateRes = await fetch('/api/admin/episodes', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: thumbModalEpisode.id,
+          season_id: thumbModalEpisode.season_id,
+          episode_number: thumbModalEpisode.episode_number,
+          title: thumbModalEpisode.title,
+          description: thumbModalEpisode.description,
+          video_key: thumbModalEpisode.video_key,
+          duration_seconds: thumbModalEpisode.duration_seconds,
+          release_date: thumbModalEpisode.release_date,
+          is_published: thumbModalEpisode.is_published,
+          thumbnail_key: lastKey,
+          thumbnail_options: nextList
+        })
+      });
+
+      const updateData = await updateRes.json();
+      if (!updateRes.ok) throw new Error(updateData.error || 'Failed to update episode records');
+
+      fetchInitialData();
+    } catch (err: any) {
+      setThumbStudioError(err.message || 'Failed to save custom thumbnails');
+    } finally {
+      setSavingThumbStudio(false);
+    }
+  };
+
   const deleteThumbnailOption = async (key: string) => {
     if (!thumbModalEpisode) return;
     setSavingThumbStudio(true);
@@ -2448,20 +2563,165 @@ export default function AdminEpisodesPage() {
             {/* Tab contents */}
             <div style={{ flex: 1, overflowY: 'auto', paddingRight: '0.4rem', minHeight: 0, marginBottom: '1rem' }}>
               {thumbActiveTab === 'upload' ? (
-                <div style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', background: 'rgba(15, 23, 42, 0.25)', borderRadius: '12px', border: '1px solid var(--border)', maxWidth: '500px', margin: '2rem auto', width: '100%' }}>
-                  <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--foreground)', margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                    Upload Custom Thumbnail Image
-                  </h3>
-                  <p style={{ fontSize: '0.8rem', color: 'var(--foreground-secondary)', margin: 0 }}>
-                    Choose or drag a 16:9 image file (JPG, PNG, WebP) from your computer to directly set it as the thumbnail for this episode.
-                  </p>
-                  <FileUploader
-                    label="Upload Custom Thumbnail Image"
-                    acceptedTypes="image/*"
-                    maxSizeMb={5}
-                    onUploadComplete={handleCustomThumbnailUploadComplete}
-                    previewType="cover"
-                  />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', width: '100%' }}>
+                  {/* Upload Box */}
+                  <div style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', background: 'rgba(15, 23, 42, 0.45)', borderRadius: '14px', border: '1px solid var(--border)', maxWidth: '600px', margin: '0 auto', width: '100%' }}>
+                    <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--foreground)', margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      Upload Custom Thumbnail Image
+                    </h3>
+                    <p style={{ fontSize: '0.8rem', color: 'var(--foreground-secondary)', margin: 0 }}>
+                      Choose or drag multiple 16:9 image files (JPG, PNG, WebP) from your computer to add them as custom thumbnail options for this episode.
+                    </p>
+                    <FileUploader
+                      label="Select or Drag Image Files"
+                      acceptedTypes="image/*"
+                      maxSizeMb={5}
+                      multiple={true}
+                      onUploadComplete={handleCustomThumbnailUploadComplete}
+                      onMultipleUploadComplete={handleMultipleCustomThumbnailsUploaded}
+                      previewType="cover"
+                    />
+                  </div>
+
+                  {/* Big-Screen Saved Choice Gallery */}
+                  {thumbStudioSavedList.length > 0 && (
+                    <div style={{ background: 'rgba(15, 23, 42, 0.35)', padding: '1.5rem', borderRadius: '14px', border: '1px solid var(--border)', width: '100%' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.2rem', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', paddingBottom: '0.6rem' }}>
+                        <h4 style={{ fontSize: '0.82rem', fontWeight: 800, textTransform: 'uppercase', color: '#f8fafc', margin: 0, letterSpacing: '0.6px' }}>
+                          Saved Choice Gallery ({thumbStudioSavedList.length} Options)
+                        </h4>
+                        <span style={{ fontSize: '0.72rem', color: 'var(--foreground-muted)' }}>Click 'Set Active' to change the active episode thumbnail.</span>
+                      </div>
+                      
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1.2rem' }}>
+                        {thumbStudioSavedList.map((key, idx) => {
+                          const isCurrentActive = thumbStudioActiveKey === key;
+                          const previewUrl = getR2Url(key, 'thumbnail');
+                          return (
+                            <div 
+                              key={key} 
+                              style={{ 
+                                position: 'relative', 
+                                background: 'rgba(15, 23, 42, 0.9)', 
+                                borderRadius: '10px', 
+                                border: isCurrentActive ? '2.5px solid var(--primary)' : '1px solid rgba(255, 255, 255, 0.1)', 
+                                overflow: 'hidden',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                transition: 'all 0.2s ease',
+                                boxShadow: isCurrentActive ? '0 0 15px rgba(var(--primary-rgb), 0.25)' : 'none'
+                              }}
+                            >
+                              {/* Preview Image */}
+                              <div style={{ position: 'relative', aspectRatio: '16/9', overflow: 'hidden', background: '#000' }}>
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img src={previewUrl} alt={`Option ${idx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                
+                                {isCurrentActive && (
+                                  <div style={{
+                                    position: 'absolute',
+                                    top: '8px',
+                                    left: '8px',
+                                    background: 'var(--primary)',
+                                    color: 'white',
+                                    fontSize: '0.65rem',
+                                    fontWeight: 800,
+                                    padding: '0.2rem 0.5rem',
+                                    borderRadius: '4px',
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '0.05em',
+                                    boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+                                    zIndex: 2
+                                  }}>
+                                    Active
+                                  </div>
+                                )}
+
+                                {/* Delete Option */}
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    deleteThumbnailOption(key);
+                                  }}
+                                  title="Delete Option"
+                                  style={{
+                                    position: 'absolute',
+                                    top: '8px',
+                                    right: '8px',
+                                    background: 'rgba(239, 68, 68, 0.85)',
+                                    border: 'none',
+                                    color: 'white',
+                                    borderRadius: '50%',
+                                    width: '24px',
+                                    height: '24px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    cursor: 'pointer',
+                                    zIndex: 2,
+                                    transition: 'all 0.15s ease'
+                                  }}
+                                >
+                                  <X size={13} />
+                                </button>
+                              </div>
+
+                              {/* Footer Details / Actions */}
+                              <div style={{ padding: '0.65rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', background: '#090d16' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                  <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 700, display: 'inline-flex', alignItems: 'center' }}>
+                                    Option #{idx + 1}
+                                    <ImageSize r2Key={key} />
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => setZoomImageUrl(previewUrl)}
+                                    style={{
+                                      background: 'transparent',
+                                      border: 'none',
+                                      color: 'var(--foreground-secondary)',
+                                      cursor: 'pointer',
+                                      fontSize: '0.72rem',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '0.2rem',
+                                      padding: 0
+                                    }}
+                                  >
+                                    <Maximize2 size={11} />
+                                    <span>Zoom</span>
+                                  </button>
+                                </div>
+                                
+                                <div style={{ display: 'flex', gap: '0.4rem' }}>
+                                  <button
+                                    type="button"
+                                    disabled={isCurrentActive || savingThumbStudio}
+                                    onClick={() => selectActiveThumbnail(key)}
+                                    style={{
+                                      flex: 1,
+                                      background: isCurrentActive ? 'rgba(255,255,255,0.04)' : 'var(--primary)',
+                                      color: isCurrentActive ? 'var(--foreground-muted)' : 'white',
+                                      border: isCurrentActive ? '1px solid rgba(255,255,255,0.08)' : 'none',
+                                      padding: '0.4rem 0',
+                                      borderRadius: '6px',
+                                      fontSize: '0.74rem',
+                                      fontWeight: 700,
+                                      cursor: isCurrentActive ? 'default' : 'pointer',
+                                      transition: 'all 0.15s ease'
+                                    }}
+                                  >
+                                    {isCurrentActive ? 'Active' : 'Set Active'}
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
               ) : !localScrubFile && !isRemoteVideoLoaded ? (
                 <div 

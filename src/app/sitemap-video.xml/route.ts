@@ -83,8 +83,25 @@ export async function GET() {
         const videoContentUrl = getR2Url(ep.video_key, 'video');
 
         // 6. Publication Date
-        const pubDateStr = ep.release_date || ep.created_at || new Date().toISOString();
-        const formattedDate = new Date(pubDateStr).toISOString();
+        let formattedDate = new Date().toISOString();
+        try {
+          const pubDateStr = ep.release_date || ep.created_at;
+          if (pubDateStr) {
+            const parsedDate = new Date(pubDateStr);
+            const year = parsedDate.getFullYear();
+            if (!isNaN(parsedDate.getTime()) && year > 1990 && year < 2100) {
+              formattedDate = parsedDate.toISOString();
+            } else if (ep.created_at) {
+              const parsedCreated = new Date(ep.created_at);
+              const createdYear = parsedCreated.getFullYear();
+              if (!isNaN(parsedCreated.getTime()) && createdYear > 1990 && createdYear < 2100) {
+                formattedDate = parsedCreated.toISOString();
+              }
+            }
+          }
+        } catch (e) {
+          console.error(`Error formatting publication date for episode ${ep.id}:`, e);
+        }
 
         // 7. Duration seconds
         const durationSeconds = ep.duration_seconds || 1440;

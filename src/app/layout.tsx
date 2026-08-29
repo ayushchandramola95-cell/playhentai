@@ -55,8 +55,10 @@ export async function generateMetadata(): Promise<Metadata> {
       apple: '/apple-icon.png',
     },
     verification: {
+      yandex: 'fe39af37bfe31147',
       other: {
         '6a97888e-site-verification': 'ae5b610b0f4d1db35865d663bf9fa0ee',
+        'yandex-verification': 'fe39af37bfe31147',
       },
     },
     robots: {
@@ -120,6 +122,7 @@ export default function RootLayout({
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`} suppressHydrationWarning>
       <head>
         <meta name="6a97888e-site-verification" content="ae5b610b0f4d1db35865d663bf9fa0ee" />
+        <meta name="yandex-verification" content="fe39af37bfe31147" />
       </head>
       <body>
         <script

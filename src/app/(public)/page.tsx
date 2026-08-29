@@ -87,7 +87,13 @@ const getCachedCatalogData = unstable_cache(
       const { data: episodeData } = await publicSupabaseClient
         .from('episodes')
         .select(`
-          *,
+          id,
+          episode_number,
+          title,
+          thumbnail_key,
+          duration_seconds,
+          release_date,
+          created_at,
           seasons (
             season_number,
             series (

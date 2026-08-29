@@ -7,6 +7,7 @@ import styles from './FileUploader.module.css';
 
 interface FileUploaderProps {
   onUploadComplete: (key: string) => void;
+  onMultipleUploadComplete?: (keys: string[]) => void;
   onClear?: (clearedKey?: string) => void;
   onFileSelect?: (file: File) => void;
   acceptedTypes?: string;
@@ -19,6 +20,7 @@ interface FileUploaderProps {
 
 export default function FileUploader({
   onUploadComplete,
+  onMultipleUploadComplete,
   onClear,
   onFileSelect,
   acceptedTypes = 'image/*',
@@ -65,6 +67,7 @@ export default function FileUploader({
   const uploadQueue = async (files: File[]) => {
     setUploading(true);
     setError(null);
+    const uploadedKeys: string[] = [];
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       if (file.size > maxSizeMb * 1024 * 1024) {
@@ -113,7 +116,7 @@ export default function FileUploader({
 
           xhr.onload = () => {
             if (xhr.status === 200 || xhr.status === 204 || xhr.status === 201) {
-              onUploadComplete(key);
+              uploadedKeys.push(key);
               resolve();
             } else {
               reject(new Error(`Upload failed for ${file.name} (Status: ${xhr.status})`));
@@ -133,6 +136,14 @@ export default function FileUploader({
     setProgress(0);
     setFilename(null);
     setFileSize(null);
+
+    if (uploadedKeys.length > 0) {
+      if (onMultipleUploadComplete) {
+        onMultipleUploadComplete(uploadedKeys);
+      } else {
+        onUploadComplete(uploadedKeys[uploadedKeys.length - 1]);
+      }
+    }
   };
 
   const handleDrop = (e: React.DragEvent) => {
