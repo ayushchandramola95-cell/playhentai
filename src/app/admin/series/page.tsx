@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Film, Plus, Search, Edit2, Trash2, X, AlertCircle, Image, Key } from 'lucide-react';
+import { Film, Plus, Search, Edit2, Trash2, X, AlertCircle, Image, Key, Maximize2, Minimize2 } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import FileUploader from '@/components/FileUploader/FileUploader';
 import { GENRES, STUDIOS, RELEASE_YEARS } from '@/utils/constants';
@@ -649,6 +649,7 @@ export default function AdminSeriesPage() {
 
   // Separate Manage Media Modal states
   const [mediaModalOpen, setMediaModalOpen] = useState(false);
+  const [isMediaModalFullscreen, setIsMediaModalFullscreen] = useState(false);
   const [mediaSeries, setMediaSeries] = useState<Series | null>(null);
   const [mediaSaving, setMediaSaving] = useState(false);
 
@@ -2924,37 +2925,84 @@ export default function AdminSeriesPage() {
 
       {/* Manage Media Modal */}
       {mediaModalOpen && mediaSeries && (
-        <div className={styles.modalOverlay}>
-          <div className={styles.modalContent} style={{ maxWidth: '1050px', width: '95%', maxHeight: '90vh', overflowY: 'auto', display: 'flex', flexDirection: 'column', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', boxShadow: '0 20px 40px rgba(0,0,0,0.6)', padding: '2rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '1rem' }}>
-              <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--primary)', letterSpacing: '0.05em' }}>
-                Manage Series Media
-              </h3>
-              <button
-                type="button"
-                onClick={handleCloseMediaModal}
-                style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--foreground-secondary)' }}
-              >
-                <X size={20} />
-              </button>
+        <div className={styles.modalOverlay} style={isMediaModalFullscreen ? { padding: 0, zIndex: 99999 } : {}}>
+          <div 
+            className={styles.modalContent} 
+            style={{ 
+              width: isMediaModalFullscreen ? '100vw' : '96vw', 
+              maxWidth: isMediaModalFullscreen ? '100vw' : '1600px', 
+              height: isMediaModalFullscreen ? '100vh' : '92vh', 
+              maxHeight: isMediaModalFullscreen ? '100vh' : '94vh', 
+              borderRadius: isMediaModalFullscreen ? 0 : '16px',
+              border: isMediaModalFullscreen ? 'none' : '1px solid var(--border)',
+              padding: isMediaModalFullscreen ? '1.5rem 2.5rem' : '1.5rem 2rem',
+              display: 'flex', 
+              flexDirection: 'column', 
+              background: 'var(--surface)', 
+              boxShadow: '0 25px 60px rgba(0,0,0,0.7)',
+              overflow: 'hidden',
+              transition: 'all 0.2s ease'
+            }}
+          >
+            {/* Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.8rem', flexShrink: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', flexWrap: 'wrap' }}>
+                <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--primary)', letterSpacing: '0.05em' }}>
+                  Manage Series Media
+                </h3>
+                <span style={{ fontSize: '0.82rem', color: 'var(--foreground-muted)', background: 'rgba(255, 255, 255, 0.05)', padding: '0.2rem 0.6rem', borderRadius: '4px', border: '1px solid var(--border)', fontWeight: 600 }}>
+                  {mediaSeries.title}
+                </span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                <button
+                  type="button"
+                  onClick={() => setIsMediaModalFullscreen((prev) => !prev)}
+                  title={isMediaModalFullscreen ? 'Exit Fullscreen' : 'Fullscreen Mode'}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.35rem',
+                    background: isMediaModalFullscreen ? 'var(--primary)' : 'rgba(255, 255, 255, 0.05)',
+                    border: '1px solid var(--border)',
+                    color: isMediaModalFullscreen ? '#ffffff' : 'var(--foreground-secondary)',
+                    padding: '0.4rem 0.8rem',
+                    borderRadius: '6px',
+                    fontSize: '0.78rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  {isMediaModalFullscreen ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
+                  <span>{isMediaModalFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCloseMediaModal}
+                  style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--foreground-secondary)', padding: '0.2rem' }}
+                  title="Close"
+                >
+                  <X size={22} />
+                </button>
+              </div>
             </div>
 
-            <p style={{ margin: '0 0 1.5rem 0', fontSize: '0.88rem', color: 'var(--foreground-muted)' }}>
-              Manage uploaded images and assign poster, cover, or banner roles for <strong>{mediaSeries.title}</strong>.
-            </p>
-
-            <form onSubmit={handleSaveMedia} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-              <div style={{ display: 'flex', gap: '2rem', alignItems: 'flex-start' }}>
+            <form onSubmit={handleSaveMedia} style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflow: 'hidden' }}>
+              <div style={{ display: 'flex', gap: '2rem', flex: 1, minHeight: 0, overflow: 'hidden' }}>
                 
-                {/* Left Column: Image Library Upload & Grid (Fixed width) */}
-                <div style={{ width: '280px', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', background: 'rgba(15, 23, 42, 0.25)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
-                    <h4 style={{ margin: 0, fontSize: '0.85rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--primary)', letterSpacing: '0.05em' }}>
-                      Series Uploaded Media Library ({imageLibrary.length} Images)
-                    </h4>
+                {/* Left Column: Image Library Upload & Grid */}
+                <div style={{ width: isMediaModalFullscreen ? '420px' : '380px', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '1rem', height: '100%', overflowY: 'auto', paddingRight: '0.4rem' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem', background: 'rgba(15, 23, 42, 0.35)', padding: '1.2rem', borderRadius: '10px', border: '1px solid var(--border)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <h4 style={{ margin: 0, fontSize: '0.85rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--primary)', letterSpacing: '0.05em' }}>
+                        Uploaded Media Library ({imageLibrary.length})
+                      </h4>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--foreground-muted)' }}>Drag or Browse</span>
+                    </div>
                     
                     <FileUploader
-                      label="Add image to library"
+                      label="Add images to library"
                       acceptedTypes="image/*"
                       maxSizeMb={5}
                       multiple={true}
@@ -2979,35 +3027,35 @@ export default function AdminSeriesPage() {
                         alignItems: 'center',
                         justifyContent: 'center',
                         gap: '0.4rem',
-                        padding: '0.55rem 0.75rem',
+                        padding: '0.6rem 0.8rem',
                         borderRadius: '6px',
                         background: showEpisodePicker 
                           ? 'var(--primary)' 
                           : 'linear-gradient(135deg, rgba(168, 85, 247, 0.18) 0%, rgba(99, 102, 241, 0.18) 100%)',
                         border: '1px solid rgba(168, 85, 247, 0.4)',
                         color: '#ffffff',
-                        fontSize: '0.78rem',
+                        fontSize: '0.8rem',
                         fontWeight: 700,
                         cursor: 'pointer',
                         transition: 'all 0.2s ease',
                       }}
                     >
-                      <Film size={14} />
+                      <Film size={15} />
                       <span>{showEpisodePicker ? 'Hide Episode Picker' : `Import Episode Images (${episodeThumbnails.length})`}</span>
                     </button>
 
                     {/* Episode Thumbnails Selection Grid */}
                     {showEpisodePicker && (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', padding: '0.75rem', background: 'var(--surface)', border: '1px solid rgba(168, 85, 247, 0.3)', borderRadius: '8px', maxHeight: '220px', overflowY: 'auto' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', padding: '0.8rem', background: 'var(--surface)', border: '1px solid rgba(168, 85, 247, 0.3)', borderRadius: '8px', maxHeight: '250px', overflowY: 'auto' }}>
                         <span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--primary-light, #c084fc)' }}>
-                          Click an episode thumbnail to add to library:
+                          Click an episode thumbnail to import into library:
                         </span>
                         {loadingEpisodeThumbs ? (
                           <div style={{ fontSize: '0.75rem', color: 'var(--foreground-muted)', padding: '0.4rem' }}>
                             Fetching episode thumbnails...
                           </div>
                         ) : episodeThumbnails.length > 0 ? (
-                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(68px, 1fr))', gap: '0.4rem' }}>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(78px, 1fr))', gap: '0.5rem' }}>
                             {episodeThumbnails.map((epThumb, idx) => {
                               const isAdded = imageLibrary.includes(epThumb.key);
                               return (
@@ -3025,7 +3073,7 @@ export default function AdminSeriesPage() {
                                   style={{
                                     position: 'relative',
                                     aspectRatio: '16/9',
-                                    borderRadius: '4px',
+                                    borderRadius: '5px',
                                     overflow: 'hidden',
                                     border: isAdded ? '2px solid var(--primary)' : '1px solid var(--border)',
                                     cursor: isAdded ? 'default' : 'pointer',
@@ -3041,7 +3089,7 @@ export default function AdminSeriesPage() {
                                   </span>
                                   {isAdded && (
                                     <span style={{ position: 'absolute', top: '2px', right: '2px', background: 'var(--primary)', color: '#fff', fontSize: '0.55rem', padding: '1px 3px', borderRadius: '2px', fontWeight: 800 }}>
-                                      ✓ Added
+                                      ✓
                                     </span>
                                   )}
                                 </div>
@@ -3057,7 +3105,7 @@ export default function AdminSeriesPage() {
                     )}
 
                     {imageLibrary.length > 0 ? (
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(75px, 1fr))', gap: '0.5rem', marginTop: '0.5rem', maxHeight: '240px', overflowY: 'auto', padding: '0.2rem', border: '1px solid var(--border)', borderRadius: '6px', background: 'var(--surface)' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(95px, 1fr))', gap: '0.6rem', marginTop: '0.4rem', maxHeight: isMediaModalFullscreen ? '450px' : '320px', overflowY: 'auto', padding: '0.4rem', border: '1px solid var(--border)', borderRadius: '8px', background: 'var(--surface)' }}>
                         {imageLibrary.map((key, i) => (
                           <div key={i} style={{ position: 'relative', aspectRatio: '1', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--surface-hover)', overflow: 'hidden' }}>
                             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -3066,7 +3114,7 @@ export default function AdminSeriesPage() {
                               alt={`Asset ${i}`} 
                               onClick={() => setLightboxKey(key)}
                               style={{ width: '100%', height: '100%', objectFit: 'cover', cursor: 'zoom-in' }} 
-                              title="Click to view full screen"
+                              title="Click to view full screen preview"
                             />
                             <button
                               type="button"
@@ -3079,67 +3127,74 @@ export default function AdminSeriesPage() {
                               }}
                               style={{
                                 position: 'absolute',
-                                top: '3px',
-                                right: '3px',
-                                background: 'rgba(0,0,0,0.85)',
+                                top: '4px',
+                                right: '4px',
+                                background: 'rgba(239, 68, 68, 0.9)',
                                 border: 'none',
-                                color: '#ef4444',
+                                color: '#ffffff',
                                 borderRadius: '50%',
-                                width: '18px',
-                                height: '18px',
+                                width: '20px',
+                                height: '20px',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 cursor: 'pointer',
-                                padding: 0
+                                padding: 0,
+                                zIndex: 5,
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.5)'
                               }}
                               title="Remove image from library"
                             >
-                              <X size={10} />
+                              <X size={11} />
                             </button>
-                            <span style={{ position: 'absolute', bottom: '3px', left: '3px', background: 'rgba(0,0,0,0.7)', color: '#ffffff', fontSize: '0.55rem', padding: '1px 3px', borderRadius: '2px', fontWeight: 600 }}>
+                            <span style={{ position: 'absolute', bottom: '4px', left: '4px', background: 'rgba(0,0,0,0.8)', color: '#ffffff', fontSize: '0.6rem', padding: '1px 5px', borderRadius: '3px', fontWeight: 700 }}>
                               #{i + 1}
                             </span>
                           </div>
                         ))}
                       </div>
                     ) : (
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px dashed var(--border)', borderRadius: '6px', color: 'var(--foreground-muted)', fontSize: '0.75rem', padding: '2rem', textAlign: 'center' }}>
-                        No images uploaded yet.
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px dashed var(--border)', borderRadius: '6px', color: 'var(--foreground-muted)', fontSize: '0.78rem', padding: '2.5rem 1rem', textAlign: 'center' }}>
+                        No images uploaded yet. Upload an image or import from episode frames.
                       </div>
                     )}
                   </div>
                 </div>
 
                 {/* Right Column: Roles Assignment */}
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '1rem', overflowX: 'hidden' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem', padding: '1rem', background: 'var(--surface-hover)', borderRadius: '8px', border: '1px solid var(--border)' }}>
-                    <h4 style={{ margin: 0, fontSize: '0.85rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--foreground-primary)', letterSpacing: '0.05em', borderBottom: '1px solid var(--border)', paddingBottom: '0.6rem' }}>
-                      Assign Image Roles
-                    </h4>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '1.2rem', height: '100%', overflowY: 'auto', paddingRight: '0.6rem' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', padding: '1.2rem', background: 'var(--surface-hover)', borderRadius: '10px', border: '1px solid var(--border)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)', paddingBottom: '0.6rem' }}>
+                      <h4 style={{ margin: 0, fontSize: '0.9rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--foreground-primary)', letterSpacing: '0.05em' }}>
+                        Assign Image Roles
+                      </h4>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--foreground-muted)' }}>Click an image to assign or replace its role</span>
+                    </div>
 
                     {/* Poster Role */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', background: 'rgba(15, 23, 42, 0.4)', padding: '1rem', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.05)' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--foreground-secondary)' }}>POSTER ROLE (Card Image - 2:3)</span>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--foreground-primary)', letterSpacing: '0.03em' }}>
+                          POSTER ROLE (Card Image - 2:3 Vertical)
+                        </span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
                           {posterKey && !posterSqueeze && (
                             <button
                               type="button"
                               onClick={() => setActiveCropRole('poster')}
-                              style={{ background: 'transparent', border: 'none', color: activeCropRole === 'poster' ? 'var(--primary)' : 'var(--foreground-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '2px', fontSize: '0.7rem', fontWeight: 600 }}
+                              style={{ background: 'rgba(168, 85, 247, 0.1)', border: '1px solid rgba(168, 85, 247, 0.3)', color: 'var(--primary-light, #c084fc)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.74rem', fontWeight: 700, padding: '0.2rem 0.5rem', borderRadius: '4px' }}
                               title="Adjust Crop Alignment"
                             >
-                              ✏️ Crop ({posterX}%)
+                              ✏️ Adjust Crop ({posterX}%)
                             </button>
                           )}
-                          {posterKey && <span style={{ fontSize: '0.7rem', color: 'var(--primary)', fontWeight: 600 }}>✓ Assigned</span>}
+                          {posterKey && <span style={{ fontSize: '0.75rem', color: '#10b981', fontWeight: 700, background: 'rgba(16, 185, 129, 0.1)', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>✓ Assigned</span>}
                         </div>
                       </div>
 
                       {posterKey && (
-                        <div style={{ display: 'flex', gap: '1rem', margin: '0.1rem 0 0.3rem 0', fontSize: '0.75rem' }}>
-                          <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', cursor: 'pointer', fontWeight: 600, color: 'var(--foreground-secondary)' }}>
+                        <div style={{ display: 'flex', gap: '1.2rem', margin: '0.2rem 0', fontSize: '0.78rem' }}>
+                          <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontWeight: 600, color: 'var(--foreground-secondary)' }}>
                             <input
                               type="radio"
                               name="poster_fit"
@@ -3149,7 +3204,7 @@ export default function AdminSeriesPage() {
                             />
                             Crop (Centered / Draggable)
                           </label>
-                          <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', cursor: 'pointer', fontWeight: 600, color: 'var(--foreground-secondary)' }}>
+                          <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontWeight: 600, color: 'var(--foreground-secondary)' }}>
                             <input
                               type="radio"
                               name="poster_fit"
@@ -3163,9 +3218,9 @@ export default function AdminSeriesPage() {
                       )}
                       
                       {imageLibrary.length === 0 ? (
-                        <div style={{ fontSize: '0.75rem', color: 'var(--foreground-muted)', fontStyle: 'italic', padding: '0.4rem' }}>Upload images to library first.</div>
+                        <div style={{ fontSize: '0.78rem', color: 'var(--foreground-muted)', fontStyle: 'italic', padding: '0.5rem' }}>Upload images to library first.</div>
                       ) : (
-                        <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', padding: '0.2rem 0.2rem 0.5rem 0.2rem' }}>
+                        <div style={{ display: 'flex', gap: '0.75rem', overflowX: 'auto', padding: '0.3rem 0.2rem 0.6rem 0.2rem' }}>
                           {imageLibrary.map((key, i) => {
                             const isSelected = posterKey === key;
                             return (
@@ -3175,12 +3230,12 @@ export default function AdminSeriesPage() {
                                   onClick={() => setPosterKey(isSelected ? '' : key)}
                                   style={{
                                     position: 'relative',
-                                    width: '55px',
-                                    height: '82px',
-                                    borderRadius: '6px',
+                                    width: '85px',
+                                    height: '128px',
+                                    borderRadius: '8px',
                                     overflow: 'hidden',
-                                    border: isSelected ? '2.5px solid var(--primary)' : '1px solid var(--border)',
-                                    boxShadow: isSelected ? '0 0 10px rgba(168, 85, 247, 0.4)' : 'none',
+                                    border: isSelected ? '3px solid var(--primary)' : '1px solid var(--border)',
+                                    boxShadow: isSelected ? '0 0 15px rgba(168, 85, 247, 0.5)' : 'none',
                                     cursor: 'pointer',
                                     padding: 0,
                                     transition: 'all 0.15s ease'
@@ -3189,8 +3244,8 @@ export default function AdminSeriesPage() {
                                   {/* eslint-disable-next-line @next/next/no-img-element */}
                                   <img src={getR2Url(key, 'poster')} alt={`Poster Choice ${i}`} style={{ width: '100%', height: '100%', objectFit: isSelected && posterSqueeze ? 'fill' : 'cover' }} />
                                   {isSelected && (
-                                    <div style={{ position: 'absolute', inset: 0, background: 'rgba(168, 85, 247, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                      <span style={{ color: '#ffffff', background: 'var(--primary)', borderRadius: '50%', width: '16px', height: '16px', fontSize: '9px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800 }}>✓</span>
+                                    <div style={{ position: 'absolute', inset: 0, background: 'rgba(168, 85, 247, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                      <span style={{ color: '#ffffff', background: 'var(--primary)', borderRadius: '50%', width: '22px', height: '22px', fontSize: '11px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, boxShadow: '0 2px 5px rgba(0,0,0,0.5)' }}>✓</span>
                                     </div>
                                   )}
                                 </button>
@@ -3201,20 +3256,20 @@ export default function AdminSeriesPage() {
                                   }}
                                   style={{
                                     position: 'absolute',
-                                    top: '3px',
-                                    right: '3px',
+                                    top: '4px',
+                                    right: '4px',
                                     background: 'rgba(0,0,0,0.85)',
                                     color: '#ffffff',
                                     borderRadius: '50%',
-                                    width: '16px',
-                                    height: '16px',
+                                    width: '20px',
+                                    height: '20px',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    fontSize: '9px',
+                                    fontSize: '11px',
                                     cursor: 'zoom-in',
                                     zIndex: 10,
-                                    boxShadow: '0 1px 3px rgba(0,0,0,0.5)'
+                                    boxShadow: '0 1px 4px rgba(0,0,0,0.6)'
                                   }}
                                   title="View Fullscreen Preview"
                                 >
@@ -3228,28 +3283,30 @@ export default function AdminSeriesPage() {
                     </div>
 
                     {/* Cover Role */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', background: 'rgba(15, 23, 42, 0.4)', padding: '1rem', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.05)' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--foreground-secondary)' }}>COVER ROLE (Landscape - 16:9)</span>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--foreground-primary)', letterSpacing: '0.03em' }}>
+                          COVER ROLE (Landscape - 16:9 Wide)
+                        </span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
                           {coverKey && (
                             <button
                               type="button"
                               onClick={() => setActiveCropRole('cover')}
-                              style={{ background: 'transparent', border: 'none', color: activeCropRole === 'cover' ? 'var(--primary)' : 'var(--foreground-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '2px', fontSize: '0.7rem', fontWeight: 600 }}
+                              style={{ background: 'rgba(168, 85, 247, 0.1)', border: '1px solid rgba(168, 85, 247, 0.3)', color: 'var(--primary-light, #c084fc)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.74rem', fontWeight: 700, padding: '0.2rem 0.5rem', borderRadius: '4px' }}
                               title="Adjust Crop Alignment"
                             >
-                              ✏️ Crop ({coverY}%)
+                              ✏️ Adjust Crop ({coverY}%)
                             </button>
                           )}
-                          {coverKey && <span style={{ fontSize: '0.7rem', color: 'var(--primary)', fontWeight: 600 }}>✓ Assigned</span>}
+                          {coverKey && <span style={{ fontSize: '0.75rem', color: '#10b981', fontWeight: 700, background: 'rgba(16, 185, 129, 0.1)', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>✓ Assigned</span>}
                         </div>
                       </div>
                       
                       {imageLibrary.length === 0 ? (
-                        <div style={{ fontSize: '0.75rem', color: 'var(--foreground-muted)', fontStyle: 'italic', padding: '0.4rem' }}>Upload images to library first.</div>
+                        <div style={{ fontSize: '0.78rem', color: 'var(--foreground-muted)', fontStyle: 'italic', padding: '0.5rem' }}>Upload images to library first.</div>
                       ) : (
-                        <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', padding: '0.2rem 0.2rem 0.5rem 0.2rem' }}>
+                        <div style={{ display: 'flex', gap: '0.75rem', overflowX: 'auto', padding: '0.3rem 0.2rem 0.6rem 0.2rem' }}>
                           {imageLibrary.map((key, i) => {
                             const isSelected = coverKey === key;
                             return (
@@ -3259,12 +3316,12 @@ export default function AdminSeriesPage() {
                                   onClick={() => setCoverKey(isSelected ? '' : key)}
                                   style={{
                                     position: 'relative',
-                                    width: '90px',
-                                    height: '50px',
-                                    borderRadius: '6px',
+                                    width: '140px',
+                                    height: '79px',
+                                    borderRadius: '8px',
                                     overflow: 'hidden',
-                                    border: isSelected ? '2.5px solid var(--primary)' : '1px solid var(--border)',
-                                    boxShadow: isSelected ? '0 0 10px rgba(168, 85, 247, 0.4)' : 'none',
+                                    border: isSelected ? '3px solid var(--primary)' : '1px solid var(--border)',
+                                    boxShadow: isSelected ? '0 0 15px rgba(168, 85, 247, 0.5)' : 'none',
                                     cursor: 'pointer',
                                     padding: 0,
                                     transition: 'all 0.15s ease'
@@ -3273,8 +3330,8 @@ export default function AdminSeriesPage() {
                                   {/* eslint-disable-next-line @next/next/no-img-element */}
                                   <img src={getR2Url(key, 'cover')} alt={`Cover Choice ${i}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                   {isSelected && (
-                                    <div style={{ position: 'absolute', inset: 0, background: 'rgba(168, 85, 247, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                      <span style={{ color: '#ffffff', background: 'var(--primary)', borderRadius: '50%', width: '16px', height: '16px', fontSize: '9px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800 }}>✓</span>
+                                    <div style={{ position: 'absolute', inset: 0, background: 'rgba(168, 85, 247, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                      <span style={{ color: '#ffffff', background: 'var(--primary)', borderRadius: '50%', width: '22px', height: '22px', fontSize: '11px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, boxShadow: '0 2px 5px rgba(0,0,0,0.5)' }}>✓</span>
                                     </div>
                                   )}
                                 </button>
@@ -3285,20 +3342,20 @@ export default function AdminSeriesPage() {
                                   }}
                                   style={{
                                     position: 'absolute',
-                                    top: '3px',
-                                    right: '3px',
+                                    top: '4px',
+                                    right: '4px',
                                     background: 'rgba(0,0,0,0.85)',
                                     color: '#ffffff',
                                     borderRadius: '50%',
-                                    width: '16px',
-                                    height: '16px',
+                                    width: '20px',
+                                    height: '20px',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    fontSize: '9px',
+                                    fontSize: '11px',
                                     cursor: 'zoom-in',
                                     zIndex: 10,
-                                    boxShadow: '0 1px 3px rgba(0,0,0,0.5)'
+                                    boxShadow: '0 1px 4px rgba(0,0,0,0.6)'
                                   }}
                                   title="View Fullscreen Preview"
                                 >
@@ -3312,28 +3369,30 @@ export default function AdminSeriesPage() {
                     </div>
 
                     {/* Banner Role */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', background: 'rgba(15, 23, 42, 0.4)', padding: '1rem', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.05)' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--foreground-secondary)' }}>BANNER ROLE (Backdrop - 21:9)</span>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--foreground-primary)', letterSpacing: '0.03em' }}>
+                          BANNER ROLE (Hero Backdrop - 21:9 Ultra-Wide)
+                        </span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
                           {bannerKey && (
                             <button
                               type="button"
                               onClick={() => setActiveCropRole('banner')}
-                              style={{ background: 'transparent', border: 'none', color: activeCropRole === 'banner' ? 'var(--primary)' : 'var(--foreground-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '2px', fontSize: '0.7rem', fontWeight: 600 }}
+                              style={{ background: 'rgba(168, 85, 247, 0.1)', border: '1px solid rgba(168, 85, 247, 0.3)', color: 'var(--primary-light, #c084fc)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.74rem', fontWeight: 700, padding: '0.2rem 0.5rem', borderRadius: '4px' }}
                               title="Adjust Crop Alignment"
                             >
-                              ✏️ Crop ({bannerY}%)
+                              ✏️ Adjust Crop ({bannerY}%)
                             </button>
                           )}
-                          {bannerKey && <span style={{ fontSize: '0.7rem', color: 'var(--primary)', fontWeight: 600 }}>✓ Assigned</span>}
+                          {bannerKey && <span style={{ fontSize: '0.75rem', color: '#10b981', fontWeight: 700, background: 'rgba(16, 185, 129, 0.1)', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>✓ Assigned</span>}
                         </div>
                       </div>
                       
                       {imageLibrary.length === 0 ? (
-                        <div style={{ fontSize: '0.75rem', color: 'var(--foreground-muted)', fontStyle: 'italic', padding: '0.4rem' }}>Upload images to library first.</div>
+                        <div style={{ fontSize: '0.78rem', color: 'var(--foreground-muted)', fontStyle: 'italic', padding: '0.5rem' }}>Upload images to library first.</div>
                       ) : (
-                        <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', padding: '0.2rem 0.2rem 0.5rem 0.2rem' }}>
+                        <div style={{ display: 'flex', gap: '0.75rem', overflowX: 'auto', padding: '0.3rem 0.2rem 0.6rem 0.2rem' }}>
                           {imageLibrary.map((key, i) => {
                             const isSelected = bannerKey === key;
                             return (
@@ -3343,12 +3402,12 @@ export default function AdminSeriesPage() {
                                   onClick={() => setBannerKey(isSelected ? '' : key)}
                                   style={{
                                     position: 'relative',
-                                    width: '105px',
-                                    height: '45px',
-                                    borderRadius: '6px',
+                                    width: '180px',
+                                    height: '77px',
+                                    borderRadius: '8px',
                                     overflow: 'hidden',
-                                    border: isSelected ? '2.5px solid var(--primary)' : '1px solid var(--border)',
-                                    boxShadow: isSelected ? '0 0 10px rgba(168, 85, 247, 0.4)' : 'none',
+                                    border: isSelected ? '3px solid var(--primary)' : '1px solid var(--border)',
+                                    boxShadow: isSelected ? '0 0 15px rgba(168, 85, 247, 0.5)' : 'none',
                                     cursor: 'pointer',
                                     padding: 0,
                                     transition: 'all 0.15s ease'
@@ -3357,8 +3416,8 @@ export default function AdminSeriesPage() {
                                   {/* eslint-disable-next-line @next/next/no-img-element */}
                                   <img src={getR2Url(key, 'banner')} alt={`Banner Choice ${i}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                   {isSelected && (
-                                    <div style={{ position: 'absolute', inset: 0, background: 'rgba(168, 85, 247, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                      <span style={{ color: '#ffffff', background: 'var(--primary)', borderRadius: '50%', width: '16px', height: '16px', fontSize: '9px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800 }}>✓</span>
+                                    <div style={{ position: 'absolute', inset: 0, background: 'rgba(168, 85, 247, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                      <span style={{ color: '#ffffff', background: 'var(--primary)', borderRadius: '50%', width: '22px', height: '22px', fontSize: '11px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, boxShadow: '0 2px 5px rgba(0,0,0,0.5)' }}>✓</span>
                                     </div>
                                   )}
                                 </button>
@@ -3369,20 +3428,20 @@ export default function AdminSeriesPage() {
                                   }}
                                   style={{
                                     position: 'absolute',
-                                    top: '3px',
-                                    right: '3px',
+                                    top: '4px',
+                                    right: '4px',
                                     background: 'rgba(0,0,0,0.85)',
                                     color: '#ffffff',
                                     borderRadius: '50%',
-                                    width: '16px',
-                                    height: '16px',
+                                    width: '20px',
+                                    height: '20px',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    fontSize: '9px',
+                                    fontSize: '11px',
                                     cursor: 'zoom-in',
                                     zIndex: 10,
-                                    boxShadow: '0 1px 3px rgba(0,0,0,0.5)'
+                                    boxShadow: '0 1px 4px rgba(0,0,0,0.6)'
                                   }}
                                   title="View Fullscreen Preview"
                                 >
@@ -3400,7 +3459,7 @@ export default function AdminSeriesPage() {
               </div>
 
               {/* Action Buttons */}
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.8rem', borderTop: '1px solid var(--border)', paddingTop: '1rem', marginTop: '0.5rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.8rem', borderTop: '1px solid var(--border)', paddingTop: '1rem', marginTop: '1rem', flexShrink: 0 }}>
                 <button type="button" onClick={handleCloseMediaModal} className={styles.cancelBtn}>
                   Cancel
                 </button>
