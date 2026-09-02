@@ -397,13 +397,13 @@
 }
 
 /* =========================================================================
-   Modal Form Styles
+   Spacious Full-Width Modal
    ========================================================================= */
 .modalOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(8px);
+  background: rgba(0, 0, 0, 0.82);
+  backdrop-filter: blur(10px);
   z-index: 1000;
   display: flex;
   align-items: center;
@@ -412,30 +412,34 @@
 }
 
 .modalContent {
-  background: var(--surface);
+  background: #0f1117;
   border: 1px solid var(--border);
   border-radius: 24px;
-  width: 100%;
-  max-width: 1050px;
-  max-height: 90vh;
+  width: 95vw;
+  max-width: 1440px;
+  height: 92vh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7);
 }
 
 .modalHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.5rem 2rem;
+  padding: 1.25rem 2rem;
   border-bottom: 1px solid var(--border);
+  background: #141721;
 }
 
 .modalHeader h2 {
-  font-size: 1.3rem;
+  font-size: 1.35rem;
   font-weight: 800;
   margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
 }
 
 .closeBtn {
@@ -444,7 +448,7 @@
   color: var(--foreground-muted);
   cursor: pointer;
   display: flex;
-  padding: 0.4rem;
+  padding: 0.5rem;
   border-radius: 8px;
   transition: all 0.2s ease;
 }
@@ -456,10 +460,30 @@
 
 .modalBody {
   display: grid;
-  grid-template-columns: 1fr 1.2fr;
+  grid-template-columns: 390px 1fr;
   gap: 2rem;
   padding: 1.8rem 2rem;
   overflow-y: auto;
+  flex-grow: 1;
+}
+
+.sidebarColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  padding-right: 1.2rem;
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+}
+
+.liveCardPreviewBox {
+  background: #181b26;
+  border: 1px dashed rgba(var(--primary-rgb), 0.4);
+  border-radius: 16px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
 }
 
 .inputGroup {
@@ -469,11 +493,14 @@
 }
 
 .inputLabel {
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--foreground-secondary);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .textInput {
@@ -482,7 +509,7 @@
   border-radius: 10px;
   padding: 0.65rem 1rem;
   color: var(--foreground-primary);
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   outline: none;
   transition: border-color 0.2s ease;
 }
@@ -499,7 +526,7 @@
   color: var(--foreground-primary);
   font-size: 0.85rem;
   outline: none;
-  min-height: 80px;
+  min-height: 75px;
   resize: vertical;
 }
 
@@ -538,24 +565,44 @@
   transform: scale(1.05);
 }
 
-/* Sequence Arranger & Catalog Selector */
-.sequencePanel {
+/* =========================================================================
+   Right Workspace: Sequence Arranger + Filterable Catalog
+   ========================================================================= */
+.workspaceColumn {
   display: flex;
   flex-direction: column;
-  gap: 1.2rem;
+  gap: 1.5rem;
+  overflow-y: auto;
 }
 
-.quickPresetsBar {
+.sectionBox {
+  background: #141721;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.sectionHeaderRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+}
+
+.sequenceTools {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
-.quickPresetBtn {
+.tinyToolBtn {
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.3rem;
   padding: 0.3rem 0.65rem;
   border-radius: 6px;
   background: var(--surface-hover);
@@ -567,66 +614,148 @@
   transition: all 0.2s ease;
 }
 
-.quickPresetBtn:hover {
-  background: rgba(var(--primary-rgb), 0.15);
+.tinyToolBtn:hover {
+  background: var(--surface);
+  color: var(--foreground-primary);
   border-color: var(--primary);
-  color: var(--primary);
 }
 
-.seriesScrollList {
-  height: 280px;
-  overflow-y: auto;
+/* Selected Sequence List */
+.sequenceList {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  max-height: 220px;
+  overflow-y: auto;
   padding-right: 0.4rem;
-  background: var(--surface-hover);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 0.6rem;
 }
 
-.seriesScrollList::-webkit-scrollbar {
-  width: 5px;
-}
-
-.seriesScrollList::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 4px;
-}
-
-.seriesItemRow {
+.sequenceItemRow {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.5rem 0.75rem;
-  border-radius: 8px;
-  background: var(--surface);
+  padding: 0.45rem 0.75rem;
+  border-radius: 10px;
+  background: #1c202d;
   border: 1px solid var(--border);
   transition: all 0.2s ease;
 }
 
-.seriesItemRow:hover {
-  border-color: var(--primary);
+.sequenceItemRow:hover {
+  border-color: rgba(var(--primary-rgb), 0.5);
 }
 
-.seriesMiniThumb {
-  width: 32px;
-  height: 44px;
-  border-radius: 4px;
+.sequenceThumb {
+  width: 34px;
+  height: 48px;
+  border-radius: 6px;
   object-fit: cover;
   flex-shrink: 0;
   background: #0f172a;
 }
 
-.seriesItemTitle {
+/* Catalog Filter Bar */
+.catalogFilterRow {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.genreChipList {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  max-height: 80px;
+  overflow-y: auto;
+}
+
+.genreChip {
+  padding: 0.25rem 0.65rem;
+  border-radius: 20px;
+  background: var(--surface-hover);
+  border: 1px solid var(--border);
+  color: var(--foreground-secondary);
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.genreChip:hover {
+  border-color: var(--primary);
+  color: var(--foreground-primary);
+}
+
+.genreChipActive {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #ffffff;
+}
+
+.catalogGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 0.75rem;
+  max-height: 280px;
+  overflow-y: auto;
+  padding-right: 0.4rem;
+}
+
+.catalogItemCard {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.8rem;
+  border-radius: 10px;
+  background: #1c202d;
+  border: 1px solid var(--border);
+  transition: all 0.2s ease;
+}
+
+.catalogItemCard:hover {
+  border-color: var(--primary);
+  background: #232838;
+}
+
+.catalogItemCardSelected {
+  border-color: var(--primary);
+  background: rgba(var(--primary-rgb), 0.12);
+}
+
+.catalogThumb {
+  width: 40px;
+  height: 56px;
+  border-radius: 6px;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: #0f172a;
+}
+
+.catalogItemInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.catalogTitle {
   font-size: 0.85rem;
   font-weight: 700;
   color: var(--foreground-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  flex-grow: 1;
+}
+
+.catalogMeta {
+  font-size: 0.72rem;
+  color: var(--foreground-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
 }
 
 .modalFooter {
@@ -634,25 +763,26 @@
   justify-content: flex-end;
   align-items: center;
   gap: 1rem;
-  padding: 1.2rem 2rem;
+  padding: 1.25rem 2rem;
   border-top: 1px solid var(--border);
-  background: var(--surface-hover);
+  background: #141721;
 }
 
 .cancelBtn {
-  padding: 0.65rem 1.4rem;
-  border-radius: 20px;
+  padding: 0.65rem 1.5rem;
+  border-radius: 30px;
   border: 1px solid var(--border);
   background: transparent;
   color: var(--foreground-secondary);
   font-weight: 700;
   font-size: 0.85rem;
   cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 .cancelBtn:hover {
   color: var(--foreground-primary);
-  background: var(--surface);
+  background: var(--surface-hover);
 }
 
 .emptyState {
@@ -660,12 +790,12 @@
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 3rem 1.5rem;
+  padding: 2.5rem 1.5rem;
   color: var(--foreground-muted);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   border: 1px dashed var(--border);
-  border-radius: 16px;
-  grid-column: 1 / -1;
+  border-radius: 12px;
+  width: 100%;
 }
 
 .loadingContainer {
@@ -689,8 +819,14 @@
   }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1050px) {
   .modalBody {
     grid-template-columns: 1fr;
+  }
+  .sidebarColumn {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    padding-right: 0;
+    padding-bottom: 1.5rem;
   }
 }

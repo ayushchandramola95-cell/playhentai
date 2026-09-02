@@ -24,7 +24,13 @@ import {
   Film,
   TrendingUp,
   Sliders,
-  CheckCircle2
+  CheckCircle2,
+  Shuffle,
+  ArrowUpDown,
+  Tag,
+  Building,
+  Eye,
+  ChevronsUp
 } from 'lucide-react';
 import { getR2Url } from '@/utils/r2';
 import styles from './playlists.module.css';
@@ -34,7 +40,13 @@ interface SeriesItem {
   title: string;
   slug: string;
   poster_image_key?: string;
+  cover_image_key?: string;
+  banner_image_key?: string;
+  image_library?: any[];
   tags?: string[];
+  studio?: string;
+  release_year?: number;
+  is_published?: boolean;
 }
 
 interface Playlist {
@@ -59,7 +71,14 @@ const PRESET_GRADIENTS = [
   'linear-gradient(135deg, #14b8a6 0%, #06b6d4 100%)', // Teal to Cyan
 ];
 
-const PRESET_TAGS = ['Featured', 'Genre Specials', 'Most Popular'];
+const PRESET_CATEGORIES = [
+  'Featured',
+  'Genre Specials',
+  'Most Popular',
+  'Seasonal Hits',
+  'Studio Spotlights',
+  'Staff Picks'
+];
 
 export default function AdminPlaylistsPage() {
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
@@ -71,7 +90,7 @@ export default function AdminPlaylistsPage() {
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // Filter & Search states
+  // Main Page Filter & Search states
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [activeCategoryTab, setActiveCategoryTab] = useState<string>('all');
 
@@ -82,12 +101,17 @@ export default function AdminPlaylistsPage() {
   const [formSlug, setFormSlug] = useState<string>('');
   const [formDescription, setFormDescription] = useState<string>('');
   const [formCategoryTag, setFormCategoryTag] = useState<string>('Featured');
+  const [customCategoryInput, setCustomCategoryInput] = useState<string>('');
+  const [isCustomCategory, setIsCustomCategory] = useState<boolean>(false);
   const [formGradient, setFormGradient] = useState<string>(PRESET_GRADIENTS[0]);
   const [formSeriesSlugs, setFormSeriesSlugs] = useState<string[]>([]);
   const [formIsPinned, setFormIsPinned] = useState<boolean>(false);
   
-  // Inside form catalog search
-  const [seriesSearch, setSeriesSearch] = useState<string>('');
+  // Inside Modal: Catalog Filter & Multi-Select states
+  const [modalSearchQuery, setModalSearchQuery] = useState<string>('');
+  const [modalSelectedGenre, setModalSelectedGenre] = useState<string>('all');
+  const [modalSelectedStudio, setModalSelectedStudio] = useState<string>('all');
+  const [checkedCatalogSlugs, setCheckedCatalogSlugs] = useState<string[]>([]);
 
   useEffect(() => {
     fetchInitialData();
@@ -107,7 +131,21 @@ export default function AdminPlaylistsPage() {
         const playlistsData = await playlistsRes.json();
         const seriesData = await seriesRes.json();
         setPlaylists(playlistsData.playlists || []);
-        setAllSeries(seriesData.series || []);
+        
+        // Ensure image library fallback
+        const formattedSeries = (seriesData.series || []).map((s: any) => {
+          let poster = s.poster_image_key;
+          if (!poster && Array.isArray(s.image_library)) {
+            const p = s.image_library.find((img: any) => img.role === 'poster');
+            if (p?.key) poster = p.key;
+          }
+          return {
+            ...s,
+            poster_image_key: poster || s.poster_image_key,
+          };
+        });
+
+        setAllSeries(formattedSeries);
       } else {
         setErrorMsg('Failed to load playlists or database series.');
       }
@@ -119,9 +157,40 @@ export default function AdminPlaylistsPage() {
     }
   };
 
+  // Distinct Genres List extracted from catalog tags
+  const distinctGenres = useMemo(() => {
+    const map = new Map<string, number>();
+    allSeries.forEach((s) => {
+      (s.tags || []).forEach((t) => {
+        const clean = t.trim();
+        if (clean && !clean.toLowerCase().startsWith('featured:')) {
+          map.set(clean, (map.get(clean) || 0) + 1);
+        }
+      });
+    });
+    return Array.from(map.entries())
+      .sort((a, b) => b[1] - a[1])
+      .map(([genre, count]) => ({ genre, count }));
+  }, [allSeries]);
+
+  // Distinct Studios List extracted from catalog
+  const distinctStudios = useMemo(() => {
+    const set = new Set<string>();
+    allSeries.forEach((s) => {
+      if (s.studio) set.add(s.studio.trim());
+    });
+    return Array.from(set).sort();
+  }, [allSeries]);
+
+  // Series Lookup Map by Slug for Rapid Rendering
+  const seriesBySlug = useMemo(() => {
+    const map = new Map<string, SeriesItem>();
+    allSeries.forEach((s) => map.set(s.slug, s));
+    return map;
+  }, [allSeries]);
+
   const handleNameChange = (name: string) => {
     setFormName(name);
-    // Auto-generate slug from name if creating a new one
     if (!formId) {
       const generated = name
         .toLowerCase()
@@ -137,10 +206,15 @@ export default function AdminPlaylistsPage() {
     setFormSlug('');
     setFormDescription('');
     setFormCategoryTag('Featured');
+    setIsCustomCategory(false);
+    setCustomCategoryInput('');
     setFormGradient(PRESET_GRADIENTS[0]);
     setFormSeriesSlugs([]);
     setFormIsPinned(false);
-    setSeriesSearch('');
+    setModalSearchQuery('');
+    setModalSelectedGenre('all');
+    setModalSelectedStudio('all');
+    setCheckedCatalogSlugs([]);
     setIsEditing(true);
     setSuccessMsg(null);
     setErrorMsg(null);
@@ -151,11 +225,25 @@ export default function AdminPlaylistsPage() {
     setFormName(playlist.name);
     setFormSlug(playlist.slug);
     setFormDescription(playlist.description);
-    setFormCategoryTag(playlist.categoryTag || 'Featured');
+    
+    const tag = playlist.categoryTag || 'Featured';
+    if (PRESET_CATEGORIES.includes(tag)) {
+      setFormCategoryTag(tag);
+      setIsCustomCategory(false);
+      setCustomCategoryInput('');
+    } else {
+      setFormCategoryTag('custom');
+      setIsCustomCategory(true);
+      setCustomCategoryInput(tag);
+    }
+
     setFormGradient(playlist.gradient);
     setFormSeriesSlugs(playlist.seriesSlugs || []);
     setFormIsPinned(Boolean(playlist.isPinned));
-    setSeriesSearch('');
+    setModalSearchQuery('');
+    setModalSelectedGenre('all');
+    setModalSelectedStudio('all');
+    setCheckedCatalogSlugs([]);
     setIsEditing(true);
     setSuccessMsg(null);
     setErrorMsg(null);
@@ -166,7 +254,7 @@ export default function AdminPlaylistsPage() {
     setFormId(null);
   };
 
-  // Reordering in Modal
+  // Reordering Sequence Actions
   const handleMoveUp = (index: number) => {
     if (index === 0) return;
     const list = [...formSeriesSlugs];
@@ -185,32 +273,74 @@ export default function AdminPlaylistsPage() {
     setFormSeriesSlugs(list);
   };
 
+  const handleMoveToTop = (index: number) => {
+    if (index === 0) return;
+    const list = [...formSeriesSlugs];
+    const item = list.splice(index, 1)[0];
+    list.unshift(item);
+    setFormSeriesSlugs(list);
+  };
+
   const handleRemoveSeries = (slug: string) => {
     setFormSeriesSlugs(formSeriesSlugs.filter((s) => s !== slug));
   };
 
-  const handleAddSeries = (slug: string) => {
+  const handleAddSingleSeries = (slug: string) => {
     if (!formSeriesSlugs.includes(slug)) {
       setFormSeriesSlugs([...formSeriesSlugs, slug]);
     }
   };
 
-  // Quick Auto-Curate Presets (1-Click Tag Importers)
-  const handleAutoCurateTag = (tag: string) => {
-    const matchingSlugs = allSeries
-      .filter((s) => (s.tags || []).some((t) => t.toLowerCase() === tag.toLowerCase()))
-      .map((s) => s.slug);
-    
-    const merged = Array.from(new Set([...formSeriesSlugs, ...matchingSlugs]));
-    setFormSeriesSlugs(merged);
+  // Sequence Arranger Batch Tools
+  const handleShuffleSequence = () => {
+    const shuffled = [...formSeriesSlugs].sort(() => 0.5 - Math.random());
+    setFormSeriesSlugs(shuffled);
   };
 
+  const handleSortAZSequence = () => {
+    const items = formSeriesSlugs.map((slug) => ({
+      slug,
+      title: seriesBySlug.get(slug)?.title || slug,
+    }));
+    items.sort((a, b) => a.title.localeCompare(b.title));
+    setFormSeriesSlugs(items.map((i) => i.slug));
+  };
+
+  const handleClearSequence = () => {
+    if (window.confirm('Are you sure you want to clear all series from this playlist?')) {
+      setFormSeriesSlugs([]);
+    }
+  };
+
+  // Catalog Multi-Select Actions
+  const handleToggleCheckCatalog = (slug: string) => {
+    setCheckedCatalogSlugs((prev) => 
+      prev.includes(slug) ? prev.filter((s) => s !== slug) : [...prev, slug]
+    );
+  };
+
+  const handleAddCheckedCatalog = () => {
+    const merged = Array.from(new Set([...formSeriesSlugs, ...checkedCatalogSlugs]));
+    setFormSeriesSlugs(merged);
+    setCheckedCatalogSlugs([]);
+  };
+
+  const handleAddAllFilteredCatalog = () => {
+    const matchingSlugs = filteredCatalogForModal.map((s) => s.slug);
+    const merged = Array.from(new Set([...formSeriesSlugs, ...matchingSlugs]));
+    setFormSeriesSlugs(merged);
+    setCheckedCatalogSlugs([]);
+  };
+
+  // Save Playlist
   const handleSavePlaylist = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formName.trim() || !formSlug.trim()) {
       setErrorMsg('Name and slug are required fields.');
       return;
     }
+
+    const finalCategoryTag = isCustomCategory ? customCategoryInput.trim() || 'Featured' : formCategoryTag;
 
     setIsSaving(true);
     setSuccessMsg(null);
@@ -221,7 +351,7 @@ export default function AdminPlaylistsPage() {
       name: formName.trim(),
       slug: formSlug.trim().toLowerCase(),
       description: formDescription.trim(),
-      categoryTag: formCategoryTag,
+      categoryTag: finalCategoryTag,
       gradient: formGradient,
       seriesSlugs: formSeriesSlugs,
       isPinned: formIsPinned,
@@ -301,24 +431,15 @@ export default function AdminPlaylistsPage() {
     return playlists.filter((p) => p.categoryTag === 'Featured' || p.isPinned).length;
   }, [playlists]);
 
-  // Series Lookup Map by Slug for Rapid Poster Rendering
-  const seriesBySlug = useMemo(() => {
-    const map = new Map<string, SeriesItem>();
-    allSeries.forEach((s) => map.set(s.slug, s));
-    return map;
-  }, [allSeries]);
-
-  // Filtered Playlists list based on search and category tab
+  // Main Page Filtered Playlists
   const filteredPlaylists = useMemo(() => {
     return playlists.filter((p) => {
-      // Category tab
       if (activeCategoryTab === 'pinned') {
         if (!p.isPinned) return false;
       } else if (activeCategoryTab !== 'all') {
         if (p.categoryTag !== activeCategoryTab) return false;
       }
 
-      // Search query
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
         const matchesName = p.name.toLowerCase().includes(q);
@@ -332,15 +453,42 @@ export default function AdminPlaylistsPage() {
     });
   }, [playlists, activeCategoryTab, searchQuery]);
 
-  // Inside Modal: Filter series catalog
+  // Modal Catalog Filtered Items
   const filteredCatalogForModal = useMemo(() => {
     return allSeries.filter((series) => {
-      if (formSeriesSlugs.includes(series.slug)) return false; // hide already added
-      if (!seriesSearch.trim()) return true;
-      const q = seriesSearch.toLowerCase();
-      return series.title.toLowerCase().includes(q) || series.slug.toLowerCase().includes(q);
+      if (formSeriesSlugs.includes(series.slug)) return false; // Hide already added
+
+      // Genre filter
+      if (modalSelectedGenre !== 'all') {
+        const hasGenre = (series.tags || []).some(
+          (t) => t.toLowerCase() === modalSelectedGenre.toLowerCase()
+        );
+        if (!hasGenre) return false;
+      }
+
+      // Studio filter
+      if (modalSelectedStudio !== 'all' && series.studio !== modalSelectedStudio) {
+        return false;
+      }
+
+      // Search query
+      if (modalSearchQuery.trim()) {
+        const q = modalSearchQuery.toLowerCase();
+        const matches = series.title.toLowerCase().includes(q) || series.slug.toLowerCase().includes(q);
+        if (!matches) return false;
+      }
+
+      return true;
     });
-  }, [allSeries, formSeriesSlugs, seriesSearch]);
+  }, [allSeries, formSeriesSlugs, modalSelectedGenre, modalSelectedStudio, modalSearchQuery]);
+
+  // Live Card Preview Items in Modal
+  const previewMiniPosters = useMemo(() => {
+    return formSeriesSlugs
+      .slice(0, 4)
+      .map((slug) => seriesBySlug.get(slug))
+      .filter(Boolean) as SeriesItem[];
+  }, [formSeriesSlugs, seriesBySlug]);
 
   if (isLoading) {
     return (
@@ -595,20 +743,91 @@ export default function AdminPlaylistsPage() {
         )}
       </div>
 
-      {/* 4. Spacious 2-Column Create / Edit Modal */}
+      {/* 4. Spacious Full-Width Create / Edit Modal */}
       {isEditing && (
         <div className={styles.modalOverlay}>
           <form onSubmit={handleSavePlaylist} className={styles.modalContent}>
+            
+            {/* Modal Top Header */}
             <div className={styles.modalHeader}>
-              <h2>{formId ? 'Edit Playlist & Curate Sequence' : 'Create New Thematic Playlist'}</h2>
+              <h2>
+                <Layers size={22} style={{ color: 'var(--primary)' }} />
+                <span>{formId ? 'Edit Playlist & Curate Sequence' : 'Create New Thematic Playlist'}</span>
+              </h2>
               <button type="button" onClick={handleCancelForm} className={styles.closeBtn}>
-                <X size={20} />
+                <X size={22} />
               </button>
             </div>
 
             <div className={styles.modalBody}>
-              {/* Left Column: Metadata & Gradient Colors */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+              
+              {/* =========================================================
+                  Left Sidebar: Playlist Metadata & Live Mini Card Preview
+                  ========================================================= */}
+              <div className={styles.sidebarColumn}>
+                
+                {/* Live Mini Card Preview */}
+                <div className={styles.liveCardPreviewBox}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                      <Eye size={12} /> Live Card Preview
+                    </span>
+                    <span style={{ fontSize: '0.7rem', color: 'var(--foreground-muted)' }}>
+                      {formSeriesSlugs.length} Shows
+                    </span>
+                  </div>
+
+                  <div style={{ background: '#0f172a', borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border)' }}>
+                    <div style={{ height: '4px', background: formGradient }} />
+                    <div style={{ padding: '0.8rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+                        <span style={{ fontSize: '0.68rem', fontWeight: 800, background: 'var(--surface-hover)', padding: '0.15rem 0.5rem', borderRadius: '10px', color: 'var(--foreground-secondary)' }}>
+                          {isCustomCategory ? customCategoryInput || 'Custom' : formCategoryTag}
+                        </span>
+                        {formIsPinned && (
+                          <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#ec4899' }}>
+                            📌 Pinned
+                          </span>
+                        )}
+                      </div>
+                      <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#fff' }}>
+                        {formName || 'Untitled Playlist'}
+                      </div>
+                      
+                      {/* Mini Artwork Fan */}
+                      <div style={{ display: 'flex', alignItems: 'center', marginTop: '0.6rem', paddingLeft: '0.3rem' }}>
+                        {previewMiniPosters.map((item, idx) => (
+                          <div
+                            key={item.id || idx}
+                            style={{
+                              width: '30px',
+                              height: '42px',
+                              borderRadius: '4px',
+                              overflow: 'hidden',
+                              border: '1.5px solid #0f172a',
+                              marginLeft: idx === 0 ? 0 : '-8px',
+                              zIndex: idx + 1,
+                              background: '#1e293b'
+                            }}
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={getR2Url(item.poster_image_key, 'poster')}
+                              alt={item.title}
+                              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            />
+                          </div>
+                        ))}
+                        {formSeriesSlugs.length > 4 && (
+                          <span style={{ marginLeft: '0.4rem', fontSize: '0.7rem', color: 'var(--foreground-muted)', fontWeight: 700 }}>
+                            +{formSeriesSlugs.length - 4}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 <div className={styles.inputGroup}>
                   <label className={styles.inputLabel}>Playlist Title *</label>
                   <input
@@ -633,21 +852,44 @@ export default function AdminPlaylistsPage() {
                   />
                 </div>
 
+                {/* Category Group Selector / Custom Tag */}
                 <div className={styles.inputGroup}>
-                  <label className={styles.inputLabel}>Category Group</label>
-                  <select
-                    value={formCategoryTag}
-                    onChange={(e) => setFormCategoryTag(e.target.value)}
-                    className={styles.selectInput}
-                  >
-                    {PRESET_TAGS.map((t) => (
-                      <option key={t} value={t} style={{ background: '#1e293b' }}>{t}</option>
-                    ))}
-                  </select>
+                  <label className={styles.inputLabel}>
+                    <span>Category Group</span>
+                    <button
+                      type="button"
+                      onClick={() => setIsCustomCategory(!isCustomCategory)}
+                      style={{ background: 'none', border: 'none', color: 'var(--primary)', fontSize: '0.72rem', cursor: 'pointer', fontWeight: 700 }}
+                    >
+                      {isCustomCategory ? '← Choose Preset' : '+ Custom Tag'}
+                    </button>
+                  </label>
+
+                  {isCustomCategory ? (
+                    <input
+                      type="text"
+                      placeholder="Enter custom category name..."
+                      value={customCategoryInput}
+                      onChange={(e) => setCustomCategoryInput(e.target.value)}
+                      className={styles.textInput}
+                    />
+                  ) : (
+                    <select
+                      value={formCategoryTag}
+                      onChange={(e) => setFormCategoryTag(e.target.value)}
+                      className={styles.selectInput}
+                    >
+                      {PRESET_CATEGORIES.map((cat) => (
+                        <option key={cat} value={cat} style={{ background: '#1e293b' }}>
+                          {cat}
+                        </option>
+                      ))}
+                    </select>
+                  )}
                 </div>
 
                 <div className={styles.inputGroup}>
-                  <label className={styles.inputLabel}>SEO Description *</label>
+                  <label className={styles.inputLabel}>SEO Synopsis / Description *</label>
                   <textarea
                     placeholder="Curated synopsis explaining the thematic focus and anime series included in this playlist..."
                     value={formDescription}
@@ -673,7 +915,7 @@ export default function AdminPlaylistsPage() {
                 </div>
 
                 {/* Pinned Switch */}
-                <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer', marginTop: '0.2rem' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer', marginTop: '0.4rem', padding: '0.4rem 0' }}>
                   <input
                     type="checkbox"
                     checked={formIsPinned}
@@ -686,148 +928,283 @@ export default function AdminPlaylistsPage() {
                 </label>
               </div>
 
-              {/* Right Column: Sequence Arranger & Catalog Picker */}
-              <div className={styles.sequencePanel}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <label className={styles.inputLabel}>
-                    Selected Series Sequence ({formSeriesSlugs.length})
-                  </label>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--foreground-muted)' }}>
-                    Arrange public display order
-                  </span>
-                </div>
-
-                {/* Selected Shows Ordered List */}
-                <div className={styles.seriesScrollList} style={{ height: '160px' }}>
-                  {formSeriesSlugs.map((slug, idx) => {
-                    const item = seriesBySlug.get(slug);
-                    return (
-                      <div key={slug} className={styles.seriesItemRow}>
-                        <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--primary)', width: '20px' }}>
-                          #{idx + 1}
-                        </span>
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={getR2Url(item?.poster_image_key, 'poster')}
-                          alt={item?.title || slug}
-                          className={styles.seriesMiniThumb}
-                        />
-                        <span className={styles.seriesItemTitle}>
-                          {item?.title || slug}
-                        </span>
-                        <div style={{ display: 'flex', gap: '0.25rem', flexShrink: 0 }}>
-                          <button
-                            type="button"
-                            onClick={() => handleMoveUp(idx)}
-                            disabled={idx === 0}
-                            style={{ background: 'transparent', border: '1px solid var(--border)', color: '#fff', borderRadius: '4px', cursor: 'pointer', padding: '2px 4px' }}
-                          >
-                            <ArrowUp size={12} />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleMoveDown(idx)}
-                            disabled={idx === formSeriesSlugs.length - 1}
-                            style={{ background: 'transparent', border: '1px solid var(--border)', color: '#fff', borderRadius: '4px', cursor: 'pointer', padding: '2px 4px' }}
-                          >
-                            <ArrowDown size={12} />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveSeries(slug)}
-                            style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#ef4444', borderRadius: '4px', cursor: 'pointer', padding: '2px 4px' }}
-                          >
-                            <X size={12} />
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                  {formSeriesSlugs.length === 0 && (
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--foreground-muted)', fontSize: '0.82rem' }}>
-                      No series selected. Add titles from catalog below.
+              {/* =========================================================
+                  Right Workspace: Selected Sequence Arranger + Filterable Catalog
+                  ========================================================= */}
+              <div className={styles.workspaceColumn}>
+                
+                {/* 1. Selected Shows Sequence Arranger */}
+                <div className={styles.sectionBox}>
+                  <div className={styles.sectionHeaderRow}>
+                    <div>
+                      <h4 style={{ fontSize: '0.98rem', fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                        <Film size={16} style={{ color: 'var(--primary)' }} />
+                        <span>Selected Series Sequence ({formSeriesSlugs.length})</span>
+                      </h4>
+                      <p style={{ fontSize: '0.78rem', color: 'var(--foreground-muted)', margin: '0.15rem 0 0 0' }}>
+                        Arrange the exact chronological display sequence seen by website visitors.
+                      </p>
                     </div>
-                  )}
-                </div>
 
-                {/* 1-Click Auto-Curate Presets */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.4rem' }}>
-                  <span style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--foreground-secondary)' }}>
-                    ⚡ 1-Click Auto-Add:
-                  </span>
-                  <div className={styles.quickPresetsBar}>
-                    <button
-                      type="button"
-                      onClick={() => handleAutoCurateTag('Uncensored')}
-                      className={styles.quickPresetBtn}
-                    >
-                      + Uncensored
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleAutoCurateTag('3D')}
-                      className={styles.quickPresetBtn}
-                    >
-                      + 3D Anime
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleAutoCurateTag('Romance')}
-                      className={styles.quickPresetBtn}
-                    >
-                      + Romance
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleAutoCurateTag('Fantasy')}
-                      className={styles.quickPresetBtn}
-                    >
-                      + Fantasy
-                    </button>
+                    <div className={styles.sequenceTools}>
+                      <button
+                        type="button"
+                        onClick={handleShuffleSequence}
+                        disabled={formSeriesSlugs.length <= 1}
+                        className={styles.tinyToolBtn}
+                        title="Shuffle sequence randomly"
+                      >
+                        <Shuffle size={12} /> Shuffle
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleSortAZSequence}
+                        disabled={formSeriesSlugs.length <= 1}
+                        className={styles.tinyToolBtn}
+                        title="Sort alphabetically A-Z"
+                      >
+                        <ArrowUpDown size={12} /> Sort A-Z
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleClearSequence}
+                        disabled={formSeriesSlugs.length === 0}
+                        className={styles.tinyToolBtn}
+                        style={{ color: '#ef4444' }}
+                        title="Clear all series from playlist"
+                      >
+                        <Trash2 size={12} /> Clear All
+                      </button>
+                    </div>
                   </div>
-                </div>
 
-                {/* Catalog Search & Picker */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  <input
-                    type="text"
-                    placeholder="Search catalog to add shows..."
-                    value={seriesSearch}
-                    onChange={(e) => setSeriesSearch(e.target.value)}
-                    className={styles.textInput}
-                    style={{ padding: '0.5rem 0.8rem', fontSize: '0.82rem' }}
-                  />
+                  {/* Selected Sequence Scroll List */}
+                  <div className={styles.sequenceList}>
+                    {formSeriesSlugs.map((slug, idx) => {
+                      const item = seriesBySlug.get(slug);
+                      return (
+                        <div key={slug} className={styles.sequenceItemRow}>
+                          <span style={{ fontSize: '0.82rem', fontWeight: 900, color: 'var(--primary)', width: '26px' }}>
+                            #{idx + 1}
+                          </span>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={getR2Url(item?.poster_image_key, 'poster')}
+                            alt={item?.title || slug}
+                            className={styles.sequenceThumb}
+                          />
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.1rem', flexGrow: 1, minWidth: 0 }}>
+                            <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              {item?.title || slug}
+                            </span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.72rem', color: 'var(--foreground-muted)' }}>
+                              <span>{item?.studio || 'Studio N/A'}</span>
+                              <span>•</span>
+                              <span>{(item?.tags || []).slice(0, 3).join(', ') || 'No tags'}</span>
+                            </div>
+                          </div>
 
-                  <div className={styles.seriesScrollList} style={{ height: '150px' }}>
-                    {filteredCatalogForModal.map((series) => (
-                      <div key={series.id} className={styles.seriesItemRow}>
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={getR2Url(series.poster_image_key, 'poster')}
-                          alt={series.title}
-                          className={styles.seriesMiniThumb}
-                        />
-                        <span className={styles.seriesItemTitle}>
-                          {series.title}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => handleAddSeries(series.slug)}
-                          className={styles.quickPresetBtn}
-                          style={{ background: 'var(--primary)', color: '#fff', border: 'none' }}
-                        >
-                          <Plus size={12} /> Add
-                        </button>
-                      </div>
-                    ))}
-                    {filteredCatalogForModal.length === 0 && (
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--foreground-muted)', fontSize: '0.82rem' }}>
-                        No more matching shows found.
+                          <div style={{ display: 'flex', gap: '0.3rem', flexShrink: 0 }}>
+                            <button
+                              type="button"
+                              onClick={() => handleMoveToTop(idx)}
+                              disabled={idx === 0}
+                              className={styles.tinyToolBtn}
+                              title="Move to First Position (#1)"
+                            >
+                              <ChevronsUp size={12} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleMoveUp(idx)}
+                              disabled={idx === 0}
+                              className={styles.tinyToolBtn}
+                              title="Move Up"
+                            >
+                              <ArrowUp size={12} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleMoveDown(idx)}
+                              disabled={idx === formSeriesSlugs.length - 1}
+                              className={styles.tinyToolBtn}
+                              title="Move Down"
+                            >
+                              <ArrowDown size={12} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveSeries(slug)}
+                              className={styles.tinyToolBtn}
+                              style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.3)' }}
+                              title="Remove"
+                            >
+                              <X size={12} />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {formSeriesSlugs.length === 0 && (
+                      <div className={styles.emptyState}>
+                        No series selected yet. Select and add series from the catalog below.
                       </div>
                     )}
                   </div>
                 </div>
+
+                {/* 2. Full Catalog Browser with Genre & Studio Filters */}
+                <div className={styles.sectionBox}>
+                  <div className={styles.sectionHeaderRow}>
+                    <div>
+                      <h4 style={{ fontSize: '0.98rem', fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                        <Compass size={16} style={{ color: '#38bdf8' }} />
+                        <span>Browse Catalog & Filter by Genre / Studio</span>
+                      </h4>
+                      <p style={{ fontSize: '0.78rem', color: 'var(--foreground-muted)', margin: '0.15rem 0 0 0' }}>
+                        {filteredCatalogForModal.length} available series matching your filters.
+                      </p>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      {checkedCatalogSlugs.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={handleAddCheckedCatalog}
+                          className={styles.tinyToolBtn}
+                          style={{ background: 'var(--primary)', color: '#fff', borderColor: 'var(--primary)' }}
+                        >
+                          <Plus size={12} /> Add {checkedCatalogSlugs.length} Checked
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={handleAddAllFilteredCatalog}
+                        disabled={filteredCatalogForModal.length === 0}
+                        className={styles.tinyToolBtn}
+                      >
+                        <Plus size={12} /> Add All Filtered ({filteredCatalogForModal.length})
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Search and Dropdowns Row */}
+                  <div className={styles.catalogFilterRow}>
+                    <div style={{ flexGrow: 1, minWidth: '200px' }}>
+                      <input
+                        type="text"
+                        placeholder="Search series title, Japanese name, or slug..."
+                        value={modalSearchQuery}
+                        onChange={(e) => setModalSearchQuery(e.target.value)}
+                        className={styles.textInput}
+                        style={{ width: '100%', padding: '0.5rem 0.85rem', fontSize: '0.82rem' }}
+                      />
+                    </div>
+
+                    {/* Studio Selector */}
+                    {distinctStudios.length > 0 && (
+                      <select
+                        value={modalSelectedStudio}
+                        onChange={(e) => setModalSelectedStudio(e.target.value)}
+                        className={styles.selectInput}
+                        style={{ padding: '0.5rem 0.85rem', fontSize: '0.82rem' }}
+                      >
+                        <option value="all">🏢 All Studios ({distinctStudios.length})</option>
+                        {distinctStudios.map((st) => (
+                          <option key={st} value={st} style={{ background: '#1e293b' }}>
+                            {st}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+
+                  {/* Dynamic Genre / Tag Filter Chips */}
+                  <div className={styles.genreChipList}>
+                    <button
+                      type="button"
+                      onClick={() => setModalSelectedGenre('all')}
+                      className={`${styles.genreChip} ${modalSelectedGenre === 'all' ? styles.genreChipActive : ''}`}
+                    >
+                      All Genres
+                    </button>
+                    {distinctGenres.slice(0, 18).map(({ genre, count }) => (
+                      <button
+                        key={genre}
+                        type="button"
+                        onClick={() => setModalSelectedGenre(genre)}
+                        className={`${styles.genreChip} ${modalSelectedGenre.toLowerCase() === genre.toLowerCase() ? styles.genreChipActive : ''}`}
+                      >
+                        {genre} <span style={{ opacity: 0.65, fontSize: '0.68rem' }}>({count})</span>
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Catalog Cards Grid */}
+                  <div className={styles.catalogGrid}>
+                    {filteredCatalogForModal.map((series) => {
+                      const isChecked = checkedCatalogSlugs.includes(series.slug);
+
+                      return (
+                        <div
+                          key={series.id}
+                          className={`${styles.catalogItemCard} ${isChecked ? styles.catalogItemCardSelected : ''}`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={() => handleToggleCheckCatalog(series.slug)}
+                            style={{ width: '15px', height: '15px', accentColor: 'var(--primary)', cursor: 'pointer', flexShrink: 0 }}
+                          />
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={getR2Url(series.poster_image_key, 'poster')}
+                            alt={series.title}
+                            className={styles.catalogThumb}
+                          />
+                          <div className={styles.catalogItemInfo}>
+                            <span className={styles.catalogTitle} title={series.title}>
+                              {series.title}
+                            </span>
+                            <div className={styles.catalogMeta}>
+                              <span>{series.studio || 'Studio N/A'}</span>
+                              {series.release_year && (
+                                <>
+                                  <span>•</span>
+                                  <span>{series.release_year}</span>
+                                </>
+                              )}
+                            </div>
+                            <div style={{ display: 'flex', gap: '0.2rem', flexWrap: 'wrap', marginTop: '0.15rem' }}>
+                              {(series.tags || []).slice(0, 2).map((t) => (
+                                <span key={t} style={{ fontSize: '0.65rem', background: 'var(--surface-hover)', padding: '0.05rem 0.35rem', borderRadius: '4px', color: 'var(--foreground-muted)' }}>
+                                  {t}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleAddSingleSeries(series.slug)}
+                            className={styles.tinyToolBtn}
+                            style={{ background: 'var(--primary)', color: '#fff', borderColor: 'var(--primary)', flexShrink: 0 }}
+                            title="Add to Playlist"
+                          >
+                            <Plus size={12} />
+                          </button>
+                        </div>
+                      );
+                    })}
+                    {filteredCatalogForModal.length === 0 && (
+                      <div className={styles.emptyState}>
+                        No series match your search, genre, or studio filters.
+                      </div>
+                    )}
+                  </div>
+                </div>
+
               </div>
+
             </div>
 
             {/* Modal Footer */}
@@ -840,6 +1217,7 @@ export default function AdminPlaylistsPage() {
                 <span>{isSaving ? 'Saving Playlist...' : 'Save Playlist'}</span>
               </button>
             </div>
+
           </form>
         </div>
       )}
