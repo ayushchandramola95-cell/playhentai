@@ -1,23 +1,34 @@
 import { NextResponse } from 'next/server';
 import { verifyAdmin, createAdminClient } from '@/utils/supabase/admin';
+import { getSeriesViewsMap } from '@/utils/views';
 
 export async function GET() {
   try {
     await verifyAdmin();
     const adminSupabase = createAdminClient();
 
-    // Fetch all series
+    // Fetch all series with valid database columns
     const { data: allSeries, error } = await adminSupabase
       .from('series')
-      .select('id, title, slug, poster_image_key, tags, is_published')
+      .select('id, title, slug, poster_image_key, cover_image_key, banner_image_key, description, tags, is_published, studio')
       .order('created_at', { ascending: false });
 
     if (error) throw error;
 
+    // Fetch views map safely
+    const viewsMap: Record<string, number> = await getSeriesViewsMap().catch(() => ({}));
+
+    // Attach views and map description to synopsis
+    const formattedSeries = (allSeries || []).map((s) => ({
+      ...s,
+      synopsis: s.description || '',
+      views: viewsMap[s.id] || 0,
+    }));
+
     // Determine currently featured series and their order
     const featuredItems: { id: string; order: number }[] = [];
 
-    (allSeries || []).forEach((s) => {
+    formattedSeries.forEach((s) => {
       const featuredTag = s.tags?.find((t: string) => t.toLowerCase().startsWith('featured:'));
       if (featuredTag) {
         const orderNum = parseInt(featuredTag.split(':')[1], 10) || 999;
@@ -33,7 +44,7 @@ export async function GET() {
     const sortedFeaturedIds = featuredItems.map((item) => item.id);
 
     return NextResponse.json({
-      series: allSeries || [],
+      series: formattedSeries,
       featured: sortedFeaturedIds,
     });
   } catch (err: any) {
