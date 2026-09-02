@@ -46,7 +46,7 @@ export async function POST(request: Request) {
   try {
     await verifyAdmin();
     const payload = await request.json();
-    const { name, slug, description, categoryTag, gradient, seriesSlugs } = payload;
+    const { name, slug, description, categoryTag, gradient, seriesSlugs, isPinned } = payload;
 
     if (!name || !slug) {
       return NextResponse.json({ error: 'Name and slug are required fields.' }, { status: 400 });
@@ -67,6 +67,7 @@ export async function POST(request: Request) {
       categoryTag: categoryTag || 'Featured',
       gradient: gradient || 'linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%)',
       seriesSlugs: Array.isArray(seriesSlugs) ? seriesSlugs : [],
+      isPinned: Boolean(isPinned),
     };
 
     playlists.push(newPlaylist);
@@ -83,7 +84,7 @@ export async function PUT(request: Request) {
   try {
     await verifyAdmin();
     const payload = await request.json();
-    const { id, name, slug, description, categoryTag, gradient, seriesSlugs } = payload;
+    const { id, name, slug, description, categoryTag, gradient, seriesSlugs, isPinned } = payload;
 
     if (!id || !name || !slug) {
       return NextResponse.json({ error: 'ID, name, and slug are required fields.' }, { status: 400 });
@@ -109,6 +110,7 @@ export async function PUT(request: Request) {
       categoryTag: categoryTag || 'Featured',
       gradient: gradient || 'linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%)',
       seriesSlugs: Array.isArray(seriesSlugs) ? seriesSlugs : [],
+      isPinned: Boolean(isPinned),
     };
 
     playlists[index] = updatedPlaylist;

@@ -1,13 +1,40 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Layers, Plus, Edit2, Trash2, Save, X, Check, RefreshCw, AlertCircle, Sparkles, Sliders } from 'lucide-react';
-import styles from '../admin.module.css';
+import React, { useState, useEffect, useMemo } from 'react';
+import Link from 'next/link';
+import { 
+  Layers, 
+  Plus, 
+  Edit2, 
+  Trash2, 
+  Save, 
+  X, 
+  Check, 
+  RefreshCw, 
+  AlertCircle, 
+  Sparkles, 
+  Search,
+  ExternalLink,
+  ArrowUp,
+  ArrowDown,
+  Pin,
+  Compass,
+  Flame,
+  Globe,
+  Film,
+  TrendingUp,
+  Sliders,
+  CheckCircle2
+} from 'lucide-react';
+import { getR2Url } from '@/utils/r2';
+import styles from './playlists.module.css';
 
 interface SeriesItem {
   id: string;
   title: string;
   slug: string;
+  poster_image_key?: string;
+  tags?: string[];
 }
 
 interface Playlist {
@@ -18,6 +45,7 @@ interface Playlist {
   categoryTag?: string;
   gradient: string;
   seriesSlugs: string[];
+  isPinned?: boolean;
 }
 
 const PRESET_GRADIENTS = [
@@ -43,7 +71,11 @@ export default function AdminPlaylistsPage() {
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // Form State
+  // Filter & Search states
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [activeCategoryTab, setActiveCategoryTab] = useState<string>('all');
+
+  // Form Modal State
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [formId, setFormId] = useState<string | null>(null);
   const [formName, setFormName] = useState<string>('');
@@ -52,8 +84,9 @@ export default function AdminPlaylistsPage() {
   const [formCategoryTag, setFormCategoryTag] = useState<string>('Featured');
   const [formGradient, setFormGradient] = useState<string>(PRESET_GRADIENTS[0]);
   const [formSeriesSlugs, setFormSeriesSlugs] = useState<string[]>([]);
+  const [formIsPinned, setFormIsPinned] = useState<boolean>(false);
   
-  // Search and filter inside form series list picker
+  // Inside form catalog search
   const [seriesSearch, setSeriesSearch] = useState<string>('');
 
   useEffect(() => {
@@ -106,6 +139,7 @@ export default function AdminPlaylistsPage() {
     setFormCategoryTag('Featured');
     setFormGradient(PRESET_GRADIENTS[0]);
     setFormSeriesSlugs([]);
+    setFormIsPinned(false);
     setSeriesSearch('');
     setIsEditing(true);
     setSuccessMsg(null);
@@ -120,6 +154,7 @@ export default function AdminPlaylistsPage() {
     setFormCategoryTag(playlist.categoryTag || 'Featured');
     setFormGradient(playlist.gradient);
     setFormSeriesSlugs(playlist.seriesSlugs || []);
+    setFormIsPinned(Boolean(playlist.isPinned));
     setSeriesSearch('');
     setIsEditing(true);
     setSuccessMsg(null);
@@ -131,12 +166,43 @@ export default function AdminPlaylistsPage() {
     setFormId(null);
   };
 
-  const handleToggleSeriesInForm = (slug: string) => {
-    if (formSeriesSlugs.includes(slug)) {
-      setFormSeriesSlugs(formSeriesSlugs.filter(s => s !== slug));
-    } else {
+  // Reordering in Modal
+  const handleMoveUp = (index: number) => {
+    if (index === 0) return;
+    const list = [...formSeriesSlugs];
+    const temp = list[index];
+    list[index] = list[index - 1];
+    list[index - 1] = temp;
+    setFormSeriesSlugs(list);
+  };
+
+  const handleMoveDown = (index: number) => {
+    if (index === formSeriesSlugs.length - 1) return;
+    const list = [...formSeriesSlugs];
+    const temp = list[index];
+    list[index] = list[index + 1];
+    list[index + 1] = temp;
+    setFormSeriesSlugs(list);
+  };
+
+  const handleRemoveSeries = (slug: string) => {
+    setFormSeriesSlugs(formSeriesSlugs.filter((s) => s !== slug));
+  };
+
+  const handleAddSeries = (slug: string) => {
+    if (!formSeriesSlugs.includes(slug)) {
       setFormSeriesSlugs([...formSeriesSlugs, slug]);
     }
+  };
+
+  // Quick Auto-Curate Presets (1-Click Tag Importers)
+  const handleAutoCurateTag = (tag: string) => {
+    const matchingSlugs = allSeries
+      .filter((s) => (s.tags || []).some((t) => t.toLowerCase() === tag.toLowerCase()))
+      .map((s) => s.slug);
+    
+    const merged = Array.from(new Set([...formSeriesSlugs, ...matchingSlugs]));
+    setFormSeriesSlugs(merged);
   };
 
   const handleSavePlaylist = async (e: React.FormEvent) => {
@@ -158,6 +224,7 @@ export default function AdminPlaylistsPage() {
       categoryTag: formCategoryTag,
       gradient: formGradient,
       seriesSlugs: formSeriesSlugs,
+      isPinned: formIsPinned,
     };
 
     try {
@@ -214,11 +281,66 @@ export default function AdminPlaylistsPage() {
     }
   };
 
-  // Filter series options dynamically based on form search query
-  const filteredSeriesOptions = allSeries.filter((series) =>
-    series.title.toLowerCase().includes(seriesSearch.toLowerCase()) ||
-    series.slug.toLowerCase().includes(seriesSearch.toLowerCase())
-  );
+  // Top Metrics Aggregations
+  const totalPlaylists = playlists.length;
+  
+  const uniqueShowsGrouped = useMemo(() => {
+    const set = new Set<string>();
+    playlists.forEach((p) => {
+      (p.seriesSlugs || []).forEach((s) => set.add(s));
+    });
+    return set.size;
+  }, [playlists]);
+
+  const seoCoveragePercent = useMemo(() => {
+    if (allSeries.length === 0) return 100;
+    return Math.min(100, Math.round((uniqueShowsGrouped / allSeries.length) * 100));
+  }, [uniqueShowsGrouped, allSeries.length]);
+
+  const featuredCount = useMemo(() => {
+    return playlists.filter((p) => p.categoryTag === 'Featured' || p.isPinned).length;
+  }, [playlists]);
+
+  // Series Lookup Map by Slug for Rapid Poster Rendering
+  const seriesBySlug = useMemo(() => {
+    const map = new Map<string, SeriesItem>();
+    allSeries.forEach((s) => map.set(s.slug, s));
+    return map;
+  }, [allSeries]);
+
+  // Filtered Playlists list based on search and category tab
+  const filteredPlaylists = useMemo(() => {
+    return playlists.filter((p) => {
+      // Category tab
+      if (activeCategoryTab === 'pinned') {
+        if (!p.isPinned) return false;
+      } else if (activeCategoryTab !== 'all') {
+        if (p.categoryTag !== activeCategoryTab) return false;
+      }
+
+      // Search query
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        const matchesName = p.name.toLowerCase().includes(q);
+        const matchesSlug = p.slug.toLowerCase().includes(q);
+        const matchesDesc = (p.description || '').toLowerCase().includes(q);
+        const matchesShow = (p.seriesSlugs || []).some((s) => s.toLowerCase().includes(q));
+        if (!matchesName && !matchesSlug && !matchesDesc && !matchesShow) return false;
+      }
+
+      return true;
+    });
+  }, [playlists, activeCategoryTab, searchQuery]);
+
+  // Inside Modal: Filter series catalog
+  const filteredCatalogForModal = useMemo(() => {
+    return allSeries.filter((series) => {
+      if (formSeriesSlugs.includes(series.slug)) return false; // hide already added
+      if (!seriesSearch.trim()) return true;
+      const q = seriesSearch.toLowerCase();
+      return series.title.toLowerCase().includes(q) || series.slug.toLowerCase().includes(q);
+    });
+  }, [allSeries, formSeriesSlugs, seriesSearch]);
 
   if (isLoading) {
     return (
@@ -230,245 +352,496 @@ export default function AdminPlaylistsPage() {
   }
 
   return (
-    <div className={styles.settingsContainer}>
+    <div className={styles.container}>
       {/* Title Header */}
-      <div className={styles.pageHeader}>
-        <div className={styles.titleRow}>
-          <Layers size={24} className={styles.headerIcon} />
-          <h1>Curated Playlists & Collections</h1>
+      <div className={styles.header}>
+        <div className={styles.titleArea}>
+          <div className={styles.iconBox}>
+            <Layers size={24} />
+          </div>
+          <div>
+            <h2>Curated Playlists & Collections</h2>
+            <p>Group series into thematic collections to boost internal linking SEO and increase audience discovery.</p>
+          </div>
         </div>
-        <p className={styles.description}>
-          Create and manage thematic playlists to group series and boost internal linking SEO.
-        </p>
+        <button onClick={handleOpenCreate} className={styles.createBtn}>
+          <Plus size={16} />
+          <span>Create Playlist</span>
+        </button>
       </div>
 
       {/* Alerts */}
       {successMsg && (
-        <div className={styles.alertSuccess}>
-          <Check size={18} />
+        <div className="glass" style={{ background: 'rgba(16, 185, 129, 0.15)', border: '1px solid rgba(16, 185, 129, 0.3)', color: '#10b981', padding: '1rem 1.25rem', borderRadius: '14px', display: 'flex', alignItems: 'center', gap: '0.75rem', fontWeight: 600 }}>
+          <CheckCircle2 size={18} />
           <span>{successMsg}</span>
         </div>
       )}
 
       {errorMsg && (
-        <div className={styles.alertError}>
+        <div className="glass" style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#ef4444', padding: '1rem 1.25rem', borderRadius: '14px', display: 'flex', alignItems: 'center', gap: '0.75rem', fontWeight: 600 }}>
           <AlertCircle size={18} />
           <span>{errorMsg}</span>
         </div>
       )}
 
-      {/* Main Layout Grid */}
-      {!isEditing ? (
-        <div className={styles.contentSection}>
-          <div className={styles.sectionHeader}>
-            <h2>Active Playlists ({playlists.length})</h2>
-            <button onClick={handleOpenCreate} className={styles.saveBtn} style={{ padding: '8px 16px' }}>
-              <Plus size={16} />
-              <span>Create Playlist</span>
-            </button>
+      {/* 1. Top Metrics & Catalog SEO Coverage Bar */}
+      <div className={styles.statsGrid}>
+        <div className={styles.statCard}>
+          <div className={styles.statIconBox} style={{ color: 'var(--primary)' }}>
+            <Layers size={22} />
           </div>
+          <div className={styles.statInfo}>
+            <span className={styles.statLabel}>Total Playlists</span>
+            <span className={styles.statValue}>{totalPlaylists}</span>
+            <span className={styles.statSubtext}>Active collections</span>
+          </div>
+        </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px', marginTop: '20px' }}>
-            {playlists.map((playlist) => (
-              <div key={playlist.id} className={styles.card} style={{ display: 'flex', flexDirection: 'column', minHeight: '180px', position: 'relative', overflow: 'hidden', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '20px' }}>
-                {/* Gradient Visual Preview */}
-                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '4px', background: playlist.gradient }} />
-                
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                  <span style={{ fontSize: '11px', textTransform: 'uppercase', padding: '3px 8px', borderRadius: '4px', background: 'var(--background-soft)', border: '1px solid var(--border-color)', fontWeight: 'semibold', color: 'var(--foreground-muted)' }}>
-                    {playlist.categoryTag || 'Featured'}
-                  </span>
-                  <span style={{ fontSize: '11px', color: 'var(--foreground-muted)' }}>
-                    {playlist.seriesSlugs.length} Series linked
+        <div className={styles.statCard}>
+          <div className={styles.statIconBox} style={{ color: '#38bdf8' }}>
+            <Film size={22} />
+          </div>
+          <div className={styles.statInfo}>
+            <span className={styles.statLabel}>Shows Grouped</span>
+            <span className={styles.statValue}>{uniqueShowsGrouped}</span>
+            <span className={styles.statSubtext}>Unique series curated</span>
+          </div>
+        </div>
+
+        <div className={styles.statCard}>
+          <div className={styles.statIconBox} style={{ color: '#10b981' }}>
+            <Globe size={22} />
+          </div>
+          <div className={styles.statInfo}>
+            <span className={styles.statLabel}>SEO Coverage</span>
+            <span className={styles.statValue}>{seoCoveragePercent}%</span>
+            <span className={styles.statSubtext}>Catalog in playlists</span>
+          </div>
+        </div>
+
+        <div className={styles.statCard}>
+          <div className={styles.statIconBox} style={{ color: '#ec4899' }}>
+            <Sparkles size={22} />
+          </div>
+          <div className={styles.statInfo}>
+            <span className={styles.statLabel}>Featured / Pinned</span>
+            <span className={styles.statValue}>{featuredCount}</span>
+            <span className={styles.statSubtext}>Priority collections</span>
+          </div>
+        </div>
+      </div>
+
+      {/* 2. Filter & Search Toolbar */}
+      <div className={styles.toolbar}>
+        <div className={styles.filterTabs}>
+          <button
+            type="button"
+            onClick={() => setActiveCategoryTab('all')}
+            className={`${styles.filterTabBtn} ${activeCategoryTab === 'all' ? styles.filterTabActive : ''}`}
+          >
+            All Playlists ({playlists.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveCategoryTab('Featured')}
+            className={`${styles.filterTabBtn} ${activeCategoryTab === 'Featured' ? styles.filterTabActive : ''}`}
+          >
+            <Sparkles size={13} /> Featured
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveCategoryTab('Genre Specials')}
+            className={`${styles.filterTabBtn} ${activeCategoryTab === 'Genre Specials' ? styles.filterTabActive : ''}`}
+          >
+            <Compass size={13} /> Genre Specials
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveCategoryTab('Most Popular')}
+            className={`${styles.filterTabBtn} ${activeCategoryTab === 'Most Popular' ? styles.filterTabActive : ''}`}
+          >
+            <Flame size={13} /> Most Popular
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveCategoryTab('pinned')}
+            className={`${styles.filterTabBtn} ${activeCategoryTab === 'pinned' ? styles.filterTabActive : ''}`}
+          >
+            <Pin size={13} /> Pinned
+          </button>
+        </div>
+
+        <div className={styles.searchBox}>
+          <Search size={16} style={{ color: 'var(--foreground-muted)' }} />
+          <input
+            type="text"
+            placeholder="Search playlists or shows..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className={styles.searchInput}
+          />
+        </div>
+      </div>
+
+      {/* 3. Glassmorphic Playlist Cards Grid */}
+      <div className={styles.playlistsGrid}>
+        {filteredPlaylists.map((playlist) => {
+          const linkedSeries = (playlist.seriesSlugs || [])
+            .map((slug) => seriesBySlug.get(slug))
+            .filter(Boolean) as SeriesItem[];
+
+          const previewPosters = linkedSeries.slice(0, 4);
+          const remainingCount = linkedSeries.length - previewPosters.length;
+
+          return (
+            <div key={playlist.id} className={styles.playlistCard}>
+              {/* Vibrant Top Glow Gradient */}
+              <div 
+                className={styles.cardBannerGlow}
+                style={{ background: playlist.gradient }}
+              />
+
+              <div className={styles.cardBody}>
+                <div className={styles.cardTopRow}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <span className={styles.categoryBadge}>
+                      {playlist.categoryTag || 'Featured'}
+                    </span>
+                    {playlist.isPinned && (
+                      <span className={styles.pinnedBadge}>
+                        <Pin size={10} /> Pinned
+                      </span>
+                    )}
+                  </div>
+                  <span className={styles.countBadge}>
+                    {playlist.seriesSlugs.length} Series
                   </span>
                 </div>
 
-                <h3 style={{ fontSize: '18px', fontWeight: 'bold', margin: '4px 0 8px 0', color: 'var(--foreground-color)' }}>
-                  {playlist.name}
-                </h3>
+                <h3 className={styles.cardTitle}>{playlist.name}</h3>
                 
-                <p style={{ fontSize: '13px', color: 'var(--foreground-muted)', flexGrow: 1, margin: '0 0 16px 0', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                  {playlist.description || 'No description provided.'}
+                <p className={styles.cardDesc}>
+                  {playlist.description || 'No curated description provided.'}
                 </p>
 
-                <div style={{ display: 'flex', gap: '10px', alignSelf: 'flex-end', marginTop: 'auto' }}>
-                  <button onClick={() => handleOpenEdit(playlist)} className={styles.saveBtn} style={{ background: 'var(--background-soft)', color: 'var(--foreground-color)', border: '1px solid var(--border-color)', padding: '6px 12px' }}>
+                {/* Multi-Poster Fan/Stack */}
+                <div className={styles.posterStack}>
+                  {previewPosters.map((item, idx) => (
+                    <div 
+                      key={item.id || idx} 
+                      className={styles.stackItem}
+                      title={item.title}
+                      style={{ zIndex: idx + 1 }}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={getR2Url(item.poster_image_key, 'poster')}
+                        alt={item.title}
+                      />
+                    </div>
+                  ))}
+                  {remainingCount > 0 && (
+                    <span className={styles.stackCountPill}>
+                      +{remainingCount} more
+                    </span>
+                  )}
+                  {previewPosters.length === 0 && (
+                    <span style={{ fontSize: '0.78rem', color: 'var(--foreground-muted)', fontStyle: 'italic' }}>
+                      No series linked yet.
+                    </span>
+                  )}
+                </div>
+
+                {/* Action Bar */}
+                <div className={styles.cardActions}>
+                  <Link
+                    href={`/playlists/${playlist.slug}`}
+                    target="_blank"
+                    className={`${styles.actionBtn} ${styles.actionLiveBtn}`}
+                    title="View live playlist page in new tab"
+                  >
+                    <ExternalLink size={13} />
+                    <span>View Live</span>
+                  </Link>
+
+                  <button
+                    type="button"
+                    onClick={() => handleOpenEdit(playlist)}
+                    className={styles.actionBtn}
+                  >
                     <Edit2 size={13} />
                     <span>Edit</span>
                   </button>
-                  <button onClick={() => handleDeletePlaylist(playlist.id, playlist.name)} className={styles.saveBtn} style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.2)', padding: '6px 12px' }}>
+
+                  <button
+                    type="button"
+                    onClick={() => handleDeletePlaylist(playlist.id, playlist.name)}
+                    className={`${styles.actionBtn} ${styles.actionDeleteBtn}`}
+                  >
                     <Trash2 size={13} />
                     <span>Delete</span>
                   </button>
                 </div>
               </div>
-            ))}
+            </div>
+          );
+        })}
+
+        {filteredPlaylists.length === 0 && (
+          <div className={styles.emptyState}>
+            No curated playlists match your active category filter or search query.
           </div>
-        </div>
-      ) : (
-        /* Edit/Create Form View */
-        <form onSubmit={handleSavePlaylist} className={styles.card} style={{ marginTop: '20px', padding: '24px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid var(--border-color)', paddingBottom: '16px' }}>
-            <h2>{formId ? 'Edit Playlist' : 'Create New Playlist'}</h2>
-            <button type="button" onClick={handleCancelForm} className={styles.closeBtn} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--foreground-muted)' }}>
-              <X size={20} />
-            </button>
-          </div>
+        )}
+      </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-            {/* Left Inputs */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              <div className={styles.inputGroup}>
-                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'semibold' }}>Playlist Name *</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Action Masterpieces"
-                  value={formName}
-                  onChange={(e) => handleNameChange(e.target.value)}
-                  className={styles.textInput}
-                  required
-                />
-              </div>
-
-              <div className={styles.inputGroup}>
-                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'semibold' }}>URL Slug *</label>
-                <input
-                  type="text"
-                  placeholder="e.g. action-masterpieces"
-                  value={formSlug}
-                  onChange={(e) => setFormSlug(e.target.value)}
-                  className={styles.textInput}
-                  required
-                />
-              </div>
-
-              <div className={styles.inputGroup}>
-                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'semibold' }}>Description Context (SEO Text) *</label>
-                <textarea
-                  placeholder="Provide curated description of themes, genres, and specific series included in this collection..."
-                  value={formDescription}
-                  onChange={(e) => setFormDescription(e.target.value)}
-                  className={styles.textInput}
-                  style={{ minHeight: '100px', resize: 'vertical' }}
-                  required
-                />
-              </div>
-
-              <div className={styles.inputGroup}>
-                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'semibold' }}>Category Tag</label>
-                <select
-                  value={formCategoryTag}
-                  onChange={(e) => setFormCategoryTag(e.target.value)}
-                  className={styles.select}
-                  style={{ width: '100%', padding: '10px', borderRadius: '4px', background: 'var(--background-soft)', border: '1px solid var(--border-color)', color: 'var(--foreground-color)' }}
-                >
-                  {PRESET_TAGS.map((tag) => (
-                    <option key={tag} value={tag}>{tag}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className={styles.inputGroup}>
-                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'semibold' }}>Banner Background Gradient</label>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', marginBottom: '12px' }}>
-                  {PRESET_GRADIENTS.map((grad, i) => (
-                    <button
-                      key={i}
-                      type="button"
-                      onClick={() => setFormGradient(grad)}
-                      style={{ height: '36px', background: grad, borderRadius: '4px', border: formGradient === grad ? '2px solid #3b82f6' : '1px solid rgba(255,255,255,0.1)', cursor: 'pointer' }}
-                    />
-                  ))}
-                </div>
-                <input
-                  type="text"
-                  placeholder="Custom CSS Gradient..."
-                  value={formGradient}
-                  onChange={(e) => setFormGradient(e.target.value)}
-                  className={styles.textInput}
-                />
-              </div>
+      {/* 4. Spacious 2-Column Create / Edit Modal */}
+      {isEditing && (
+        <div className={styles.modalOverlay}>
+          <form onSubmit={handleSavePlaylist} className={styles.modalContent}>
+            <div className={styles.modalHeader}>
+              <h2>{formId ? 'Edit Playlist & Curate Sequence' : 'Create New Thematic Playlist'}</h2>
+              <button type="button" onClick={handleCancelForm} className={styles.closeBtn}>
+                <X size={20} />
+              </button>
             </div>
 
-            {/* Right Series Picker Checklist */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', borderLeft: '1px solid var(--border-color)', paddingLeft: '24px' }}>
-              <div>
-                <label style={{ display: 'block', fontWeight: 'semibold', marginBottom: '4px' }}>
-                  Link Series to Playlist ({formSeriesSlugs.length} selected)
+            <div className={styles.modalBody}>
+              {/* Left Column: Metadata & Gradient Colors */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+                <div className={styles.inputGroup}>
+                  <label className={styles.inputLabel}>Playlist Title *</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Uncensored Legends"
+                    value={formName}
+                    onChange={(e) => handleNameChange(e.target.value)}
+                    className={styles.textInput}
+                    required
+                  />
+                </div>
+
+                <div className={styles.inputGroup}>
+                  <label className={styles.inputLabel}>URL Slug *</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. uncensored-legends"
+                    value={formSlug}
+                    onChange={(e) => setFormSlug(e.target.value)}
+                    className={styles.textInput}
+                    required
+                  />
+                </div>
+
+                <div className={styles.inputGroup}>
+                  <label className={styles.inputLabel}>Category Group</label>
+                  <select
+                    value={formCategoryTag}
+                    onChange={(e) => setFormCategoryTag(e.target.value)}
+                    className={styles.selectInput}
+                  >
+                    {PRESET_TAGS.map((t) => (
+                      <option key={t} value={t} style={{ background: '#1e293b' }}>{t}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className={styles.inputGroup}>
+                  <label className={styles.inputLabel}>SEO Description *</label>
+                  <textarea
+                    placeholder="Curated synopsis explaining the thematic focus and anime series included in this playlist..."
+                    value={formDescription}
+                    onChange={(e) => setFormDescription(e.target.value)}
+                    className={styles.textareaInput}
+                    required
+                  />
+                </div>
+
+                {/* Gradient Palette Selection */}
+                <div className={styles.inputGroup}>
+                  <label className={styles.inputLabel}>Gradient Accent Color</label>
+                  <div className={styles.gradientPalette}>
+                    {PRESET_GRADIENTS.map((g, idx) => (
+                      <div
+                        key={idx}
+                        onClick={() => setFormGradient(g)}
+                        className={`${styles.gradientChoice} ${formGradient === g ? styles.gradientChoiceActive : ''}`}
+                        style={{ background: g }}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Pinned Switch */}
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer', marginTop: '0.2rem' }}>
+                  <input
+                    type="checkbox"
+                    checked={formIsPinned}
+                    onChange={(e) => setFormIsPinned(e.target.checked)}
+                    style={{ width: '16px', height: '16px', accentColor: 'var(--primary)' }}
+                  />
+                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--foreground-primary)' }}>
+                    Pin to Top of Playlists Page
+                  </span>
                 </label>
-                <span style={{ fontSize: '12px', color: 'var(--foreground-muted)' }}>
-                  Check series cards to include them inside this curated collection group.
-                </span>
               </div>
 
-              {/* Series Search input */}
-              <input
-                type="text"
-                placeholder="Search series by title..."
-                value={seriesSearch}
-                onChange={(e) => setSeriesSearch(e.target.value)}
-                className={styles.textInput}
-                style={{ padding: '8px 12px', fontSize: '13px' }}
-              />
+              {/* Right Column: Sequence Arranger & Catalog Picker */}
+              <div className={styles.sequencePanel}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <label className={styles.inputLabel}>
+                    Selected Series Sequence ({formSeriesSlugs.length})
+                  </label>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--foreground-muted)' }}>
+                    Arrange public display order
+                  </span>
+                </div>
 
-              <div style={{ flexGrow: 1, maxHeight: '350px', overflowY: 'auto', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px', background: 'var(--background-soft)' }}>
-                {filteredSeriesOptions.length > 0 ? (
-                  filteredSeriesOptions.map((series) => {
-                    const isSelected = formSeriesSlugs.includes(series.slug);
+                {/* Selected Shows Ordered List */}
+                <div className={styles.seriesScrollList} style={{ height: '160px' }}>
+                  {formSeriesSlugs.map((slug, idx) => {
+                    const item = seriesBySlug.get(slug);
                     return (
-                      <div
-                        key={series.id}
-                        onClick={() => handleToggleSeriesInForm(series.slug)}
-                        style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 12px', borderRadius: '4px', border: '1px solid', borderColor: isSelected ? 'rgba(59, 130, 246, 0.3)' : 'transparent', background: isSelected ? 'rgba(59, 130, 246, 0.05)' : 'transparent', cursor: 'pointer', transition: 'all 0.15s ease' }}
-                      >
-                        <div style={{ width: '16px', height: '16px', borderRadius: '3px', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: isSelected ? '#3b82f6' : 'var(--background-color)', borderColor: isSelected ? '#3b82f6' : 'var(--border-color)' }}>
-                          {isSelected && <Check size={11} style={{ color: '#fff', strokeWidth: 3 }} />}
-                        </div>
-                        <span style={{ fontSize: '13px', color: isSelected ? 'var(--foreground-color)' : 'var(--foreground-muted)' }}>
-                          {series.title}
+                      <div key={slug} className={styles.seriesItemRow}>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--primary)', width: '20px' }}>
+                          #{idx + 1}
                         </span>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={getR2Url(item?.poster_image_key, 'poster')}
+                          alt={item?.title || slug}
+                          className={styles.seriesMiniThumb}
+                        />
+                        <span className={styles.seriesItemTitle}>
+                          {item?.title || slug}
+                        </span>
+                        <div style={{ display: 'flex', gap: '0.25rem', flexShrink: 0 }}>
+                          <button
+                            type="button"
+                            onClick={() => handleMoveUp(idx)}
+                            disabled={idx === 0}
+                            style={{ background: 'transparent', border: '1px solid var(--border)', color: '#fff', borderRadius: '4px', cursor: 'pointer', padding: '2px 4px' }}
+                          >
+                            <ArrowUp size={12} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleMoveDown(idx)}
+                            disabled={idx === formSeriesSlugs.length - 1}
+                            style={{ background: 'transparent', border: '1px solid var(--border)', color: '#fff', borderRadius: '4px', cursor: 'pointer', padding: '2px 4px' }}
+                          >
+                            <ArrowDown size={12} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveSeries(slug)}
+                            style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#ef4444', borderRadius: '4px', cursor: 'pointer', padding: '2px 4px' }}
+                          >
+                            <X size={12} />
+                          </button>
+                        </div>
                       </div>
                     );
-                  })
-                ) : (
-                  <p style={{ fontSize: '13px', color: 'var(--foreground-muted)', textAlign: 'center', padding: '20px' }}>
-                    No series found.
-                  </p>
-                )}
+                  })}
+                  {formSeriesSlugs.length === 0 && (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--foreground-muted)', fontSize: '0.82rem' }}>
+                      No series selected. Add titles from catalog below.
+                    </div>
+                  )}
+                </div>
+
+                {/* 1-Click Auto-Curate Presets */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.4rem' }}>
+                  <span style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--foreground-secondary)' }}>
+                    ⚡ 1-Click Auto-Add:
+                  </span>
+                  <div className={styles.quickPresetsBar}>
+                    <button
+                      type="button"
+                      onClick={() => handleAutoCurateTag('Uncensored')}
+                      className={styles.quickPresetBtn}
+                    >
+                      + Uncensored
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleAutoCurateTag('3D')}
+                      className={styles.quickPresetBtn}
+                    >
+                      + 3D Anime
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleAutoCurateTag('Romance')}
+                      className={styles.quickPresetBtn}
+                    >
+                      + Romance
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleAutoCurateTag('Fantasy')}
+                      className={styles.quickPresetBtn}
+                    >
+                      + Fantasy
+                    </button>
+                  </div>
+                </div>
+
+                {/* Catalog Search & Picker */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  <input
+                    type="text"
+                    placeholder="Search catalog to add shows..."
+                    value={seriesSearch}
+                    onChange={(e) => setSeriesSearch(e.target.value)}
+                    className={styles.textInput}
+                    style={{ padding: '0.5rem 0.8rem', fontSize: '0.82rem' }}
+                  />
+
+                  <div className={styles.seriesScrollList} style={{ height: '150px' }}>
+                    {filteredCatalogForModal.map((series) => (
+                      <div key={series.id} className={styles.seriesItemRow}>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={getR2Url(series.poster_image_key, 'poster')}
+                          alt={series.title}
+                          className={styles.seriesMiniThumb}
+                        />
+                        <span className={styles.seriesItemTitle}>
+                          {series.title}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleAddSeries(series.slug)}
+                          className={styles.quickPresetBtn}
+                          style={{ background: 'var(--primary)', color: '#fff', border: 'none' }}
+                        >
+                          <Plus size={12} /> Add
+                        </button>
+                      </div>
+                    ))}
+                    {filteredCatalogForModal.length === 0 && (
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--foreground-muted)', fontSize: '0.82rem' }}>
+                        No more matching shows found.
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Form Actions */}
-          <div style={{ display: 'flex', justifySelf: 'flex-end', gap: '12px', marginTop: '24px', borderTop: '1px solid var(--border-color)', paddingTop: '20px', width: '100%' }}>
-            <button
-              type="button"
-              onClick={handleCancelForm}
-              className={styles.saveBtn}
-              style={{ background: 'var(--background-soft)', color: 'var(--foreground-color)', border: '1px solid var(--border-color)', padding: '10px 20px' }}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isSaving}
-              className={styles.saveBtn}
-              style={{ padding: '10px 20px' }}
-            >
-              {isSaving ? (
-                <>
-                  <RefreshCw className={styles.spinner} size={14} />
-                  <span>Saving...</span>
-                </>
-              ) : (
-                <>
-                  <Save size={14} />
-                  <span>Save Playlist</span>
-                </>
-              )}
-            </button>
-          </div>
-        </form>
+            {/* Modal Footer */}
+            <div className={styles.modalFooter}>
+              <button type="button" onClick={handleCancelForm} className={styles.cancelBtn}>
+                Cancel
+              </button>
+              <button type="submit" disabled={isSaving} className={styles.createBtn}>
+                <Save size={16} />
+                <span>{isSaving ? 'Saving Playlist...' : 'Save Playlist'}</span>
+              </button>
+            </div>
+          </form>
+        </div>
       )}
     </div>
   );
