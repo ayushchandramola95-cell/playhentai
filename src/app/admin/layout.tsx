@@ -46,11 +46,6 @@ export default async function AdminLayout({
 
       {/* Main Content Area */}
       <main className={styles.mainContent}>
-        <div className="ambient-glow" />
-        <div className={styles.pageHeader}>
-          <span className={styles.breadcrumb}>Console / Admin</span>
-          <div className={styles.statusBadge}>Secure Session</div>
-        </div>
         <div className={styles.contentBody}>
           {children}
         </div>

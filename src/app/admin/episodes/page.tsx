@@ -1,17 +1,29 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Video, Plus, Search, Edit2, Trash2, X, AlertCircle, Clock, Camera, Image as ImageIcon, UploadCloud, Minimize2, Maximize2 } from 'lucide-react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import Link from 'next/link';
+import { 
+  Video, Plus, Search, Edit2, Trash2, X, AlertCircle, Clock, Camera, 
+  Image as ImageIcon, UploadCloud, Minimize2, Maximize2, Tv, Film, 
+  ExternalLink, Play, CheckCircle2, ChevronDown, ChevronUp, ChevronsLeft,
+  ChevronLeft, ChevronRight, ChevronsRight, LayoutGrid, Table as TableIcon,
+  Copy, Check, Layers, Sparkles, FolderOpen, Download, Sliders, RotateCcw,
+  Sun, Contrast, Eye, CheckCheck, Zap
+} from 'lucide-react';
 import FileUploader from '@/components/FileUploader/FileUploader';
 import { getR2Url } from '@/utils/r2';
-import styles from '../admin.module.css';
+import styles from './episodes.module.css';
+import adminStyles from '../admin.module.css';
 
 interface Series {
   id: string;
   title: string;
+  slug?: string;
   release_year?: number;
   poster_image_key?: string;
+  cover_image_key?: string;
   studio?: string;
+  is_published?: boolean;
   created_at?: string;
 }
 
@@ -46,8 +58,11 @@ interface Episode {
 interface BatchEpisodeFile {
   id: string;
   file: File;
+  seriesId?: string;
+  seasonId?: string;
   episodeNumber: number;
   title: string;
+  releaseDate?: string;
   durationSeconds: number;
   videoKey: string;
   thumbnailKey: string;
@@ -138,17 +153,33 @@ export default function AdminEpisodesPage() {
   // Filtering & Search states
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLaunchYear, setSelectedLaunchYear] = useState('all');
-  const [sortBy, setSortBy] = useState<'name' | 'date'>('date');
+  const [selectedSeriesFilter, setSelectedSeriesFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'published' | 'draft'>('all');
+  const [mediaFilter, setMediaFilter] = useState<'all' | 'missing_video' | 'missing_thumb'>('all');
+  const [sortBy, setSortBy] = useState<'name' | 'date' | 'episodes'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [viewMode, setViewMode] = useState<'accordion' | 'table'>('accordion');
   const [expandedSeriesIds, setExpandedSeriesIds] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
+
+  // Pagination states
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const ITEMS_PER_PAGE = 15;
+  const [pageSize, setPageSize] = useState<number>(15);
 
   // Reset pagination to page 1 on filter or search changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, selectedLaunchYear, sortBy, sortOrder]);
+  }, [searchTerm, selectedLaunchYear, selectedSeriesFilter, statusFilter, mediaFilter, sortBy, sortOrder, pageSize]);
+
+  // Auto-dismiss success message
+  useEffect(() => {
+    if (!successMsg) return;
+    const t = setTimeout(() => setSuccessMsg(null), 4000);
+    return () => clearTimeout(t);
+  }, [successMsg]);
 
   // Modal form states
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -184,7 +215,7 @@ export default function AdminEpisodesPage() {
     seriesId: string;
     seasonId: string;
     files: BatchEpisodeFile[];
-    schedulingType: 'none' | '1day' | '1week';
+    schedulingType: 'none' | '1day' | '3days' | '1week' | '2weeks' | '1month';
     baseReleaseDate: string;
     status: 'editing' | 'pending' | 'uploading' | 'success' | 'error';
     isMinimized: boolean;
@@ -322,8 +353,64 @@ export default function AdminEpisodesPage() {
   const [isSavedGalleryOpen, setIsSavedGalleryOpen] = useState(false);
   const [savingThumbStudio, setSavingThumbStudio] = useState(false);
   const [thumbStudioError, setThumbStudioError] = useState<string | null>(null);
-  const [isThumbStudioSaving, setIsThumbStudioSaving] = useState(false);
   const [zoomImageUrl, setZoomImageUrl] = useState<string | null>(null);
+  const [imageBrightness, setImageBrightness] = useState<number>(100);
+  const [imageContrast, setImageContrast] = useState<number>(100);
+  const [imageSaturation, setImageSaturation] = useState<number>(100);
+  const [thumbResolution, setThumbResolution] = useState<'native' | '1080p' | '720p' | '4k'>('native');
+  const [thumbQualityMode, setThumbQualityMode] = useState<'ultra' | 'max' | 'high' | 'standard'>('ultra');
+  const [thumbImageFormat, setThumbImageFormat] = useState<'image/jpeg' | 'image/webp' | 'image/png'>('image/jpeg');
+
+  // Clipboard Paste Listener for Thumbnail Studio (Press Ctrl+V to instantly paste & upload)
+  useEffect(() => {
+    if (!isThumbModalOpen) return;
+
+    const handlePaste = async (e: ClipboardEvent) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        if (item.type.startsWith('image/')) {
+          e.preventDefault();
+          const file = item.getAsFile();
+          if (file && thumbModalEpisode) {
+            setSavingThumbStudio(true);
+            setThumbStudioError(null);
+            try {
+              const filename = `pasted-thumb-${Date.now()}.jpg`;
+              const presignRes = await fetch('/api/admin/presign', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ filename, contentType: file.type || 'image/jpeg' })
+              });
+              const presignData = await presignRes.json();
+              if (!presignRes.ok) throw new Error(presignData.error || 'Failed to get upload signature');
+
+              const uploadRes = await fetch(presignData.url, {
+                method: 'PUT',
+                headers: { 'Content-Type': file.type || 'image/jpeg' },
+                body: file
+              });
+              if (!uploadRes.ok) throw new Error('Failed to upload pasted image');
+
+              await handleCustomThumbnailUploadComplete(presignData.key);
+            } catch (err: any) {
+              setThumbStudioError(err.message || 'Failed to upload pasted image');
+            } finally {
+              setSavingThumbStudio(false);
+            }
+          }
+          break;
+        }
+      }
+    };
+
+    window.addEventListener('paste', handlePaste);
+    return () => {
+      window.removeEventListener('paste', handlePaste);
+    };
+  }, [isThumbModalOpen, thumbModalEpisode, thumbStudioSavedList]);
 
   // Memoize scrubVideoSrc so the video element never reloads or resets to 0:00 on state re-renders
   const scrubVideoSrc = useMemo(() => {
@@ -579,15 +666,10 @@ export default function AdminEpisodesPage() {
     setSessionKeys([]);
     
     // Format current date for datetime-local (YYYY-MM-DDTHH:MM) at 12:00 AM default
-    const now = new Date();
-    now.setHours(0, 0, 0, 0);
-    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-    setReleaseDate(now.toISOString().slice(0, 16));
+    setReleaseDate(formatLocalDateToMidnight(new Date()));
     
     setIsPublished(false);
     setError(null);
-
-
 
     setIsModalOpen(true);
   };
@@ -615,15 +697,11 @@ export default function AdminEpisodesPage() {
     originalKeysRef.current = [ep.video_key, ep.thumbnail_key, ...(ep.thumbnail_options || [])].filter(Boolean);
     setSessionKeys([]);
     
-    // Format release date for input
-    const rDate = ep.release_date ? new Date(ep.release_date) : new Date();
-    rDate.setMinutes(rDate.getMinutes() - rDate.getTimezoneOffset());
-    setReleaseDate(rDate.toISOString().slice(0, 16));
+    // Format release date for input at midnight
+    setReleaseDate(formatLocalDateToMidnight(ep.release_date));
     
     setIsPublished(ep.is_published);
     setError(null);
-
-
 
     setIsModalOpen(true);
   };
@@ -651,6 +729,11 @@ export default function AdminEpisodesPage() {
     const cleanTitle = title.replace(/^\[Preview\]\s*/i, '').replace(/^\[Trailer\]\s*/i, '');
     const finalTitle = isPreview ? `[Preview] ${cleanTitle}` : cleanTitle;
 
+    const matchDate = (releaseDate || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
+    const finalReleaseDate = matchDate 
+      ? `${matchDate[1]}-${matchDate[2]}-${matchDate[3]}T00:00:00.000Z` 
+      : new Date().toISOString();
+
     const payload = {
       id: editingId,
       season_id: formSeasonId,
@@ -661,7 +744,7 @@ export default function AdminEpisodesPage() {
       thumbnail_key: thumbnailKey,
       thumbnail_options: savedThumbnails,
       duration_seconds: durationSeconds,
-      release_date: new Date(releaseDate).toISOString(),
+      release_date: finalReleaseDate,
       is_published: isPublished,
       metadata_locks: {},
       metadata_provenance: {},
@@ -739,7 +822,51 @@ export default function AdminEpisodesPage() {
     return defaultVal;
   };
 
-  const extractVideoMetadataAndUploadThumb = (file: File): Promise<{ duration: number; thumbnailKey: string }> => {
+  /**
+   * Formats a Date object to YYYY-MM-DDT00:00 in local time (always 12:00 AM / 00:00)
+   */
+  const formatLocalDateToMidnight = (d?: Date | string | null): string => {
+    if (!d) {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}T00:00`;
+    }
+    
+    if (typeof d === 'string') {
+      const match = d.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (match) {
+        return `${match[1]}-${match[2]}-${match[3]}T00:00`;
+      }
+      const parsed = new Date(d);
+      if (!isNaN(parsed.getTime())) {
+        const year = parsed.getFullYear();
+        const month = String(parsed.getMonth() + 1).padStart(2, '0');
+        const day = String(parsed.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}T00:00`;
+      }
+      const now = new Date();
+      return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}T00:00`;
+    }
+
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}T00:00`;
+  };
+
+  const setQuickReleaseDate = (preset: 'today' | 'yesterday' | 'week_ago' | 'month_ago' | 'next_week') => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    if (preset === 'yesterday') d.setDate(d.getDate() - 1);
+    else if (preset === 'week_ago') d.setDate(d.getDate() - 7);
+    else if (preset === 'month_ago') d.setMonth(d.getMonth() - 1);
+    else if (preset === 'next_week') d.setDate(d.getDate() + 7);
+    setReleaseDate(formatLocalDateToMidnight(d));
+  };
+
+  const extractVideoDuration = (file: File): Promise<number> => {
     return new Promise((resolve) => {
       const videoUrl = URL.createObjectURL(file);
       const video = document.createElement('video');
@@ -749,80 +876,23 @@ export default function AdminEpisodesPage() {
       video.playsInline = true;
 
       video.onloadedmetadata = () => {
-        const duration = Math.round(video.duration);
-        const randomPercent = 0.15 + Math.random() * 0.7;
-        video.currentTime = video.duration * randomPercent;
-
-        video.onseeked = () => {
-          const canvas = document.createElement('canvas');
-          const width = video.videoWidth || 1280;
-          const height = video.videoHeight || 720;
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          if (ctx) {
-            try {
-              ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-              canvas.toBlob(async (blob) => {
-                if (!blob) {
-                  URL.revokeObjectURL(videoUrl);
-                  resolve({ duration, thumbnailKey: '' });
-                  return;
-                }
-                try {
-                  const filename = `auto-thumb-${Date.now()}.jpg`;
-                  const presignRes = await fetch('/api/admin/presign', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ filename, contentType: 'image/jpeg' })
-                  });
-                  const presignData = await presignRes.json();
-                  if (presignRes.ok) {
-                    const { url, key } = presignData;
-                    const uploadRes = await fetch(url, {
-                      method: 'PUT',
-                      headers: { 'Content-Type': 'image/jpeg' },
-                      body: blob
-                    });
-                    if (uploadRes.ok) {
-                      URL.revokeObjectURL(videoUrl);
-                      resolve({ duration, thumbnailKey: key });
-                      return;
-                    }
-                  }
-                } catch (e) {
-                  console.error('Failed to upload batch auto thumbnail:', e);
-                }
-                URL.revokeObjectURL(videoUrl);
-                resolve({ duration, thumbnailKey: '' });
-              }, 'image/jpeg', 0.95);
-            } catch (canvasErr) {
-              console.error('Canvas error in batch metadata:', canvasErr);
-              URL.revokeObjectURL(videoUrl);
-              resolve({ duration, thumbnailKey: '' });
-            }
-          } else {
-            URL.revokeObjectURL(videoUrl);
-            resolve({ duration, thumbnailKey: '' });
-          }
-        };
+        const duration = Math.round(video.duration) || 1440;
+        URL.revokeObjectURL(videoUrl);
+        resolve(duration);
       };
 
       video.onerror = () => {
         URL.revokeObjectURL(videoUrl);
-        resolve({ duration: 1440, thumbnailKey: '' });
+        resolve(1440);
       };
     });
   };
+
   const handleOpenBatchCreate = (preselectedSeriesId?: string, preselectedSeasonId?: string) => {
     const newBatchId = 'batch-group-' + Date.now() + '-' + Math.random().toString(36).substring(2, 7);
     const seriesId = preselectedSeriesId || (seriesList[0]?.id || '');
     const relevantSeasons = seasonsList.filter(s => s.series_id === seriesId);
     const seasonId = preselectedSeasonId || (relevantSeasons[0]?.id || '');
-
-    const now = new Date();
-    now.setHours(0, 0, 0, 0);
-    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
 
     const newBatch: UploadBatch = {
       id: newBatchId,
@@ -830,13 +900,118 @@ export default function AdminEpisodesPage() {
       seasonId,
       files: [],
       schedulingType: 'none',
-      baseReleaseDate: now.toISOString().slice(0, 16),
+      baseReleaseDate: formatLocalDateToMidnight(new Date()),
       status: 'editing',
       isMinimized: false
     };
 
     setBatches(prev => [...prev, newBatch]);
     setActiveBatchId(newBatchId);
+  };
+
+  const calculateItemReleaseDate = (baseDateStr: string, schedulingType: string, index: number): string => {
+    let year: number;
+    let month: number;
+    let day: number;
+
+    const match = (baseDateStr || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (match) {
+      year = parseInt(match[1], 10);
+      month = parseInt(match[2], 10) - 1;
+      day = parseInt(match[3], 10);
+    } else {
+      const now = new Date();
+      year = now.getFullYear();
+      month = now.getMonth();
+      day = now.getDate();
+    }
+
+    const targetDate = new Date(year, month, day, 0, 0, 0, 0);
+
+    if (schedulingType === '1day') {
+      targetDate.setDate(targetDate.getDate() + index);
+    } else if (schedulingType === '3days') {
+      targetDate.setDate(targetDate.getDate() + (index * 3));
+    } else if (schedulingType === '1week') {
+      targetDate.setDate(targetDate.getDate() + (index * 7));
+    } else if (schedulingType === '2weeks') {
+      targetDate.setDate(targetDate.getDate() + (index * 14));
+    } else if (schedulingType === '1month') {
+      targetDate.setMonth(targetDate.getMonth() + index);
+    }
+
+    return formatLocalDateToMidnight(targetDate);
+  };
+
+  const handleApplySmartDates = (schedType?: string) => {
+    const targetType = schedType || activeSchedulingType;
+    updateActiveBatch(b => {
+      const updatedFiles = b.files.map((file, idx) => ({
+        ...file,
+        releaseDate: calculateItemReleaseDate(b.baseReleaseDate, targetType, idx)
+      }));
+      return {
+        schedulingType: targetType as any,
+        files: updatedFiles
+      };
+    });
+  };
+
+  const handleRenumberFiles = (startNum: number = 1) => {
+    updateActiveBatch(b => {
+      const updatedFiles = b.files.map((file, idx) => {
+        const epNum = startNum + idx;
+        return {
+          ...file,
+          episodeNumber: epNum,
+          title: `Episode ${epNum}`
+        };
+      });
+      return { files: updatedFiles };
+    });
+  };
+
+  const handleApplyTitleTemplate = (template: 'episode' | 'ova' | 'special' | 'part') => {
+    updateActiveBatch(b => {
+      const updatedFiles = b.files.map((file) => {
+        let prefix = 'Episode';
+        if (template === 'ova') prefix = 'OVA';
+        if (template === 'special') prefix = 'Special';
+        if (template === 'part') prefix = 'Part';
+        return {
+          ...file,
+          title: `${prefix} ${file.episodeNumber}`
+        };
+      });
+      return { files: updatedFiles };
+    });
+  };
+
+  const handleToggleAllPublish = (isPub: boolean) => {
+    updateActiveBatch(b => ({
+      files: b.files.map(f => ({ ...f, isPublished: isPub }))
+    }));
+  };
+
+  const handleToggleAllPreview = (isPrev: boolean) => {
+    updateActiveBatch(b => ({
+      files: b.files.map(f => ({ ...f, isPreview: isPrev }))
+    }));
+  };
+
+  const handleRemoveBatchFile = (fileId: string) => {
+    updateActiveBatch(b => ({
+      files: b.files.filter(f => f.id !== fileId)
+    }));
+  };
+
+  const handleBatchItemSeriesChange = (itemId: string, newSeriesId: string) => {
+    const relevantSeasons = seasonsList.filter(s => s.series_id === newSeriesId);
+    const firstSeasonId = relevantSeasons[0]?.id || '';
+    setBatches(prev => prev.map(b => ({
+      ...b,
+      files: b.files.map(f => f.id === itemId ? { ...f, seriesId: newSeriesId, seasonId: firstSeasonId } : f)
+    })));
   };
 
   const handleBatchSeriesChange = (seriesIdVal: string) => {
@@ -855,6 +1030,8 @@ export default function AdminEpisodesPage() {
           const parsedEp = extractEpisodeNumberFromFilename(bf.file.name, startEpNum + idx);
           return {
             ...bf,
+            seriesId: seriesIdVal,
+            seasonId: seasonIdVal,
             episodeNumber: parsedEp,
             title: cleanFilenameToTitle(bf.file.name, parsedEp)
           };
@@ -888,16 +1065,21 @@ export default function AdminEpisodesPage() {
     const startEpNum = seriesEpisodes.length > 0 ? Math.max(...seriesEpisodes.map(e => e.episode_number)) + 1 : 1;
 
     const newItems: BatchEpisodeFile[] = newVideoFiles.map((file, idx) => {
+      const totalIdx = (active.files?.length || 0) + idx;
       const epNum = extractEpisodeNumberFromFilename(file.name, startEpNum + idx);
+      const computedDate = calculateItemReleaseDate(active.baseReleaseDate, active.schedulingType, totalIdx);
       return {
         id: `batch-${Date.now()}-${idx}-${Math.random().toString(36).substring(2, 7)}`,
         file,
+        seriesId: active.seriesId,
+        seasonId: active.seasonId,
         episodeNumber: epNum,
         title: cleanFilenameToTitle(file.name, epNum),
+        releaseDate: computedDate,
         durationSeconds: 1440,
         videoKey: '',
         thumbnailKey: '',
-        status: 'metadata',
+        status: 'pending',
         progress: 0,
         isPublished: false,
         isPreview: false
@@ -908,17 +1090,13 @@ export default function AdminEpisodesPage() {
 
     for (const item of newItems) {
       try {
-        const meta = await extractVideoMetadataAndUploadThumb(item.file);
+        const duration = await extractVideoDuration(item.file);
         setBatches(prev => prev.map(b => b.id === activeBatchId ? {
           ...b,
-          files: b.files.map(bf => bf.id === item.id ? { ...bf, durationSeconds: meta.duration, thumbnailKey: meta.thumbnailKey, status: 'pending' } : bf)
+          files: b.files.map(bf => bf.id === item.id ? { ...bf, durationSeconds: duration, thumbnailKey: '', status: 'pending' } : bf)
         } : b));
       } catch (err) {
-        console.error('Error generating batch item metadata:', err);
-        setBatches(prev => prev.map(b => b.id === activeBatchId ? {
-          ...b,
-          files: b.files.map(bf => bf.id === item.id ? { ...bf, status: 'pending' } : bf)
-        } : b));
+        console.error('Error extracting video duration:', err);
       }
     }
   };
@@ -935,7 +1113,6 @@ export default function AdminEpisodesPage() {
 
   const updateBatchItemField = (id: string, field: keyof BatchEpisodeFile, value: any) => {
     setBatches(prev => prev.map(b => {
-      // Find which batch contains this item
       const hasItem = b.files.some(f => f.id === id);
       if (hasItem) {
         return {
@@ -1045,19 +1222,18 @@ export default function AdminEpisodesPage() {
         const freshBatch = batchesRef.current.find(b => b.id === batchId);
         if (!freshBatch) throw new Error('Batch data lost during upload');
 
-        const baseDate = new Date(freshBatch.baseReleaseDate);
-        if (freshBatch.schedulingType === '1day') {
-          baseDate.setDate(baseDate.getDate() + i);
-        } else if (freshBatch.schedulingType === '1week') {
-          baseDate.setDate(baseDate.getDate() + (i * 7));
-        }
-        const finalReleaseDate = baseDate.toISOString();
+        const releaseDateStr = bf.releaseDate || calculateItemReleaseDate(freshBatch.baseReleaseDate, freshBatch.schedulingType, i);
+        const match = (releaseDateStr || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
+        const finalReleaseDate = match 
+          ? `${match[1]}-${match[2]}-${match[3]}T00:00:00.000Z` 
+          : new Date().toISOString();
 
         const cleanTitle = bf.title.replace(/^\[Preview\]\s*/i, '').replace(/^\[Trailer\]\s*/i, '');
         const finalTitle = bf.isPreview ? `[Preview] ${cleanTitle}` : cleanTitle;
+        const targetSeasonId = bf.seasonId || freshBatch.seasonId;
 
         const payload = {
-          season_id: freshBatch.seasonId,
+          season_id: targetSeasonId,
           episode_number: bf.episodeNumber,
           title: finalTitle,
           description: '',
@@ -1110,8 +1286,8 @@ export default function AdminEpisodesPage() {
     fetchInitialData();
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you absolutely sure you want to delete this episode? Playback tracking and view logs will be removed!')) return;
+  const handleDelete = async (id: string, titleName?: string) => {
+    if (!confirm(`Are you sure you want to delete episode "${titleName || 'Episode'}"? Playback tracking and view logs will be removed!`)) return;
 
     const epToDelete = episodesList.find((e) => e.id === id);
 
@@ -1143,6 +1319,7 @@ export default function AdminEpisodesPage() {
         });
       }
 
+      setSuccessMsg(`✓ Episode "${titleName || 'Episode'}" deleted successfully.`);
       fetchInitialData();
     } catch (err: any) {
       alert(err.message);
@@ -1163,17 +1340,66 @@ export default function AdminEpisodesPage() {
   const handleOpenThumbnailModal = (ep: Episode) => {
     setThumbModalEpisode(ep);
     setThumbStudioActiveKey(ep.thumbnail_key || '');
-    setThumbStudioSavedList(ep.thumbnail_options || []);
+    setThumbStudioSavedList(ep.thumbnail_options && ep.thumbnail_options.length > 0 ? ep.thumbnail_options : (ep.thumbnail_key ? [ep.thumbnail_key] : []));
     setBatchOptions([]);
-    setVideoDuration(0);
+    setVideoDuration(ep.duration_seconds || 0);
     setFocusedMinutes([]);
-    setLocalScrubFile(null);
-    setIsRemoteVideoLoaded(false);
     setCapturedFrameUrl(null);
     setCapturedFrameSizeKb(null);
     setThumbActiveTab('auto');
     setThumbStudioError(null);
+    setIsSavedGalleryOpen(false);
+    setImageBrightness(100);
+    setImageContrast(100);
+    setImageSaturation(100);
     setIsThumbModalOpen(true);
+
+    // Prioritize Local File as First Source!
+    if (videoFile) {
+      setLocalScrubFile(videoFile);
+      setIsRemoteVideoLoaded(false);
+      setTimeout(() => {
+        generateBatchThumbnailsFromUrl(URL.createObjectURL(videoFile), []);
+      }, 50);
+    } else {
+      setLocalScrubFile(null);
+      setIsRemoteVideoLoaded(false);
+    }
+  };
+
+  const getTargetDimensions = (video: HTMLVideoElement, resSetting = thumbResolution) => {
+    const vWidth = video.videoWidth || 1920;
+    const vHeight = video.videoHeight || 1080;
+    if (resSetting === 'native') return { width: vWidth, height: vHeight };
+    if (resSetting === '4k') return { width: 3840, height: 2160 };
+    if (resSetting === '1080p') return { width: 1920, height: 1080 };
+    if (resSetting === '720p') return { width: 1280, height: 720 };
+    return { width: vWidth, height: vHeight };
+  };
+
+  const getQualityFloat = (qMode = thumbQualityMode) => {
+    if (qMode === 'max') return 1.0;
+    if (qMode === 'ultra') return 0.98;
+    if (qMode === 'high') return 0.92;
+    return 0.85;
+  };
+
+  const downloadThumbnailFile = async (key: string, filename = 'thumbnail.jpg') => {
+    try {
+      const url = getR2Url(key, 'thumbnail');
+      const res = await fetch(url);
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(blobUrl);
+    } catch {
+      window.open(getR2Url(key, 'thumbnail'), '_blank');
+    }
   };
 
   const formatVideoTime = (secs: number) => {
@@ -1462,22 +1688,26 @@ export default function AdminEpisodesPage() {
         }
 
         if (ctx) {
-          // Draw high-resolution preview frame to collected options array
+          // Draw high-resolution preview frame to collected options array matching selected resolution & quality
+          const { width: targetW, height: targetH } = getTargetDimensions(tempVideo, thumbResolution);
           const highResCanvas = document.createElement('canvas');
-          const hWidth = tempVideo.videoWidth || 1280;
-          const hHeight = tempVideo.videoHeight || 720;
-          highResCanvas.width = hWidth;
-          highResCanvas.height = hHeight;
-          const hrCtx = highResCanvas.getContext('2d');
+          highResCanvas.width = targetW;
+          highResCanvas.height = targetH;
+          const hrCtx = highResCanvas.getContext('2d', { alpha: false });
           if (hrCtx) {
-            hrCtx.drawImage(tempVideo, 0, 0, highResCanvas.width, highResCanvas.height);
-            const dataUrl = highResCanvas.toDataURL('image/jpeg', 0.94);
+            hrCtx.imageSmoothingEnabled = true;
+            hrCtx.imageSmoothingQuality = 'high';
+            hrCtx.drawImage(tempVideo, 0, 0, targetW, targetH);
+            const qualityFloat = getQualityFloat(thumbQualityMode);
+            const dataUrl = thumbImageFormat === 'image/png'
+              ? highResCanvas.toDataURL('image/png')
+              : highResCanvas.toDataURL(thumbImageFormat, qualityFloat);
             const sizeInBytes = Math.round((dataUrl.split(',')[1].length * 3) / 4);
             const sizeKb = Math.round((sizeInBytes / 1024) * 10) / 10;
             collected.push({ dataUrl, sizeKb, time: currentTime });
           } else {
             ctx.drawImage(tempVideo, 0, 0, canvas.width, canvas.height);
-            const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
             const sizeInBytes = Math.round((dataUrl.split(',')[1].length * 3) / 4);
             const sizeKb = Math.round((sizeInBytes / 1024) * 10) / 10;
             collected.push({ dataUrl, sizeKb, time: currentTime });
@@ -1491,7 +1721,7 @@ export default function AdminEpisodesPage() {
       }
     } catch (err: any) {
       setThumbStudioError(
-        'Could not extract frames automatically via CDN. This is usually due to CDN/CORS browser security. Try dropping your local episode video file below to enable full offline GPU frame capture!'
+        'Could not extract frames automatically via CDN. This is usually due to CDN/CORS browser security. Try selecting your local video file for ultra-fast native GPU capture!'
       );
     } finally {
       setIsGeneratingBatch(false);
@@ -1522,12 +1752,14 @@ export default function AdminEpisodesPage() {
 
     try {
       const blob = dataURItoBlob(dataUrl);
-      const filename = `thumb-${Date.now()}-${Math.floor(Math.random() * 1000)}.jpg`;
+      const mime = blob.type || 'image/jpeg';
+      const ext = mime.includes('webp') ? 'webp' : mime.includes('png') ? 'png' : 'jpg';
+      const filename = `thumb-${Date.now()}-${Math.floor(Math.random() * 1000)}.${ext}`;
       
       const presignRes = await fetch('/api/admin/presign', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ filename, contentType: 'image/jpeg' })
+        body: JSON.stringify({ filename, contentType: mime })
       });
       const presignData = await presignRes.json();
       if (!presignRes.ok) throw new Error(presignData.error || 'Failed to get presigned URL');
@@ -1535,7 +1767,7 @@ export default function AdminEpisodesPage() {
       const { url, key } = presignData;
       const uploadRes = await fetch(url, {
         method: 'PUT',
-        headers: { 'Content-Type': 'image/jpeg' },
+        headers: { 'Content-Type': mime },
         body: blob
       });
       if (!uploadRes.ok) throw new Error('Failed to upload image to R2');
@@ -1750,6 +1982,42 @@ export default function AdminEpisodesPage() {
 
   const launchYears = Array.from(new Set(seriesList.map(s => s.release_year).filter(Boolean))).map(String).sort().reverse();
 
+  // 1-Click Toggle Status
+  const handleToggleEpisodePublish = async (ep: Episode, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setTogglingId(ep.id);
+    const newStatus = !ep.is_published;
+    
+    // Optimistic UI update
+    setEpisodesList(prev => prev.map(item => item.id === ep.id ? { ...item, is_published: newStatus } : item));
+
+    try {
+      const res = await fetch('/api/admin/episodes', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: ep.id, is_published: newStatus })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to toggle status');
+
+      setSuccessMsg(`✓ "${ep.title}" set to ${newStatus ? 'Published' : 'Draft'}.`);
+    } catch (err: any) {
+      // Revert optimistic update
+      setEpisodesList(prev => prev.map(item => item.id === ep.id ? { ...item, is_published: ep.is_published } : item));
+      alert(err.message);
+    } finally {
+      setTogglingId(null);
+    }
+  };
+
+  // 1-Click Copy Key
+  const handleCopyKey = (key: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    navigator.clipboard.writeText(key);
+    setCopiedKey(key);
+    setTimeout(() => setCopiedKey(null), 2000);
+  };
+
   const toggleSeriesExpand = (seriesId: string) => {
     const next = new Set(expandedSeriesIds);
     if (next.has(seriesId)) {
@@ -1760,44 +2028,158 @@ export default function AdminEpisodesPage() {
     setExpandedSeriesIds(next);
   };
 
-  const filteredSeries = seriesList.filter((series) => {
-    if (selectedLaunchYear !== 'all' && String(series.release_year) !== selectedLaunchYear) {
-      return false;
-    }
+  const handleExpandAll = () => {
+    setExpandedSeriesIds(new Set(filteredSeries.map(s => s.id)));
+  };
 
-    if (searchTerm.trim() !== '') {
-      const term = searchTerm.toLowerCase();
-      const matchesSeries = series.title.toLowerCase().includes(term);
-      const sIds = seasonsList.filter(s => s.series_id === series.id).map(s => s.id);
-      const matchesEpisodes = episodesList.some(ep => 
-        sIds.includes(ep.season_id) && ep.title.toLowerCase().includes(term)
-      );
-      return matchesSeries || matchesEpisodes;
-    }
+  const handleCollapseAll = () => {
+    setExpandedSeriesIds(new Set());
+  };
 
-    return true;
-  });
+  // Top Metrics Calculation
+  const stats = useMemo(() => {
+    const totalEpisodes = episodesList.length;
+    const publishedCount = episodesList.filter(e => e.is_published).length;
+    const draftCount = totalEpisodes - publishedCount;
+    const totalDurationSeconds = episodesList.reduce((acc, e) => acc + (e.duration_seconds || 0), 0);
+    const totalHours = (totalDurationSeconds / 3600).toFixed(1);
+    
+    const seriesWithEps = new Set(
+      episodesList.map(e => {
+        const s = seasonsList.find(season => season.id === e.season_id);
+        return s?.series_id;
+      }).filter(Boolean)
+    );
+    const coveredSeriesCount = seriesWithEps.size;
+    const totalSeriesCount = seriesList.length;
 
-  filteredSeries.sort((a, b) => {
-    let comp = 0;
-    if (sortBy === 'name') {
-      comp = a.title.localeCompare(b.title);
-    } else {
+    const missingVideoCount = episodesList.filter(e => !e.video_key || e.video_key.trim() === '').length;
+    const missingThumbCount = episodesList.filter(e => !e.thumbnail_key || e.thumbnail_key.trim() === '').length;
+
+    return { 
+      totalEpisodes, 
+      publishedCount, 
+      draftCount, 
+      totalHours, 
+      coveredSeriesCount, 
+      totalSeriesCount,
+      missingVideoCount, 
+      missingThumbCount 
+    };
+  }, [episodesList, seasonsList, seriesList]);
+
+  // Filtered Series List for Accordion View
+  const filteredSeries = useMemo(() => {
+    return seriesList.filter((series) => {
+      // Series dropdown filter
+      if (selectedSeriesFilter !== 'all' && series.id !== selectedSeriesFilter) {
+        return false;
+      }
+
+      // Launch year filter
+      if (selectedLaunchYear !== 'all' && String(series.release_year) !== selectedLaunchYear) {
+        return false;
+      }
+
+      const seriesSeasonIds = seasonsList.filter(s => s.series_id === series.id).map(s => s.id);
+      let seriesEpisodes = episodesList.filter(ep => seriesSeasonIds.includes(ep.season_id));
+
+      // Status filter
+      if (statusFilter === 'published') {
+        seriesEpisodes = seriesEpisodes.filter(e => e.is_published);
+        if (seriesEpisodes.length === 0) return false;
+      } else if (statusFilter === 'draft') {
+        seriesEpisodes = seriesEpisodes.filter(e => !e.is_published);
+        if (seriesEpisodes.length === 0) return false;
+      }
+
+      // Media health filter
+      if (mediaFilter === 'missing_video') {
+        seriesEpisodes = seriesEpisodes.filter(e => !e.video_key || e.video_key.trim() === '');
+        if (seriesEpisodes.length === 0) return false;
+      } else if (mediaFilter === 'missing_thumb') {
+        seriesEpisodes = seriesEpisodes.filter(e => !e.thumbnail_key || e.thumbnail_key.trim() === '');
+        if (seriesEpisodes.length === 0) return false;
+      }
+
+      // Search term
+      if (searchTerm.trim() !== '') {
+        const q = searchTerm.toLowerCase().trim();
+        const matchesSeries = (series.title || '').toLowerCase().includes(q) || (series.studio || '').toLowerCase().includes(q);
+        const matchesEps = seriesEpisodes.some(ep => 
+          (ep.title || '').toLowerCase().includes(q) || 
+          `episode ${ep.episode_number}`.includes(q) || 
+          `ep ${ep.episode_number}`.includes(q) ||
+          (ep.video_key || '').toLowerCase().includes(q)
+        );
+        if (!matchesSeries && !matchesEps) return false;
+      }
+
+      return true;
+    }).sort((a, b) => {
+      if (sortBy === 'name') {
+        const titleA = a.title.toLowerCase();
+        const titleB = b.title.toLowerCase();
+        return sortOrder === 'asc' ? titleA.localeCompare(titleB) : titleB.localeCompare(titleA);
+      }
+      if (sortBy === 'episodes') {
+        const aCount = episodesList.filter(e => seasonsList.filter(s => s.series_id === a.id).map(s => s.id).includes(e.season_id)).length;
+        const bCount = episodesList.filter(e => seasonsList.filter(s => s.series_id === b.id).map(s => s.id).includes(e.season_id)).length;
+        return sortOrder === 'asc' ? aCount - bCount : bCount - aCount;
+      }
       const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
       const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
-      comp = timeA - timeB;
-      if (comp === 0) {
-        comp = (a.release_year || 0) - (b.release_year || 0);
-      }
-    }
-    return sortOrder === 'asc' ? comp : -comp;
-  });
+      return sortOrder === 'asc' ? timeA - timeB : timeB - timeA;
+    });
+  }, [seriesList, seasonsList, episodesList, selectedSeriesFilter, selectedLaunchYear, statusFilter, mediaFilter, searchTerm, sortBy, sortOrder]);
 
-  const totalPages = Math.ceil(filteredSeries.length / ITEMS_PER_PAGE) || 1;
+  // Filtered Episodes List for Flat Table View
+  const filteredEpisodesFlat = useMemo(() => {
+    return episodesList.filter((ep) => {
+      const season = seasonsList.find(s => s.id === ep.season_id);
+      const series = seriesList.find(s => s.id === season?.series_id);
+
+      if (selectedSeriesFilter !== 'all' && series?.id !== selectedSeriesFilter) return false;
+      if (selectedLaunchYear !== 'all' && String(series?.release_year) !== selectedLaunchYear) return false;
+      if (statusFilter === 'published' && !ep.is_published) return false;
+      if (statusFilter === 'draft' && ep.is_published) return false;
+      if (mediaFilter === 'missing_video' && ep.video_key && ep.video_key.trim() !== '') return false;
+      if (mediaFilter === 'missing_thumb' && ep.thumbnail_key && ep.thumbnail_key.trim() !== '') return false;
+
+      if (searchTerm.trim() !== '') {
+        const q = searchTerm.toLowerCase().trim();
+        const matchTitle = (ep.title || '').toLowerCase().includes(q);
+        const matchSeries = (series?.title || '').toLowerCase().includes(q);
+        const matchKey = (ep.video_key || '').toLowerCase().includes(q);
+        const matchEpNum = `episode ${ep.episode_number}`.includes(q) || `ep ${ep.episode_number}` === q || `${ep.episode_number}` === q;
+        if (!matchTitle && !matchSeries && !matchKey && !matchEpNum) return false;
+      }
+
+      return true;
+    }).sort((a, b) => {
+      if (sortBy === 'name') {
+        return sortOrder === 'asc' ? a.title.localeCompare(b.title) : b.title.localeCompare(a.title);
+      }
+      const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
+      const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
+      return sortOrder === 'asc' ? timeA - timeB : timeB - timeA;
+    });
+  }, [episodesList, seasonsList, seriesList, selectedSeriesFilter, selectedLaunchYear, statusFilter, mediaFilter, searchTerm, sortBy, sortOrder]);
+
+  // Total pages and Paginated Slice based on active view mode
+  const totalItems = viewMode === 'accordion' ? filteredSeries.length : filteredEpisodesFlat.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
   const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
-  const startIndex = (safeCurrentPage - 1) * ITEMS_PER_PAGE;
-  const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, filteredSeries.length);
-  const paginatedSeries = filteredSeries.slice(startIndex, endIndex);
+  const startIndex = (safeCurrentPage - 1) * pageSize;
+  const endIndex = Math.min(startIndex + pageSize, totalItems);
+
+  const paginatedSeries = useMemo(() => {
+    return filteredSeries.slice(startIndex, startIndex + pageSize);
+  }, [filteredSeries, startIndex, pageSize]);
+
+  const paginatedEpisodesFlat = useMemo(() => {
+    return filteredEpisodesFlat.slice(startIndex, startIndex + pageSize);
+  }, [filteredEpisodesFlat, startIndex, pageSize]);
 
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
@@ -1806,7 +2188,9 @@ export default function AdminEpisodesPage() {
 
   const filteredSeasonsFormList = seasonsList.filter(
     s => s.series_id === formSeriesId
-  );  // Auto-Process queue loop inside useEffect
+  );
+
+  // Auto-Process queue loop inside useEffect
   useEffect(() => {
     const processQueue = async () => {
       const activeUploadingBatch = batches.find(b => b.status === 'uploading');
@@ -1835,600 +2219,1168 @@ export default function AdminEpisodesPage() {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [batches]);
 
-
   return (
-    <div className={styles.panelCard}>
-      <div className={styles.panelHeader}>
-        <div>
-          <h2>Manage Episodes</h2>
-          <p style={{ color: 'var(--foreground-secondary)', fontSize: '0.9rem', marginTop: '0.2rem' }}>
-            Upload content routes, thumbnail previews, video length, and schedule releases.
-          </p>
+    <div className={styles.container}>
+      {/* Header Area */}
+      <div className={styles.header}>
+        <div className={styles.titleArea}>
+          <div className={styles.iconBox}>
+            <Video size={24} />
+          </div>
+          <div>
+            <h2>Manage Episodes</h2>
+            <p>
+              Upload video streams, generate high-definition thumbnails, configure episode metadata, and schedule releases.
+            </p>
+          </div>
         </div>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button onClick={() => handleOpenBatchCreate()} disabled={seasonsList.length === 0} className={styles.createBtn} style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', color: 'white', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-            <Plus size={16} />
+
+        <div className={styles.headerActions}>
+          <button 
+            onClick={() => handleOpenBatchCreate()} 
+            disabled={seasonsList.length === 0} 
+            className={`${styles.createBtn} ${styles.createBtnGreen}`}
+          >
+            <UploadCloud size={16} />
             <span>Add Multiple Episodes</span>
           </button>
-          <button onClick={() => handleOpenCreate()} disabled={seasonsList.length === 0} className={styles.createBtn}>
+          
+          <button 
+            onClick={() => handleOpenCreate()} 
+            disabled={seasonsList.length === 0} 
+            className={styles.createBtn}
+          >
             <Plus size={16} />
             <span>Add Episode</span>
           </button>
         </div>
       </div>
 
+      {/* Top Metric Overview Cards */}
+      <div className={styles.statsGrid}>
+        <div className={styles.statCard}>
+          <div className={styles.statIconBox} style={{ background: 'rgba(124, 58, 237, 0.15)', color: 'var(--primary)' }}>
+            <Tv size={22} />
+          </div>
+          <div className={styles.statInfo}>
+            <span className={styles.statValue}>{stats.totalEpisodes}</span>
+            <span className={styles.statLabel}>
+              {stats.publishedCount} Published • {stats.draftCount} Drafts
+            </span>
+          </div>
+        </div>
+
+        <div className={styles.statCard}>
+          <div className={styles.statIconBox} style={{ background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8' }}>
+            <Clock size={22} />
+          </div>
+          <div className={styles.statInfo}>
+            <span className={styles.statValue}>{stats.totalHours} hrs</span>
+            <span className={styles.statLabel}>Total Video Runtime</span>
+          </div>
+        </div>
+
+        <div className={styles.statCard}>
+          <div className={styles.statIconBox} style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#10b981' }}>
+            <Film size={22} />
+          </div>
+          <div className={styles.statInfo}>
+            <span className={styles.statValue}>{stats.coveredSeriesCount} / {stats.totalSeriesCount}</span>
+            <span className={styles.statLabel}>Shows with Episodes</span>
+          </div>
+        </div>
+
+        <div className={styles.statCard}>
+          <div className={styles.statIconBox} style={{ background: stats.missingVideoCount > 0 ? 'rgba(239, 68, 68, 0.15)' : 'rgba(124, 58, 237, 0.15)', color: stats.missingVideoCount > 0 ? '#f87171' : 'var(--primary)' }}>
+            <Sparkles size={22} />
+          </div>
+          <div className={styles.statInfo}>
+            <span className={styles.statValue}>
+              {stats.missingVideoCount === 0 && stats.missingThumbCount === 0 ? '100% Ready' : `${stats.missingVideoCount + stats.missingThumbCount} Alerts`}
+            </span>
+            <span className={styles.statLabel}>
+              {stats.missingVideoCount} No Video • {stats.missingThumbCount} No Thumb
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Unsaved Draft Alert */}
       {hasDraft && (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.2)', padding: '1rem 1.25rem', borderRadius: '12px', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#131722', border: '1px solid #23283b', padding: '1rem 1.25rem', borderRadius: '14px', flexWrap: 'wrap', gap: '1rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <span style={{ fontSize: '1.3rem' }}>💡</span>
             <div>
-              <span style={{ fontWeight: 700, display: 'block', fontSize: '0.9rem', color: '#60a5fa' }}>Unsaved Draft Detected</span>
-              <span style={{ fontSize: '0.82rem', color: 'var(--foreground-secondary)' }}>You have filled form details from a previous session that were not saved.</span>
+              <span style={{ fontWeight: 800, display: 'block', fontSize: '0.9rem', color: '#60a5fa' }}>Unsaved Episode Draft Detected</span>
+              <span style={{ fontSize: '0.8rem', color: 'var(--foreground-secondary)' }}>You have filled episode details from a previous session that were not saved.</span>
             </div>
           </div>
           <div style={{ display: 'flex', gap: '0.6rem' }}>
-            <button onClick={handleRestoreDraft} style={{ background: 'var(--primary)', color: 'white', border: 'none', padding: '0.45rem 1rem', borderRadius: '20px', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s ease' }}>
+            <button onClick={handleRestoreDraft} className={styles.actionPillBtn} style={{ background: 'var(--primary)', color: '#ffffff' }}>
               Restore Draft
             </button>
-            <button onClick={handleDiscardDraft} style={{ background: 'transparent', color: 'var(--foreground-muted)', border: '1px solid var(--border)', padding: '0.45rem 1rem', borderRadius: '20px', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s ease' }}>
+            <button onClick={handleDiscardDraft} className={styles.actionPillBtn} style={{ background: '#1a1e2f', color: 'var(--foreground-muted)', border: '1px solid #282e44' }}>
               Discard
             </button>
           </div>
         </div>
       )}
 
-      {/* Filters */}
-      <div style={{ marginBottom: '1.5rem', display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', flex: '1 1 300px' }}>
-          <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--foreground-secondary)', textTransform: 'uppercase' }}>Search Episodes or Series</label>
-          <div className={styles.searchBarRow} style={{ width: '100%', margin: 0 }}>
-            <Search size={16} style={{ color: 'var(--foreground-muted)' }} />
-            <input
-              type="text"
-              placeholder="Type series name or episode title to filter..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              style={{ background: 'transparent', border: 'none', outline: 'none', color: 'var(--foreground)', width: '100%', fontSize: '0.88rem' }}
-            />
-          </div>
+      {/* Success Alert */}
+      {successMsg && (
+        <div style={{ background: '#064e3b', border: '1px solid #059669', color: '#a7f3d0', padding: '0.85rem 1.25rem', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.88rem', fontWeight: 600 }}>
+          <CheckCircle2 size={18} />
+          <span>{successMsg}</span>
         </div>
+      )}
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', width: '180px' }}>
-          <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--foreground-secondary)', textTransform: 'uppercase' }}>Launch Year</label>
-          <select 
-            className={styles.selectField}
-            style={{ background: 'var(--surface-hover)', padding: '0.5rem 1rem' }}
-            value={selectedLaunchYear}
-            onChange={(e) => setSelectedLaunchYear(e.target.value)}
-          >
-            <option value="all">All Years</option>
-            {launchYears.map(year => (
-              <option key={year} value={year}>{year}</option>
-            ))}
-          </select>
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', width: '180px' }}>
-          <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--foreground-secondary)', textTransform: 'uppercase' }}>Sort By</label>
-          <select 
-            className={styles.selectField}
-            style={{ background: 'var(--surface-hover)', padding: '0.5rem 1rem' }}
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as 'name' | 'date')}
-          >
-            <option value="date">Launch Date</option>
-            <option value="name">Name</option>
-          </select>
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', width: '160px' }}>
-          <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--foreground-secondary)', textTransform: 'uppercase' }}>Direction</label>
-          <select 
-            className={styles.selectField}
-            style={{ background: 'var(--surface-hover)', padding: '0.5rem 1rem' }}
-            value={sortOrder}
-            onChange={(e) => setSortOrder(e.target.value as 'asc' | 'desc')}
-          >
-            <option value="desc">Descending</option>
-            <option value="asc">Ascending</option>
-          </select>
-        </div>
-      </div>
-
+      {/* Error Alert */}
       {error && !isModalOpen && (
-        <div className={styles.errorAlert} style={{ marginBottom: '1.5rem' }}>
-          <AlertCircle size={16} />
+        <div style={{ background: '#450a0a', border: '1px solid #dc2626', color: '#fca5a5', padding: '0.85rem 1.25rem', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.88rem' }}>
+          <AlertCircle size={18} />
           <span>{error}</span>
         </div>
       )}
 
-      {loading ? (
-        <div style={{ textAlign: 'center', padding: '3rem' }}>
-          <div className={styles.loadingSpinner} style={{ border: '2px solid rgba(var(--primary-rgb), 0.3)', borderTopColor: 'var(--primary)', width: '32px', height: '32px', display: 'inline-block' }} />
-        </div>
-      ) : filteredSeries.length > 0 ? (
-        <>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            {paginatedSeries.map((series) => {
-              const isExpanded = expandedSeriesIds.has(series.id);
-              const seriesSeasons = seasonsList.filter(s => s.series_id === series.id);
-              const seriesSeasonIds = seriesSeasons.map(s => s.id);
-              const seriesEpisodes = episodesList.filter(ep => 
-                seriesSeasonIds.includes(ep.season_id) &&
-                (searchTerm.trim() === '' || 
-                 ep.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                 series.title.toLowerCase().includes(searchTerm.toLowerCase()))
-              );
-
-              // Sort episodes: primary by season_id, secondary by episode_number
-              seriesEpisodes.sort((a, b) => {
-                const aSeason = seasonsList.find(s => s.id === a.season_id);
-                const bSeason = seasonsList.find(s => s.id === b.season_id);
-                const aNum = aSeason ? aSeason.season_number : 1;
-                const bNum = bSeason ? bSeason.season_number : 1;
-                if (aNum !== bNum) return aNum - bNum;
-                return a.episode_number - b.episode_number;
-              });
-
-              return (
-                <div 
-                  key={series.id} 
-                  style={{
-                    background: 'var(--surface)',
-                    border: '1px solid var(--border)',
-                    borderRadius: '12px',
-                    overflow: 'hidden',
-                    transition: 'all 0.2s ease'
-                  }}
-                >
-                  {/* Series Header Card */}
-                  <div 
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '1rem 1.25rem',
-                      background: isExpanded ? 'rgba(255,255,255,0.02)' : 'transparent',
-                      borderBottom: isExpanded ? '1px solid var(--border)' : 'none',
-                      cursor: 'pointer',
-                      userSelect: 'none',
-                      flexWrap: 'wrap',
-                      gap: '1rem'
-                    }}
-                    onClick={() => toggleSeriesExpand(series.id)}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                      {/* Small Poster preview */}
-                      <div style={{ width: '40px', height: '60px', borderRadius: '4px', overflow: 'hidden', background: 'var(--surface-hover)', border: '1px solid var(--border)', flexShrink: 0 }}>
-                        {series.poster_image_key ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img 
-                            src={getR2Url(series.poster_image_key, 'poster')} 
-                            alt="Poster" 
-                            style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
-                          />
-                        ) : (
-                          <div style={{ width: '100%', height: '100%', background: 'var(--surface-hover)' }} />
-                        )}
-                      </div>
-                      <div>
-                        <h3 style={{ fontSize: '1.02rem', fontWeight: 800, margin: 0, color: 'var(--foreground)' }}>{series.title}</h3>
-                        <span style={{ fontSize: '0.78rem', color: 'var(--foreground-secondary)' }}>
-                          {series.studio || 'Unknown Studio'} • {series.release_year || '2026'} • {seriesEpisodes.length} Episodes
-                        </span>
-                      </div>
-                    </div>
-
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }} onClick={(e) => e.stopPropagation()}>
-                      <button
-                        onClick={() => handleOpenBatchCreate(series.id, seriesSeasons[0]?.id)}
-                        disabled={seriesSeasons.length === 0}
-                        style={{
-                          background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                          color: 'white',
-                          border: 'none',
-                          padding: '0.45rem 1rem',
-                          borderRadius: '20px',
-                          fontSize: '0.75rem',
-                          fontWeight: 700,
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.3rem',
-                          boxShadow: '0 4px 12px rgba(16, 185, 129, 0.25)',
-                          transition: 'all 0.15s ease'
-                        }}
-                        title="Add multiple episodes to this show at once"
-                      >
-                        <Plus size={12} />
-                        <span>Add Multiple</span>
-                      </button>
-
-                      <button
-                        onClick={() => handleOpenCreate(series.id, seriesSeasons[0]?.id)}
-                        disabled={seriesSeasons.length === 0}
-                        style={{
-                          background: 'var(--primary)',
-                          color: 'white',
-                          border: 'none',
-                          padding: '0.45rem 1rem',
-                          borderRadius: '20px',
-                          fontSize: '0.75rem',
-                          fontWeight: 700,
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.3rem',
-                          boxShadow: '0 4px 12px rgba(var(--primary-rgb), 0.25)',
-                          transition: 'all 0.15s ease'
-                        }}
-                        title="Directly add new episode to this show"
-                      >
-                        <Plus size={12} />
-                        <span>Add Episode</span>
-                      </button>
-
-                      <button
-                        onClick={() => toggleSeriesExpand(series.id)}
-                        style={{
-                          background: 'transparent',
-                          border: 'none',
-                          color: 'var(--foreground-muted)',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          transform: isExpanded ? 'rotate(45deg)' : 'rotate(0deg)',
-                          transition: 'transform 0.2s ease',
-                          padding: '0.2rem'
-                        }}
-                      >
-                        <Plus size={16} />
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Closable Episode List table */}
-                  {isExpanded && (
-                    <div style={{ padding: '0.8rem 1rem' }}>
-                      {seriesEpisodes.length > 0 ? (
-                        <div className={styles.tableContainer} style={{ margin: 0, boxShadow: 'none', border: 'none' }}>
-                          <table className={styles.adminTable} style={{ fontSize: '0.85rem' }}>
-                            <thead>
-                              <tr>
-                                <th style={{ width: '80px' }}>Preview</th>
-                                <th>Episode Title</th>
-                                <th>Season</th>
-                                <th>Number</th>
-                                <th>Video Key (R2)</th>
-                                <th>Duration</th>
-                                <th>Status</th>
-                                <th>Air Date</th>
-                                <th style={{ textAlign: 'right' }}>Actions</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {seriesEpisodes.map((ep) => {
-                                const sTitle = seasonsList.find(s => s.id === ep.season_id)?.title || 'Season 1';
-                                return (
-                                  <tr key={ep.id}>
-                                    <td>
-                                      <div 
-                                        style={{ position: 'relative', width: '70px', height: '40px', borderRadius: '6px', overflow: 'hidden', background: 'var(--surface-hover)', border: '1px solid var(--border)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                                        onClick={() => handleOpenThumbnailModal(ep)}
-                                        title="Manage Episode Thumbnails"
-                                      >
-                                        {ep.thumbnail_key ? (
-                                          // eslint-disable-next-line @next/next/no-img-element
-                                          <img 
-                                            src={getR2Url(ep.thumbnail_key, 'thumbnail')} 
-                                            alt="Thumb" 
-                                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                          />
-                                        ) : (
-                                          <div style={{ fontSize: '0.62rem', color: 'var(--primary)', fontWeight: 800, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
-                                            <Camera size={10} />
-                                            <span>GENERATE</span>
-                                          </div>
-                                        )}
-                                      </div>
-                                    </td>
-                                    <td style={{ fontWeight: 700 }}>{ep.title}</td>
-                                    <td>{sTitle}</td>
-                                    <td>{ep.episode_number}</td>
-                                    <td style={{ fontSize: '0.75rem', fontFamily: 'monospace', color: 'var(--foreground-muted)', maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                      {ep.video_key}
-                                    </td>
-                                    <td style={{ fontSize: '0.8rem' }}>
-                                      {Math.floor(ep.duration_seconds / 60)}m
-                                    </td>
-                                    <td>
-                                      <span className={`${styles.badge} ${ep.is_published ? styles.badgeSuccess : styles.badgeWarning}`}>
-                                        {ep.is_published ? 'Published' : 'Draft'}
-                                      </span>
-                                    </td>
-                                    <td style={{ fontSize: '0.8rem', color: 'var(--foreground-muted)' }}>
-                                      {new Date(ep.release_date).toLocaleDateString()}
-                                    </td>
-                                    <td style={{ textAlign: 'right' }}>
-                                      <div className={styles.actionBtnGroup} style={{ justifyContent: 'flex-end' }}>
-                                        <button 
-                                          onClick={() => handleOpenThumbnailModal(ep)} 
-                                          className={styles.editActionBtn} 
-                                          style={{ background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', border: '1px solid rgba(59, 130, 246, 0.2)' }}
-                                          title="Manage Episode Thumbnails"
-                                        >
-                                          <Camera size={14} />
-                                        </button>
-                                        <button onClick={() => handleOpenEdit(ep)} className={styles.editActionBtn} title="Edit Episode Details">
-                                          <Edit2 size={14} />
-                                        </button>
-                                        <button onClick={() => handleDelete(ep.id)} className={styles.deleteActionBtn} title="Delete Episode">
-                                          <Trash2 size={14} />
-                                        </button>
-                                      </div>
-                                    </td>
-                                  </tr>
-                                );
-                              })}
-                            </tbody>
-                          </table>
-                        </div>
-                      ) : (
-                        <div style={{ padding: '1rem', color: 'var(--foreground-muted)', fontStyle: 'italic', fontSize: '0.8rem' }}>
-                          No episodes found for this show matching your search.
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+      {/* Search & Filter Toolbar */}
+      <div className={styles.toolbar}>
+        <div className={styles.toolbarTopRow}>
+          {/* Search Box */}
+          <div className={styles.searchBox}>
+            <Search size={16} className={styles.searchIcon} />
+            <input
+              type="text"
+              className={styles.searchInput}
+              placeholder="Search by series, episode title, #, or video key..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
 
-          {/* Pagination Controls */}
-          {filteredSeries.length > 0 && totalPages > 1 && (
-            <div className={styles.paginationBar}>
-              <div className={styles.paginationInfo}>
-                Showing {startIndex + 1}–{endIndex} of {filteredSeries.length} series (Page {safeCurrentPage} of {totalPages})
+          {/* Filter Controls */}
+          <div className={styles.filterControls}>
+            {/* Series Filter */}
+            <select
+              className={styles.selectInput}
+              value={selectedSeriesFilter}
+              onChange={(e) => setSelectedSeriesFilter(e.target.value)}
+              title="Filter by Series"
+            >
+              <option value="all">All Series ({seriesList.length})</option>
+              {seriesList.map((s) => {
+                const sIds = seasonsList.filter(season => season.series_id === s.id).map(season => season.id);
+                const epCount = episodesList.filter(ep => sIds.includes(ep.season_id)).length;
+                return (
+                  <option key={s.id} value={s.id}>
+                    {s.title} ({epCount} eps)
+                  </option>
+                );
+              })}
+            </select>
+
+            {/* Launch Year */}
+            <select 
+              className={styles.selectInput}
+              value={selectedLaunchYear}
+              onChange={(e) => setSelectedLaunchYear(e.target.value)}
+              title="Filter by Launch Year"
+            >
+              <option value="all">All Years</option>
+              {launchYears.map(year => (
+                <option key={year} value={year}>{year}</option>
+              ))}
+            </select>
+
+            {/* Status Filter Chips */}
+            <div className={styles.statusFilterGroup}>
+              <button
+                type="button"
+                onClick={() => setStatusFilter('all')}
+                className={`${styles.statusFilterBtn} ${statusFilter === 'all' ? styles.statusFilterBtnActive : ''}`}
+              >
+                All ({episodesList.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setStatusFilter('published')}
+                className={`${styles.statusFilterBtn} ${statusFilter === 'published' ? styles.statusFilterBtnActive : ''}`}
+              >
+                ● Live ({stats.publishedCount})
+              </button>
+              <button
+                type="button"
+                onClick={() => setStatusFilter('draft')}
+                className={`${styles.statusFilterBtn} ${statusFilter === 'draft' ? styles.statusFilterBtnActive : ''}`}
+              >
+                ● Drafts ({stats.draftCount})
+              </button>
+            </div>
+
+            {/* Media Filter */}
+            <select
+              className={styles.selectInput}
+              value={mediaFilter}
+              onChange={(e) => setMediaFilter(e.target.value as any)}
+              title="Filter by Media Health"
+            >
+              <option value="all">All Media</option>
+              <option value="missing_video">⚠️ Missing Video ({stats.missingVideoCount})</option>
+              <option value="missing_thumb">⚠️ Missing Thumb ({stats.missingThumbCount})</option>
+            </select>
+
+            {/* Sort Dropdown */}
+            <select 
+              className={styles.selectInput}
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as any)}
+              title="Sort items"
+            >
+              <option value="date">Release Date</option>
+              <option value="name">Title Name</option>
+              <option value="episodes">Most Episodes</option>
+            </select>
+
+            {/* Direction */}
+            <select 
+              className={styles.selectInput}
+              style={{ maxWidth: '100px' }}
+              value={sortOrder}
+              onChange={(e) => setSortOrder(e.target.value as any)}
+            >
+              <option value="desc">Desc ↓</option>
+              <option value="asc">Asc ↑</option>
+            </select>
+
+            {/* View Mode Toggle */}
+            <div className={styles.viewToggleGroup}>
+              <button
+                type="button"
+                onClick={() => setViewMode('accordion')}
+                className={`${styles.viewToggleBtn} ${viewMode === 'accordion' ? styles.viewToggleBtnActive : ''}`}
+                title="Grouped by Show (Accordion View)"
+              >
+                <Layers size={16} />
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode('table')}
+                className={`${styles.viewToggleBtn} ${viewMode === 'table' ? styles.viewToggleBtnActive : ''}`}
+                title="Flat Table List View"
+              >
+                <TableIcon size={16} />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Sub toolbar: Expand/Collapse All and Active Counters */}
+        {viewMode === 'accordion' && (
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #1f2438', paddingTop: '0.75rem', fontSize: '0.8rem', color: 'var(--foreground-muted)' }}>
+            <span>
+              Showing <b>{filteredSeries.length}</b> shows with episodes matching filters
+            </span>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <button
+                type="button"
+                onClick={handleExpandAll}
+                className={styles.actionPillBtn}
+                style={{ background: '#141724', border: '1px solid #282e44', color: 'var(--foreground-secondary)' }}
+              >
+                <ChevronDown size={13} />
+                <span>Expand All</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleCollapseAll}
+                className={styles.actionPillBtn}
+                style={{ background: '#141724', border: '1px solid #282e44', color: 'var(--foreground-secondary)' }}
+              >
+                <ChevronUp size={13} />
+                <span>Collapse All</span>
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Main Content Area */}
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: '4rem 1rem' }}>
+          <div style={{ border: '3px solid rgba(124, 58, 237, 0.2)', borderTopColor: 'var(--primary)', width: '38px', height: '38px', borderRadius: '50%', animation: 'spin 1s linear infinite', display: 'inline-block' }} />
+          <p style={{ marginTop: '1rem', color: 'var(--foreground-muted)', fontSize: '0.9rem' }}>Loading episodes catalog...</p>
+        </div>
+      ) : totalItems > 0 ? (
+        <>
+          {/* VIEW 1: GROUPED ACCORDION VIEW */}
+          {viewMode === 'accordion' && (
+            <div className={styles.seriesAccordionList}>
+              {paginatedSeries.map((series) => {
+                const isExpanded = expandedSeriesIds.has(series.id);
+                const seriesSeasons = seasonsList.filter(s => s.series_id === series.id);
+                const seriesSeasonIds = seriesSeasons.map(s => s.id);
+                const posterKey = series.poster_image_key || series.cover_image_key;
+                const posterUrl = posterKey ? getR2Url(posterKey, 'poster') : null;
+
+                const seriesEpisodes = episodesList.filter(ep => 
+                  seriesSeasonIds.includes(ep.season_id) &&
+                  (searchTerm.trim() === '' || 
+                   (ep.title || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+                   (series.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                   (ep.video_key || '').toLowerCase().includes(searchTerm.toLowerCase()))
+                );
+
+                // Sort episodes: primary by season_number, secondary by episode_number
+                seriesEpisodes.sort((a, b) => {
+                  const aSeason = seasonsList.find(s => s.id === a.season_id);
+                  const bSeason = seasonsList.find(s => s.id === b.season_id);
+                  const aNum = aSeason ? aSeason.season_number : 1;
+                  const bNum = bSeason ? bSeason.season_number : 1;
+                  if (aNum !== bNum) return aNum - bNum;
+                  return a.episode_number - b.episode_number;
+                });
+
+                const publishedEpCount = seriesEpisodes.filter(e => e.is_published).length;
+                const draftEpCount = seriesEpisodes.length - publishedEpCount;
+
+                return (
+                  <div 
+                    key={series.id} 
+                    className={`${styles.seriesAccordionCard} ${isExpanded ? styles.seriesAccordionCardExpanded : ''}`}
+                  >
+                    {/* Series Accordion Header */}
+                    <div 
+                      className={styles.seriesAccordionHeader}
+                      onClick={() => toggleSeriesExpand(series.id)}
+                    >
+                      <div className={styles.seriesHeaderLeft}>
+                        {/* Series Poster Thumbnail */}
+                        <div className={styles.seriesPosterWrap}>
+                          {posterUrl ? (
+                            <img 
+                              src={posterUrl} 
+                              alt="" 
+                              className={styles.seriesPosterImg}
+                              onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                            />
+                          ) : (
+                            <Film size={20} style={{ color: 'var(--foreground-muted)' }} />
+                          )}
+                        </div>
+
+                        {/* Series Meta Info */}
+                        <div className={styles.seriesInfoBlock}>
+                          <div className={styles.seriesTitleRow}>
+                            <h3 className={styles.seriesTitleText}>
+                              {series.title}
+                            </h3>
+                            {series.slug && (
+                              <Link
+                                href={`/series/${series.slug}`}
+                                target="_blank"
+                                onClick={(e) => e.stopPropagation()}
+                                style={{ color: '#a7f3d0', fontSize: '0.74rem', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '3px' }}
+                                title="View public show page"
+                              >
+                                <span>/{series.slug}</span>
+                                <ExternalLink size={10} />
+                              </Link>
+                            )}
+                          </div>
+
+                          <div className={styles.seriesMetaSubRow}>
+                            <span>{series.studio || 'Unknown Studio'}</span>
+                            <span>•</span>
+                            <span>{series.release_year || '2026'}</span>
+                            <span>•</span>
+                            <span style={{ color: 'var(--foreground-primary)', fontWeight: 700 }}>
+                              {seriesEpisodes.length} Episodes ({publishedEpCount} Live • {draftEpCount} Draft)
+                            </span>
+                            {seriesSeasons.length > 0 && (
+                              <>
+                                <span>•</span>
+                                <span style={{ color: '#c4b5fd' }}>
+                                  {seriesSeasons.length} Season{seriesSeasons.length > 1 ? 's' : ''}
+                                </span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Header Actions */}
+                      <div className={styles.seriesHeaderActions} onClick={(e) => e.stopPropagation()}>
+                        <button
+                          type="button"
+                          onClick={() => handleOpenBatchCreate(series.id, seriesSeasons[0]?.id)}
+                          disabled={seriesSeasons.length === 0}
+                          className={`${styles.actionPillBtn} ${styles.createBtnGreen}`}
+                          title="Add multiple video files to this show"
+                        >
+                          <UploadCloud size={13} />
+                          <span>Add Multiple</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handleOpenCreate(series.id, seriesSeasons[0]?.id)}
+                          disabled={seriesSeasons.length === 0}
+                          className={styles.actionPillBtn}
+                          style={{ background: 'var(--primary)', color: '#ffffff' }}
+                          title="Add a single episode to this show"
+                        >
+                          <Plus size={13} />
+                          <span>Add Episode</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => toggleSeriesExpand(series.id)}
+                          className={`${styles.expandToggleBtn} ${isExpanded ? styles.expandToggleBtnActive : ''}`}
+                          title={isExpanded ? "Collapse episodes" : "Expand episodes"}
+                        >
+                          <ChevronDown size={16} />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Expandable Episode List */}
+                    {isExpanded && (
+                      <div className={styles.episodeRowsList}>
+                        {seriesEpisodes.length > 0 ? (
+                          seriesEpisodes.map((ep) => {
+                            const season = seasonsList.find(s => s.id === ep.season_id);
+                            const sTitle = season?.title || `Season ${season?.season_number || 1}`;
+                            const isOva = /ova/i.test(sTitle);
+                            const isToggling = togglingId === ep.id;
+                            const isKeyCopied = copiedKey === ep.video_key;
+
+                            return (
+                              <div key={ep.id} className={styles.episodeRow}>
+                                <div className={styles.episodeLeftInfo}>
+                                  {/* 16:9 Thumbnail preview / Generator trigger */}
+                                  <div 
+                                    className={styles.epThumbContainer}
+                                    onClick={() => handleOpenThumbnailModal(ep)}
+                                    title="Click to open Thumbnail Studio"
+                                  >
+                                    {ep.thumbnail_key ? (
+                                      <img 
+                                        src={getR2Url(ep.thumbnail_key, 'thumbnail')} 
+                                        alt="" 
+                                        className={styles.epThumbImg}
+                                        onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                                      />
+                                    ) : (
+                                      <div className={styles.epThumbPlaceholder}>
+                                        <Camera size={14} />
+                                        <span>GENERATE</span>
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  {/* Episode Info */}
+                                  <div className={styles.episodeMetaBlock}>
+                                    <div className={styles.episodeTitleRow}>
+                                      <span className={styles.episodeNumberPill}>
+                                        {isOva ? `OVA ${ep.episode_number}` : `Ep ${ep.episode_number}`}
+                                      </span>
+
+                                      <h4 className={styles.episodeTitleText}>
+                                        {ep.title}
+                                      </h4>
+
+                                      <span className={styles.seasonTag}>
+                                        {sTitle}
+                                      </span>
+                                    </div>
+
+                                    <div className={styles.episodeSubRow}>
+                                      <span className={styles.runtimePill}>
+                                        <Clock size={12} />
+                                        <span>{Math.floor((ep.duration_seconds || 1440) / 60)} min</span>
+                                      </span>
+
+                                      <span>•</span>
+
+                                      {ep.video_key ? (
+                                        <button
+                                          type="button"
+                                          onClick={(e) => handleCopyKey(ep.video_key, e)}
+                                          className={styles.r2KeyPill}
+                                          title="Click to copy R2 video key"
+                                          style={{ cursor: 'pointer' }}
+                                        >
+                                          {isKeyCopied ? <Check size={10} style={{ color: '#10b981' }} /> : <Copy size={10} />}
+                                          <span>{ep.video_key}</span>
+                                        </button>
+                                      ) : (
+                                        <span style={{ color: '#f87171', fontSize: '0.7rem', fontWeight: 700 }}>
+                                          ⚠️ Missing Video Stream
+                                        </span>
+                                      )}
+
+                                      <span>•</span>
+                                      <span>Aired {ep.release_date ? new Date(ep.release_date).toLocaleDateString() : 'N/A'}</span>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Right Actions */}
+                                <div className={styles.episodeRightActions}>
+                                  {/* Live / Draft 1-Click Toggler */}
+                                  <button
+                                    type="button"
+                                    onClick={(e) => handleToggleEpisodePublish(ep, e)}
+                                    disabled={isToggling}
+                                    className={`${styles.statusPill} ${ep.is_published ? styles.statusPublished : styles.statusDraft}`}
+                                    title="Click to toggle published status"
+                                  >
+                                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: ep.is_published ? '#10b981' : '#f59e0b' }} />
+                                    <span>{ep.is_published ? 'Published' : 'Draft'}</span>
+                                  </button>
+
+                                  {/* Direct Player Watch Link */}
+                                  <Link
+                                    href={series.slug ? `/watch/${series.slug}-episode-${ep.episode_number}` : `/watch/${ep.id}`}
+                                    target="_blank"
+                                    className={styles.rowActionBtn}
+                                    title="Preview in video player"
+                                  >
+                                    <Play size={12} fill="currentColor" />
+                                    <span>Watch</span>
+                                  </Link>
+
+                                  {/* Thumbnail Studio Button */}
+                                  <button
+                                    type="button"
+                                    onClick={() => handleOpenThumbnailModal(ep)}
+                                    className={styles.rowActionBtn}
+                                    title="Open Thumbnail Studio"
+                                  >
+                                    <Camera size={13} />
+                                  </button>
+
+                                  {/* Edit Button */}
+                                  <button
+                                    type="button"
+                                    onClick={() => handleOpenEdit(ep)}
+                                    className={styles.rowActionBtn}
+                                    title="Edit Episode Details"
+                                  >
+                                    <Edit2 size={13} />
+                                    <span>Edit</span>
+                                  </button>
+
+                                  {/* Delete Button */}
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDelete(ep.id, ep.title)}
+                                    className={`${styles.rowActionBtn} ${styles.rowActionBtnDanger}`}
+                                    title="Delete Episode"
+                                  >
+                                    <Trash2 size={13} />
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          })
+                        ) : (
+                          <div style={{ padding: '1.25rem', textAlign: 'center', color: 'var(--foreground-muted)', fontSize: '0.84rem' }}>
+                            No episodes uploaded for this series yet. Click <b>"Add Episode"</b> above to add one.
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* VIEW 2: FLAT MODERN TABLE VIEW */}
+          {viewMode === 'table' && (
+            <div className={styles.tableContainer}>
+              <table className={styles.adminTable}>
+                <thead>
+                  <tr>
+                    <th style={{ width: '80px' }}>Thumbnail</th>
+                    <th>Episode Title</th>
+                    <th>Parent Series</th>
+                    <th>Season</th>
+                    <th>#</th>
+                    <th>Duration</th>
+                    <th>Status</th>
+                    <th>Aired</th>
+                    <th style={{ textAlign: 'right' }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {paginatedEpisodesFlat.map((ep) => {
+                    const season = seasonsList.find(s => s.id === ep.season_id);
+                    const series = seriesList.find(s => s.id === season?.series_id);
+                    const isToggling = togglingId === ep.id;
+
+                    return (
+                      <tr key={ep.id}>
+                        <td>
+                          <div 
+                            style={{ position: 'relative', width: '60px', height: '36px', borderRadius: '4px', overflow: 'hidden', background: '#1a1e2f', border: '1px solid #2a3148', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                            onClick={() => handleOpenThumbnailModal(ep)}
+                            title="Open Thumbnail Studio"
+                          >
+                            {ep.thumbnail_key ? (
+                              <img src={getR2Url(ep.thumbnail_key, 'thumbnail')} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            ) : (
+                              <Camera size={12} style={{ color: 'var(--primary)' }} />
+                            )}
+                          </div>
+                        </td>
+                        <td style={{ fontWeight: 800 }}>
+                          {ep.title}
+                        </td>
+                        <td>
+                          <div style={{ fontWeight: 700, color: 'var(--foreground-primary)' }}>
+                            {series?.title || 'Unknown Series'}
+                          </div>
+                        </td>
+                        <td>
+                          <span className={styles.seasonTag}>
+                            {season?.title || 'Season 1'}
+                          </span>
+                        </td>
+                        <td>
+                          <span className={styles.episodeNumberPill}>
+                            {ep.episode_number}
+                          </span>
+                        </td>
+                        <td style={{ fontSize: '0.8rem' }}>
+                          {Math.floor((ep.duration_seconds || 1440) / 60)} min
+                        </td>
+                        <td>
+                          <button
+                            type="button"
+                            onClick={() => handleToggleEpisodePublish(ep)}
+                            disabled={isToggling}
+                            className={`${styles.statusPill} ${ep.is_published ? styles.statusPublished : styles.statusDraft}`}
+                          >
+                            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: ep.is_published ? '#10b981' : '#f59e0b' }} />
+                            <span>{ep.is_published ? 'Published' : 'Draft'}</span>
+                          </button>
+                        </td>
+                        <td style={{ fontSize: '0.78rem', color: 'var(--foreground-muted)' }}>
+                          {ep.release_date ? new Date(ep.release_date).toLocaleDateString() : 'N/A'}
+                        </td>
+                        <td style={{ textAlign: 'right' }}>
+                          <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'flex-end' }}>
+                            <Link
+                              href={series?.slug ? `/watch/${series.slug}-episode-${ep.episode_number}` : `/watch/${ep.id}`}
+                              target="_blank"
+                              className={styles.rowActionBtn}
+                              title="Watch Live"
+                            >
+                              <Play size={11} fill="currentColor" />
+                            </Link>
+                            <button
+                              type="button"
+                              onClick={() => handleOpenThumbnailModal(ep)}
+                              className={styles.rowActionBtn}
+                              title="Thumbnail Studio"
+                            >
+                              <Camera size={12} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleOpenEdit(ep)}
+                              className={styles.rowActionBtn}
+                              title="Edit Episode"
+                            >
+                              <Edit2 size={12} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDelete(ep.id, ep.title)}
+                              className={`${styles.rowActionBtn} ${styles.rowActionBtnDanger}`}
+                              title="Delete Episode"
+                            >
+                              <Trash2 size={12} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* Pagination Navigation Bar */}
+          <div className={styles.paginationBar}>
+            <div className={styles.paginationInfo}>
+              Showing <b>{startIndex + 1}</b>–<b>{endIndex}</b> of <b>{totalItems}</b> {viewMode === 'accordion' ? 'shows' : 'episodes'}
+              {(selectedSeriesFilter !== 'all' || statusFilter !== 'all' || searchTerm) && ' (filtered)'}
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+              {/* Page Size Selector */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem', color: 'var(--foreground-muted)' }}>
+                <span>Per page:</span>
+                <select
+                  value={pageSize}
+                  onChange={(e) => setPageSize(Number(e.target.value))}
+                  className={styles.selectInput}
+                  style={{ padding: '0.35rem 0.6rem', fontSize: '0.8rem' }}
+                >
+                  <option value={10}>10</option>
+                  <option value={15}>15</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                </select>
               </div>
 
-              <div className={styles.paginationNav}>
+              {/* Controls */}
+              <div className={styles.paginationControls}>
                 <button
-                  className={styles.pageNavBtn}
-                  disabled={safeCurrentPage <= 1}
-                  onClick={() => handlePageChange(safeCurrentPage - 1)}
+                  type="button"
+                  onClick={() => setCurrentPage(1)}
+                  disabled={safeCurrentPage === 1}
+                  className={styles.pageBtn}
+                  title="First Page"
                 >
-                  Prev
+                  <ChevronsLeft size={15} />
                 </button>
 
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => {
-                  if (
-                    totalPages <= 7 ||
-                    pageNum === 1 ||
-                    pageNum === totalPages ||
-                    (pageNum >= safeCurrentPage - 2 && pageNum <= safeCurrentPage + 2)
-                  ) {
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={safeCurrentPage === 1}
+                  className={styles.pageBtn}
+                  title="Previous Page"
+                >
+                  <ChevronLeft size={15} />
+                </button>
+
+                {/* Dynamic Page Numbers */}
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .filter(p => p === 1 || p === totalPages || Math.abs(p - safeCurrentPage) <= 1)
+                  .map((pageNum, idx, arr) => {
+                    const prev = arr[idx - 1];
+                    const showEllipsis = prev && pageNum - prev > 1;
+
                     return (
-                      <button
-                        key={pageNum}
-                        className={`${styles.pageNumberBtn} ${pageNum === safeCurrentPage ? styles.pageNumberActive : ''}`}
-                        onClick={() => handlePageChange(pageNum)}
-                      >
-                        {pageNum}
-                      </button>
+                      <React.Fragment key={pageNum}>
+                        {showEllipsis && <span style={{ color: 'var(--foreground-muted)', padding: '0 0.2rem' }}>...</span>}
+                        <button
+                          type="button"
+                          onClick={() => setCurrentPage(pageNum)}
+                          className={`${styles.pageBtn} ${safeCurrentPage === pageNum ? styles.pageBtnActive : ''}`}
+                        >
+                          {pageNum}
+                        </button>
+                      </React.Fragment>
                     );
-                  } else if (
-                    pageNum === safeCurrentPage - 3 ||
-                    pageNum === safeCurrentPage + 3
-                  ) {
-                    return (
-                      <span key={pageNum} style={{ color: 'var(--foreground-muted)', padding: '0 0.2rem' }}>
-                        ...
-                      </span>
-                    );
-                  }
-                  return null;
-                })}
+                  })}
 
                 <button
-                  className={styles.pageNavBtn}
-                  disabled={safeCurrentPage >= totalPages}
-                  onClick={() => handlePageChange(safeCurrentPage + 1)}
+                  type="button"
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={safeCurrentPage === totalPages}
+                  className={styles.pageBtn}
+                  title="Next Page"
                 >
-                  Next
+                  <ChevronRight size={15} />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage(totalPages)}
+                  disabled={safeCurrentPage === totalPages}
+                  className={styles.pageBtn}
+                  title="Last Page"
+                >
+                  <ChevronsRight size={15} />
                 </button>
               </div>
             </div>
-          )}
+          </div>
         </>
       ) : (
-        <div className={styles.emptyState}>
-          {seasonsList.length === 0 
-            ? 'You need to create a Season first before you can manage episodes!' 
-            : 'No series or episodes found matching your filter criteria.'}
+        <div className={styles.emptyStateBox}>
+          <Video size={48} style={{ color: 'var(--foreground-muted)', opacity: 0.5 }} />
+          <div className={styles.emptyStateTitle}>No episodes match your criteria</div>
+          <div className={styles.emptyStateText}>
+            {searchTerm || selectedSeriesFilter !== 'all' || statusFilter !== 'all' || mediaFilter !== 'all'
+              ? 'Try adjusting your search query, series filter, or status chips.'
+              : 'You haven\'t added any episodes yet. Click "Add Episode" or "Add Multiple Episodes" above to get started.'}
+          </div>
+          {(searchTerm || selectedSeriesFilter !== 'all' || statusFilter !== 'all' || mediaFilter !== 'all') && (
+            <button
+              type="button"
+              onClick={() => {
+                setSearchTerm('');
+                setSelectedSeriesFilter('all');
+                setStatusFilter('all');
+                setMediaFilter('all');
+                setSelectedLaunchYear('all');
+              }}
+              className={styles.actionPillBtn}
+              style={{ marginTop: '0.5rem', background: '#141724', border: '1px solid #282e44', color: 'var(--foreground-secondary)' }}
+            >
+              Reset All Filters
+            </button>
+          )}
         </div>
       )}
 
       {/* CRUD Modal */}
       {isModalOpen && (
-        <div className={styles.modalOverlay}>
-          <div className={styles.modalContent} style={{ maxWidth: '850px', width: '95%' }}>
-            <div className={styles.modalHeader}>
-              <h3>{editingId ? 'Edit Episode Details' : 'Add New Episode'}</h3>
-              <button
-                onClick={handleCloseModal}
-                style={{ position: 'absolute', top: '2rem', right: '2rem', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--foreground-secondary)' }}
-              >
-                <X size={20} />
-              </button>
-            </div>
+        <div className={styles.modalOverlay} onClick={handleCloseModal}>
+          <div 
+            className={styles.modalContent} 
+            style={{ maxWidth: '850px', width: '95%' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header with Series Artwork & Context */}
+            {(() => {
+              const activeSeriesObj = seriesList.find(s => s.id === formSeriesId);
+              const activeSeasonObj = seasonsList.find(s => s.id === formSeasonId);
+              const posterKey = activeSeriesObj?.poster_image_key || activeSeriesObj?.cover_image_key;
+              const posterUrl = posterKey ? getR2Url(posterKey, 'poster') : null;
+
+              return (
+                <div className={styles.modalHeader}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+                    <div style={{ width: '40px', height: '56px', borderRadius: '6px', overflow: 'hidden', background: '#1a1e2f', border: '1px solid #282e44', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {posterUrl ? (
+                        <img src={posterUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        <Film size={18} style={{ color: 'var(--foreground-muted)' }} />
+                      )}
+                    </div>
+                    <div>
+                      <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800 }}>
+                        {editingId ? 'Edit Episode Details' : 'Add New Episode'}
+                      </h3>
+                      <span style={{ fontSize: '0.78rem', color: 'var(--foreground-secondary)', marginTop: '0.15rem', display: 'block' }}>
+                        {activeSeriesObj?.title || 'Selected Show'} • <span style={{ color: '#c4b5fd' }}>{activeSeasonObj?.title || 'Season'}</span>
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleCloseModal}
+                    className={styles.expandToggleBtn}
+                    title="Close modal"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+              );
+            })()}
 
             <form onSubmit={handleSave}>
-              {error && (
-                <div className={styles.errorAlert} style={{ marginBottom: '1.5rem' }}>
-                  <AlertCircle size={16} />
-                  <span>{error}</span>
+              <div className={styles.modalBody}>
+                {error && (
+                  <div className={styles.errorAlert}>
+                    <AlertCircle size={16} />
+                    <span>{error}</span>
+                  </div>
+                )}
+
+                {/* Show & Season Pickers */}
+                <div className={styles.formRow}>
+                  <div className={styles.formGroup}>
+                    <label>Parent Series</label>
+                    <select
+                      required
+                      disabled={isFormLocked}
+                      className={styles.selectField}
+                      value={formSeriesId}
+                      onChange={(e) => handleFormSeriesChange(e.target.value)}
+                    >
+                      {seriesList.map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.title}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label>Parent Season</label>
+                    <select
+                      required
+                      disabled={isFormLocked}
+                      className={styles.selectField}
+                      value={formSeasonId}
+                      onChange={(e) => setFormSeasonId(e.target.value)}
+                    >
+                      {filteredSeasonsFormList.length === 0 && (
+                        <option value="">-- No Seasons Available --</option>
+                      )}
+                      {filteredSeasonsFormList.map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.title}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
-              )}
-              <div className={styles.formRow}>
+
+                {/* Episode Number & Title with Quick Presets */}
+                <div className={styles.formRow}>
+                  <div className={styles.formGroup} style={{ maxWidth: '140px' }}>
+                    <label>Episode #</label>
+                    <input
+                      type="number"
+                      required
+                      min={1}
+                      className={styles.inputField}
+                      value={episodeNumber}
+                      onChange={(e) => {
+                        const num = parseInt(e.target.value) || 1;
+                        setEpisodeNumber(num);
+                        if (!title || /^Episode\s+\d+$/i.test(title)) {
+                          setTitle(`Episode ${num}`);
+                        }
+                      }}
+                    />
+                  </div>
+
+                  <div className={styles.formGroup} style={{ flex: '1 1 300px' }}>
+                    <label>Episode Title</label>
+                    <input
+                      type="text"
+                      required
+                      className={styles.inputField}
+                      placeholder="e.g. Episode Title"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                    />
+
+                    {/* Quick Title Presets */}
+                    <div className={styles.quickPresetsRow}>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--foreground-muted)', fontWeight: 700 }}>Quick:</span>
+                      <button
+                        type="button"
+                        onClick={() => setTitle(`Episode ${episodeNumber}`)}
+                        className={styles.quickPillBtn}
+                      >
+                        ⚡ Ep {episodeNumber}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setTitle(`OVA ${episodeNumber}`)}
+                        className={styles.quickPillBtn}
+                      >
+                        ⚡ OVA {episodeNumber}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setTitle(`Special ${episodeNumber}`)}
+                        className={styles.quickPillBtn}
+                      >
+                        ⚡ Special {episodeNumber}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setTitle(`Part ${episodeNumber}`)}
+                        className={styles.quickPillBtn}
+                      >
+                        ⚡ Part {episodeNumber}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (!title.includes('[Uncensored]')) {
+                            setTitle(`${title.trim()} [Uncensored]`);
+                          }
+                        }}
+                        className={styles.quickPillBtn}
+                      >
+                        ⚡ [Uncensored]
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Video Upload Area */}
                 <div className={styles.formGroup}>
-                  <label>Parent Series</label>
-                  <select
-                    required
-                    disabled={isFormLocked}
-                    className={styles.selectField}
-                    value={formSeriesId}
-                    onChange={(e) => handleFormSeriesChange(e.target.value)}
-                  >
-                    {seriesList.map((s) => (
-                      <option key={s.id} value={s.id}>
-                        {s.title}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className={styles.formGroup}>
-                  <label>Parent Season</label>
-                  <select
-                    required
-                    disabled={isFormLocked}
-                    className={styles.selectField}
-                    value={formSeasonId}
-                    onChange={(e) => setFormSeasonId(e.target.value)}
-                  >
-                    {filteredSeasonsFormList.length === 0 && (
-                      <option value="">-- No Seasons Available --</option>
-                    )}
-                    {filteredSeasonsFormList.map((s) => (
-                      <option key={s.id} value={s.id}>
-                        {s.title}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className={styles.formRow} style={{ marginTop: '0.5rem' }}>
-                <div className={styles.formGroup} style={{ flex: '1' }}>
-                  <label>Episode Number</label>
-                  <input
-                    type="number"
-                    required
-                    min={1}
-                    className={styles.inputField}
-                    value={episodeNumber}
-                    onChange={(e) => setEpisodeNumber(parseInt(e.target.value) || 1)}
-                  />
-                </div>
-              </div>
-
-               <div className={styles.formGroup} style={{ marginBottom: '1.2rem' }}>
-                 <label>Episode Title</label>
-                 <input
-                   type="text"
-                   required
-                   className={styles.inputField}
-                   placeholder="e.g. Episode Title"
-                   value={title}
-                   onChange={(e) => setTitle(e.target.value)}
-                 />
-               </div>
-
-
-
-              <div className={styles.formGroup} style={{ marginBottom: '1.2rem' }}>
-                <FileUploader
-                  label="Video File"
-                  acceptedTypes="video/*"
-                  maxSizeMb={500}
-                  initialValue={videoKey}
-                  onUploadComplete={(key) => {
-                    setVideoKey(key);
-                    setSessionKeys((prev) => [...prev, key]);
-                  }}
-                  onClear={() => {
-                    setVideoKey('');
-                    setVideoFile(null);
-                  }}
-                  onFileSelect={(file) => {
-                    setVideoFile(file);
-                    generateThumbnailFromSource(file);
-                  }}
-                />
-              </div>
-
-              <div className={styles.formRow} style={{ marginBottom: '1.2rem' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', flex: '1 0 50%' }}>
                   <FileUploader
-                    label="Thumbnail Image (16:9)"
-                    acceptedTypes="image/*"
-                    maxSizeMb={5}
-                    initialValue={thumbnailKey}
+                    label="Video Stream File (MP4, MKV, WebM)"
+                    acceptedTypes="video/*"
+                    maxSizeMb={2000}
+                    initialValue={videoKey}
                     onUploadComplete={(key) => {
-                      setThumbnailKey(key);
+                      setVideoKey(key);
                       setSessionKeys((prev) => [...prev, key]);
                     }}
-                    onClear={() => setThumbnailKey('')}
-                    previewType="cover"
+                    onClear={() => {
+                      setVideoKey('');
+                      setVideoFile(null);
+                    }}
+                    onFileSelect={async (file) => {
+                      setVideoFile(file);
+                      try {
+                        const dur = await extractVideoDuration(file);
+                        setDurationSeconds(dur);
+                      } catch (err) {
+                        console.error('Error reading video duration:', err);
+                      }
+                    }}
                   />
-                  <span style={{ fontSize: '0.72rem', color: 'var(--foreground-muted)' }}>
-                    💡 You can also generate random thumbnails or pick an exact frame from the video player after saving this episode by clicking the image button on the list row.
-                  </span>
                 </div>
-                <div className={styles.formGroup} style={{ flex: '1 0 50%' }}>
-                  <label>Duration (in seconds)</label>
+
+                {/* Duration & Thumbnail Area */}
+                <div className={styles.formRow}>
+                  <div className={styles.formGroup} style={{ flex: '1 1 260px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <label>Duration (Seconds)</label>
+                      <span className={styles.videoBadge}>
+                        ⏱️ {Math.floor(durationSeconds / 60)}m {durationSeconds % 60}s
+                      </span>
+                    </div>
+                    <input
+                      type="number"
+                      required
+                      min={1}
+                      className={styles.inputField}
+                      placeholder="e.g. 1440"
+                      value={durationSeconds}
+                      onChange={(e) => setDurationSeconds(parseInt(e.target.value) || 0)}
+                    />
+                  </div>
+
+                  <div className={styles.formGroup} style={{ flex: '1 1 260px' }}>
+                    <label>Thumbnail Image (16:9)</label>
+                    <FileUploader
+                      acceptedTypes="image/*"
+                      maxSizeMb={10}
+                      initialValue={thumbnailKey}
+                      onUploadComplete={(key) => {
+                        setThumbnailKey(key);
+                        setSessionKeys((prev) => [...prev, key]);
+                      }}
+                      onClear={() => setThumbnailKey('')}
+                      previewType="cover"
+                    />
+                  </div>
+                </div>
+
+                {/* Scheduled Release Date with Quick Presets */}
+                <div className={styles.formGroup}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <label>Scheduled Air / Release Date</label>
+                    <span style={{ fontSize: '0.72rem', color: 'var(--foreground-muted)' }}>
+                      Local time: {new Date(releaseDate || Date.now()).toLocaleDateString()}
+                    </span>
+                  </div>
                   <input
-                    type="number"
+                    type="datetime-local"
                     required
-                    min={1}
                     className={styles.inputField}
-                    placeholder="e.g. 1440"
-                    value={durationSeconds}
-                    onChange={(e) => setDurationSeconds(parseInt(e.target.value) || 0)}
+                    value={releaseDate}
+                    onChange={(e) => setReleaseDate(e.target.value)}
                   />
+
+                  {/* Quick Air Date Presets */}
+                  <div className={styles.quickPresetsRow}>
+                    <span style={{ fontSize: '0.7rem', color: 'var(--foreground-muted)', fontWeight: 700 }}>Presets (12:00 AM):</span>
+                    <button
+                      type="button"
+                      onClick={() => setQuickReleaseDate('today')}
+                      className={styles.quickPillBtn}
+                    >
+                      ⚡ Today
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setQuickReleaseDate('yesterday')}
+                      className={styles.quickPillBtn}
+                    >
+                      ⚡ Yesterday
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setQuickReleaseDate('week_ago')}
+                      className={styles.quickPillBtn}
+                    >
+                      ⚡ 1 Week Ago
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setQuickReleaseDate('month_ago')}
+                      className={styles.quickPillBtn}
+                    >
+                      ⚡ 1 Month Ago
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setQuickReleaseDate('next_week')}
+                      className={styles.quickPillBtn}
+                    >
+                      ⚡ Next Week
+                    </button>
+                  </div>
+                </div>
+
+                {/* Status & Options Row */}
+                <div className={styles.formRow} style={{ alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid #1f2438', paddingTop: '1rem' }}>
+                  <div className={styles.formGroup}>
+                    <label style={{ marginBottom: '0.3rem' }}>Catalog Visibility</label>
+                    <div className={styles.statusToggleContainer}>
+                      <button
+                        type="button"
+                        onClick={() => setIsPublished(true)}
+                        className={`${styles.statusToggleOption} ${isPublished ? styles.statusToggleOptionActivePublished : ''}`}
+                      >
+                        <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#10b981' }} />
+                        <span>● Published (Live)</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setIsPublished(false)}
+                        className={`${styles.statusToggleOption} ${!isPublished ? styles.statusToggleOptionActiveDraft : ''}`}
+                      >
+                        <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#f59e0b' }} />
+                        <span>● Draft (Hidden)</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className={styles.formGroup} style={{ flex: '0 0 auto' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', marginTop: '1.2rem', userSelect: 'none' }}>
+                      <input
+                        type="checkbox"
+                        checked={isPreview}
+                        onChange={(e) => setIsPreview(e.target.checked)}
+                        style={{ width: '16px', height: '16px', accentColor: 'var(--primary)', cursor: 'pointer' }}
+                      />
+                      <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--foreground-primary)' }}>
+                        🎬 Mark as Preview / Trailer
+                      </span>
+                    </label>
+                  </div>
                 </div>
               </div>
 
-              <div className={styles.formGroup}>
-                <label>Scheduled Air / Release Date</label>
-                <input
-                  type="datetime-local"
-                  required
-                  className={styles.inputField}
-                  value={releaseDate}
-                  onChange={(e) => setReleaseDate(e.target.value)}
-                />
-              </div>
+              {/* Modal Footer */}
+              <div className={styles.modalFooter}>
+                <span style={{ fontSize: '0.74rem', color: 'var(--foreground-muted)', marginRight: 'auto' }}>
+                  ⌨️ Press <kbd style={{ background: '#1e2438', padding: '0.1rem 0.4rem', borderRadius: '4px', border: '1px solid #2e3752' }}>Ctrl+S</kbd> to save
+                </span>
 
-              <div className={styles.checkboxRow} style={{ marginTop: '1rem' }}>
-                <input
-                  type="checkbox"
-                  id="is_preview"
-                  checked={isPreview}
-                  onChange={(e) => setIsPreview(e.target.checked)}
-                />
-                <label htmlFor="is_preview">This is a Preview/Trailer Video (marked as preview on public pages)</label>
-              </div>
-
-
-              <div className={styles.checkboxRow} style={{ marginTop: '0.5rem' }}>
-                <input
-                  type="checkbox"
-                  id="is_published"
-                  checked={isPublished}
-                  onChange={(e) => setIsPublished(e.target.checked)}
-                />
-                <label htmlFor="is_published">Publish immediately (visible in public catalog)</label>
-              </div>
-
-              <div className={styles.modalActions}>
-                <button type="button" onClick={handleCloseModal} className={styles.cancelBtn}>
+                <button type="button" onClick={handleCloseModal} className={styles.actionPillBtn} style={{ background: '#1a1e2f', color: 'var(--foreground-secondary)', border: '1px solid #282e44', padding: '0.55rem 1.2rem' }}>
                   Cancel
                 </button>
-                <button type="submit" disabled={saving || !formSeasonId} className={styles.saveBtn}>
-                  {saving ? 'Saving...' : 'Save Episode'}
+                <button 
+                  type="submit" 
+                  disabled={saving || !formSeasonId} 
+                  className={styles.createBtn}
+                  style={{ padding: '0.55rem 1.6rem' }}
+                >
+                  {saving ? 'Saving Episode...' : editingId ? 'Save Changes' : 'Create Episode'}
                 </button>
               </div>
             </form>
@@ -2437,96 +3389,146 @@ export default function AdminEpisodesPage() {
       )}
 
       {isThumbModalOpen && thumbModalEpisode && (
-        <div className={styles.modalOverlay}>
-          <div 
-            className={styles.modalContent} 
-            style={{ 
-              maxWidth: '96vw', 
-              width: '96vw', 
-              height: '96vh', 
-              maxHeight: '96vh', 
-              display: 'flex', 
-              flexDirection: 'column',
-              padding: '1.5rem',
-              margin: 'auto'
-            }}
-          >
-            <div className={styles.modalHeader}>
-              <div>
-                <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <Camera size={20} style={{ color: 'var(--primary)' }} />
-                  <span>Thumbnail Studio</span>
+        <div className={styles.studioOverlay}>
+          <div className={styles.studioModal}>
+            {/* Header */}
+            <div className={styles.studioHeader}>
+              <div className={styles.studioHeaderLeft}>
+                <h3 className={styles.studioHeaderTitle}>
+                  <Camera size={22} style={{ color: 'var(--primary)' }} />
+                  <span>Thumbnail Studio 2.0</span>
                 </h3>
-                <span style={{ fontSize: '0.8rem', color: 'var(--foreground-secondary)', marginTop: '0.2rem', display: 'block' }}>
-                  {thumbModalEpisode.seasons?.series?.title || 'Unknown Show'} • {thumbModalEpisode.seasons?.title || 'Season 1'} • Episode {thumbModalEpisode.episode_number}: {thumbModalEpisode.title}
-                </span>
+                <div className={styles.studioBreadcrumbs}>
+                  <span>🎬 {thumbModalEpisode.seasons?.series?.title || 'Series'}</span>
+                  <span>•</span>
+                  <span>{thumbModalEpisode.seasons?.title || 'Season 1'}</span>
+                  <span>•</span>
+                  <span style={{ color: '#f8fafc', fontWeight: 700 }}>Episode {thumbModalEpisode.episode_number}: {thumbModalEpisode.title}</span>
+                </div>
               </div>
-              <button
-                onClick={() => setIsThumbModalOpen(false)}
-                style={{ position: 'absolute', top: '2rem', right: '2rem', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--foreground-secondary)' }}
-              >
-                <X size={20} />
-              </button>
+
+              <div className={styles.studioHeaderRight}>
+                {/* Active Source Status Badge & Switcher */}
+                {localScrubFile ? (
+                  <div className={styles.studioSourceBadge} style={{ background: 'rgba(16, 185, 129, 0.15)', borderColor: 'rgba(16, 185, 129, 0.35)', color: '#34d399' }}>
+                    <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#10b981' }} />
+                    <span style={{ fontWeight: 800 }}>📁 Local Video (Native GPU)</span>
+                    <label style={{ cursor: 'pointer', color: '#6ee7b7', textDecoration: 'underline', fontSize: '0.7rem', marginLeft: '0.2rem' }}>
+                      <span>Change File</span>
+                      <input
+                        type="file"
+                        accept="video/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleLocalFileSelectForScrub(file);
+                        }}
+                        style={{ display: 'none' }}
+                      />
+                    </label>
+                    {thumbModalEpisode.video_key && (
+                      <>
+                        <span style={{ color: '#4b5563' }}>•</span>
+                        <button
+                          type="button"
+                          onClick={handleLoadFromR2}
+                          style={{ background: 'transparent', border: 'none', color: '#c4b5fd', cursor: 'pointer', textDecoration: 'underline', fontSize: '0.7rem' }}
+                        >
+                          Switch to Remote R2
+                        </button>
+                      </>
+                    )}
+                  </div>
+                ) : isRemoteVideoLoaded ? (
+                  <div className={styles.studioSourceBadge}>
+                    <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#818cf8', animation: 'pulse 2s infinite' }} />
+                    <span>Streaming Cloudflare R2</span>
+                    <label style={{ cursor: 'pointer', color: '#34d399', fontWeight: 700, textDecoration: 'underline', fontSize: '0.7rem', marginLeft: '0.3rem' }}>
+                      <span>📁 Switch to Local File (Native HD)</span>
+                      <input
+                        type="file"
+                        accept="video/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleLocalFileSelectForScrub(file);
+                        }}
+                        style={{ display: 'none' }}
+                      />
+                    </label>
+                  </div>
+                ) : (
+                  <div className={styles.studioSourceBadge} style={{ background: 'rgba(124, 58, 237, 0.15)', borderColor: 'rgba(124, 58, 237, 0.35)', color: '#c4b5fd' }}>
+                    <span>📁 First Source: Local File</span>
+                    <label style={{ cursor: 'pointer', color: '#ffffff', background: 'var(--primary)', padding: '0.2rem 0.55rem', borderRadius: '4px', fontSize: '0.68rem', marginLeft: '0.3rem', fontWeight: 800 }}>
+                      <span>+ Select Local Video</span>
+                      <input
+                        type="file"
+                        accept="video/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleLocalFileSelectForScrub(file);
+                        }}
+                        style={{ display: 'none' }}
+                      />
+                    </label>
+                    {thumbModalEpisode.video_key && (
+                      <button
+                        type="button"
+                        onClick={handleLoadFromR2}
+                        style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', textDecoration: 'underline', fontSize: '0.68rem', marginLeft: '0.2rem' }}
+                      >
+                        or Stream R2
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                <button
+                  onClick={() => setIsThumbModalOpen(false)}
+                  style={{ background: '#181d2e', border: '1px solid #2a334d', borderRadius: '8px', padding: '0.4rem', cursor: 'pointer', color: 'var(--foreground-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  title="Close Thumbnail Studio"
+                >
+                  <X size={18} />
+                </button>
+              </div>
             </div>
 
             {thumbStudioError && (
-              <div className={styles.errorAlert} style={{ marginBottom: '1.2rem' }}>
+              <div className={styles.errorAlert} style={{ margin: '0.75rem 1.5rem 0', borderRadius: '10px' }}>
                 <AlertCircle size={16} />
                 <span>{thumbStudioError}</span>
               </div>
             )}
 
-            {/* Tabs */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)', marginBottom: '1.2rem' }}>
-              <div style={{ display: 'flex' }}>
+            {/* Tabs Strip */}
+            <div className={styles.studioTabs}>
+              <div className={styles.studioTabList}>
                 <button
                   onClick={() => setThumbActiveTab('auto')}
-                  style={{
-                    background: 'transparent',
-                    border: 'none',
-                    borderBottom: thumbActiveTab === 'auto' ? '2px solid var(--primary)' : 'none',
-                    color: thumbActiveTab === 'auto' ? 'var(--foreground)' : 'var(--foreground-secondary)',
-                    padding: '0.6rem 1.25rem',
-                    cursor: 'pointer',
-                    fontWeight: 700,
-                    fontSize: '0.88rem'
-                  }}
+                  className={`${styles.studioTabBtn} ${thumbActiveTab === 'auto' ? styles.studioTabBtnActive : ''}`}
                 >
-                  ⚡ Auto-Generate 24 Options
+                  <Sparkles size={15} style={{ color: 'var(--primary)' }} />
+                  <span>Auto-Generate Candidates</span>
+                  {batchOptions.length > 0 && (
+                    <span className={styles.studioTabBadge}>{batchOptions.length}</span>
+                  )}
                 </button>
                 <button
                   onClick={() => setThumbActiveTab('scrub')}
-                  style={{
-                    background: 'transparent',
-                    border: 'none',
-                    borderBottom: thumbActiveTab === 'scrub' ? '2px solid var(--primary)' : 'none',
-                    color: thumbActiveTab === 'scrub' ? 'var(--foreground)' : 'var(--foreground-secondary)',
-                    padding: '0.6rem 1.25rem',
-                    cursor: 'pointer',
-                    fontWeight: 700,
-                    fontSize: '0.88rem'
-                  }}
+                  className={`${styles.studioTabBtn} ${thumbActiveTab === 'scrub' ? styles.studioTabBtnActive : ''}`}
                 >
-                  🎞️ Precise Player Scrubbing
+                  <Film size={15} />
+                  <span>Precise Player Scrubbing & Snapper</span>
                 </button>
                 <button
                   onClick={() => setThumbActiveTab('upload')}
-                  style={{
-                    background: 'transparent',
-                    border: 'none',
-                    borderBottom: thumbActiveTab === 'upload' ? '2px solid var(--primary)' : 'none',
-                    color: thumbActiveTab === 'upload' ? 'var(--foreground)' : 'var(--foreground-secondary)',
-                    padding: '0.6rem 1.25rem',
-                    cursor: 'pointer',
-                    fontWeight: 700,
-                    fontSize: '0.88rem'
-                  }}
+                  className={`${styles.studioTabBtn} ${thumbActiveTab === 'upload' ? styles.studioTabBtnActive : ''}`}
                 >
-                  📤 Upload Custom Thumbnail
+                  <UploadCloud size={15} />
+                  <span>Upload & Paste (Ctrl+V)</span>
                 </button>
               </div>
 
-              {/* Generate New Batch Button (Only active when tab is 'auto' and source is loaded) */}
+              {/* Regenerate Action */}
               {thumbActiveTab === 'auto' && (localScrubFile || isRemoteVideoLoaded) && (
                 <button
                   type="button"
@@ -2539,230 +3541,79 @@ export default function AdminEpisodesPage() {
                     }
                   }}
                   style={{
-                    background: 'rgba(var(--primary-rgb), 0.1)',
-                    border: '1px solid rgba(var(--primary-rgb), 0.2)',
-                    color: 'var(--primary)',
-                    padding: '0.35rem 0.8rem',
-                    borderRadius: '6px',
-                    fontSize: '0.75rem',
+                    background: '#1a1e2f',
+                    border: '1px solid #2e3752',
+                    color: '#c4b5fd',
+                    padding: '0.35rem 0.85rem',
+                    borderRadius: '8px',
+                    fontSize: '0.76rem',
                     fontWeight: 700,
                     cursor: 'pointer',
                     display: 'inline-flex',
                     alignItems: 'center',
-                    gap: '0.3rem',
+                    gap: '0.4rem',
                     transition: 'all 0.15s ease',
-                    opacity: isGeneratingBatch ? 0.5 : 1,
-                    marginBottom: '0.2rem'
+                    opacity: isGeneratingBatch ? 0.5 : 1
                   }}
                 >
-                  <span>🔄 Regenerate Stepped Batch</span>
+                  <span>🔄 Regenerate Batch</span>
                 </button>
               )}
             </div>
 
-            {/* Tab contents */}
-            <div style={{ flex: 1, overflowY: 'auto', paddingRight: '0.4rem', minHeight: 0, marginBottom: '1rem' }}>
+            {/* Studio Body Content */}
+            <div className={styles.studioBody}>
               {thumbActiveTab === 'upload' ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', width: '100%' }}>
-                  {/* Upload Box */}
-                  <div style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', background: 'rgba(15, 23, 42, 0.45)', borderRadius: '14px', border: '1px solid var(--border)', maxWidth: '600px', margin: '0 auto', width: '100%' }}>
-                    <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--foreground)', margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                      Upload Custom Thumbnail Image
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%', maxWidth: '800px', margin: '0 auto' }}>
+                  {/* Shortcut Tip */}
+                  <div style={{ background: '#121522', border: '1px solid #23283b', borderRadius: '12px', padding: '0.75rem 1.25rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(124, 58, 237, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#c4b5fd', flexShrink: 0 }}>
+                      <Copy size={16} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '0.8rem', fontWeight: 800, color: '#f8fafc' }}>
+                        📋 Quick Screenshot Paste (<kbd style={{ background: '#1e2438', border: '1px solid #2e3752', padding: '0.1rem 0.4rem', borderRadius: '4px', fontSize: '0.72rem' }}>Ctrl + V</kbd>)
+                      </div>
+                      <div style={{ fontSize: '0.74rem', color: '#94a3b8' }}>
+                        You can take a screenshot anywhere (<kbd style={{ background: '#1e2438', padding: '0.1rem 0.35rem', borderRadius: '4px' }}>Win+Shift+S</kbd>) and press <kbd style={{ background: '#1e2438', padding: '0.1rem 0.35rem', borderRadius: '4px' }}>Ctrl+V</kbd> right here to instantly upload it to Cloudflare R2!
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Multi-File Upload Box */}
+                  <div style={{ padding: '1.75rem', display: 'flex', flexDirection: 'column', gap: '1.25rem', background: '#121522', borderRadius: '16px', border: '1px solid #23283b' }}>
+                    <h3 style={{ fontSize: '1rem', fontWeight: 800, color: '#f8fafc', margin: 0, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                      Upload Custom Thumbnail Images
                     </h3>
-                    <p style={{ fontSize: '0.8rem', color: 'var(--foreground-secondary)', margin: 0 }}>
-                      Choose or drag multiple 16:9 image files (JPG, PNG, WebP) from your computer to add them as custom thumbnail options for this episode.
+                    <p style={{ fontSize: '0.78rem', color: '#94a3b8', margin: 0 }}>
+                      Select or drag 16:9 images (JPG, PNG, WebP) from your computer to add them to this episode.
                     </p>
                     <FileUploader
                       label="Select or Drag Image Files"
                       acceptedTypes="image/*"
-                      maxSizeMb={5}
+                      maxSizeMb={10}
                       multiple={true}
                       onUploadComplete={handleCustomThumbnailUploadComplete}
                       onMultipleUploadComplete={handleMultipleCustomThumbnailsUploaded}
                       previewType="cover"
                     />
                   </div>
-
-                  {/* Big-Screen Saved Choice Gallery */}
-                  {thumbStudioSavedList.length > 0 && (
-                    <div style={{ background: 'rgba(15, 23, 42, 0.35)', padding: '1.5rem', borderRadius: '14px', border: '1px solid var(--border)', width: '100%' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.2rem', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', paddingBottom: '0.6rem' }}>
-                        <h4 style={{ fontSize: '0.82rem', fontWeight: 800, textTransform: 'uppercase', color: '#f8fafc', margin: 0, letterSpacing: '0.6px' }}>
-                          Saved Choice Gallery ({thumbStudioSavedList.length} Options)
-                        </h4>
-                        <span style={{ fontSize: '0.72rem', color: 'var(--foreground-muted)' }}>Click 'Set Active' to change the active episode thumbnail.</span>
-                      </div>
-                      
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1.2rem' }}>
-                        {thumbStudioSavedList.map((key, idx) => {
-                          const isCurrentActive = thumbStudioActiveKey === key;
-                          const previewUrl = getR2Url(key, 'thumbnail');
-                          return (
-                            <div 
-                              key={key} 
-                              style={{ 
-                                position: 'relative', 
-                                background: 'rgba(15, 23, 42, 0.9)', 
-                                borderRadius: '10px', 
-                                border: isCurrentActive ? '2.5px solid var(--primary)' : '1px solid rgba(255, 255, 255, 0.1)', 
-                                overflow: 'hidden',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                transition: 'all 0.2s ease',
-                                boxShadow: isCurrentActive ? '0 0 15px rgba(var(--primary-rgb), 0.25)' : 'none'
-                              }}
-                            >
-                              {/* Preview Image */}
-                              <div style={{ position: 'relative', aspectRatio: '16/9', overflow: 'hidden', background: '#000' }}>
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img src={previewUrl} alt={`Option ${idx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                
-                                {isCurrentActive && (
-                                  <div style={{
-                                    position: 'absolute',
-                                    top: '8px',
-                                    left: '8px',
-                                    background: 'var(--primary)',
-                                    color: 'white',
-                                    fontSize: '0.65rem',
-                                    fontWeight: 800,
-                                    padding: '0.2rem 0.5rem',
-                                    borderRadius: '4px',
-                                    textTransform: 'uppercase',
-                                    letterSpacing: '0.05em',
-                                    boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
-                                    zIndex: 2
-                                  }}>
-                                    Active
-                                  </div>
-                                )}
-
-                                {/* Delete Option */}
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    deleteThumbnailOption(key);
-                                  }}
-                                  title="Delete Option"
-                                  style={{
-                                    position: 'absolute',
-                                    top: '8px',
-                                    right: '8px',
-                                    background: 'rgba(239, 68, 68, 0.85)',
-                                    border: 'none',
-                                    color: 'white',
-                                    borderRadius: '50%',
-                                    width: '24px',
-                                    height: '24px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    cursor: 'pointer',
-                                    zIndex: 2,
-                                    transition: 'all 0.15s ease'
-                                  }}
-                                >
-                                  <X size={13} />
-                                </button>
-                              </div>
-
-                              {/* Footer Details / Actions */}
-                              <div style={{ padding: '0.65rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', background: '#090d16' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                  <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 700, display: 'inline-flex', alignItems: 'center' }}>
-                                    Option #{idx + 1}
-                                    <ImageSize r2Key={key} />
-                                  </span>
-                                  <button
-                                    type="button"
-                                    onClick={() => setZoomImageUrl(previewUrl)}
-                                    style={{
-                                      background: 'transparent',
-                                      border: 'none',
-                                      color: 'var(--foreground-secondary)',
-                                      cursor: 'pointer',
-                                      fontSize: '0.72rem',
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      gap: '0.2rem',
-                                      padding: 0
-                                    }}
-                                  >
-                                    <Maximize2 size={11} />
-                                    <span>Zoom</span>
-                                  </button>
-                                </div>
-                                
-                                <div style={{ display: 'flex', gap: '0.4rem' }}>
-                                  <button
-                                    type="button"
-                                    disabled={isCurrentActive || savingThumbStudio}
-                                    onClick={() => selectActiveThumbnail(key)}
-                                    style={{
-                                      flex: 1,
-                                      background: isCurrentActive ? 'rgba(255,255,255,0.04)' : 'var(--primary)',
-                                      color: isCurrentActive ? 'var(--foreground-muted)' : 'white',
-                                      border: isCurrentActive ? '1px solid rgba(255,255,255,0.08)' : 'none',
-                                      padding: '0.4rem 0',
-                                      borderRadius: '6px',
-                                      fontSize: '0.74rem',
-                                      fontWeight: 700,
-                                      cursor: isCurrentActive ? 'default' : 'pointer',
-                                      transition: 'all 0.15s ease'
-                                    }}
-                                  >
-                                    {isCurrentActive ? 'Active' : 'Set Active'}
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
                 </div>
               ) : !localScrubFile && !isRemoteVideoLoaded ? (
-                <div 
-                  style={{ 
-                    padding: '3rem 2rem', 
-                    textAlign: 'center', 
-                    background: 'rgba(255, 255, 255, 0.01)', 
-                    borderRadius: '12px', 
-                    border: '1px dashed var(--border)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: '1.2rem',
-                    marginBottom: '1.2rem'
-                  }}
-                >
+                /* Empty Video Source Picker */
+                <div style={{ padding: '3.5rem 2rem', textAlign: 'center', background: '#121522', borderRadius: '16px', border: '1px dashed #282e44', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.25rem', margin: 'auto 0' }}>
+                  <div style={{ width: '54px', height: '54px', borderRadius: '16px', background: 'rgba(124, 58, 237, 0.12)', border: '1px solid rgba(124, 58, 237, 0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#c4b5fd' }}>
+                    <Video size={28} />
+                  </div>
                   <div>
-                    <h4 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--foreground)', margin: '0 0 0.4rem 0' }}>Load Video Source to Generate Previews</h4>
-                    <p style={{ fontSize: '0.82rem', color: 'var(--foreground-secondary)', maxWidth: '480px', margin: '0 auto' }}>
-                      Select a local video file from your computer (instant offline extraction, saves bandwidth) or stream the remote file from Cloudflare R2 storage.
+                    <h4 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#f8fafc', margin: '0 0 0.4rem 0' }}>Select Video Source to Generate Previews</h4>
+                    <p style={{ fontSize: '0.82rem', color: '#94a3b8', maxWidth: '480px', margin: '0 auto' }}>
+                      Choose a local video file from your computer for instant zero-bandwidth GPU extraction or connect to Cloudflare R2 storage.
                     </p>
                   </div>
-
-                  <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', marginTop: '0.5rem' }}>
-                    <label 
-                      style={{
-                        background: 'var(--primary)',
-                        color: 'white',
-                        border: 'none',
-                        padding: '0.55rem 1.2rem',
-                        borderRadius: '20px',
-                        fontSize: '0.8rem',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.4rem',
-                        boxShadow: '0 4px 12px rgba(var(--primary-rgb), 0.2)'
-                      }}
-                    >
-                      <Plus size={14} />
+                  <div style={{ display: 'flex', gap: '0.85rem', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center' }}>
+                    <label style={{ background: 'linear-gradient(135deg, #7c3aed 0%, #6366f1 100%)', color: 'white', border: 'none', padding: '0.6rem 1.4rem', borderRadius: '12px', fontSize: '0.82rem', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', boxShadow: '0 4px 14px rgba(124, 58, 237, 0.35)' }}>
+                      <Plus size={16} />
                       <span>Choose Local Video File</span>
                       <input
                         type="file"
@@ -2774,164 +3625,135 @@ export default function AdminEpisodesPage() {
                         style={{ display: 'none' }}
                       />
                     </label>
-
-                    <button
-                      type="button"
-                      onClick={handleLoadFromR2}
-                      disabled={!thumbModalEpisode?.video_key}
-                      style={{
-                        background: 'rgba(255, 255, 255, 0.05)',
-                        color: 'var(--foreground)',
-                        border: '1px solid var(--border)',
-                        padding: '0.55rem 1.2rem',
-                        borderRadius: '20px',
-                        fontSize: '0.8rem',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.4rem',
-                        opacity: thumbModalEpisode?.video_key ? 1 : 0.5
-                      }}
-                    >
-                      <span>🌐 Stream Remote R2 Video</span>
-                    </button>
+                    {thumbModalEpisode.video_key && (
+                      <button
+                        type="button"
+                        onClick={handleLoadFromR2}
+                        style={{ background: '#1a1e2f', color: '#f8fafc', border: '1px solid #2e3752', padding: '0.6rem 1.4rem', borderRadius: '12px', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                      >
+                        <span>🌐 Stream Remote R2 Video</span>
+                      </button>
+                    )}
                   </div>
                 </div>
               ) : (
                 <>
-                    {thumbActiveTab === 'auto' && (
-                  <div>
-                    {/* Re-designed 2-Row Control Header */}
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', marginBottom: '0.85rem', background: 'rgba(15, 23, 42, 0.75)', padding: '0.8rem 1rem', borderRadius: '14px', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
-                        
+                  {/* TAB 1: AUTO-GENERATE CANDIDATES */}
+                  {thumbActiveTab === 'auto' && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                      {/* Control Panel */}
+                      <div className={styles.studioControlPanel}>
                         {/* Row 1: Mode Switches & Generation Toggles */}
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem' }}>
+                        <div className={styles.studioControlRow}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-                            <span style={{ fontSize: '0.78rem', fontWeight: 800, textTransform: 'uppercase', color: '#94a3b8', letterSpacing: '0.6px' }}>
-                              TIMELINE CONTROL:
+                            <span style={{ fontSize: '0.76rem', fontWeight: 800, textTransform: 'uppercase', color: '#94a3b8', letterSpacing: '0.5px' }}>
+                              TIMELINE MINUTES:
                             </span>
-
-                            {/* Focus vs Exclude Switcher */}
-                            <div style={{ display: 'inline-flex', background: 'rgba(255, 255, 255, 0.06)', borderRadius: '18px', padding: '0.2rem', border: '1px solid rgba(255, 255, 255, 0.12)' }}>
+                            <div style={{ display: 'inline-flex', background: '#0f121d', borderRadius: '10px', padding: '0.2rem', border: '1px solid #23283b' }}>
                               <button
                                 type="button"
                                 onClick={() => setMinuteInteractionMode('focus')}
-                                title="Click minutes to FOCUS candidate generation"
                                 style={{
                                   background: minuteInteractionMode === 'focus' ? 'var(--primary)' : 'transparent',
                                   color: minuteInteractionMode === 'focus' ? 'white' : '#94a3b8',
                                   border: 'none',
                                   padding: '0.25rem 0.75rem',
-                                  borderRadius: '16px',
-                                  fontSize: '0.76rem',
+                                  borderRadius: '8px',
+                                  fontSize: '0.74rem',
                                   fontWeight: 700,
-                                  cursor: 'pointer',
-                                  transition: 'all 0.15s ease'
+                                  cursor: 'pointer'
                                 }}
                               >
-                                🎯 Focus Mode
+                                🎯 Focus
                               </button>
                               <button
                                 type="button"
                                 onClick={() => setMinuteInteractionMode('exclude')}
-                                title="Click minutes to EXCLUDE them from candidate generation"
                                 style={{
                                   background: minuteInteractionMode === 'exclude' ? '#ef4444' : 'transparent',
                                   color: minuteInteractionMode === 'exclude' ? 'white' : '#94a3b8',
                                   border: 'none',
                                   padding: '0.25rem 0.75rem',
-                                  borderRadius: '16px',
-                                  fontSize: '0.76rem',
+                                  borderRadius: '8px',
+                                  fontSize: '0.74rem',
                                   fontWeight: 700,
-                                  cursor: 'pointer',
-                                  transition: 'all 0.15s ease'
+                                  cursor: 'pointer'
                                 }}
                               >
-                                🚫 Exclude Mode
+                                🚫 Exclude
                               </button>
                             </div>
 
-                          </div>
-
-                          {/* Toggles & Generation Actions */}
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', flexWrap: 'wrap' }}>
-                            {focusedMinutes.length > 0 && (
+                            {/* Minute timeline pills */}
+                            <div className={styles.studioTimelinePills}>
                               <button
                                 type="button"
                                 onClick={() => {
                                   setFocusedMinutes([]);
+                                  handleStepChange(serialStepSec);
                                   if (autoGenerateOnClick) {
-                                    if (localScrubFile) {
-                                      generateBatchThumbnailsFromUrl(URL.createObjectURL(localScrubFile), []);
-                                    } else if (thumbModalEpisode?.video_key) {
-                                      generateBatchThumbnailsFromUrl(getR2Url(thumbModalEpisode.video_key, 'video'), []);
-                                    }
+                                    if (localScrubFile) generateBatchThumbnailsFromUrl(URL.createObjectURL(localScrubFile), []);
+                                    else if (thumbModalEpisode?.video_key) generateBatchThumbnailsFromUrl(getR2Url(thumbModalEpisode.video_key, 'video'), []);
                                   }
                                 }}
-                                style={{
-                                  background: 'rgba(99, 102, 241, 0.15)',
-                                  color: '#818cf8',
-                                  border: '1px solid rgba(99, 102, 241, 0.4)',
-                                  padding: '0.25rem 0.65rem',
-                                  borderRadius: '14px',
-                                  fontSize: '0.76rem',
-                                  fontWeight: 700,
-                                  cursor: 'pointer'
-                                }}
+                                className={`${styles.studioPill} ${focusedMinutes.length === 0 ? styles.studioPillActive : ''}`}
                               >
-                                Clear Focus ({focusedMinutes.length})
+                                Full Video
                               </button>
-                            )}
+                              {Array.from({ length: Math.ceil(videoDuration / 60) || 12 }).map((_, i) => {
+                                const isExcluded = excludedMinutes.includes(i);
+                                const isFocused = focusedMinutes.includes(i);
+                                return (
+                                  <button
+                                    key={i}
+                                    type="button"
+                                    onClick={() => {
+                                      if (minuteInteractionMode === 'exclude') {
+                                        setExcludedMinutes((prev) =>
+                                          prev.includes(i) ? prev.filter((m) => m !== i) : [...prev, i]
+                                        );
+                                      } else {
+                                        const nextMins = focusedMinutes.includes(i)
+                                          ? focusedMinutes.filter((m) => m !== i)
+                                          : [...focusedMinutes, i];
+                                        setFocusedMinutes(nextMins);
+                                        handleStepChange(serialStepSec);
+                                        if (autoGenerateOnClick) {
+                                          if (localScrubFile) generateBatchThumbnailsFromUrl(URL.createObjectURL(localScrubFile), nextMins);
+                                          else if (thumbModalEpisode?.video_key) generateBatchThumbnailsFromUrl(getR2Url(thumbModalEpisode.video_key, 'video'), nextMins);
+                                        }
+                                      }
+                                    }}
+                                    className={`${styles.studioPill} ${isFocused ? styles.studioPillActive : ''}`}
+                                    style={isExcluded ? { background: 'rgba(239, 68, 68, 0.25)', borderColor: '#ef4444', color: '#ef4444' } : {}}
+                                  >
+                                    {isExcluded ? `🚫 ${i}` : isFocused ? `🎯 ${i}` : i}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
 
-                            {excludedMinutes.length > 0 && (
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setExcludedMinutes([]);
-                                  if (autoGenerateOnClick) {
-                                    if (localScrubFile) {
-                                      generateBatchThumbnailsFromUrl(URL.createObjectURL(localScrubFile), focusedMinutes);
-                                    } else if (thumbModalEpisode?.video_key) {
-                                      generateBatchThumbnailsFromUrl(getR2Url(thumbModalEpisode.video_key, 'video'), focusedMinutes);
-                                    }
-                                  }
-                                }}
-                                style={{
-                                  background: 'rgba(239, 68, 68, 0.15)',
-                                  color: '#ef4444',
-                                  border: '1px solid rgba(239, 68, 68, 0.4)',
-                                  padding: '0.25rem 0.65rem',
-                                  borderRadius: '14px',
-                                  fontSize: '0.76rem',
-                                  fontWeight: 700,
-                                  cursor: 'pointer'
-                                }}
-                              >
-                                Clear Exclusions ({excludedMinutes.length})
-                              </button>
-                            )}
-
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.78rem', color: '#cbd5e1', cursor: 'pointer', fontWeight: 600 }}>
+                          {/* Quick Toggles */}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.76rem', color: '#94a3b8', cursor: 'pointer', fontWeight: 600 }}>
                               <input
                                 type="checkbox"
                                 checked={autoGenerateOnClick}
                                 onChange={(e) => setAutoGenerateOnClick(e.target.checked)}
-                                style={{ cursor: 'pointer', accentColor: 'var(--primary)', width: '14px', height: '14px' }}
+                                style={{ cursor: 'pointer', accentColor: 'var(--primary)' }}
                               />
-                              <span>Auto-Generate</span>
+                              <span>⚡ Auto-Generate</span>
                             </label>
-
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.78rem', color: '#cbd5e1', cursor: 'pointer', fontWeight: 600 }} title="Automatically detects and shifts past frames containing burned-in subtitle text">
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.76rem', color: '#94a3b8', cursor: 'pointer', fontWeight: 600 }} title="Skip frames with burned-in subtitles">
                               <input
                                 type="checkbox"
                                 checked={skipSubtitles}
                                 onChange={(e) => setSkipSubtitles(e.target.checked)}
-                                style={{ cursor: 'pointer', accentColor: 'var(--primary)', width: '14px', height: '14px' }}
+                                style={{ cursor: 'pointer', accentColor: 'var(--primary)' }}
                               />
                               <span>🛡️ Skip Subtitles</span>
                             </label>
-
                             {isGeneratingBatch ? (
                               <button
                                 type="button"
@@ -2939,40 +3761,19 @@ export default function AdminEpisodesPage() {
                                   cancelGenerationRef.current = true;
                                   setIsGeneratingBatch(false);
                                 }}
-                                style={{
-                                  background: '#ef4444',
-                                  color: 'white',
-                                  border: 'none',
-                                  padding: '0.3rem 0.85rem',
-                                  borderRadius: '16px',
-                                  fontSize: '0.78rem',
-                                  fontWeight: 700,
-                                  cursor: 'pointer'
-                                }}
+                                style={{ background: '#ef4444', color: 'white', border: 'none', padding: '0.3rem 0.85rem', borderRadius: '8px', fontSize: '0.74rem', fontWeight: 700, cursor: 'pointer' }}
                               >
-                                🛑 Stop Generation
+                                🛑 Stop
                               </button>
                             ) : (
                               !autoGenerateOnClick && (
                                 <button
                                   type="button"
                                   onClick={() => {
-                                    if (localScrubFile) {
-                                      generateBatchThumbnailsFromUrl(URL.createObjectURL(localScrubFile), focusedMinutes);
-                                    } else if (thumbModalEpisode?.video_key) {
-                                      generateBatchThumbnailsFromUrl(getR2Url(thumbModalEpisode.video_key, 'video'), focusedMinutes);
-                                    }
+                                    if (localScrubFile) generateBatchThumbnailsFromUrl(URL.createObjectURL(localScrubFile), focusedMinutes);
+                                    else if (thumbModalEpisode?.video_key) generateBatchThumbnailsFromUrl(getR2Url(thumbModalEpisode.video_key, 'video'), focusedMinutes);
                                   }}
-                                  style={{
-                                    background: 'var(--primary)',
-                                    color: 'white',
-                                    border: 'none',
-                                    padding: '0.3rem 0.85rem',
-                                    borderRadius: '16px',
-                                    fontSize: '0.78rem',
-                                    fontWeight: 700,
-                                    cursor: 'pointer'
-                                  }}
+                                  style={{ background: 'var(--primary)', color: 'white', border: 'none', padding: '0.35rem 0.95rem', borderRadius: '8px', fontSize: '0.76rem', fontWeight: 800, cursor: 'pointer' }}
                                 >
                                   ⚡ Generate Now
                                 </button>
@@ -2981,97 +3782,29 @@ export default function AdminEpisodesPage() {
                           </div>
                         </div>
 
-                        {/* Row 2: Minute Timeline & Option Configuration Dropdowns */}
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem', borderTop: '1px solid rgba(255, 255, 255, 0.08)', paddingTop: '0.6rem' }}>
-                          {/* Minute Pills Selector (Multi-Select Focus) */}
-                          <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap', alignItems: 'center' }}>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setFocusedMinutes([]);
-                                handleStepChange(serialStepSec);
-                                if (autoGenerateOnClick) {
-                                  if (localScrubFile) {
-                                    generateBatchThumbnailsFromUrl(URL.createObjectURL(localScrubFile), []);
-                                  } else if (thumbModalEpisode?.video_key) {
-                                    generateBatchThumbnailsFromUrl(getR2Url(thumbModalEpisode.video_key, 'video'), []);
-                                  }
-                                }
-                              }}
-                              style={{
-                                background: focusedMinutes.length === 0 ? 'var(--primary)' : 'rgba(255, 255, 255, 0.06)',
-                                color: focusedMinutes.length === 0 ? 'white' : '#94a3b8',
-                                border: '1px solid rgba(255, 255, 255, 0.12)',
-                                padding: '0.22rem 0.65rem',
-                                borderRadius: '12px',
-                                fontSize: '0.76rem',
-                                fontWeight: focusedMinutes.length === 0 ? 700 : 500,
-                                cursor: 'pointer'
-                              }}
-                            >
-                              Full Video
-                            </button>
-                            {Array.from({ length: Math.ceil(videoDuration / 60) || 12 }).map((_, i) => {
-                              const isExcluded = excludedMinutes.includes(i);
-                              const isFocused = focusedMinutes.includes(i);
-                              return (
-                                <button
-                                  key={i}
-                                  type="button"
-                                  onClick={() => {
-                                    if (minuteInteractionMode === 'exclude') {
-                                      setExcludedMinutes((prev) =>
-                                        prev.includes(i) ? prev.filter((m) => m !== i) : [...prev, i]
-                                      );
-                                    } else {
-                                      const nextMins = focusedMinutes.includes(i)
-                                        ? focusedMinutes.filter((m) => m !== i)
-                                        : [...focusedMinutes, i];
-                                      setFocusedMinutes(nextMins);
-                                      handleStepChange(serialStepSec);
-                                      if (autoGenerateOnClick) {
-                                        if (localScrubFile) {
-                                          generateBatchThumbnailsFromUrl(URL.createObjectURL(localScrubFile), nextMins);
-                                        } else if (thumbModalEpisode?.video_key) {
-                                          generateBatchThumbnailsFromUrl(getR2Url(thumbModalEpisode.video_key, 'video'), nextMins);
-                                        }
-                                      }
-                                    }
-                                  }}
-                                  style={{
-                                    background: isExcluded
-                                      ? 'rgba(239, 68, 68, 0.25)'
-                                      : isFocused
-                                      ? 'var(--primary)'
-                                      : 'rgba(255, 255, 255, 0.06)',
-                                    color: isExcluded
-                                      ? '#ef4444'
-                                      : isFocused
-                                      ? 'white'
-                                      : '#94a3b8',
-                                    border: isExcluded
-                                      ? '1px solid #ef4444'
-                                      : isFocused
-                                      ? '1px solid var(--primary)'
-                                      : '1px solid rgba(255, 255, 255, 0.12)',
-                                    padding: '0.22rem 0.55rem',
-                                    borderRadius: '12px',
-                                    fontSize: '0.76rem',
-                                    fontWeight: isFocused ? 700 : 500,
-                                    cursor: 'pointer'
-                                  }}
-                                >
-                                  {isExcluded ? `🚫 ${i}` : isFocused ? `🎯 ${i}` : i}
-                                </button>
-                              );
-                            })}
-                          </div>
+                        {/* Row 2: Range, Quantity, Step & Quality Settings */}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem', borderTop: '1px solid #1a1f2e', paddingTop: '0.7rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexWrap: 'wrap' }}>
+                            {/* Quantity Selector */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                              <span style={{ fontSize: '0.76rem', color: '#94a3b8', fontWeight: 700 }}>Options:</span>
+                              <select
+                                value={targetOptionCount}
+                                onChange={(e) => handleCountChange(parseInt(e.target.value))}
+                                className={styles.selectField}
+                                style={{ padding: '0.25rem 0.55rem', fontSize: '0.76rem', background: '#141724', width: 'auto' }}
+                              >
+                                <option value={12}>12 Previews</option>
+                                <option value={24}>24 Previews</option>
+                                <option value={36}>36 Previews</option>
+                                <option value={48}>48 Previews</option>
+                                <option value={60}>60 Previews</option>
+                              </select>
+                            </div>
 
-                          {/* Configuration Dropdowns: Range, Step, Preset */}
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
-                            {/* Timeframe Range Selector */}
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }} title="Choose segment range within focus minute or video">
-                              <span style={{ fontSize: '0.78rem', color: '#94a3b8', fontWeight: 700 }}>Range:</span>
+                            {/* Range Selector */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                              <span style={{ fontSize: '0.76rem', color: '#94a3b8', fontWeight: 700 }}>Range:</span>
                               <select
                                 value={timeframeWindow}
                                 onChange={(e) => {
@@ -3079,569 +3812,532 @@ export default function AdminEpisodesPage() {
                                   setTimeframeWindow(nextWindow);
                                   handleStepChange(serialStepSec);
                                   if (autoGenerateOnClick) {
-                                    if (localScrubFile) {
-                                      generateBatchThumbnailsFromUrl(URL.createObjectURL(localScrubFile), focusedMinutes, fpsPreset, serialStepSec, cpuMode, nextWindow);
-                                    } else if (thumbModalEpisode?.video_key) {
-                                      generateBatchThumbnailsFromUrl(getR2Url(thumbModalEpisode.video_key, 'video'), focusedMinutes, fpsPreset, serialStepSec, cpuMode, nextWindow);
-                                    }
+                                    if (localScrubFile) generateBatchThumbnailsFromUrl(URL.createObjectURL(localScrubFile), focusedMinutes, fpsPreset, serialStepSec, cpuMode, nextWindow);
+                                    else if (thumbModalEpisode?.video_key) generateBatchThumbnailsFromUrl(getR2Url(thumbModalEpisode.video_key, 'video'), focusedMinutes, fpsPreset, serialStepSec, cpuMode, nextWindow);
                                   }
                                 }}
-                                style={{
-                                  background: '#1e293b',
-                                  color: '#f8fafc',
-                                  border: '1px solid rgba(255, 255, 255, 0.15)',
-                                  padding: '0.3rem 0.65rem',
-                                  borderRadius: '12px',
-                                  fontSize: '0.78rem',
-                                  fontWeight: 700,
-                                  cursor: 'pointer',
-                                  outline: 'none'
-                                }}
+                                className={styles.selectField}
+                                style={{ padding: '0.25rem 0.55rem', fontSize: '0.76rem', background: '#141724', width: 'auto' }}
                               >
-                                <option value="full" style={{ background: '#1e293b', color: '#f8fafc' }}>
-                                  Full 100% ({focusedMinutes.length === 0 ? `00:00 - ${formatVideoTime(videoDuration || 1440)}` : `${focusedMinutes.length * 60}s`})
-                                </option>
-                                <option value="first25" style={{ background: '#1e293b', color: '#f8fafc' }}>First 25% Range</option>
-                                <option value="first50" style={{ background: '#1e293b', color: '#f8fafc' }}>First 50% Range</option>
-                                <option value="first75" style={{ background: '#1e293b', color: '#f8fafc' }}>First 75% Range</option>
-                                <option value="middle50" style={{ background: '#1e293b', color: '#f8fafc' }}>Middle 50% Range</option>
-                                <option value="last75" style={{ background: '#1e293b', color: '#f8fafc' }}>Last 75% Range</option>
-                                <option value="last50" style={{ background: '#1e293b', color: '#f8fafc' }}>Last 50% Range</option>
-                                <option value="last25" style={{ background: '#1e293b', color: '#f8fafc' }}>Last 25% Range</option>
+                                <option value="full">Full Video 100%</option>
+                                <option value="first25">First 25% (Intro)</option>
+                                <option value="first50">First 50%</option>
+                                <option value="middle50">Middle 50%</option>
+                                <option value="last50">Last 50%</option>
+                                <option value="last25">Last 25% (Outro)</option>
                               </select>
                             </div>
 
-                            {/* Serial Step Selector */}
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }} title="Set step time interval between sequential frames">
-                              <span style={{ fontSize: '0.78rem', color: '#94a3b8', fontWeight: 700 }}>Step:</span>
+                            {/* Step Interval Selector */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                              <span style={{ fontSize: '0.76rem', color: '#94a3b8', fontWeight: 700 }}>Interval:</span>
                               <select
                                 value={serialStepSec}
                                 onChange={(e) => {
                                   const nextStep = parseFloat(e.target.value);
                                   handleStepChange(nextStep);
                                   if (autoGenerateOnClick) {
-                                    if (localScrubFile) {
-                                      generateBatchThumbnailsFromUrl(URL.createObjectURL(localScrubFile), focusedMinutes, fpsPreset, nextStep);
-                                    } else if (thumbModalEpisode?.video_key) {
-                                      generateBatchThumbnailsFromUrl(getR2Url(thumbModalEpisode.video_key, 'video'), focusedMinutes, fpsPreset, nextStep);
-                                    }
+                                    if (localScrubFile) generateBatchThumbnailsFromUrl(URL.createObjectURL(localScrubFile), focusedMinutes, fpsPreset, nextStep);
+                                    else if (thumbModalEpisode?.video_key) generateBatchThumbnailsFromUrl(getR2Url(thumbModalEpisode.video_key, 'video'), focusedMinutes, fpsPreset, nextStep);
                                   }
                                 }}
-                                style={{
-                                  background: '#1e293b',
-                                  color: '#f8fafc',
-                                  border: '1px solid rgba(255, 255, 255, 0.15)',
-                                  padding: '0.3rem 0.65rem',
-                                  borderRadius: '12px',
-                                  fontSize: '0.78rem',
-                                  fontWeight: 700,
-                                  cursor: 'pointer',
-                                  outline: 'none'
-                                }}
+                                className={styles.selectField}
+                                style={{ padding: '0.25rem 0.55rem', fontSize: '0.76rem', background: '#141724', width: 'auto' }}
                               >
-                                <option value={1.0} style={{ background: '#1e293b', color: '#f8fafc' }}>1.0s Step</option>
-                                <option value={0.5} style={{ background: '#1e293b', color: '#f8fafc' }}>0.5s Half-sec</option>
-                                <option value={0.25} style={{ background: '#1e293b', color: '#f8fafc' }}>0.25s Quarter-sec</option>
-                                <option value={2.0} style={{ background: '#1e293b', color: '#f8fafc' }}>2.0s 2-sec</option>
-                                <option value={5.0} style={{ background: '#1e293b', color: '#f8fafc' }}>5.0s 5-sec</option>
-                                <option value={10.0} style={{ background: '#1e293b', color: '#f8fafc' }}>10.0s 10-sec</option>
-                                <option value={0} style={{ background: '#1e293b', color: '#f8fafc' }}>Auto Uniform</option>
+                                <option value={0.5}>0.5s Step</option>
+                                <option value={1.0}>1.0s Step</option>
+                                <option value={2.0}>2.0s Step</option>
+                                <option value={5.0}>5.0s Step</option>
+                                <option value={10.0}>10.0s Step</option>
+                                <option value={0}>Auto Uniform</option>
                               </select>
                             </div>
 
-                            {/* Preset Selector */}
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }} title="Choose FPS Frame Rate Alignment">
-                              <span style={{ fontSize: '0.78rem', color: '#94a3b8', fontWeight: 700 }}>Preset:</span>
+                            <span style={{ color: '#2e3752' }}>|</span>
+
+                            {/* Resolution Selector */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                              <span style={{ fontSize: '0.76rem', color: '#c4b5fd', fontWeight: 800 }}>📐 Resolution:</span>
                               <select
-                                value={fpsPreset}
+                                value={thumbResolution}
                                 onChange={(e) => {
-                                  const nextPreset = e.target.value as 'smart' | '24fps' | '30fps' | '60fps';
-                                  setFpsPreset(nextPreset);
+                                  const nextRes = e.target.value as any;
+                                  setThumbResolution(nextRes);
                                   if (autoGenerateOnClick) {
-                                    if (localScrubFile) {
-                                      generateBatchThumbnailsFromUrl(URL.createObjectURL(localScrubFile), focusedMinutes, nextPreset);
-                                    } else if (thumbModalEpisode?.video_key) {
-                                      generateBatchThumbnailsFromUrl(getR2Url(thumbModalEpisode.video_key, 'video'), focusedMinutes, nextPreset);
-                                    }
+                                    if (localScrubFile) generateBatchThumbnailsFromUrl(URL.createObjectURL(localScrubFile), focusedMinutes);
+                                    else if (thumbModalEpisode?.video_key) generateBatchThumbnailsFromUrl(getR2Url(thumbModalEpisode.video_key, 'video'), focusedMinutes);
                                   }
                                 }}
-                                style={{
-                                  background: '#1e293b',
-                                  color: '#f8fafc',
-                                  border: '1px solid rgba(255, 255, 255, 0.15)',
-                                  padding: '0.3rem 0.65rem',
-                                  borderRadius: '12px',
-                                  fontSize: '0.78rem',
-                                  fontWeight: 700,
-                                  cursor: 'pointer',
-                                  outline: 'none'
-                                }}
+                                className={styles.selectField}
+                                style={{ padding: '0.25rem 0.55rem', fontSize: '0.76rem', background: '#181b2c', borderColor: '#3b4363', color: '#f8fafc', width: 'auto', fontWeight: 700 }}
                               >
-                                <option value="24fps" style={{ background: '#1e293b', color: '#f8fafc' }}>🎯 Auto Default</option>
-                                <option value="30fps" style={{ background: '#1e293b', color: '#f8fafc' }}>🎬 30 FPS Standard</option>
-                                <option value="60fps" style={{ background: '#1e293b', color: '#f8fafc' }}>🚀 60 FPS High Motion</option>
-                                <option value="smart" style={{ background: '#1e293b', color: '#f8fafc' }}>⚡ Fast Preview</option>
+                                <option value="native">Native Video (Max Quality)</option>
+                                <option value="1080p">1080p Full HD</option>
+                                <option value="720p">720p HD</option>
+                                <option value="4k">4K Ultra HD</option>
+                              </select>
+                            </div>
+
+                            {/* Quality Mode Selector */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                              <span style={{ fontSize: '0.76rem', color: '#34d399', fontWeight: 800 }}>💎 Quality:</span>
+                              <select
+                                value={thumbQualityMode}
+                                onChange={(e) => {
+                                  const nextQ = e.target.value as any;
+                                  setThumbQualityMode(nextQ);
+                                  if (autoGenerateOnClick) {
+                                    if (localScrubFile) generateBatchThumbnailsFromUrl(URL.createObjectURL(localScrubFile), focusedMinutes);
+                                    else if (thumbModalEpisode?.video_key) generateBatchThumbnailsFromUrl(getR2Url(thumbModalEpisode.video_key, 'video'), focusedMinutes);
+                                  }
+                                }}
+                                className={styles.selectField}
+                                style={{ padding: '0.25rem 0.55rem', fontSize: '0.76rem', background: '#181b2c', borderColor: '#3b4363', color: '#f8fafc', width: 'auto', fontWeight: 700 }}
+                              >
+                                <option value="ultra">Ultra HD (98% Crisp)</option>
+                                <option value="max">100% Maximum Quality</option>
+                                <option value="high">High (92% Quality)</option>
+                                <option value="standard">Standard Web (85%)</option>
+                              </select>
+                            </div>
+
+                            {/* Format Selector */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                              <span style={{ fontSize: '0.76rem', color: '#94a3b8', fontWeight: 700 }}>Format:</span>
+                              <select
+                                value={thumbImageFormat}
+                                onChange={(e) => {
+                                  const nextFmt = e.target.value as any;
+                                  setThumbImageFormat(nextFmt);
+                                  if (autoGenerateOnClick) {
+                                    if (localScrubFile) generateBatchThumbnailsFromUrl(URL.createObjectURL(localScrubFile), focusedMinutes);
+                                    else if (thumbModalEpisode?.video_key) generateBatchThumbnailsFromUrl(getR2Url(thumbModalEpisode.video_key, 'video'), focusedMinutes);
+                                  }
+                                }}
+                                className={styles.selectField}
+                                style={{ padding: '0.25rem 0.55rem', fontSize: '0.76rem', background: '#141724', width: 'auto' }}
+                              >
+                                <option value="image/jpeg">JPEG (.jpg)</option>
+                                <option value="image/webp">WebP (.webp)</option>
+                                <option value="image/png">PNG (.png Lossless)</option>
                               </select>
                             </div>
                           </div>
+
+                          <div style={{ fontSize: '0.74rem', color: '#94a3b8' }}>
+                            <span>Total Extracted: <b style={{ color: '#f8fafc' }}>{batchOptions.length}</b> candidates</span>
+                          </div>
                         </div>
                       </div>
 
-                    {/* Live Progress Bar during Candidate Extraction */}
-                    {isGeneratingBatch && genProgress && (
-                      <div style={{
-                        background: 'rgba(15, 23, 42, 0.9)',
-                        border: '1px solid rgba(139, 92, 246, 0.4)',
-                        borderRadius: '12px',
-                        padding: '0.65rem 1rem',
-                        marginBottom: '0.85rem',
-                        boxShadow: '0 4px 14px rgba(0, 0, 0, 0.35)'
-                      }}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.45rem', fontSize: '0.78rem', fontWeight: 700, color: '#f8fafc' }}>
-                          <span style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-                            <span style={{ animation: 'spin 1s linear infinite' }}>⚡</span> Extracting Candidates...
-                          </span>
-                          <span style={{ color: 'var(--primary-light)', fontFamily: 'monospace', fontSize: '0.8rem' }}>
-                            {genProgress.current} / {genProgress.total} Images ({Math.round((genProgress.current / Math.max(1, genProgress.total)) * 100)}%)
-                          </span>
+                      {/* Live Extraction Progress */}
+                      {isGeneratingBatch && genProgress && (
+                        <div style={{ background: '#121522', border: '1px solid #23283b', borderRadius: '12px', padding: '0.65rem 1rem' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem', fontSize: '0.76rem', fontWeight: 700, color: '#f8fafc' }}>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                              <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: 'var(--primary)' }} />
+                              Extracting Candidate Frames...
+                            </span>
+                            <span style={{ color: '#c4b5fd', fontFamily: 'monospace' }}>
+                              {genProgress.current} / {genProgress.total} ({Math.round((genProgress.current / Math.max(1, genProgress.total)) * 100)}%)
+                            </span>
+                          </div>
+                          <div style={{ width: '100%', height: '6px', background: '#1e2438', borderRadius: '3px', overflow: 'hidden' }}>
+                            <div style={{ width: `${Math.round((genProgress.current / Math.max(1, genProgress.total)) * 100)}%`, height: '100%', background: 'linear-gradient(90deg, #7c3aed 0%, #a78bfa 100%)', transition: 'width 0.15s ease' }} />
+                          </div>
                         </div>
-                        <div style={{ width: '100%', height: '8px', background: 'rgba(255, 255, 255, 0.1)', borderRadius: '4px', overflow: 'hidden' }}>
-                          <div style={{
-                            width: `${Math.round((genProgress.current / Math.max(1, genProgress.total)) * 100)}%`,
-                            height: '100%',
-                            background: 'linear-gradient(90deg, #6366f1, #8b5cf6, #ec4899)',
-                            borderRadius: '4px',
-                            transition: 'width 0.15s ease'
-                          }} />
-                        </div>
-                      </div>
-                    )}
+                      )}
 
-                    {batchOptions.length > 0 || isGeneratingBatch ? (
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))', gap: '0.6rem' }}>
-                        {/* Live Extracted Candidates */}
-                        {batchOptions.map((opt, idx) => (
-                          <div
-                            key={idx}
-                            className={styles.studioThumbCard}
-                          >
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={opt.dataUrl} alt={`Option ${idx}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                            
-                            <div style={{
-                              position: 'absolute',
-                              bottom: '6px',
-                              left: '6px',
-                              background: 'rgba(15, 23, 42, 0.75)',
-                              backdropFilter: 'blur(4px)',
-                              padding: '0.2rem 0.4rem',
-                              borderRadius: '4px',
-                              fontSize: '0.62rem',
-                              color: 'var(--foreground)',
-                              fontWeight: 700,
-                              border: '1px solid rgba(255, 255, 255, 0.08)'
-                            }}>
-                              {opt.sizeKb} KB
-                            </div>
+                      {/* Candidate Grid */}
+                      {batchOptions.length > 0 || isGeneratingBatch ? (
+                        <div className={styles.studioGrid}>
+                          {batchOptions.map((opt, idx) => (
+                            <div key={idx} className={styles.studioThumbCard}>
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img src={opt.dataUrl} alt={`Option ${idx}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
 
-                            {opt.time !== undefined && (
-                              <div style={{
-                                position: 'absolute',
-                                top: '6px',
-                                right: '6px',
-                                background: 'rgba(15, 23, 42, 0.75)',
-                                backdropFilter: 'blur(4px)',
-                                padding: '0.15rem 0.35rem',
-                                borderRadius: '4px',
-                                fontSize: '0.58rem',
-                                color: 'white',
-                                fontWeight: 700,
-                                border: '1px solid rgba(255, 255, 255, 0.08)'
-                              }}>
-                                ⏱️ {formatVideoTime(opt.time)}
+                              <div style={{ position: 'absolute', bottom: '6px', left: '6px', background: '#0f121d', padding: '0.15rem 0.4rem', borderRadius: '4px', fontSize: '0.62rem', color: '#94a3b8', fontWeight: 700, border: '1px solid #23283b' }}>
+                                {opt.sizeKb} KB
                               </div>
-                            )}
 
-                            <div className={styles.studioThumbOverlay}>
-                              <button
-                                onClick={() => saveThumbnailOptionToR2(opt.dataUrl, true)}
-                                disabled={savingThumbStudio}
-                                style={{
-                                  background: 'var(--primary)',
-                                  color: 'white',
-                                  border: 'none',
-                                  padding: '0.35rem 0.7rem',
-                                  borderRadius: '4px',
-                                  fontSize: '0.68rem',
-                                  fontWeight: 700,
-                                  cursor: 'pointer',
-                                  width: '85%',
-                                  textAlign: 'center'
-                                }}
-                              >
-                                Set Active
-                              </button>
-                              <button
-                                onClick={() => saveThumbnailOptionToR2(opt.dataUrl, false)}
-                                disabled={savingThumbStudio}
-                                style={{
-                                  background: 'rgba(255,255,255,0.1)',
-                                  color: 'white',
-                                  border: '1px solid rgba(255,255,255,0.2)',
-                                  padding: '0.3rem 0.6rem',
-                                  borderRadius: '4px',
-                                  fontSize: '0.65rem',
-                                  fontWeight: 700,
-                                  cursor: 'pointer',
-                                  width: '85%',
-                                  textAlign: 'center'
-                                }}
-                              >
-                                Save Option
-                              </button>
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setZoomImageUrl(opt.dataUrl);
-                                }}
-                                style={{
-                                  background: 'rgba(15, 23, 42, 0.85)',
-                                  color: 'white',
-                                  border: '1px solid rgba(255,255,255,0.25)',
-                                  padding: '0.3rem 0.6rem',
-                                  borderRadius: '4px',
-                                  fontSize: '0.65rem',
-                                  fontWeight: 700,
-                                  cursor: 'pointer',
-                                  width: '85%',
-                                  textAlign: 'center',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  gap: '0.3rem'
-                                }}
-                              >
-                                <Maximize2 size={11} />
-                                <span>Zoom Preview</span>
-                              </button>
+                              {opt.time !== undefined && (
+                                <div style={{ position: 'absolute', top: '6px', right: '6px', background: '#0f121d', padding: '0.15rem 0.4rem', borderRadius: '4px', fontSize: '0.62rem', color: '#f8fafc', fontWeight: 700, border: '1px solid #23283b', fontFamily: 'monospace' }}>
+                                  ⏱️ {formatVideoTime(opt.time)}
+                                </div>
+                              )}
+
+                              {/* Hover Action Overlay */}
+                              <div className={styles.studioThumbOverlay}>
+                                <button
+                                  type="button"
+                                  onClick={() => saveThumbnailOptionToR2(opt.dataUrl, true)}
+                                  disabled={savingThumbStudio}
+                                  style={{ background: 'var(--primary)', color: 'white', border: 'none', padding: '0.35rem 0.75rem', borderRadius: '6px', fontSize: '0.72rem', fontWeight: 800, cursor: 'pointer', width: '90%', textAlign: 'center' }}
+                                >
+                                  ★ Set Active
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => saveThumbnailOptionToR2(opt.dataUrl, false)}
+                                  disabled={savingThumbStudio}
+                                  style={{ background: '#1e2438', color: '#f8fafc', border: '1px solid #2e3752', padding: '0.3rem 0.65rem', borderRadius: '6px', fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer', width: '90%', textAlign: 'center' }}
+                                >
+                                  💾 Save Option
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setZoomImageUrl(opt.dataUrl);
+                                  }}
+                                  style={{ background: '#0f121d', color: '#94a3b8', border: '1px solid #23283b', padding: '0.25rem 0.5rem', borderRadius: '6px', fontSize: '0.68rem', fontWeight: 700, cursor: 'pointer', width: '90%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem' }}
+                                >
+                                  <Maximize2 size={11} />
+                                  <span>Zoom HD</span>
+                                </button>
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          ))}
 
-                        {/* Remaining Placeholder Loaders */}
-                        {isGeneratingBatch && Array.from({ length: Math.max(0, targetOptionCount - batchOptions.length) }).map((_, sIdx) => (
-                          <div
-                            key={`skel-${sIdx}`}
-                            style={{
-                              aspectRatio: '16/9',
-                              borderRadius: '8px',
-                              background: 'rgba(255, 255, 255, 0.03)',
-                              border: '1px dashed rgba(255, 255, 255, 0.1)',
-                              position: 'relative',
-                              overflow: 'hidden',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center'
-                            }}
-                          >
-                            <div className={styles.loadingSpinner} style={{ width: '18px', height: '18px', border: '2px solid rgba(var(--primary-rgb), 0.2)', borderTopColor: 'var(--primary)' }} />
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div style={{ padding: '2rem 1rem', textAlign: 'center', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px dashed var(--border)' }}>
-                        <p style={{ color: 'var(--foreground-muted)', fontSize: '0.85rem' }}>
-                          No auto-generated previews loaded yet.
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {thumbActiveTab === 'scrub' && (
-                  <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'flex-start' }}>
-                    {/* Player & Controls Panel */}
-                    <div style={{ flex: '1 1 480px', display: 'flex', flexDirection: 'column', gap: '0.6rem', background: 'rgba(15, 23, 42, 0.75)', padding: '0.75rem', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.1)', maxHeight: 'calc(85vh - 120px)', overflowY: 'auto' }}>
-                      
-                      {/* Video Player Container */}
-                      <div style={{ position: 'relative', width: '100%', maxHeight: '280px', aspectRatio: '16/9', borderRadius: '8px', overflow: 'hidden', background: '#000', border: '1px solid var(--border)', margin: '0 auto' }}>
-                        <video
-                          ref={scrubVideoRef}
-                          crossOrigin="anonymous"
-                          src={scrubVideoSrc}
-                          controls
-                          playsInline
-                          onTimeUpdate={(e) => setScrubCurrentTime((e.target as HTMLVideoElement).currentTime)}
-                          onLoadedMetadata={(e) => setVideoDuration((e.target as HTMLVideoElement).duration)}
-                          style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                        />
-                        {/* Wheel Hint Badge */}
-                        <div style={{ position: 'absolute', top: '6px', left: '6px', background: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(4px)', padding: '0.15rem 0.45rem', borderRadius: '4px', fontSize: '0.62rem', color: '#94a3b8', fontWeight: 600, border: '1px solid rgba(255,255,255,0.1)', pointerEvents: 'none' }}>
-                          🖱️ Scroll wheel to scrub
-                        </div>
-                        {/* Timestamp Badge */}
-                        <div style={{ position: 'absolute', top: '6px', right: '6px', background: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(4px)', padding: '0.15rem 0.5rem', borderRadius: '4px', fontSize: '0.72rem', color: '#f8fafc', fontWeight: 700, fontFamily: 'monospace', border: '1px solid rgba(255,255,255,0.15)', pointerEvents: 'none' }}>
-                          ⏱️ {formatVideoTime(scrubCurrentTime)}
-                        </div>
-                      </div>
-
-                      {/* Stepper Controls & Intensity Selector Toolbar */}
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem', background: '#0f172a', padding: '0.45rem 0.75rem', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
-                        
-                        {/* Intensity Selector */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                          <span style={{ fontSize: '0.74rem', color: '#94a3b8', fontWeight: 700 }}>Intensity:</span>
-                          <select
-                            value={scrubIntensity}
-                            onChange={(e) => setScrubIntensity(e.target.value as any)}
-                            style={{
-                              background: '#1e293b',
-                              color: '#f8fafc',
-                              border: '1px solid rgba(255, 255, 255, 0.15)',
-                              padding: '0.22rem 0.5rem',
-                              borderRadius: '8px',
-                              fontSize: '0.74rem',
-                              fontWeight: 700,
-                              cursor: 'pointer',
-                              outline: 'none'
-                            }}
-                          >
-                            <option value="frame" style={{ background: '#1e293b', color: '#818cf8', fontWeight: 800 }}>🎯 Micro Precision (0.04s / 1 Frame)</option>
-                            <option value="fine" style={{ background: '#1e293b', color: '#f8fafc' }}>⏱️ Fine Step (0.2s)</option>
-                            <option value="jog" style={{ background: '#1e293b', color: '#f8fafc' }}>⚡ Jog Step (1.0s)</option>
-                            <option value="turbo" style={{ background: '#1e293b', color: '#f8fafc' }}>🚀 Turbo Shuttle (5.0s)</option>
-                          </select>
-                        </div>
-
-                        {/* Precision Stepper Buttons */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', flexWrap: 'wrap' }}>
-                          <button
-                            type="button"
-                            onClick={() => stepScrubVideo(-5.0)}
-                            title="Jump back 5.0 seconds"
-                            style={{ background: 'rgba(255,255,255,0.06)', color: 'white', border: '1px solid rgba(255,255,255,0.1)', padding: '0.22rem 0.45rem', borderRadius: '6px', fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer' }}
-                          >
-                            -5s
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => stepScrubVideo(-1.0)}
-                            title="Jump back 1.0 second"
-                            style={{ background: 'rgba(255,255,255,0.06)', color: 'white', border: '1px solid rgba(255,255,255,0.1)', padding: '0.22rem 0.45rem', borderRadius: '6px', fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer' }}
-                          >
-                            -1s
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => stepScrubVideo(-getIntensityStepSec())}
-                            title={`Jump back ${getIntensityStepSec() === 0.0416 ? '1 Frame (0.04s)' : `${getIntensityStepSec()}s`}`}
-                            style={{ background: 'var(--primary)', color: 'white', border: 'none', padding: '0.22rem 0.55rem', borderRadius: '6px', fontSize: '0.7rem', fontWeight: 800, cursor: 'pointer' }}
-                          >
-                            🏎️ -{scrubIntensity === 'frame' ? '1 Frame' : `${getIntensityStepSec()}s`}
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => stepScrubVideo(getIntensityStepSec())}
-                            title={`Jump forward ${getIntensityStepSec() === 0.0416 ? '1 Frame (0.04s)' : `${getIntensityStepSec()}s`}`}
-                            style={{ background: 'var(--primary)', color: 'white', border: 'none', padding: '0.22rem 0.55rem', borderRadius: '6px', fontSize: '0.7rem', fontWeight: 800, cursor: 'pointer' }}
-                          >
-                            🏎️ +{scrubIntensity === 'frame' ? '1 Frame' : `${getIntensityStepSec()}s`}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => stepScrubVideo(1.0)}
-                            title="Jump forward 1.0 second"
-                            style={{ background: 'rgba(255,255,255,0.06)', color: 'white', border: '1px solid rgba(255,255,255,0.1)', padding: '0.22rem 0.45rem', borderRadius: '6px', fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer' }}
-                          >
-                            +1s
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => stepScrubVideo(5.0)}
-                            title="Jump forward 5.0 seconds"
-                            style={{ background: 'rgba(255,255,255,0.06)', color: 'white', border: '1px solid rgba(255,255,255,0.1)', padding: '0.22rem 0.45rem', borderRadius: '6px', fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer' }}
-                          >
-                            +5s
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* 1-Click Capture Button */}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const video = scrubVideoRef.current;
-                          if (video) {
-                            const canvas = document.createElement('canvas');
-                            const width = video.videoWidth || 1280;
-                            const height = video.videoHeight || 720;
-                            canvas.width = width;
-                            canvas.height = height;
-                            const ctx = canvas.getContext('2d');
-                            if (ctx) {
-                              try {
-                                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                                const dataUrl = canvas.toDataURL('image/jpeg', 0.94);
-                                const sizeInBytes = Math.round((dataUrl.split(',')[1].length * 3) / 4);
-                                const sizeKb = Math.round((sizeInBytes / 1024) * 10) / 10;
-                                setCapturedFrameUrl(dataUrl);
-                                setCapturedFrameSizeKb(sizeKb);
-                                setThumbStudioError(null);
-                              } catch (e) {
-                                setThumbStudioError('Failed to capture frame due to browser CORS configuration.');
-                              }
-                            }
-                          }
-                        }}
-                        style={{
-                          background: 'linear-gradient(90deg, var(--primary), #8b5cf6)',
-                          color: 'white',
-                          border: 'none',
-                          padding: '0.5rem 0.9rem',
-                          borderRadius: '8px',
-                          fontSize: '0.78rem',
-                          fontWeight: 800,
-                          cursor: 'pointer',
-                          textAlign: 'center',
-                          boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)'
-                        }}
-                      >
-                        📸 Capture Current Player Frame (HD)
-                      </button>
-                    </div>
-
-                    {/* Captured Frame Preview Panel */}
-                    <div style={{ flex: '1 1 240px', display: 'flex', flexDirection: 'column', gap: '0.6rem', background: 'rgba(15, 23, 42, 0.75)', padding: '0.85rem', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
-                      <label style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', color: '#f8fafc' }}>Captured Frame Preview</label>
-                      {capturedFrameUrl ? (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-                          <div style={{ position: 'relative', aspectRatio: '16/9', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--border)', background: '#0f172a' }}>
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={capturedFrameUrl} alt="Captured preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                            <button
-                              type="button"
-                              onClick={() => setZoomImageUrl(capturedFrameUrl)}
-                              style={{
-                                position: 'absolute',
-                                bottom: '8px',
-                                right: '8px',
-                                background: 'rgba(15, 23, 42, 0.85)',
-                                border: '1px solid rgba(255,255,255,0.25)',
-                                borderRadius: '4px',
-                                padding: '0.2rem 0.5rem',
-                                fontSize: '0.65rem',
-                                color: 'white',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.25rem',
-                                fontWeight: 700
-                              }}
-                            >
-                              <Maximize2 size={11} />
-                              <span>Zoom</span>
-                            </button>
-                          </div>
-                          <div style={{ fontSize: '0.72rem', color: '#94a3b8', display: 'flex', justifyContent: 'space-between', padding: '0 0.2rem', fontWeight: 600 }}>
-                            <span>Resolution: Native HD</span>
-                            <span style={{ fontWeight: 700, color: '#f8fafc' }}>Size: {capturedFrameSizeKb} KB</span>
-                          </div>
-                          <div style={{ display: 'flex', gap: '0.4rem' }}>
-                            <button
-                              onClick={() => saveThumbnailOptionToR2(capturedFrameUrl, true)}
-                              disabled={savingThumbStudio}
-                              style={{
-                                flex: 1,
-                                background: 'var(--primary)',
-                                color: 'white',
-                                border: 'none',
-                                padding: '0.5rem',
-                                borderRadius: '6px',
-                                fontSize: '0.75rem',
-                                fontWeight: 700,
-                                cursor: 'pointer'
-                              }}
-                            >
-                              Set Active
-                            </button>
-                            <button
-                              onClick={() => saveThumbnailOptionToR2(capturedFrameUrl, false)}
-                              disabled={savingThumbStudio}
-                              style={{
-                                flex: 1,
-                                background: 'rgba(255,255,255,0.08)',
-                                color: 'var(--foreground)',
-                                border: '1px solid rgba(255,255,255,0.2)',
-                                padding: '0.5rem',
-                                borderRadius: '6px',
-                                fontSize: '0.75rem',
-                                fontWeight: 700,
-                                cursor: 'pointer'
-                              }}
-                            >
-                              Save Option
-                            </button>
-                          </div>
+                          {isGeneratingBatch && Array.from({ length: Math.max(0, targetOptionCount - batchOptions.length) }).map((_, sIdx) => (
+                            <div key={`skel-${sIdx}`} className={styles.studioThumbCard} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#121522', border: '1px dashed #23283b' }}>
+                              <div className={styles.loadingSpinner} style={{ width: '18px', height: '18px', border: '2px solid rgba(124, 58, 237, 0.2)', borderTopColor: 'var(--primary)' }} />
+                            </div>
+                          ))}
                         </div>
                       ) : (
-                        <div style={{ aspectRatio: '16/9', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.15)', borderRadius: '8px', fontSize: '0.75rem', color: '#94a3b8', textAlign: 'center', padding: '1rem' }}>
-                          Scrub the player and click the capture button to generate a custom frame!
+                        <div style={{ padding: '3rem 1rem', textAlign: 'center', background: '#121522', borderRadius: '12px', border: '1px dashed #23283b' }}>
+                          <p style={{ color: '#94a3b8', fontSize: '0.82rem', margin: 0 }}>
+                            Click "Generate Now" or choose a timeline minute to extract candidates.
+                          </p>
                         </div>
                       )}
                     </div>
-                  </div>
-                )}
+                  )}
 
-
-                {/* Offline Fallback Dropzone (Hidden when localScrubFile is set) */}
-                {!localScrubFile && (
-                  <div style={{ marginTop: '1.2rem', padding: '0.75rem 1rem', background: 'var(--surface-hover)', borderRadius: '8px', border: '1px solid var(--border)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <span style={{ fontSize: '1rem' }}>🛡️</span>
-                        <div>
-                          <span style={{ fontSize: '0.75rem', fontWeight: 700, display: 'block' }}>Offline Frame Capture Helper (CORS Fallback)</span>
-                          <span style={{ fontSize: '0.68rem', color: 'var(--foreground-secondary)' }}>If auto-extraction fails due to security policies, select the local video file. It never uploads.</span>
+                  {/* TAB 2: PRECISE PLAYER SCRUBBING & SNAPPER */}
+                  {thumbActiveTab === 'scrub' && (
+                    <div style={{ display: 'flex', gap: '1.25rem', flexWrap: 'wrap', alignItems: 'flex-start' }}>
+                      {/* Left Player Panel */}
+                      <div style={{ flex: '1 1 500px', display: 'flex', flexDirection: 'column', gap: '0.75rem', background: '#121522', padding: '1rem', borderRadius: '16px', border: '1px solid #23283b' }}>
+                        {/* Video Player Box */}
+                        <div style={{ position: 'relative', width: '100%', aspectRatio: '16/9', borderRadius: '12px', overflow: 'hidden', background: '#000', border: '1px solid #23283b' }}>
+                          <video
+                            ref={scrubVideoRef}
+                            crossOrigin="anonymous"
+                            src={scrubVideoSrc}
+                            controls
+                            playsInline
+                            onTimeUpdate={(e) => setScrubCurrentTime((e.target as HTMLVideoElement).currentTime)}
+                            onLoadedMetadata={(e) => setVideoDuration((e.target as HTMLVideoElement).duration)}
+                            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                          />
+                          <div style={{ position: 'absolute', top: '8px', left: '8px', background: '#0d0f17', padding: '0.2rem 0.5rem', borderRadius: '6px', fontSize: '0.68rem', color: '#94a3b8', fontWeight: 600, border: '1px solid #23283b', pointerEvents: 'none' }}>
+                            🖱️ Wheel to scrub frames
+                          </div>
+                          <div style={{ position: 'absolute', top: '8px', right: '8px', background: '#0d0f17', padding: '0.2rem 0.6rem', borderRadius: '6px', fontSize: '0.74rem', color: '#f8fafc', fontWeight: 800, fontFamily: 'monospace', border: '1px solid #23283b', pointerEvents: 'none' }}>
+                            ⏱️ {formatVideoTime(scrubCurrentTime)}
+                          </div>
                         </div>
+
+                        {/* Stepper Toolbar */}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem', background: '#0f121d', padding: '0.5rem 0.75rem', borderRadius: '10px', border: '1px solid #23283b' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                            <span style={{ fontSize: '0.74rem', color: '#94a3b8', fontWeight: 700 }}>Intensity:</span>
+                            <select
+                              value={scrubIntensity}
+                              onChange={(e) => setScrubIntensity(e.target.value as any)}
+                              className={styles.selectField}
+                              style={{ padding: '0.2rem 0.5rem', fontSize: '0.72rem', background: '#141724', width: 'auto' }}
+                            >
+                              <option value="frame">🎯 1 Frame (0.04s)</option>
+                              <option value="fine">⏱️ Fine (0.2s)</option>
+                              <option value="jog">⚡ Jog (1.0s)</option>
+                              <option value="turbo">🚀 Turbo (5.0s)</option>
+                            </select>
+                          </div>
+
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', flexWrap: 'wrap' }}>
+                            <button
+                              type="button"
+                              onClick={() => stepScrubVideo(-5.0)}
+                              className={styles.actionPillBtn}
+                              style={{ padding: '0.2rem 0.5rem', fontSize: '0.72rem', background: '#141724' }}
+                            >
+                              -5s
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => stepScrubVideo(-1.0)}
+                              className={styles.actionPillBtn}
+                              style={{ padding: '0.2rem 0.5rem', fontSize: '0.72rem', background: '#141724' }}
+                            >
+                              -1s
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => stepScrubVideo(-getIntensityStepSec())}
+                              className={styles.actionPillBtn}
+                              style={{ padding: '0.2rem 0.6rem', fontSize: '0.72rem', background: 'var(--primary)', color: 'white', border: 'none', fontWeight: 800 }}
+                            >
+                              -{scrubIntensity === 'frame' ? '1 Frame' : `${getIntensityStepSec()}s`}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => stepScrubVideo(getIntensityStepSec())}
+                              className={styles.actionPillBtn}
+                              style={{ padding: '0.2rem 0.6rem', fontSize: '0.72rem', background: 'var(--primary)', color: 'white', border: 'none', fontWeight: 800 }}
+                            >
+                              +{scrubIntensity === 'frame' ? '1 Frame' : `${getIntensityStepSec()}s`}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => stepScrubVideo(1.0)}
+                              className={styles.actionPillBtn}
+                              style={{ padding: '0.2rem 0.5rem', fontSize: '0.72rem', background: '#141724' }}
+                            >
+                              +1s
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => stepScrubVideo(5.0)}
+                              className={styles.actionPillBtn}
+                              style={{ padding: '0.2rem 0.5rem', fontSize: '0.72rem', background: '#141724' }}
+                            >
+                              +5s
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Snapshot Capture Button */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const video = scrubVideoRef.current;
+                            if (video) {
+                              const { width: targetW, height: targetH } = getTargetDimensions(video, thumbResolution);
+                              const canvas = document.createElement('canvas');
+                              canvas.width = targetW;
+                              canvas.height = targetH;
+                              const ctx = canvas.getContext('2d', { alpha: false });
+                              if (ctx) {
+                                try {
+                                  ctx.imageSmoothingEnabled = true;
+                                  ctx.imageSmoothingQuality = 'high';
+                                  ctx.drawImage(video, 0, 0, targetW, targetH);
+                                  const qualityFloat = getQualityFloat(thumbQualityMode);
+                                  const dataUrl = thumbImageFormat === 'image/png'
+                                    ? canvas.toDataURL('image/png')
+                                    : canvas.toDataURL(thumbImageFormat, qualityFloat);
+                                  const sizeInBytes = Math.round((dataUrl.split(',')[1].length * 3) / 4);
+                                  const sizeKb = Math.round((sizeInBytes / 1024) * 10) / 10;
+                                  setCapturedFrameUrl(dataUrl);
+                                  setCapturedFrameSizeKb(sizeKb);
+                                  setThumbStudioError(null);
+                                } catch (e) {
+                                  setThumbStudioError('Failed to capture frame due to browser CORS security policies. Please choose the local video file for offline GPU capture.');
+                                }
+                              }
+                            }
+                          }}
+                          style={{
+                            background: 'linear-gradient(135deg, #7c3aed 0%, #6366f1 100%)',
+                            color: 'white',
+                            border: 'none',
+                            padding: '0.65rem 1.25rem',
+                            borderRadius: '10px',
+                            fontSize: '0.82rem',
+                            fontWeight: 800,
+                            cursor: 'pointer',
+                            textAlign: 'center',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '0.5rem',
+                            boxShadow: '0 4px 14px rgba(124, 58, 237, 0.35)'
+                          }}
+                        >
+                          <Camera size={16} />
+                          <span>📸 Capture HD Frame ({thumbResolution.toUpperCase()})</span>
+                        </button>
                       </div>
-                      <input
-                        type="file"
-                        accept="video/*"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) handleLocalFileSelectForScrub(file);
-                        }}
-                        style={{ fontSize: '0.7rem' }}
-                      />
+
+                      {/* Right Captured Frame Panel */}
+                      <div style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column', gap: '0.85rem', background: '#121522', padding: '1rem', borderRadius: '16px', border: '1px solid #23283b' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <label style={{ fontSize: '0.78rem', fontWeight: 800, textTransform: 'uppercase', color: '#f8fafc', letterSpacing: '0.04em' }}>
+                            Captured Frame & Filters
+                          </label>
+                          {(imageBrightness !== 100 || imageContrast !== 100 || imageSaturation !== 100) && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setImageBrightness(100);
+                                setImageContrast(100);
+                                setImageSaturation(100);
+                              }}
+                              style={{ background: 'transparent', border: 'none', color: '#c4b5fd', fontSize: '0.72rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
+                            >
+                              <RotateCcw size={11} />
+                              <span>Reset Filters</span>
+                            </button>
+                          )}
+                        </div>
+
+                        {capturedFrameUrl ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                            <div style={{ position: 'relative', aspectRatio: '16/9', borderRadius: '10px', overflow: 'hidden', border: '1px solid #23283b', background: '#000' }}>
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={capturedFrameUrl}
+                                alt="Captured frame"
+                                style={{
+                                  width: '100%',
+                                  height: '100%',
+                                  objectFit: 'cover',
+                                  filter: `brightness(${imageBrightness}%) contrast(${imageContrast}%) saturate(${imageSaturation}%)`
+                                }}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setZoomImageUrl(capturedFrameUrl)}
+                                style={{ position: 'absolute', bottom: '8px', right: '8px', background: '#0d0f17', border: '1px solid #23283b', borderRadius: '6px', padding: '0.25rem 0.55rem', fontSize: '0.68rem', color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem', fontWeight: 700 }}
+                              >
+                                <Maximize2 size={11} />
+                                <span>Zoom</span>
+                              </button>
+                            </div>
+
+                            {/* Image Adjustment Sliders */}
+                            <div style={{ background: '#0f121d', padding: '0.65rem 0.85rem', borderRadius: '10px', border: '1px solid #23283b', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.72rem', color: '#94a3b8' }}>
+                                <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><Sun size={12} /> Brightness</span>
+                                <span style={{ fontWeight: 700, color: '#f8fafc' }}>{imageBrightness}%</span>
+                              </div>
+                              <input
+                                type="range"
+                                min={50}
+                                max={150}
+                                value={imageBrightness}
+                                onChange={(e) => setImageBrightness(parseInt(e.target.value))}
+                                style={{ accentColor: 'var(--primary)', height: '4px', cursor: 'pointer' }}
+                              />
+
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.72rem', color: '#94a3b8', marginTop: '0.2rem' }}>
+                                <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><Contrast size={12} /> Contrast</span>
+                                <span style={{ fontWeight: 700, color: '#f8fafc' }}>{imageContrast}%</span>
+                              </div>
+                              <input
+                                type="range"
+                                min={50}
+                                max={150}
+                                value={imageContrast}
+                                onChange={(e) => setImageContrast(parseInt(e.target.value))}
+                                style={{ accentColor: 'var(--primary)', height: '4px', cursor: 'pointer' }}
+                              />
+
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.72rem', color: '#94a3b8', marginTop: '0.2rem' }}>
+                                <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><Sliders size={12} /> Saturation</span>
+                                <span style={{ fontWeight: 700, color: '#f8fafc' }}>{imageSaturation}%</span>
+                              </div>
+                              <input
+                                type="range"
+                                min={50}
+                                max={200}
+                                value={imageSaturation}
+                                onChange={(e) => setImageSaturation(parseInt(e.target.value))}
+                                style={{ accentColor: 'var(--primary)', height: '4px', cursor: 'pointer' }}
+                              />
+                            </div>
+
+                            <div style={{ fontSize: '0.72rem', color: '#94a3b8', display: 'flex', justifyContent: 'space-between', padding: '0 0.2rem', fontWeight: 600 }}>
+                              <span>Native HD Frame ({thumbResolution.toUpperCase()})</span>
+                              <span style={{ fontWeight: 700, color: '#f8fafc' }}>{capturedFrameSizeKb} KB</span>
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                              <button
+                                onClick={async () => {
+                                  // Apply CSS filters on a high-res canvas before saving
+                                  const img = new Image();
+                                  img.src = capturedFrameUrl;
+                                  await new Promise(r => { img.onload = r; });
+                                  const c = document.createElement('canvas');
+                                  c.width = img.naturalWidth || img.width || 1920;
+                                  c.height = img.naturalHeight || img.height || 1080;
+                                  const ctx = c.getContext('2d', { alpha: false });
+                                  if (ctx) {
+                                    ctx.imageSmoothingEnabled = true;
+                                    ctx.imageSmoothingQuality = 'high';
+                                    ctx.filter = `brightness(${imageBrightness}%) contrast(${imageContrast}%) saturate(${imageSaturation}%)`;
+                                    ctx.drawImage(img, 0, 0, c.width, c.height);
+                                    const qualityFloat = getQualityFloat(thumbQualityMode);
+                                    const finalUrl = thumbImageFormat === 'image/png'
+                                      ? c.toDataURL('image/png')
+                                      : c.toDataURL(thumbImageFormat, qualityFloat);
+                                    saveThumbnailOptionToR2(finalUrl, true);
+                                  } else {
+                                    saveThumbnailOptionToR2(capturedFrameUrl, true);
+                                  }
+                                }}
+                                disabled={savingThumbStudio}
+                                style={{ flex: 1, background: 'var(--primary)', color: 'white', border: 'none', padding: '0.55rem', borderRadius: '8px', fontSize: '0.76rem', fontWeight: 800, cursor: 'pointer' }}
+                              >
+                                ★ Set Active
+                              </button>
+                              <button
+                                onClick={async () => {
+                                  const img = new Image();
+                                  img.src = capturedFrameUrl;
+                                  await new Promise(r => { img.onload = r; });
+                                  const c = document.createElement('canvas');
+                                  c.width = img.naturalWidth || img.width || 1920;
+                                  c.height = img.naturalHeight || img.height || 1080;
+                                  const ctx = c.getContext('2d', { alpha: false });
+                                  if (ctx) {
+                                    ctx.imageSmoothingEnabled = true;
+                                    ctx.imageSmoothingQuality = 'high';
+                                    ctx.filter = `brightness(${imageBrightness}%) contrast(${imageContrast}%) saturate(${imageSaturation}%)`;
+                                    ctx.drawImage(img, 0, 0, c.width, c.height);
+                                    const qualityFloat = getQualityFloat(thumbQualityMode);
+                                    const finalUrl = thumbImageFormat === 'image/png'
+                                      ? c.toDataURL('image/png')
+                                      : c.toDataURL(thumbImageFormat, qualityFloat);
+                                    saveThumbnailOptionToR2(finalUrl, false);
+                                  } else {
+                                    saveThumbnailOptionToR2(capturedFrameUrl, false);
+                                  }
+                                }}
+                                disabled={savingThumbStudio}
+                                style={{ flex: 1, background: '#1a1e2f', color: '#f8fafc', border: '1px solid #2e3752', padding: '0.55rem', borderRadius: '8px', fontSize: '0.76rem', fontWeight: 700, cursor: 'pointer' }}
+                              >
+                                💾 Save Option
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div style={{ aspectRatio: '16/9', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0f121d', border: '1px dashed #23283b', borderRadius: '10px', fontSize: '0.76rem', color: '#94a3b8', textAlign: 'center', padding: '1rem' }}>
+                            Scrub the video player on the left and click "Capture HD Frame" to generate an image!
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
+                  )}
+                </>
+              )}
+            </div>
 
             {/* Modal Footer Bar */}
-            <div 
-              style={{ 
-                marginTop: '0.8rem', 
-                borderTop: '1px solid var(--border)', 
-                paddingTop: '0.8rem',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: '1rem'
-              }}
-            >
+            <div className={styles.studioFooter}>
               {thumbStudioSavedList.length > 0 ? (
                 <button
                   type="button"
                   onClick={() => setIsSavedGalleryOpen(!isSavedGalleryOpen)}
                   style={{
-                    background: isSavedGalleryOpen ? 'var(--primary)' : 'rgba(255, 255, 255, 0.08)',
-                    color: 'white',
-                    border: '1px solid var(--border)',
+                    background: isSavedGalleryOpen ? 'var(--primary)' : '#181d2e',
+                    color: '#ffffff',
+                    border: '1px solid #2e3752',
                     padding: '0.45rem 1rem',
                     borderRadius: '8px',
                     fontSize: '0.78rem',
@@ -3649,50 +4345,40 @@ export default function AdminEpisodesPage() {
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '0.45rem',
-                    transition: 'all 0.15s ease'
+                    gap: '0.45rem'
                   }}
                 >
-                  <span>🖼️ Saved Gallery ({thumbStudioSavedList.length})</span>
+                  <Layers size={14} />
+                  <span>Saved Choice Gallery ({thumbStudioSavedList.length})</span>
                   <span style={{ fontSize: '0.7rem', opacity: 0.8 }}>{isSavedGalleryOpen ? '▲ Hide' : '▼ View Saved'}</span>
                 </button>
               ) : <div />}
 
               <button
                 onClick={() => setIsThumbModalOpen(false)}
-                className={styles.saveBtn}
-                style={{ padding: '0.55rem 2rem', textAlign: 'center', margin: 0 }}
+                className={styles.createBtn}
+                style={{ padding: '0.55rem 2rem', background: '#1e2438', border: '1px solid #2e3752', color: '#f8fafc' }}
               >
                 Close Thumbnail Studio
               </button>
             </div>
 
-            {/* Collapsible Saved Gallery Drawer Panel (At the bottom, non-blocking) */}
+            {/* Collapsible Saved Gallery Drawer Panel */}
             {thumbStudioSavedList.length > 0 && isSavedGalleryOpen && (
-              <div 
-                style={{ 
-                  marginTop: '0.8rem', 
-                  padding: '0.8rem 1rem', 
-                  background: 'rgba(15, 23, 42, 0.95)', 
-                  backdropFilter: 'blur(8px)',
-                  borderRadius: '10px', 
-                  border: '1px solid var(--border)',
-                  boxShadow: '0 -4px 20px rgba(0,0,0,0.5)'
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                  <label style={{ fontSize: '0.72rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--foreground-secondary)' }}>
-                    Saved Choice Gallery ({thumbStudioSavedList.length} options) - Click to Set Active
+              <div style={{ padding: '0.85rem 1.5rem', background: '#0f121d', borderTop: '1px solid #23283b' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
+                  <label style={{ fontSize: '0.72rem', fontWeight: 800, textTransform: 'uppercase', color: '#94a3b8' }}>
+                    Saved Episode Thumbnails ({thumbStudioSavedList.length} Options) — Click to Set Active
                   </label>
                   <button
                     type="button"
                     onClick={() => setIsSavedGalleryOpen(false)}
-                    style={{ background: 'transparent', border: 'none', color: 'var(--foreground-muted)', cursor: 'pointer', fontSize: '0.75rem' }}
+                    style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '0.74rem' }}
                   >
-                    ✕ Close Panel
+                    ✕ Close
                   </button>
                 </div>
-                <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap', maxHeight: '140px', overflowY: 'auto' }}>
+                <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', maxHeight: '150px', overflowY: 'auto' }}>
                   {thumbStudioSavedList.map((key) => {
                     const isActive = thumbStudioActiveKey === key;
                     return (
@@ -3700,68 +4386,60 @@ export default function AdminEpisodesPage() {
                         key={key}
                         style={{
                           position: 'relative',
-                          width: '110px',
-                          height: '62px',
-                          borderRadius: '6px',
-                          border: isActive ? '2px solid var(--primary)' : '1px solid var(--border)',
-                          boxShadow: isActive ? '0 0 10px rgba(var(--primary-rgb), 0.5)' : 'none',
+                          width: '120px',
+                          height: '68px',
+                          borderRadius: '8px',
+                          border: isActive ? '2px solid var(--primary)' : '1px solid #23283b',
+                          boxShadow: isActive ? '0 0 12px rgba(124, 58, 237, 0.4)' : 'none',
                           cursor: 'pointer',
-                          overflow: 'hidden'
+                          overflow: 'hidden',
+                          background: '#000'
                         }}
                         onClick={() => selectActiveThumbnail(key)}
                       >
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={getR2Url(key, 'thumbnail')} alt="Saved preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+
+                        {isActive && (
+                          <div style={{ position: 'absolute', top: '3px', left: '3px', background: '#10b981', color: 'white', fontSize: '0.55rem', fontWeight: 800, padding: '0.1rem 0.35rem', borderRadius: '3px', textTransform: 'uppercase' }}>
+                            ★ ACTIVE
+                          </div>
+                        )}
+
                         <button
+                          type="button"
                           onClick={(e) => {
                             e.stopPropagation();
-                            deleteThumbnailOption(key);
+                            downloadThumbnailFile(key, `thumbnail-${key.slice(0, 8)}.jpg`);
                           }}
-                          style={{
-                            position: 'absolute',
-                            top: '3px',
-                            right: '3px',
-                            background: 'rgba(239, 68, 68, 0.9)',
-                            border: 'none',
-                            borderRadius: '50%',
-                            width: '18px',
-                            height: '18px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: 'white',
-                            cursor: 'pointer',
-                            padding: 0
-                          }}
-                          title="Delete option"
+                          style={{ position: 'absolute', bottom: '3px', left: '3px', background: 'rgba(15, 23, 42, 0.85)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '50%', width: '18px', height: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', cursor: 'pointer', padding: 0 }}
+                          title="Download Image File"
                         >
-                          <X size={10} />
+                          <Download size={10} />
                         </button>
+
                         <button
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
                             setZoomImageUrl(getR2Url(key, 'thumbnail'));
                           }}
-                          style={{
-                            position: 'absolute',
-                            bottom: '3px',
-                            left: '3px',
-                            background: 'rgba(15, 23, 42, 0.85)',
-                            border: '1px solid rgba(255,255,255,0.2)',
-                            borderRadius: '50%',
-                            width: '18px',
-                            height: '18px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: 'white',
-                            cursor: 'pointer',
-                            padding: 0
-                          }}
+                          style={{ position: 'absolute', bottom: '3px', left: '24px', background: 'rgba(15, 23, 42, 0.85)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '50%', width: '18px', height: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', cursor: 'pointer', padding: 0 }}
                           title="Zoom preview"
                         >
                           <Maximize2 size={9} />
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteThumbnailOption(key);
+                          }}
+                          style={{ position: 'absolute', top: '3px', right: '3px', background: 'rgba(239, 68, 68, 0.9)', border: 'none', borderRadius: '50%', width: '18px', height: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', cursor: 'pointer', padding: 0 }}
+                          title="Delete option"
+                        >
+                          <X size={10} />
                         </button>
                       </div>
                     );
@@ -3774,254 +4452,526 @@ export default function AdminEpisodesPage() {
       )}
 
       {activeBatch && !activeBatch.isMinimized && (
-        <div className={styles.modalOverlay}>
-          <div className={styles.modalContent} style={{ maxWidth: '1000px', width: '95%' }}>
+        <div className={styles.modalOverlay} onClick={handleCloseBatchModal}>
+          <div 
+            className={styles.modalContent} 
+            style={{ maxWidth: '1180px', width: '96%', maxHeight: '92vh' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
             <div className={styles.modalHeader}>
-              <h3>Add Multiple Episodes (Batch Upload)</h3>
-              <button
-                type="button"
-                onClick={() => {
-                  setBatches(prev => prev.map(b => b.id === activeBatchId ? { ...b, isMinimized: true } : b));
-                  setActiveBatchId(null);
-                }}
-                style={{ position: 'absolute', top: '2rem', right: '4.5rem', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--foreground-secondary)' }}
-                title="Minimize upload panel"
-              >
-                <Minimize2 size={20} />
-              </button>
-              <button
-                onClick={handleCloseBatchModal}
-                disabled={isActiveUploading}
-                style={{ position: 'absolute', top: '2rem', right: '2rem', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--foreground-secondary)' }}
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            <div className={styles.formRow}>
-              <div className={styles.formGroup}>
-                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--foreground-secondary)', marginBottom: '0.4rem' }}>Parent Series</label>
-                <select
-                  required
-                  disabled={isActiveUploading}
-                  className={styles.selectField}
-                  value={activeSeriesId}
-                  onChange={(e) => handleBatchSeriesChange(e.target.value)}
-                >
-                  {seriesList.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.title}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className={styles.formGroup}>
-                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--foreground-secondary)', marginBottom: '0.4rem' }}>Parent Season</label>
-                <select
-                  required
-                  disabled={isActiveUploading}
-                  className={styles.selectField}
-                  value={activeSeasonId}
-                  onChange={(e) => updateActiveBatch(b => ({ seasonId: e.target.value }))}
-                >
-                  {seasonsList.filter(s => s.series_id === activeSeriesId).map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.title}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div className={styles.formRow} style={{ marginTop: '0.5rem', marginBottom: '1.2rem' }}>
-              <div className={styles.formGroup} style={{ flex: '1 0 50%' }}>
-                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--foreground-secondary)', marginBottom: '0.4rem' }}>Base Release Date</label>
-                <input
-                  type="datetime-local"
-                  required
-                  disabled={isActiveUploading}
-                  className={styles.inputField}
-                  value={activeBaseReleaseDate}
-                  onChange={(e) => updateActiveBatch(b => ({ baseReleaseDate: e.target.value }))}
-                />
-              </div>
-
-              <div className={styles.formGroup} style={{ flex: '1 0 50%' }}>
-                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--foreground-secondary)', marginBottom: '0.4rem' }}>Incremental Scheduling</label>
-                <select
-                  disabled={isActiveUploading}
-                  className={styles.selectField}
-                  value={activeSchedulingType}
-                  onChange={(e) => updateActiveBatch(b => ({ schedulingType: e.target.value as any }))}
-                >
-                  <option value="none">No Increment (All air at base date)</option>
-                  <option value="1day">Add 1 Day per subsequent episode</option>
-                  <option value="1week">Add 1 Week per subsequent episode</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Dropper Area */}
-            {activeBatchFiles.length === 0 && (
-              <div
-                className={styles.dropzone}
-                style={{ height: '200px', marginBottom: '1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', border: '2px dashed var(--border)', borderRadius: '12px', cursor: 'pointer', background: 'var(--surface-hover)', padding: '2rem' }}
-                onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                onDrop={handleBatchDrop}
-                onClick={() => batchInputRef.current?.click()}
-              >
-                <input
-                  ref={batchInputRef}
-                  type="file"
-                  className="hidden"
-                  style={{ display: 'none' }}
-                  accept="video/*"
-                  multiple
-                  onChange={handleBatchFileChange}
-                />
-                <UploadCloud size={32} style={{ color: 'var(--primary)', marginBottom: '0.8rem' }} />
-                <div style={{ fontWeight: 700, marginBottom: '0.2rem', color: 'var(--foreground)' }}>Drag & drop multiple video files or click to browse</div>
-                <div style={{ fontSize: '0.78rem', color: 'var(--foreground-secondary)' }}>Supported format: video/*</div>
-              </div>
-            )}
-
-            {/* Selected Files List / Progress */}
-            {activeBatchFiles.length > 0 && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', maxHeight: '400px', overflowY: 'auto', paddingRight: '0.5rem', marginBottom: '1.5rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--foreground-secondary)' }}>
-                    📂 Queued Video Files ({activeBatchFiles.length})
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+                <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: 'rgba(124, 58, 237, 0.15)', border: '1px solid rgba(124, 58, 237, 0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)' }}>
+                  <UploadCloud size={22} />
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800 }}>
+                    Add Multiple Episodes (Batch Upload & Multi-Series)
+                  </h3>
+                  <span style={{ fontSize: '0.78rem', color: 'var(--foreground-secondary)', marginTop: '0.15rem', display: 'block' }}>
+                    Queue videos, customize individual release dates & parent shows, and batch publish to Cloudflare R2.
                   </span>
-                  {!isActiveUploading && (
-                    <button
-                      onClick={() => updateActiveBatch(b => ({ files: [] }))}
-                      style={{ fontSize: '0.75rem', color: '#ef4444', background: 'transparent', border: 'none', cursor: 'pointer', fontWeight: 700 }}
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setBatches(prev => prev.map(b => b.id === activeBatchId ? { ...b, isMinimized: true } : b));
+                    setActiveBatchId(null);
+                  }}
+                  className={styles.expandToggleBtn}
+                  title="Minimize upload panel (runs in background)"
+                >
+                  <Minimize2 size={16} />
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCloseBatchModal}
+                  disabled={isActiveUploading}
+                  className={styles.expandToggleBtn}
+                  title="Close modal"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            </div>
+
+            <div className={styles.modalBody} style={{ padding: '1.25rem 1.75rem', gap: '1.15rem' }}>
+              {/* Batch Defaults Card */}
+              <div style={{ background: '#131722', border: '1px solid #23283b', borderRadius: '14px', padding: '1.1rem 1.25rem', display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: '0.74rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--foreground-muted)' }}>
+                    ⚙️ Global Batch Defaults (Applies to newly queued files)
+                  </span>
+                  <span style={{ fontSize: '0.72rem', color: '#a78bfa', fontWeight: 600 }}>
+                    You can also override series & release dates individually per file below
+                  </span>
+                </div>
+
+                <div className={styles.formRow}>
+                  <div className={styles.formGroup} style={{ flex: '1 1 200px' }}>
+                    <label>Default Parent Series</label>
+                    <select
+                      required
+                      disabled={isActiveUploading}
+                      className={styles.selectField}
+                      value={activeSeriesId}
+                      onChange={(e) => handleBatchSeriesChange(e.target.value)}
                     >
-                      Clear All
-                    </button>
+                      {seriesList.map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.title}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className={styles.formGroup} style={{ flex: '1 1 200px' }}>
+                    <label>Default Season</label>
+                    <select
+                      required
+                      disabled={isActiveUploading}
+                      className={styles.selectField}
+                      value={activeSeasonId}
+                      onChange={(e) => {
+                        const sId = e.target.value;
+                        updateActiveBatch(b => ({
+                          seasonId: sId,
+                          files: b.files.map(f => ({ ...f, seasonId: sId }))
+                        }));
+                      }}
+                    >
+                      {seasonsList.filter(s => s.series_id === activeSeriesId).map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.title}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className={styles.formGroup} style={{ flex: '1 1 220px' }}>
+                    <label>Base Release Date (12:00 AM)</label>
+                    <input
+                      type="datetime-local"
+                      required
+                      disabled={isActiveUploading}
+                      className={styles.inputField}
+                      value={activeBaseReleaseDate}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        const match = val.match(/^(\d{4})-(\d{2})-(\d{2})/);
+                        const normalized = match ? `${match[1]}-${match[2]}-${match[3]}T00:00` : val;
+                        updateActiveBatch(b => ({
+                          baseReleaseDate: normalized,
+                          files: b.files.map((f, idx) => ({
+                            ...f,
+                            releaseDate: calculateItemReleaseDate(normalized, b.schedulingType, idx)
+                          }))
+                        }));
+                      }}
+                    />
+                  </div>
+
+                  <div className={styles.formGroup} style={{ flex: '1 1 200px' }}>
+                    <label>Auto-Increment Rule</label>
+                    <select
+                      disabled={isActiveUploading}
+                      className={styles.selectField}
+                      value={activeSchedulingType}
+                      onChange={(e) => {
+                        const sched = e.target.value as any;
+                        updateActiveBatch(b => ({ schedulingType: sched }));
+                        handleApplySmartDates(sched);
+                      }}
+                    >
+                      <option value="none">Same Base Date for all</option>
+                      <option value="1day">+1 Day per subsequent episode</option>
+                      <option value="3days">+3 Days per subsequent episode</option>
+                      <option value="1week">+1 Week per subsequent episode</option>
+                      <option value="2weeks">+2 Weeks per subsequent episode</option>
+                      <option value="1month">+1 Month per subsequent episode</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Dropper Area (When Empty) */}
+              {activeBatchFiles.length === 0 && (
+                <div
+                  className={styles.dropzone}
+                  style={{ minHeight: '220px', padding: '2.5rem' }}
+                  onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                  onDrop={handleBatchDrop}
+                  onClick={() => batchInputRef.current?.click()}
+                >
+                  <input
+                    ref={batchInputRef}
+                    type="file"
+                    style={{ display: 'none' }}
+                    accept="video/*"
+                    multiple
+                    onChange={handleBatchFileChange}
+                  />
+                  <UploadCloud size={42} style={{ color: 'var(--primary)', marginBottom: '0.9rem' }} />
+                  <div style={{ fontWeight: 800, fontSize: '1.05rem', marginBottom: '0.3rem', color: 'var(--foreground-primary)' }}>
+                    Drag & Drop Multiple Video Files Here
+                  </div>
+                  <div style={{ fontSize: '0.82rem', color: 'var(--foreground-secondary)', maxWidth: '420px', lineHeight: 1.4 }}>
+                    Supports MP4, MKV, WebM, and AVI. File names with episode numbers (e.g. <code>show_ep01.mp4</code>) will be auto-detected!
+                  </div>
+                  <button
+                    type="button"
+                    className={styles.createBtn}
+                    style={{ marginTop: '1.2rem', padding: '0.5rem 1.4rem', fontSize: '0.82rem' }}
+                  >
+                    Browse Video Files
+                  </button>
+                </div>
+              )}
+
+              {/* Queued Files Table & Smart Toolbar */}
+              {activeBatchFiles.length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                  {/* Smart Scheduling & Presets Toolbar */}
+                  <div className={styles.batchToolbar}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--foreground-primary)' }}>
+                        📂 {activeBatchFiles.length} Episodes Queued
+                      </span>
+                      <span style={{ fontSize: '0.72rem', color: 'var(--foreground-muted)' }}>|</span>
+                      
+                      {/* Date presets */}
+                      <span style={{ fontSize: '0.7rem', color: 'var(--foreground-muted)', fontWeight: 700 }}>Schedule:</span>
+                      <button
+                        type="button"
+                        disabled={isActiveUploading}
+                        onClick={() => handleApplySmartDates('none')}
+                        className={styles.quickPillBtn}
+                        title="Set all episodes to base date"
+                      >
+                        ⚡ Same Date
+                      </button>
+                      <button
+                        type="button"
+                        disabled={isActiveUploading}
+                        onClick={() => handleApplySmartDates('1day')}
+                        className={styles.quickPillBtn}
+                        title="Schedule sequentially +1 Day apart"
+                      >
+                        ⚡ +1 Day Step
+                      </button>
+                      <button
+                        type="button"
+                        disabled={isActiveUploading}
+                        onClick={() => handleApplySmartDates('3days')}
+                        className={styles.quickPillBtn}
+                        title="Schedule sequentially +3 Days apart"
+                      >
+                        ⚡ +3 Days Step
+                      </button>
+                      <button
+                        type="button"
+                        disabled={isActiveUploading}
+                        onClick={() => handleApplySmartDates('1week')}
+                        className={styles.quickPillBtn}
+                        title="Schedule sequentially +1 Week apart"
+                      >
+                        ⚡ +1 Week Step
+                      </button>
+                    </div>
+
+                    <div className={styles.batchToolbarActions}>
+                      {/* Renumber & Title Presets */}
+                      <button
+                        type="button"
+                        disabled={isActiveUploading}
+                        onClick={() => handleRenumberFiles(1)}
+                        className={styles.quickPillBtn}
+                        title="Renumber starting from 1"
+                      >
+                        🔢 Renumber 1..N
+                      </button>
+                      <button
+                        type="button"
+                        disabled={isActiveUploading}
+                        onClick={() => handleApplyTitleTemplate('episode')}
+                        className={styles.quickPillBtn}
+                        title="Set titles to Episode {N}"
+                      >
+                        ⚡ "Episode N"
+                      </button>
+                      <button
+                        type="button"
+                        disabled={isActiveUploading}
+                        onClick={() => handleApplyTitleTemplate('ova')}
+                        className={styles.quickPillBtn}
+                        title="Set titles to OVA {N}"
+                      >
+                        ⚡ "OVA N"
+                      </button>
+                      <button
+                        type="button"
+                        disabled={isActiveUploading}
+                        onClick={() => handleToggleAllPublish(true)}
+                        className={styles.quickPillBtn}
+                        style={{ color: '#34d399' }}
+                        title="Publish all episodes immediately"
+                      >
+                        ✓ All Live
+                      </button>
+                      <button
+                        type="button"
+                        disabled={isActiveUploading}
+                        onClick={() => handleToggleAllPublish(false)}
+                        className={styles.quickPillBtn}
+                        style={{ color: '#fbbf24' }}
+                        title="Set all episodes as drafts"
+                      >
+                        ● All Drafts
+                      </button>
+
+                      {!isActiveUploading && (
+                        <button
+                          type="button"
+                          onClick={() => updateActiveBatch(b => ({ files: [] }))}
+                          className={styles.quickPillBtn}
+                          style={{ color: '#ef4444', borderColor: '#450a0a' }}
+                        >
+                          ✕ Clear All
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Queued Files Table */}
+                  <div style={{ maxHeight: '380px', overflowY: 'auto', border: '1px solid #23283b', borderRadius: '12px', background: '#0d0f17' }}>
+                    <table className={styles.batchTable}>
+                      <thead>
+                        <tr>
+                          <th style={{ width: '48px', textAlign: 'center' }}>Type</th>
+                          <th style={{ minWidth: '170px' }}>File Name</th>
+                          <th style={{ minWidth: '150px' }}>Parent Show</th>
+                          <th style={{ width: '75px' }}>Ep #</th>
+                          <th style={{ minWidth: '140px' }}>Episode Title</th>
+                          <th style={{ minWidth: '175px' }}>Release Date (12:00 AM)</th>
+                          <th style={{ width: '85px', textAlign: 'center' }}>Live?</th>
+                          <th style={{ width: '130px' }}>Status</th>
+                          {!isActiveUploading && <th style={{ width: '40px' }}></th>}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {activeBatchFiles.map((bf) => {
+                          const itemSeriesId = bf.seriesId || activeSeriesId;
+                          const itemSeasonId = bf.seasonId || activeSeasonId;
+                          const fileSizeMb = (bf.file.size / (1024 * 1024)).toFixed(1);
+                          const durationMin = Math.floor(bf.durationSeconds / 60);
+                          const durationSec = bf.durationSeconds % 60;
+
+                          return (
+                            <tr key={bf.id}>
+                              {/* Media Icon */}
+                              <td style={{ textAlign: 'center' }}>
+                                <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(124, 58, 237, 0.12)', border: '1px solid rgba(124, 58, 237, 0.25)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: '#c4b5fd' }}>
+                                  <Video size={16} />
+                                </div>
+                              </td>
+
+                              {/* File name & size */}
+                              <td>
+                                <div style={{ fontWeight: 700, fontSize: '0.8rem', color: 'var(--foreground-primary)', maxWidth: '170px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={bf.file.name}>
+                                  {bf.file.name}
+                                </div>
+                                <div style={{ fontSize: '0.7rem', color: 'var(--foreground-muted)', display: 'flex', gap: '0.4rem', marginTop: '0.1rem' }}>
+                                  <span>{fileSizeMb} MB</span>
+                                  <span>•</span>
+                                  <span style={{ color: '#c4b5fd' }}>{durationMin}m {durationSec}s</span>
+                                </div>
+                              </td>
+
+                              {/* Parent Show & Season */}
+                              <td>
+                                <select
+                                  disabled={isActiveUploading}
+                                  className={styles.selectField}
+                                  style={{ padding: '0.3rem 0.5rem', fontSize: '0.78rem', width: '100%', background: '#141724' }}
+                                  value={itemSeriesId}
+                                  onChange={(e) => handleBatchItemSeriesChange(bf.id, e.target.value)}
+                                >
+                                  {seriesList.map((s) => (
+                                    <option key={s.id} value={s.id}>
+                                      {s.title}
+                                    </option>
+                                  ))}
+                                </select>
+                              </td>
+
+                              {/* Ep Number */}
+                              <td>
+                                <input
+                                  type="number"
+                                  required
+                                  disabled={isActiveUploading}
+                                  min={1}
+                                  className={styles.inputField}
+                                  style={{ padding: '0.3rem 0.4rem', textAlign: 'center', fontSize: '0.8rem', width: '100%', background: '#141724' }}
+                                  value={bf.episodeNumber}
+                                  onChange={(e) => updateBatchItemField(bf.id, 'episodeNumber', parseInt(e.target.value) || 1)}
+                                />
+                              </td>
+
+                              {/* Title */}
+                              <td>
+                                <input
+                                  type="text"
+                                  required
+                                  disabled={isActiveUploading}
+                                  className={styles.inputField}
+                                  style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: '100%', background: '#141724' }}
+                                  value={bf.title}
+                                  onChange={(e) => updateBatchItemField(bf.id, 'title', e.target.value)}
+                                />
+                              </td>
+
+                              {/* Individual Release Date Picker */}
+                              <td>
+                                <input
+                                  type="datetime-local"
+                                  required
+                                  disabled={isActiveUploading}
+                                  className={styles.inputField}
+                                  style={{ padding: '0.3rem 0.5rem', fontSize: '0.78rem', width: '100%', background: '#141724' }}
+                                  value={bf.releaseDate || activeBaseReleaseDate}
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    const match = val.match(/^(\d{4})-(\d{2})-(\d{2})/);
+                                    const normalized = match ? `${match[1]}-${match[2]}-${match[3]}T00:00` : val;
+                                    updateBatchItemField(bf.id, 'releaseDate', normalized);
+                                  }}
+                                />
+                              </td>
+
+                              {/* Publish Toggle */}
+                              <td style={{ textAlign: 'center' }}>
+                                <button
+                                  type="button"
+                                  disabled={isActiveUploading}
+                                  onClick={() => updateBatchItemField(bf.id, 'isPublished', !bf.isPublished)}
+                                  style={{
+                                    background: bf.isPublished ? 'rgba(16, 185, 129, 0.2)' : 'rgba(245, 158, 11, 0.2)',
+                                    border: bf.isPublished ? '1px solid rgba(16, 185, 129, 0.4)' : '1px solid rgba(245, 158, 11, 0.4)',
+                                    color: bf.isPublished ? '#34d399' : '#fbbf24',
+                                    borderRadius: '12px',
+                                    padding: '0.2rem 0.55rem',
+                                    fontSize: '0.72rem',
+                                    fontWeight: 700,
+                                    cursor: 'pointer'
+                                  }}
+                                >
+                                  {bf.isPublished ? 'Live' : 'Draft'}
+                                </button>
+                              </td>
+
+                              {/* Status & Progress */}
+                              <td>
+                                {bf.status === 'metadata' && (
+                                  <span style={{ color: 'var(--foreground-muted)', fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--primary)' }} />
+                                    Analyzing...
+                                  </span>
+                                )}
+                                {bf.status === 'pending' && (
+                                  <span style={{ color: 'var(--foreground-secondary)', fontSize: '0.72rem', fontWeight: 600 }}>
+                                    ⏳ Ready
+                                  </span>
+                                )}
+                                {bf.status === 'uploading' && (
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                                    <span style={{ fontSize: '0.72rem', color: 'var(--primary)', fontWeight: 700 }}>
+                                      Uploading: {bf.progress}%
+                                    </span>
+                                    <div style={{ height: '4px', background: '#23283b', borderRadius: '2px', overflow: 'hidden' }}>
+                                      <div style={{ width: `${bf.progress}%`, height: '100%', background: 'var(--primary)', transition: 'width 0.1s ease' }} />
+                                    </div>
+                                  </div>
+                                )}
+                                {bf.status === 'saving' && (
+                                  <span style={{ color: '#f59e0b', fontSize: '0.72rem', fontWeight: 700 }}>
+                                    💾 Saving...
+                                  </span>
+                                )}
+                                {bf.status === 'success' && (
+                                  <span style={{ color: '#10b981', fontSize: '0.74rem', fontWeight: 700 }}>
+                                    ✓ Completed
+                                  </span>
+                                )}
+                                {bf.status === 'error' && (
+                                  <span style={{ color: '#ef4444', fontSize: '0.72rem', fontWeight: 700 }} title={bf.errorMsg}>
+                                    ✗ Failed
+                                  </span>
+                                )}
+                              </td>
+
+                              {/* Remove action */}
+                              {!isActiveUploading && (
+                                <td style={{ textAlign: 'center' }}>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveBatchFile(bf.id)}
+                                    style={{ background: 'transparent', border: 'none', color: 'var(--foreground-muted)', cursor: 'pointer', padding: '0.2rem' }}
+                                    title="Remove file from queue"
+                                  >
+                                    <X size={14} />
+                                  </button>
+                                </td>
+                              )}
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Add more files secondary dropzone */}
+                  {!isActiveUploading && (
+                    <div
+                      style={{ border: '1px dashed #282e44', borderRadius: '10px', padding: '0.65rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.6rem', cursor: 'pointer', background: '#111420' }}
+                      onClick={() => batchInputRef.current?.click()}
+                      onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                      onDrop={handleBatchDrop}
+                    >
+                      <UploadCloud size={16} style={{ color: 'var(--primary)' }} />
+                      <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--foreground-secondary)' }}>
+                        ➕ Drop additional video files or click here to add more to this batch
+                      </span>
+                    </div>
                   )}
                 </div>
+              )}
+            </div>
 
-                <div className={styles.tableContainer} style={{ margin: 0, border: '1px solid var(--border)' }}>
-                  <table className={styles.adminTable} style={{ fontSize: '0.85rem' }}>
-                    <thead>
-                      <tr>
-                        <th style={{ width: '80px' }}>Thumbnail</th>
-                        <th>File Name</th>
-                        <th style={{ width: '100px' }}>Ep #</th>
-                        <th>Episode Title</th>
-                        <th style={{ width: '120px', textAlign: 'center' }}>Is Preview?</th>
-                        <th style={{ width: '120px', textAlign: 'center' }}>Publish?</th>
-                        <th style={{ width: '160px' }}>Status / Progress</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {activeBatchFiles.map((bf) => {
-                        return (
-                          <tr key={bf.id}>
-                            <td>
-                              <div style={{ width: '70px', height: '40px', borderRadius: '4px', overflow: 'hidden', background: 'var(--surface-hover)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
-                                {bf.thumbnailKey ? (
-                                  <img
-                                    src={getR2Url(bf.thumbnailKey, 'thumbnail')}
-                                    alt="Auto-Thumb"
-                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                  />
-                                ) : bf.status === 'metadata' ? (
-                                  <div className={styles.loadingSpinner} style={{ width: '12px', height: '12px', border: '2px solid rgba(var(--primary-rgb), 0.3)', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
-                                ) : (
-                                  <Camera size={12} style={{ color: 'var(--foreground-muted)' }} />
-                                )}
-                              </div>
-                            </td>
-                            <td style={{ maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={bf.file.name}>
-                              {bf.file.name}
-                            </td>
-                            <td>
-                              <input
-                                type="number"
-                                required
-                                disabled={isActiveUploading}
-                                min={1}
-                                className={styles.inputField}
-                                style={{ padding: '0.3rem 0.5rem', textAlign: 'center', background: 'var(--surface-hover)' }}
-                                value={bf.episodeNumber}
-                                onChange={(e) => updateBatchItemField(bf.id, 'episodeNumber', parseInt(e.target.value) || 1)}
-                              />
-                            </td>
-                            <td>
-                              <input
-                                type="text"
-                                required
-                                disabled={isActiveUploading}
-                                className={styles.inputField}
-                                style={{ padding: '0.3rem 0.5rem', background: 'var(--surface-hover)' }}
-                                value={bf.title}
-                                onChange={(e) => updateBatchItemField(bf.id, 'title', e.target.value)}
-                              />
-                            </td>
-                            <td style={{ textAlign: 'center' }}>
-                              <input
-                                type="checkbox"
-                                disabled={isActiveUploading}
-                                checked={bf.isPreview}
-                                onChange={(e) => updateBatchItemField(bf.id, 'isPreview', e.target.checked)}
-                              />
-                            </td>
-                            <td style={{ textAlign: 'center' }}>
-                              <input
-                                type="checkbox"
-                                disabled={isActiveUploading}
-                                checked={bf.isPublished}
-                                onChange={(e) => updateBatchItemField(bf.id, 'isPublished', e.target.checked)}
-                              />
-                            </td>
-                            <td>
-                              {bf.status === 'metadata' && (
-                                <span style={{ color: 'var(--foreground-muted)', fontSize: '0.75rem' }}>Analyzing...</span>
-                              )}
-                              {bf.status === 'pending' && (
-                                <span style={{ color: 'var(--foreground-secondary)', fontSize: '0.75rem' }}>Queued</span>
-                              )}
-                              {bf.status === 'uploading' && (
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
-                                  <span style={{ fontSize: '0.75rem', color: 'var(--primary)', fontWeight: 700 }}>Uploading: {bf.progress}%</span>
-                                  <div className={styles.track} style={{ height: '4px', background: 'var(--border)', borderRadius: '2px', overflow: 'hidden' }}>
-                                    <div className={styles.bar} style={{ width: `${bf.progress}%`, height: '100%', background: 'var(--primary)', transition: 'width 0.1s ease' }} />
-                                  </div>
-                                </div>
-                              )}
-                              {bf.status === 'saving' && (
-                                <span style={{ color: '#f59e0b', fontSize: '0.75rem', fontWeight: 700 }}>Saving show...</span>
-                              )}
-                              {bf.status === 'success' && (
-                                <span style={{ color: '#10b981', fontSize: '0.75rem', fontWeight: 700 }}>✓ Done</span>
-                              )}
-                              {bf.status === 'error' && (
-                                <span style={{ color: '#ef4444', fontSize: '0.75rem', fontWeight: 700 }} title={bf.errorMsg}>
-                                  ✗ Failed
-                                </span>
-                              )}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
+            {/* Modal Actions Footer */}
+            <div className={styles.modalFooter}>
+              <div style={{ marginRight: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ fontSize: '0.76rem', color: 'var(--foreground-muted)' }}>
+                  {activeBatchFiles.length} video{activeBatchFiles.length === 1 ? '' : 's'} queued
+                </span>
+                {activeBatchFiles.length > 0 && (
+                  <span style={{ fontSize: '0.76rem', color: '#c4b5fd', fontWeight: 600 }}>
+                    • Total: {(activeBatchFiles.reduce((acc, f) => acc + f.file.size, 0) / (1024 * 1024)).toFixed(1)} MB
+                  </span>
+                )}
               </div>
-            )}
 
-            <div className={styles.modalActions}>
               {activeBatchFiles.length > 0 && activeBatchFiles.every(bf => bf.status === 'success') ? (
                 <button
                   type="button"
                   onClick={handleCloseBatchModal}
-                  className={styles.saveBtn}
-                  style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', border: 'none', color: 'white', width: '100%', textAlign: 'center' }}
+                  className={styles.createBtn}
+                  style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', padding: '0.55rem 2rem' }}
                 >
-                  Done / Close
+                  ✓ Batch Upload Completed (Done)
                 </button>
               ) : (
                 <>
@@ -4029,7 +4979,8 @@ export default function AdminEpisodesPage() {
                     type="button"
                     onClick={handleCloseBatchModal}
                     disabled={isActiveUploading}
-                    className={styles.cancelBtn}
+                    className={styles.actionPillBtn}
+                    style={{ background: '#1a1e2f', color: 'var(--foreground-secondary)', border: '1px solid #282e44', padding: '0.55rem 1.2rem' }}
                   >
                     Cancel
                   </button>
@@ -4037,10 +4988,10 @@ export default function AdminEpisodesPage() {
                     type="button"
                     onClick={handleStartBatchUpload}
                     disabled={isActiveUploading || activeBatchFiles.length === 0 || activeBatchFiles.some(bf => bf.status === 'metadata')}
-                    className={styles.saveBtn}
-                    style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', border: 'none', color: 'white' }}
+                    className={styles.createBtn}
+                    style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', padding: '0.55rem 1.8rem' }}
                   >
-                    {isActiveUploading ? 'Uploading Batch...' : 'Start Batch Upload'}
+                    {isActiveUploading ? 'Uploading In Background...' : `Start Batch Upload (${activeBatchFiles.length})`}
                   </button>
                 </>
               )}

@@ -75,13 +75,14 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-function getAdsSettings(): Record<string, boolean> {
+function getAdsSettings(): { settings: Record<string, boolean>; disabledZones: string[] } {
   const settings = {
     block_banners: false,
     block_popunder: false,
     block_instant_message: false,
     block_in_page_push: false,
   };
+  let disabledZones: string[] = [];
   try {
     const filePath = path.join(process.cwd(), 'src', 'utils', 'site_settings.json');
     if (fs.existsSync(filePath)) {
@@ -91,11 +92,33 @@ function getAdsSettings(): Record<string, boolean> {
       if (data.ads_block_popunder === 'true') settings.block_popunder = true;
       if (data.ads_block_instant_message === 'true') settings.block_instant_message = true;
       if (data.ads_block_in_page_push === 'true') settings.block_in_page_push = true;
+      if (data.ads_disabled_zones) {
+        try {
+          const parsed = typeof data.ads_disabled_zones === 'string' ? JSON.parse(data.ads_disabled_zones) : data.ads_disabled_zones;
+          if (Array.isArray(parsed)) disabledZones = parsed;
+        } catch (e) {}
+      }
     }
   } catch (err) {
     console.error('Error reading local settings for ads layout:', err);
   }
-  return settings;
+  return { settings, disabledZones };
+}
+
+import AnalyticsTracker from "@/components/AnalyticsTracker/AnalyticsTracker";
+
+function getSiteAnalytics(): { ga4Id?: string; cfToken?: string } {
+  try {
+    const filePath = path.join(process.cwd(), 'src', 'utils', 'site_settings.json');
+    if (fs.existsSync(filePath)) {
+      const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+      return {
+        ga4Id: data.ga4_measurement_id || undefined,
+        cfToken: data.cloudflare_analytics_token || undefined,
+      };
+    }
+  } catch (e) {}
+  return {};
 }
 
 export default function RootLayout({
@@ -103,7 +126,9 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const ads = getAdsSettings();
+  const { settings: ads, disabledZones } = getAdsSettings();
+  const analytics = getSiteAnalytics();
+
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
@@ -123,6 +148,23 @@ export default function RootLayout({
       <head>
         <meta name="6a97888e-site-verification" content="ae5b610b0f4d1db35865d663bf9fa0ee" />
         <meta name="yandex-verification" content="fe39af37bfe31147" />
+        {/* Optional Google Analytics 4 (GA4) Tag */}
+        {analytics.ga4Id && (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${analytics.ga4Id}`}
+              strategy="afterInteractive"
+            />
+            <Script id="google-analytics-init" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', '${analytics.ga4Id}', { page_path: window.location.pathname });
+              `}
+            </Script>
+          </>
+        )}
       </head>
       <body>
         <script
@@ -130,9 +172,18 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
         <Providers>
-          <GlobalAds adsSettings={ads} />
+          <AnalyticsTracker />
+          <GlobalAds adsSettings={ads} disabledZones={disabledZones} />
           {children}
         </Providers>
+        {/* Optional Cloudflare Web Analytics */}
+        {analytics.cfToken && (
+          <Script
+            src="https://static.cloudflareinsights.com/beacon.min.js"
+            data-cf-beacon={`{"token": "${analytics.cfToken}"}`}
+            strategy="afterInteractive"
+          />
+        )}
       </body>
     </html>
   );

@@ -465,6 +465,13 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
   const firstAirDateFormatted = formatDateString(activeSeries.first_air_date);
   const lastAirDateFormatted = formatDateString(activeSeries.last_air_date);
 
+  // Calculate ceiling average runtime from actual episodes if available
+  const allSeriesEpisodes = activeSeries.seasons?.flatMap((s: any) => s.episodes || []) || [];
+  const validEpisodesWithDuration = allSeriesEpisodes.filter((ep: any) => ep.duration_seconds && ep.duration_seconds > 0);
+  const computedAvgRuntime = validEpisodesWithDuration.length > 0
+    ? Math.ceil(validEpisodesWithDuration.reduce((acc: number, ep: any) => acc + ep.duration_seconds, 0) / validEpisodesWithDuration.length / 60)
+    : (activeSeries.runtime !== undefined && activeSeries.runtime !== null ? Math.ceil(activeSeries.runtime) : 24);
+
   // Helper helper to get stable ratings
   function getStableRating(id: string) {
     let hash = 0;
@@ -823,7 +830,7 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
                 </div>
                 <div className={styles.detailsRow}>
                   <span className={styles.detailsKey}>AVG RUNTIME</span>
-                  <span className={styles.detailsVal}>{activeSeries.runtime !== undefined && activeSeries.runtime !== null ? activeSeries.runtime : 24} min</span>
+                  <span className={styles.detailsVal}>{computedAvgRuntime} min</span>
                 </div>
                 <div className={styles.detailsRow}>
                   <span className={styles.detailsKey}>SEASONS</span>
@@ -973,7 +980,7 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
                   {status.toUpperCase()}
                 </Link>
               ),
-              runtime: activeSeries.runtime || 24,
+              runtime: computedAvgRuntime,
               episodes: totalEpisodesText,
               originalLanguage: activeSeries.original_language || 'Japanese',
               country: activeSeries.country || 'Japan',

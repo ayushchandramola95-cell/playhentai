@@ -409,8 +409,7 @@
 .modalOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(8px);
+  background: rgba(0, 0, 0, 0.85);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -423,12 +422,13 @@
   max-width: 600px;
   max-height: 90vh;
   overflow-y: auto;
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: #0d0f17;
+  border: 1px solid #23283b;
   border-radius: 20px;
   padding: 2.5rem;
   animation: modal-in 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.95);
 }
 
 .modalHeader {
@@ -696,14 +696,17 @@
 }
 
 .modalFullscreen {
-  max-width: 1200px !important;
-  width: 95vw !important;
-  height: 90vh !important;
-  max-height: 90vh !important;
+  max-width: 1750px !important;
+  width: 98vw !important;
+  height: 96vh !important;
+  max-height: 96vh !important;
   border-radius: 20px !important;
   display: flex !important;
   flex-direction: column !important;
-  padding: 2rem 2.5rem 1.5rem 2.5rem !important;
+  padding: 1.5rem 2.25rem 1.25rem 2.25rem !important;
+  background: #0d0f17 !important;
+  border: 1px solid #23283b !important;
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.95) !important;
 }
 
 .modalFullscreen form {
@@ -714,10 +717,102 @@
   flex: 1;
 }
 
+.modalNavTabs {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-bottom: 1px solid #23283b;
+  padding-bottom: 0.75rem;
+  margin-bottom: 1.25rem;
+  overflow-x: auto;
+}
+
+.modalTabBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 1rem;
+  border-radius: 10px;
+  background: #141724;
+  border: 1px solid #23283b;
+  color: #94a3b8;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.modalTabBtn:hover {
+  background: #1c2133;
+  color: #ffffff;
+  border-color: #3b4263;
+}
+
+.modalTabBtnActive {
+  background: #7c3aed !important;
+  border-color: #8b5cf6 !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
+}
+
+.modalWorkspaceLayout {
+  display: grid;
+  grid-template-columns: 1fr 370px;
+  gap: 1.75rem;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.modalEditorPane {
+  overflow-y: auto;
+  padding-right: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.modalEditorPane::-webkit-scrollbar,
+.modalPreviewPane::-webkit-scrollbar {
+  width: 6px;
+}
+.modalEditorPane::-webkit-scrollbar-track,
+.modalPreviewPane::-webkit-scrollbar-track {
+  background: transparent;
+}
+.modalEditorPane::-webkit-scrollbar-thumb,
+.modalPreviewPane::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+.modalPreviewPane {
+  overflow-y: auto;
+  padding-left: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  border-left: 1px solid var(--border);
+  padding-left: 1.5rem;
+}
+
+@media (max-width: 1200px) {
+  .modalWorkspaceLayout {
+    grid-template-columns: 1fr;
+  }
+  .modalPreviewPane {
+    border-left: none;
+    border-top: 1px solid var(--border);
+    padding-left: 0;
+    padding-top: 1.5rem;
+  }
+}
+
 .formGridWidescreen {
   display: grid;
-  grid-template-columns: 1.2fr 1fr;
-  gap: 2rem;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.75rem;
   flex: 1;
   overflow-y: auto;
   padding-right: 0.5rem;
@@ -1218,5 +1313,185 @@
   background: rgba(245, 158, 11, 0.22);
   border-color: rgba(245, 158, 11, 0.6);
 }
+
+/* =========================================================================
+   Luxury Series Cards Catalog List
+   ========================================================================= */
+.seriesCardsList {
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+}
+
+.seriesCardItem {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 1.25rem 1.6rem;
+  display: flex;
+  align-items: stretch;
+  gap: 1.5rem;
+  position: relative;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.2);
+}
+
+.seriesCardItem:hover {
+  border-color: rgba(var(--primary-rgb), 0.45);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+  transform: translateY(-2px);
+}
+
+.seriesCardItemPublished {
+  border-left: 4px solid #10b981;
+}
+
+.seriesCardItemDraft {
+  border-left: 4px solid #f59e0b;
+}
+
+.seriesCardThumb {
+  width: 76px;
+  min-height: 108px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #0f172a;
+  border: 1px solid var(--border);
+  position: relative;
+  flex-shrink: 0;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.seriesCardThumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.seriesCardThumb:hover img {
+  transform: scale(1.08);
+}
+
+.seriesCardThumbHover {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(2px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.seriesCardThumb:hover .seriesCardThumbHover {
+  opacity: 1;
+}
+
+.seriesCardContent {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  flex-grow: 1;
+  min-width: 0;
+  gap: 0.6rem;
+}
+
+.seriesCardTopRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.seriesCardMetaBadges {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.seriesCardTitleRow {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.seriesCardTitle {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--foreground-primary);
+  line-height: 1.3;
+}
+
+.seriesCardSynopsis {
+  font-size: 0.82rem;
+  color: var(--foreground-secondary);
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin: 0;
+}
+
+.seriesCardBottomRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.seriesCardActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.seriesQuickFilterRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+}
+
+.quickFilterPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.9rem;
+  border-radius: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--foreground-secondary);
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.quickFilterPill:hover {
+  border-color: var(--primary);
+  color: var(--foreground-primary);
+}
+
+.quickFilterPillActive {
+  background: rgba(var(--primary-rgb), 0.15);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
 
 

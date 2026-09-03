@@ -29,7 +29,7 @@ export default function AdminSidebar({ username }: AdminSidebarProps) {
   };
 
   return (
-    <aside className={`${styles.sidebar} ${isCollapsed ? styles.sidebarCollapsed : ''} glass`}>
+    <aside className={`${styles.sidebar} ${isCollapsed ? styles.sidebarCollapsed : ''}`}>
       <div className={styles.sidebarHeader}>
         <div className={styles.logoBrand}>
           <Tv size={24} className={styles.logoIcon} />

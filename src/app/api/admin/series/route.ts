@@ -1,18 +1,36 @@
 import { NextResponse } from 'next/server';
 import { verifyAdmin, createAdminClient } from '@/utils/supabase/admin';
+import { getSeriesViewsMap } from '@/utils/views';
 
 export async function GET() {
   try {
     await verifyAdmin();
     const adminSupabase = createAdminClient();
     
-    const { data, error } = await adminSupabase
-      .from('series')
-      .select('*')
-      .order('created_at', { ascending: false });
+    const [{ data: seriesData, error }, { data: episodesData }, viewsMap] = await Promise.all([
+      adminSupabase.from('series').select('*').order('created_at', { ascending: false }),
+      adminSupabase.from('episodes').select('id, seasons(series(id))').order('created_at', { ascending: false }),
+      getSeriesViewsMap().catch(() => ({})),
+    ]);
 
     if (error) throw error;
-    return NextResponse.json({ series: data });
+
+    // Count episodes per series
+    const epCountMap: Record<string, number> = {};
+    (episodesData || []).forEach((ep: any) => {
+      const seriesId = ep.seasons?.series?.id || ep.seasons?.series_id;
+      if (seriesId) {
+        epCountMap[seriesId] = (epCountMap[seriesId] || 0) + 1;
+      }
+    });
+
+    const enriched = (seriesData || []).map((s: any) => ({
+      ...s,
+      views: (viewsMap as Record<string, number>)[s.id] || 0,
+      actual_episode_count: epCountMap[s.id] || 0,
+    }));
+
+    return NextResponse.json({ series: enriched });
   } catch (err: any) {
     console.error('Error fetching admin series:', err);
     const status = err.message === 'Unauthorized' ? 401 : err.message === 'Forbidden' ? 403 : 500;

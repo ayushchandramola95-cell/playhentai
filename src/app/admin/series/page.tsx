@@ -1,7 +1,44 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Film, Plus, Search, Edit2, Trash2, X, AlertCircle, Image, Key, Maximize2, Minimize2 } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import Link from 'next/link';
+import { 
+  Film, 
+  Plus, 
+  Search, 
+  Edit2, 
+  Trash2, 
+  X, 
+  AlertCircle, 
+  Image, 
+  Key, 
+  Maximize2, 
+  Minimize2,
+  ExternalLink,
+  Eye,
+  Play,
+  Tv,
+  ImageIcon,
+  Sparkles,
+  Building,
+  Calendar,
+  Globe,
+  Clock,
+  CheckCircle2,
+  Wand2,
+  FileText,
+  Check,
+  HelpCircle,
+  RefreshCw,
+  Hash,
+  SlidersHorizontal,
+  BookOpen,
+  Layers,
+  ShieldCheck,
+  Zap,
+  Copy,
+  Info
+} from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import FileUploader from '@/components/FileUploader/FileUploader';
 import { GENRES, STUDIOS, RELEASE_YEARS } from '@/utils/constants';
@@ -27,6 +64,8 @@ interface Series {
   original_language?: string;
   status?: string;
   episode_count_override?: number | null;
+  actual_episode_count?: number;
+  views?: number;
   runtime?: number;
   age_rating?: string;
   content_rating?: string;
@@ -62,18 +101,42 @@ export default function AdminSeriesPage() {
   const [selectedTag, setSelectedTag] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const ITEMS_PER_PAGE = 15;
+  const [itemsPerPage, setItemsPerPage] = useState<number>(10);
 
   // Reset pagination to page 1 on filter or search changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, selectedYear, selectedStudio, selectedTag, selectedStatus]);
+  }, [searchQuery, selectedYear, selectedStudio, selectedTag, selectedStatus, itemsPerPage]);
+
+  const handleFastTogglePublish = async (s: Series, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const nextState = !s.is_published;
+    try {
+      const res = await fetch('/api/admin/series', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: s.id,
+          is_published: nextState,
+        }),
+      });
+      if (res.ok) {
+        setSeriesList((prev) =>
+          prev.map((item) => (item.id === s.id ? { ...item, is_published: nextState } : item))
+        );
+      }
+    } catch (err) {
+      console.error('Failed to toggle publish status:', err);
+    }
+  };
 
 
 
   // Modal form states
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [modalTab, setModalTab] = useState<'general' | 'genres' | 'specs' | 'about_faq' | 'seo' | 'tsv'>('general');
+  const [showTsvDrawer, setShowTsvDrawer] = useState(false);
   const [title, setTitle] = useState('');
   const [slug, setSlug] = useState('');
   const [description, setDescription] = useState('');
@@ -85,6 +148,66 @@ export default function AdminSeriesPage() {
   const [releaseYear, setReleaseYear] = useState<number | ''>('');
   const [isPublished, setIsPublished] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  // Smart Fill Helpers
+  const handleAutoSlug = () => {
+    if (!title) return;
+    const generated = title
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)+/g, '');
+    setSlug(generated);
+  };
+
+  const handleToggleDubbedTag = () => {
+    const current = tagsInput.split(',').map(t => t.trim()).filter(Boolean);
+    const hasDub = current.some(t => t.toLowerCase() === 'dub' || t.toLowerCase() === 'dubbed' || t.toLowerCase() === 'english dub');
+    if (hasDub) {
+      const filtered = current.filter(t => t.toLowerCase() !== 'dub' && t.toLowerCase() !== 'dubbed' && t.toLowerCase() !== 'english dub');
+      setTagsInput(filtered.join(', '));
+    } else {
+      current.push('Dubbed', 'English Dub');
+      setTagsInput(current.join(', '));
+    }
+  };
+
+  const handleToggleSubbedTag = () => {
+    const current = tagsInput.split(',').map(t => t.trim()).filter(Boolean);
+    const hasSub = current.some(t => t.toLowerCase() === 'sub' || t.toLowerCase() === 'english sub' || t.toLowerCase() === 'subbed');
+    if (hasSub) {
+      const filtered = current.filter(t => t.toLowerCase() !== 'sub' && t.toLowerCase() !== 'english sub' && t.toLowerCase() !== 'subbed');
+      setTagsInput(filtered.join(', '));
+    } else {
+      current.push('English Sub', 'Subbed');
+      setTagsInput(current.join(', '));
+    }
+  };
+
+  const handleAutoFillSEO = () => {
+    if (title) {
+      setMetaTitle(`${title} - Watch English Sub HD | Play Hentai`);
+      if (description) {
+        const cleanDesc = description.replace(/<[^>]*>?/gm, '').slice(0, 155).trim() + '...';
+        setMetaDescription(cleanDesc);
+      } else {
+        setMetaDescription(`Watch ${title} with English subtitles in HD. Stream all available episodes, releases, and check out similar anime on Play Hentai.`);
+      }
+    }
+  };
+
+  // Keyboard shortcut Ctrl+S / Cmd+S to save
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's' && isModalOpen) {
+        e.preventDefault();
+        const form = document.getElementById('series-crud-form') as HTMLFormElement;
+        if (form) form.requestSubmit();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isModalOpen]);
 
   // New form states
   const [altTitleJapanese, setAltTitleJapanese] = useState('');
@@ -571,7 +694,7 @@ export default function AdminSeriesPage() {
         faq_override: faqOverride,
         status,
         episode_count_override: episodeCountOverride !== '' ? Number(episodeCountOverride) : null,
-        runtime: runtime !== '' ? Number(runtime) : 24,
+        runtime: runtime !== '' ? Math.ceil(Number(runtime)) : 24,
         age_rating: ageRating,
         content_rating: contentRating,
         country,
@@ -636,6 +759,31 @@ export default function AdminSeriesPage() {
   const [status, setStatus] = useState('ongoing');
   const [episodeCountOverride, setEpisodeCountOverride] = useState<number | ''>('');
   const [runtime, setRuntime] = useState<number | ''>(24);
+  const [autoRuntimeInfo, setAutoRuntimeInfo] = useState<{ isAuto: boolean; episodeCount: number; avgMinutes: number } | null>(null);
+
+  const calculateSeriesEpisodeRuntime = async (seriesId: string, currentRuntime?: number) => {
+    try {
+      const res = await fetch(`/api/admin/episodes?series_id=${seriesId}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      const eps = data.episodes || [];
+      const validEps = eps.filter((ep: any) => ep.duration_seconds && ep.duration_seconds > 0);
+      if (validEps.length > 0) {
+        const totalSecs = validEps.reduce((acc: number, ep: any) => acc + ep.duration_seconds, 0);
+        const avgMins = Math.ceil(totalSecs / validEps.length / 60);
+        setRuntime(avgMins);
+        setAutoRuntimeInfo({ isAuto: true, episodeCount: validEps.length, avgMinutes: avgMins });
+      } else {
+        setAutoRuntimeInfo(null);
+        if (currentRuntime !== undefined && currentRuntime !== null) {
+          setRuntime(Math.ceil(currentRuntime));
+        }
+      }
+    } catch (err) {
+      console.error('Error auto-calculating episode runtime:', err);
+    }
+  };
+
   const [ageRating, setAgeRating] = useState('18+');
   const [contentRating, setContentRating] = useState('explicit');
   const [country, setCountry] = useState('Japan');
@@ -1249,6 +1397,7 @@ export default function AdminSeriesPage() {
     setStatus('ongoing');
     setEpisodeCountOverride('');
     setRuntime(24);
+    setAutoRuntimeInfo(null);
     setAgeRating('18+');
     setContentRating('explicit');
     setCountry('Japan');
@@ -1292,7 +1441,12 @@ export default function AdminSeriesPage() {
     setFaqOverrideInput(s.faq_override ? JSON.stringify(s.faq_override, null, 2) : '[]');
     setStatus(s.status || 'ongoing');
     setEpisodeCountOverride(s.episode_count_override !== null && s.episode_count_override !== undefined ? s.episode_count_override : '');
-    setRuntime(s.runtime !== undefined && s.runtime !== null ? s.runtime : 24);
+    
+    // Set initial rounded runtime and calculate from uploaded episodes
+    setAutoRuntimeInfo(null);
+    setRuntime(s.runtime !== undefined && s.runtime !== null ? Math.ceil(s.runtime) : 24);
+    calculateSeriesEpisodeRuntime(s.id, s.runtime);
+
     setAgeRating(s.age_rating || '18+');
     setContentRating(s.content_rating || 'explicit');
     setCountry(s.country || 'Japan');
@@ -1422,7 +1576,7 @@ export default function AdminSeriesPage() {
       faq_override: faqOverride,
       status,
       episode_count_override: episodeCountOverride !== '' ? Number(episodeCountOverride) : null,
-      runtime: runtime !== '' ? Number(runtime) : 24,
+      runtime: runtime !== '' ? Math.ceil(Number(runtime)) : 24,
       age_rating: ageRating,
       content_rating: contentRating,
       country,
@@ -1532,10 +1686,10 @@ export default function AdminSeriesPage() {
     return matchesSearch && matchesYear && matchesStudio && matchesTag && matchesStatus;
   });
 
-  const totalPages = Math.ceil(filteredList.length / ITEMS_PER_PAGE) || 1;
+  const totalPages = Math.ceil(filteredList.length / itemsPerPage) || 1;
   const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
-  const startIndex = (safeCurrentPage - 1) * ITEMS_PER_PAGE;
-  const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, filteredList.length);
+  const startIndex = (safeCurrentPage - 1) * itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, filteredList.length);
   const paginatedList = filteredList.slice(startIndex, endIndex);
 
   const handlePageChange = (newPage: number) => {
@@ -1596,7 +1750,7 @@ export default function AdminSeriesPage() {
             <input
               type="text"
               className={styles.searchInput}
-              placeholder="Search series by title..."
+              placeholder="Search series by title or slug..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -1729,131 +1883,243 @@ export default function AdminSeriesPage() {
         </div>
       )}
 
+      {/* Quick Filter Status Chips */}
+      <div className={styles.seriesQuickFilterRow}>
+        <button
+          type="button"
+          onClick={() => setSelectedStatus('all')}
+          className={`${styles.quickFilterPill} ${selectedStatus === 'all' ? styles.quickFilterPillActive : ''}`}
+        >
+          <span>All Series ({seriesList.length})</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setSelectedStatus('published')}
+          className={`${styles.quickFilterPill} ${selectedStatus === 'published' ? styles.quickFilterPillActive : ''}`}
+        >
+          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981' }} />
+          <span>Live Published ({seriesList.filter(s => s.is_published).length})</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setSelectedStatus('draft')}
+          className={`${styles.quickFilterPill} ${selectedStatus === 'draft' ? styles.quickFilterPillActive : ''}`}
+        >
+          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#f59e0b' }} />
+          <span>Drafts ({seriesList.filter(s => !s.is_published).length})</span>
+        </button>
+      </div>
+
       {loading ? (
         <div style={{ textAlign: 'center', padding: '3.5rem' }}>
           <div className={styles.loadingSpinner} style={{ border: '2px solid rgba(var(--primary-rgb), 0.3)', borderTopColor: 'var(--primary)', width: '32px', height: '32px', display: 'inline-block' }} />
         </div>
       ) : filteredList.length > 0 ? (
-        <div className={styles.tableContainer}>
-          <table className={styles.adminTable}>
-            <thead>
-              <tr>
-                <th style={{ width: '64px' }}>Cover</th>
-                <th>Title & Meta</th>
-                <th>URL Slug</th>
-                <th>Status</th>
-                <th>Genres & Tags</th>
-                <th>Created</th>
-                <th style={{ textAlign: 'right' }}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {paginatedList.map((s) => {
-                const imageKey = s.poster_image_key || s.cover_image_key || s.banner_image_key;
-                return (
-                  <tr key={s.id}>
-                    <td style={{ width: '64px', padding: '0.75rem 0.5rem 0.75rem 1rem' }}>
-                      {imageKey ? (
-                        <div
-                          onClick={() => handleOpenMediaModal(s)}
-                          className={styles.seriesThumbBox}
-                          title="Manage Media & Images"
-                        >
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={getR2Url(imageKey, s.poster_image_key ? 'poster' : 'cover')}
-                            alt={s.title}
-                            className={styles.seriesThumbImg}
-                            style={{ objectFit: s.poster_image_key && s.poster_position === 'squeeze' ? 'fill' : 'cover' }}
-                          />
-                          <div className={styles.seriesThumbHover}>
-                            <Image size={14} />
-                          </div>
-                        </div>
-                      ) : (
-                        <div
-                          onClick={() => handleOpenMediaModal(s)}
-                          className={styles.seriesThumbBoxEmpty}
-                          title="Upload Cover / Poster Image"
-                        >
-                          <Image size={14} style={{ color: 'var(--primary)', opacity: 0.8 }} />
-                          <span style={{ fontSize: '0.55rem', fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase' }}>Add</span>
-                        </div>
-                      )}
-                    </td>
-                    <td>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
-                        <span style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--foreground-primary)' }}>
-                          {s.title}
+        <div className={styles.seriesCardsList}>
+          {paginatedList.map((s) => {
+            const imageKey = s.poster_image_key || s.cover_image_key || s.banner_image_key;
+            const hasBanner = !!(s.cover_image_key || s.banner_image_key);
+            const galleryCount = Array.isArray(s.image_library) ? s.image_library.length : 0;
+            const totalEpisodes = s.actual_episode_count || s.episode_count_override || 0;
+
+            return (
+              <div 
+                key={s.id} 
+                className={`${styles.seriesCardItem} ${s.is_published ? styles.seriesCardItemPublished : styles.seriesCardItemDraft}`}
+              >
+                {/* 1. Large High-Res Poster Thumbnail */}
+                <div
+                  onClick={() => handleOpenMediaModal(s)}
+                  className={styles.seriesCardThumb}
+                  title="Click to Manage Media, Posters, and Backdrops"
+                >
+                  {imageKey ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={getR2Url(imageKey, s.poster_image_key ? 'poster' : 'cover')}
+                      alt={s.title}
+                    />
+                  ) : (
+                    <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '4px', background: 'rgba(168, 85, 247, 0.06)' }}>
+                      <Image size={22} style={{ color: 'var(--primary)', opacity: 0.8 }} />
+                      <span style={{ fontSize: '0.62rem', fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase' }}>Add Image</span>
+                    </div>
+                  )}
+
+                  <div className={styles.seriesCardThumbHover}>
+                    <Image size={18} />
+                    <span style={{ fontSize: '0.65rem', fontWeight: 800 }}>Media</span>
+                  </div>
+                </div>
+
+                {/* 2. Rich Series Content Column */}
+                <div className={styles.seriesCardContent}>
+                  
+                  {/* Top Row: Status Badges, Specs, and Metrics */}
+                  <div className={styles.seriesCardTopRow}>
+                    <div className={styles.seriesCardMetaBadges}>
+                      {/* Live 1-Click Fast Toggle Button */}
+                      <button
+                        type="button"
+                        onClick={(e) => handleFastTogglePublish(s, e)}
+                        className={styles.badge}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.4rem',
+                          fontSize: '0.74rem',
+                          fontWeight: 800,
+                          padding: '0.25rem 0.8rem',
+                          borderRadius: '20px',
+                          background: s.is_published ? 'rgba(16, 185, 129, 0.15)' : 'rgba(245, 158, 11, 0.15)',
+                          color: s.is_published ? '#10b981' : '#f59e0b',
+                          border: s.is_published ? '1px solid rgba(16, 185, 129, 0.35)' : '1px solid rgba(245, 158, 11, 0.35)',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease'
+                        }}
+                        title="Click to instantly toggle Live / Draft publication status"
+                      >
+                        <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: s.is_published ? '#10b981' : '#f59e0b', boxShadow: s.is_published ? '0 0 8px #10b981' : 'none' }} />
+                        <span>{s.is_published ? 'Published (Live)' : 'Draft (Hidden)'}</span>
+                      </button>
+
+                      {/* State Badge */}
+                      <span
+                        className={styles.badge}
+                        style={{
+                          textTransform: 'capitalize',
+                          fontSize: '0.72rem',
+                          fontWeight: 700,
+                          padding: '0.2rem 0.6rem',
+                          borderRadius: '12px',
+                          background: s.status === 'completed' ? 'rgba(59, 130, 246, 0.12)' : s.status === 'upcoming' ? 'rgba(168, 85, 247, 0.12)' : 'rgba(255, 255, 255, 0.06)',
+                          color: s.status === 'completed' ? '#60a5fa' : s.status === 'upcoming' ? '#c084fc' : 'var(--foreground-muted)'
+                        }}
+                      >
+                        {s.status || 'ongoing'}
+                      </span>
+
+                      {/* 16:9 Banner Ready Badge (only if available) */}
+                      {hasBanner && (
+                        <span style={{ fontSize: '0.68rem', fontWeight: 800, background: 'rgba(16, 185, 129, 0.12)', color: '#10b981', border: '1px solid rgba(16, 185, 129, 0.25)', padding: '0.15rem 0.55rem', borderRadius: '12px' }} title="16:9 Banner Backdrops Ready">
+                          🖼️ 16:9 Banner
                         </span>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap', fontSize: '0.75rem', color: 'var(--foreground-muted)' }}>
-                          {s.release_year && (
-                            <span style={{ background: 'rgba(255,255,255,0.06)', padding: '0.05rem 0.4rem', borderRadius: '4px', fontWeight: 600, color: 'var(--foreground-secondary)' }}>
-                              {s.release_year}
-                            </span>
-                          )}
-                          {s.studio && (
-                            <span style={{ color: 'var(--foreground-secondary)', fontWeight: 500 }}>
-                              {s.studio}
-                            </span>
-                          )}
-                          {s.episode_count_override ? (
-                            <span style={{ color: 'var(--foreground-muted)' }}>• {s.episode_count_override} Eps</span>
-                          ) : null}
-                        </div>
+                      )}
+
+                      {/* Gallery Count */}
+                      {galleryCount > 0 && (
+                        <span style={{ fontSize: '0.68rem', fontWeight: 700, background: 'rgba(168, 85, 247, 0.12)', color: '#c084fc', border: '1px solid rgba(168, 85, 247, 0.25)', padding: '0.15rem 0.55rem', borderRadius: '12px' }}>
+                          +{galleryCount} Gallery Imgs
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Episodes & Views Metrics */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
+                      <Link 
+                        href={`/admin/episodes?seriesId=${s.id}`}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.35rem',
+                          fontSize: '0.78rem',
+                          fontWeight: 800,
+                          padding: '0.25rem 0.75rem',
+                          borderRadius: '20px',
+                          background: totalEpisodes > 0 ? 'rgba(56, 189, 248, 0.12)' : 'rgba(255, 255, 255, 0.05)',
+                          color: totalEpisodes > 0 ? '#38bdf8' : 'var(--foreground-muted)',
+                          border: totalEpisodes > 0 ? '1px solid rgba(56, 189, 248, 0.3)' : '1px solid var(--border)',
+                          textDecoration: 'none',
+                          transition: 'all 0.2s ease'
+                        }}
+                        title="Manage & Upload Episodes for this series"
+                      >
+                        <Film size={13} />
+                        <span>{totalEpisodes} {totalEpisodes === 1 ? 'Episode' : 'Episodes'}</span>
+                      </Link>
+
+                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.78rem', color: '#c084fc', fontWeight: 700, background: 'rgba(168, 85, 247, 0.1)', border: '1px solid rgba(168, 85, 247, 0.25)', padding: '0.25rem 0.75rem', borderRadius: '20px' }}>
+                        <Eye size={13} />
+                        <span>{(s.views || 0).toLocaleString()} Views</span>
                       </div>
-                    </td>
-                    <td>
-                      <code style={{ fontSize: '0.78rem', background: 'rgba(0,0,0,0.3)', padding: '0.2rem 0.55rem', borderRadius: '6px', border: '1px solid var(--border)', color: '#a7f3d0' }}>
+                    </div>
+                  </div>
+
+                  {/* Middle Row: Title, Japanese Aliases, and Link */}
+                  <div>
+                    <div className={styles.seriesCardTitleRow}>
+                      <span className={styles.seriesCardTitle}>
+                        {s.title}
+                      </span>
+                      <a 
+                        href={`/series/${s.slug}`} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        style={{ color: '#38bdf8', opacity: 0.8, display: 'inline-flex', alignItems: 'center', gap: '0.2rem', fontSize: '0.78rem', textDecoration: 'none', fontWeight: 700 }}
+                        title="Open Live Public Show Page in new tab"
+                      >
+                        <span>View Page</span>
+                        <ExternalLink size={12} />
+                      </a>
+                    </div>
+
+                    {/* Alternate Japanese & Romaji Subtitles */}
+                    {(s.alt_title_romaji || s.alt_title_japanese) && (
+                      <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.15rem' }}>
+                        {s.alt_title_romaji && <span>Romaji: {s.alt_title_romaji}</span>}
+                        {s.alt_title_romaji && s.alt_title_japanese && <span>•</span>}
+                        {s.alt_title_japanese && <span style={{ color: '#64748b' }}>{s.alt_title_japanese}</span>}
+                      </div>
+                    )}
+
+                    {/* Synopsis Preview */}
+                    {s.description && (
+                      <p className={styles.seriesCardSynopsis} style={{ marginTop: '0.35rem' }}>
+                        {s.description}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Bottom Row: Studio, Specs, Tag Chips & Action Buttons */}
+                  <div className={styles.seriesCardBottomRow}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
+                      {/* Studio */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.8rem', fontWeight: 700, color: 'var(--foreground-primary)' }}>
+                        <Building size={13} style={{ color: 'var(--primary)' }} />
+                        <span>{s.studio || 'Studio N/A'}</span>
+                      </div>
+
+                      {/* Year */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.76rem', color: 'var(--foreground-secondary)' }}>
+                        <Calendar size={12} />
+                        <span>{s.release_year || 'Year N/A'}</span>
+                      </div>
+
+                      {/* Specs */}
+                      <span style={{ background: 'var(--primary)', color: '#fff', fontSize: '0.68rem', fontWeight: 900, padding: '0.1rem 0.45rem', borderRadius: '4px' }}>
+                        HD
+                      </span>
+                      <span style={{ background: 'rgba(255,255,255,0.06)', color: 'var(--foreground-secondary)', fontSize: '0.7rem', fontWeight: 700, padding: '0.1rem 0.45rem', borderRadius: '4px' }}>
+                        {s.runtime || 24}m
+                      </span>
+                      <span style={{ background: 'rgba(239, 68, 68, 0.12)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.25)', fontSize: '0.68rem', fontWeight: 800, padding: '0.1rem 0.45rem', borderRadius: '4px' }}>
+                        {s.age_rating || '18+'}
+                      </span>
+
+                      {/* Slug */}
+                      <code style={{ fontSize: '0.72rem', background: 'rgba(0,0,0,0.35)', padding: '0.1rem 0.45rem', borderRadius: '4px', border: '1px solid var(--border)', color: '#a7f3d0' }}>
                         /{s.slug}
                       </code>
-                    </td>
-                    <td>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', alignItems: 'flex-start' }}>
-                        <span 
-                          className={styles.badge} 
-                          style={{ 
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '0.35rem',
-                            fontSize: '0.72rem',
-                            fontWeight: 700,
-                            padding: '0.2rem 0.65rem',
-                            borderRadius: '20px',
-                            background: s.is_published ? 'rgba(16, 185, 129, 0.12)' : 'rgba(245, 158, 11, 0.12)',
-                            color: s.is_published ? '#10b981' : '#f59e0b',
-                            border: s.is_published ? '1px solid rgba(16, 185, 129, 0.25)' : '1px solid rgba(245, 158, 11, 0.25)'
-                          }}
-                        >
-                          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: s.is_published ? '#10b981' : '#f59e0b', boxShadow: s.is_published ? '0 0 6px #10b981' : 'none' }} />
-                          {s.is_published ? 'Published' : 'Draft'}
-                        </span>
 
-                        <span 
-                          className={styles.badge} 
-                          style={{ 
-                            textTransform: 'capitalize',
-                            fontSize: '0.7rem',
-                            fontWeight: 600,
-                            padding: '0.15rem 0.55rem',
-                            borderRadius: '12px',
-                            background: s.status === 'completed' ? 'rgba(59, 130, 246, 0.1)' : s.status === 'upcoming' ? 'rgba(168, 85, 247, 0.1)' : 'rgba(255, 255, 255, 0.06)',
-                            color: s.status === 'completed' ? '#60a5fa' : s.status === 'upcoming' ? '#c084fc' : 'var(--foreground-muted)'
-                          }}
-                        >
-                          {s.status || 'ongoing'}
-                        </span>
-                      </div>
-                    </td>
-                    <td>
-                      <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap', maxWidth: '260px' }}>
-                        {s.tags?.slice(0, 4).map((tag) => (
+                      {/* Tags */}
+                      <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
+                        {(s.tags || []).slice(0, 4).map((tag) => (
                           <span 
                             key={tag} 
                             style={{ 
                               fontSize: '0.68rem', 
                               fontWeight: 600,
-                              padding: '0.15rem 0.45rem', 
+                              padding: '0.12rem 0.45rem', 
                               background: 'rgba(255,255,255,0.05)', 
                               border: '1px solid var(--border)',
                               borderRadius: '6px',
@@ -1866,39 +2132,55 @@ export default function AdminSeriesPage() {
                         {s.tags && s.tags.length > 4 && (
                           <span 
                             title={s.tags.slice(4).join(', ')} 
-                            style={{ fontSize: '0.68rem', padding: '0.15rem 0.4rem', background: 'var(--surface-hover)', borderRadius: '6px', color: 'var(--primary)', fontWeight: 700, cursor: 'pointer' }}
+                            style={{ fontSize: '0.68rem', padding: '0.12rem 0.4rem', background: 'var(--surface-hover)', borderRadius: '6px', color: 'var(--primary)', fontWeight: 800, cursor: 'pointer' }}
                           >
                             +{s.tags.length - 4}
                           </span>
                         )}
                       </div>
-                    </td>
-                    <td style={{ fontSize: '0.8rem', color: 'var(--foreground-muted)', whiteSpace: 'nowrap' }}>
-                      {new Date(s.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
-                    </td>
-                    <td style={{ textAlign: 'right' }}>
-                      <div className={styles.actionBtnGroup} style={{ justifyContent: 'flex-end' }}>
-                        <button 
-                          onClick={() => handleOpenEdit(s)} 
-                          className={styles.editActionBtn} 
-                          title="Edit Series Details"
-                        >
-                          <Edit2 size={14} />
-                        </button>
-                        <button 
-                          onClick={() => handleDelete(s.id)} 
-                          className={styles.deleteActionBtn} 
-                          title="Delete Series"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className={styles.seriesCardActions}>
+                      <a
+                        href={`/series/${s.slug}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={styles.editActionBtn}
+                        style={{ color: '#38bdf8', borderColor: 'rgba(56, 189, 248, 0.25)' }}
+                        title="View Live Public Show Page in new tab"
+                      >
+                        <ExternalLink size={15} />
+                      </a>
+                      <Link
+                        href={`/admin/episodes?seriesId=${s.id}`}
+                        className={styles.editActionBtn}
+                        style={{ color: '#c084fc', borderColor: 'rgba(168, 85, 247, 0.25)' }}
+                        title="Manage Show Episodes"
+                      >
+                        <Film size={15} />
+                      </Link>
+                      <button 
+                        onClick={() => handleOpenEdit(s)} 
+                        className={styles.editActionBtn} 
+                        title="Edit Series Metadata"
+                      >
+                        <Edit2 size={15} />
+                      </button>
+                      <button 
+                        onClick={() => handleDelete(s.id)} 
+                        className={styles.deleteActionBtn} 
+                        title="Delete Series"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            );
+          })}
         </div>
       ) : (
         <div className={styles.emptyState}>
@@ -1907,101 +2189,184 @@ export default function AdminSeriesPage() {
       )}
 
       {/* Pagination Controls */}
-      {filteredList.length > 0 && totalPages > 1 && (
-        <div className={styles.paginationBar}>
-          <div className={styles.paginationInfo}>
-            Showing {startIndex + 1}–{endIndex} of {filteredList.length} titles (Page {safeCurrentPage} of {totalPages})
+      {filteredList.length > 0 && (
+        <div className={styles.paginationBar} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginTop: '1.5rem', padding: '1rem 0', borderTop: '1px solid var(--border)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+            <div className={styles.paginationInfo}>
+              Showing {startIndex + 1}–{endIndex} of {filteredList.length} titles (Page {safeCurrentPage} of {totalPages})
+            </div>
+
+            {/* Per-Page Limit Dropdown */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'var(--surface-hover)', border: '1px solid var(--border)', padding: '0.25rem 0.65rem', borderRadius: '8px' }}>
+              <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--foreground-muted)' }}>Show:</span>
+              <select
+                value={itemsPerPage}
+                onChange={(e) => setItemsPerPage(parseInt(e.target.value, 10))}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'var(--primary)',
+                  fontWeight: 800,
+                  fontSize: '0.8rem',
+                  outline: 'none',
+                  cursor: 'pointer'
+                }}
+              >
+                <option value={10} style={{ background: '#1e293b' }}>10 / page</option>
+                <option value={20} style={{ background: '#1e293b' }}>20 / page</option>
+                <option value={50} style={{ background: '#1e293b' }}>50 / page</option>
+                <option value={100} style={{ background: '#1e293b' }}>100 / page</option>
+                <option value={1000} style={{ background: '#1e293b' }}>All</option>
+              </select>
+            </div>
           </div>
 
-          <div className={styles.paginationNav}>
-            <button
-              className={styles.pageNavBtn}
-              disabled={safeCurrentPage <= 1}
-              onClick={() => handlePageChange(safeCurrentPage - 1)}
-            >
-              Prev
-            </button>
+          {totalPages > 1 && (
+            <div className={styles.paginationNav}>
+              <button
+                className={styles.pageNavBtn}
+                disabled={safeCurrentPage <= 1}
+                onClick={() => handlePageChange(safeCurrentPage - 1)}
+              >
+                Prev
+              </button>
 
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => {
-              if (
-                totalPages <= 7 ||
-                pageNum === 1 ||
-                pageNum === totalPages ||
-                (pageNum >= safeCurrentPage - 2 && pageNum <= safeCurrentPage + 2)
-              ) {
-                return (
-                  <button
-                    key={pageNum}
-                    className={`${styles.pageNumberBtn} ${pageNum === safeCurrentPage ? styles.pageNumberActive : ''}`}
-                    onClick={() => handlePageChange(pageNum)}
-                  >
-                    {pageNum}
-                  </button>
-                );
-              } else if (
-                pageNum === safeCurrentPage - 3 ||
-                pageNum === safeCurrentPage + 3
-              ) {
-                return (
-                  <span key={pageNum} style={{ color: 'var(--foreground-muted)', padding: '0 0.2rem' }}>
-                    ...
-                  </span>
-                );
-              }
-              return null;
-            })}
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => {
+                if (
+                  totalPages <= 7 ||
+                  pageNum === 1 ||
+                  pageNum === totalPages ||
+                  (pageNum >= safeCurrentPage - 2 && pageNum <= safeCurrentPage + 2)
+                ) {
+                  return (
+                    <button
+                      key={pageNum}
+                      className={`${styles.pageNumberBtn} ${pageNum === safeCurrentPage ? styles.pageNumberActive : ''}`}
+                      onClick={() => handlePageChange(pageNum)}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                } else if (
+                  pageNum === safeCurrentPage - 3 ||
+                  pageNum === safeCurrentPage + 3
+                ) {
+                  return (
+                    <span key={pageNum} style={{ color: 'var(--foreground-muted)', padding: '0 0.2rem' }}>
+                      ...
+                    </span>
+                  );
+                }
+                return null;
+              })}
 
-            <button
-              className={styles.pageNavBtn}
-              disabled={safeCurrentPage >= totalPages}
-              onClick={() => handlePageChange(safeCurrentPage + 1)}
-            >
-              Next
-            </button>
-          </div>
+              <button
+                className={styles.pageNavBtn}
+                disabled={safeCurrentPage >= totalPages}
+                onClick={() => handlePageChange(safeCurrentPage + 1)}
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
       )}
-
 
       {/* CRUD Modal */}
       {isModalOpen && (
         <div className={styles.modalOverlay}>
           <div className={`${styles.modalContent} ${styles.modalFullscreen}`}>
-            <div className={styles.modalHeader}>
-              <h3>{editingId ? 'Edit Series Meta' : 'Add New Series'}</h3>
-              <button
-                onClick={handleCloseModal}
-                style={{ position: 'absolute', top: '2rem', right: '2rem', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--foreground-secondary)' }}
-              >
-                <X size={20} />
-              </button>
+            {/* Modal Header */}
+            <div className={styles.modalHeader} style={{ marginBottom: '0.8rem', paddingBottom: '0.8rem', borderBottom: '1px solid #23283b' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+                <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, color: 'var(--foreground-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <Wand2 size={20} style={{ color: 'var(--primary)' }} />
+                  <span>{editingId ? `Edit Series: ${title || 'Untitled'}` : 'Add New Series to Catalog'}</span>
+                </h3>
+                {editingId && slug && (
+                  <code style={{ fontSize: '0.76rem', background: '#131722', padding: '0.15rem 0.55rem', borderRadius: '6px', border: '1px solid #23283b', color: '#a7f3d0' }}>
+                    /{slug}
+                  </code>
+                )}
+                <button 
+                  type="button"
+                  onClick={() => setIsPublished((prev) => !prev)}
+                  style={{ 
+                    fontSize: '0.72rem', 
+                    fontWeight: 800, 
+                    padding: '0.25rem 0.75rem', 
+                    borderRadius: '20px', 
+                    background: isPublished ? '#064e3b' : '#78350f',
+                    color: isPublished ? '#6ee7b7' : '#fcd34d',
+                    border: isPublished ? '1px solid #059669' : '1px solid #d97706',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.35rem'
+                  }}
+                  title="Click to toggle between Published and Draft"
+                >
+                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: isPublished ? '#10b981' : '#f59e0b', boxShadow: isPublished ? '0 0 8px #10b981' : 'none' }} />
+                  <span>{isPublished ? 'Live on Catalog' : 'Draft (Hidden)'}</span>
+                </button>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowTsvDrawer((prev) => !prev)}
+                  className={`${styles.modalTabBtn} ${showTsvDrawer ? styles.modalTabBtnActive : ''}`}
+                  title="Quick-paste 17-column TSV metadata from ChatGPT or Google Sheets"
+                >
+                  <FileText size={14} />
+                  <span>{showTsvDrawer ? 'Hide TSV Drawer' : '📋 TSV Auto-Fill'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsKeyModalOpen(true)}
+                  className={styles.modalTabBtn}
+                  title="Manage Gemini AI API Keys"
+                >
+                  <Key size={14} />
+                  <span>AI Keys ({customKeys.length})</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCloseModal}
+                  style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--foreground-secondary)', padding: '0.2rem' }}
+                >
+                  <X size={22} />
+                </button>
+              </div>
             </div>
 
             {error && (
-              <div className={styles.errorAlert} style={{ marginBottom: '1.5rem' }}>
+              <div className={styles.errorAlert} style={{ marginBottom: '1rem' }}>
                 <AlertCircle size={16} />
                 <span>{error}</span>
               </div>
             )}
 
-            <form onSubmit={handleSave}>
-              {/* TSV Metadata Paste & Auto-Fill Parser */}
+            {/* Collapsible TSV Auto-Fill Drawer */}
+            {showTsvDrawer && (
               <div style={{
-                background: 'var(--surface-hover)',
-                border: '1px solid var(--border)',
-                borderRadius: '12px',
+                background: '#131722',
+                border: '1px solid #23283b',
+                borderRadius: '14px',
                 padding: '1.25rem',
-                marginBottom: '1.5rem',
+                marginBottom: '1rem',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '0.8rem'
+                gap: '0.75rem',
+                flexShrink: 0
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <h4 style={{ margin: 0, fontSize: '0.9rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--primary)' }}>
-                    📋 Paste Metadata (TSV Auto-Fill)
+                  <h4 style={{ margin: 0, fontSize: '0.85rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <FileText size={16} />
+                    <span>Paste 17-Column TSV Metadata Row</span>
                   </h4>
                   <span style={{ fontSize: '0.75rem', color: 'var(--foreground-muted)' }}>
-                    Copy a 17-column TSV row from ChatGPT/Sheets and paste below
+                    Copy row from ChatGPT/Sheets (Title, Slug, Studio, Tags, Year, Alt Titles, etc.)
                   </span>
                 </div>
 
@@ -2011,13 +2376,13 @@ export default function AdminSeriesPage() {
                   onChange={(e) => setTsvInput(e.target.value)}
                   style={{
                     width: '100%',
-                    height: '80px',
+                    height: '70px',
                     borderRadius: '8px',
-                    border: '1px solid var(--border)',
-                    background: 'var(--background)',
-                    color: 'var(--foreground)',
-                    padding: '0.6rem 0.8rem',
-                    fontSize: '0.82rem',
+                    border: '1px solid #282e44',
+                    background: '#181c2b',
+                    color: '#ffffff',
+                    padding: '0.5rem 0.75rem',
+                    fontSize: '0.8rem',
                     fontFamily: 'monospace',
                     resize: 'vertical',
                     outline: 'none'
@@ -2031,139 +2396,35 @@ export default function AdminSeriesPage() {
                   </div>
                 )}
 
-                {parsedPreview && (
-                  <div style={{
-                    background: 'var(--background)',
-                    border: '1px solid var(--border)',
-                    borderRadius: '8px',
-                    padding: '0.8rem',
-                    fontSize: '0.8rem'
-                  }}>
-                    <div style={{ fontWeight: 700, marginBottom: '0.5rem', color: '#10b981' }}>
+                {parsedPreview ? (
+                  <div style={{ background: '#181c2b', border: '1px solid #282e44', borderRadius: '8px', padding: '0.75rem', fontSize: '0.8rem' }}>
+                    <div style={{ fontWeight: 700, marginBottom: '0.4rem', color: '#10b981' }}>
                       ✓ 17 / 17 fields detected successfully!
                     </div>
-                    
-                    <div style={{
-                      display: 'grid',
-                      gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-                      gap: '0.4rem',
-                      maxHeight: '120px',
-                      overflowY: 'auto',
-                      paddingRight: '0.5rem'
-                    }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '0.35rem', maxHeight: '90px', overflowY: 'auto' }}>
                       {Object.entries(parsedPreview).map(([key, val]) => (
-                        <div key={key} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                        <div key={key} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.74rem' }}>
                           <span style={{ color: '#10b981', fontWeight: 'bold' }}>✓</span>
-                          <span style={{ color: 'var(--foreground-muted)' }}>
-                            {formatFieldLabel(key)}:
-                          </span>
-                          <span style={{
-                            fontWeight: 600,
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
-                            maxWidth: '120px'
-                          }} title={String(val)}>
+                          <span style={{ color: 'var(--foreground-muted)' }}>{formatFieldLabel(key)}:</span>
+                          <span style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '120px' }} title={String(val)}>
                             {String(val) || <span style={{ color: 'var(--foreground-muted)', fontStyle: 'italic' }}>empty</span>}
                           </span>
                         </div>
                       ))}
                     </div>
-
-                    <div style={{ display: 'flex', gap: '0.8rem', marginTop: '0.8rem', justifyContent: 'flex-end' }}>
-                      <button
-                        type="button"
-                        onClick={resetTsvParser}
-                        style={{
-                          background: 'transparent',
-                          border: '1px solid var(--border)',
-                          color: 'var(--foreground)',
-                          padding: '0.4rem 1rem',
-                          borderRadius: '30px',
-                          fontSize: '0.78rem',
-                          cursor: 'pointer'
-                        }}
-                      >
+                    <div style={{ display: 'flex', gap: '0.8rem', marginTop: '0.6rem', justifyContent: 'flex-end' }}>
+                      <button type="button" onClick={resetTsvParser} className={styles.cancelBtn} style={{ padding: '0.35rem 0.9rem', fontSize: '0.76rem' }}>
                         Cancel
                       </button>
-                      <button
-                        type="button"
-                        onClick={handleApplyMetadata}
-                        style={{
-                          background: 'var(--primary)',
-                          color: 'white',
-                          border: 'none',
-                          padding: '0.4rem 1.2rem',
-                          borderRadius: '30px',
-                          fontSize: '0.78rem',
-                          fontWeight: 700,
-                          cursor: 'pointer',
-                          boxShadow: '0 2px 8px rgba(168, 85, 247, 0.2)'
-                        }}
-                      >
+                      <button type="button" onClick={handleApplyMetadata} className={styles.saveBtn} style={{ padding: '0.35rem 1.1rem', fontSize: '0.76rem' }}>
                         Apply to Form
                       </button>
                     </div>
                   </div>
-                )}
-
-                {!parsedPreview && (
-                  <div style={{ display: 'flex', gap: '0.8rem', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                ) : (
+                  <div style={{ display: 'flex', gap: '0.6rem', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
                     {tsvInput && (
-                      <button
-                        type="button"
-                        onClick={handleDownloadTSV}
-                        title="Download raw TSV as file"
-                        style={{
-                          background: 'rgba(59, 130, 246, 0.1)',
-                          border: '1px solid rgba(59, 130, 246, 0.2)',
-                          color: '#3b82f6',
-                          padding: '0.45rem 1.2rem',
-                          borderRadius: '30px',
-                          fontSize: '0.78rem',
-                          fontWeight: 700,
-                          cursor: 'pointer'
-                        }}
-                      >
-                        Download Mapped TSV
-                      </button>
-                    )}
-
-                    {tsvInput && editingId && (
-                      <button
-                        type="button"
-                        onClick={handleSaveTsvOnly}
-                        disabled={savingTsv}
-                        style={{
-                          background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                          border: 'none',
-                          color: 'white',
-                          padding: '0.45rem 1.5rem',
-                          borderRadius: '30px',
-                          fontSize: '0.78rem',
-                          fontWeight: 700,
-                          cursor: 'pointer',
-                          boxShadow: '0 2px 8px rgba(16, 185, 129, 0.2)'
-                        }}
-                      >
-                        {savingTsv ? 'Saving...' : 'Update TSV in DB'}
-                      </button>
-                    )}
-
-                    {tsvInput && (
-                      <button
-                        type="button"
-                        onClick={resetTsvParser}
-                        style={{
-                          background: 'transparent',
-                          border: '1px solid var(--border)',
-                          color: 'var(--foreground)',
-                          padding: '0.45rem 1.2rem',
-                          borderRadius: '30px',
-                          fontSize: '0.78rem',
-                          cursor: 'pointer'
-                        }}
-                      >
+                      <button type="button" onClick={resetTsvParser} className={styles.cancelBtn} style={{ padding: '0.35rem 0.9rem', fontSize: '0.76rem' }}>
                         Clear
                       </button>
                     )}
@@ -2171,748 +2432,892 @@ export default function AdminSeriesPage() {
                       type="button"
                       onClick={handleParseMetadata}
                       disabled={!tsvInput.trim()}
-                      style={{
-                        background: tsvInput.trim() ? 'var(--primary)' : 'var(--border)',
-                        color: tsvInput.trim() ? 'white' : 'var(--foreground-muted)',
-                        border: 'none',
-                        padding: '0.45rem 1.5rem',
-                        borderRadius: '30px',
-                        fontSize: '0.78rem',
-                        fontWeight: 700,
-                        cursor: tsvInput.trim() ? 'pointer' : 'default',
-                        boxShadow: tsvInput.trim() ? '0 2px 8px rgba(168, 85, 247, 0.2)' : 'none'
-                      }}
+                      className={styles.saveBtn}
+                      style={{ padding: '0.35rem 1.25rem', fontSize: '0.76rem' }}
                     >
                       Parse Metadata
                     </button>
                   </div>
                 )}
               </div>
+            )}
 
-              <div className={styles.formGridWidescreen}>
-                {/* Column 1: Core details & Media Uploads */}
-                <div>
-                  <div className={styles.formGroup}>
-                    <label>Series Title</label>
-                    <input
-                      type="text"
-                      required
-                      className={styles.inputField}
-                      placeholder="e.g. Cyberpunk Odyssey"
-                      value={title}
-                      onChange={handleTitleChange}
-                    />
-                  </div>
+            {/* Modal Navigation Tabs Bar */}
+            <div className={styles.modalNavTabs}>
+              <button
+                type="button"
+                onClick={() => setModalTab('general')}
+                className={`${styles.modalTabBtn} ${modalTab === 'general' ? styles.modalTabBtnActive : ''}`}
+              >
+                <Film size={15} />
+                <span>1. General & Story</span>
+              </button>
 
-                   <div className={styles.formGroup}>
-                     <label>URL Slug</label>
-                     <input
-                       type="text"
-                       required
-                       className={styles.inputField}
-                       placeholder="e.g. cyberpunk-odyssey"
-                       value={slug}
-                       onChange={(e) => setSlug(e.target.value)}
-                     />
-                   </div>
+              <button
+                type="button"
+                onClick={() => setModalTab('genres')}
+                className={`${styles.modalTabBtn} ${modalTab === 'genres' ? styles.modalTabBtnActive : ''}`}
+              >
+                <Hash size={15} />
+                <span>2. Genres & Tags</span>
+              </button>
 
-                   <div className={styles.formGroup}>
-                      <label>Synopsis Description (Story / Plot Summary)</label>
-                      <textarea
-                        required
-                        className={styles.textareaField}
-                        placeholder="Write a comprehensive plot summary (recommended: 350-600 words mentioning story, main characters, themes, and subbed/dubbed info naturally)..."
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                        style={{ height: '240px', resize: 'vertical' }}
-                      />
-                    </div>
+              <button
+                type="button"
+                onClick={() => setModalTab('specs')}
+                className={`${styles.modalTabBtn} ${modalTab === 'specs' ? styles.modalTabBtnActive : ''}`}
+              >
+                <SlidersHorizontal size={15} />
+                <span>3. Specifications</span>
+              </button>
 
-                  <div className={styles.formRow} style={{ marginBottom: '1.2rem', display: 'flex', gap: '1rem' }}>
-                    <div className={styles.formGroup} style={{ flex: 1 }}>
-                      <label>Release Year</label>
-                      <select
-                        value={releaseYear}
-                        onChange={(e) => setReleaseYear(e.target.value ? Number(e.target.value) : '')}
-                        style={{ width: '100%', height: '42px', padding: '0 0.75rem', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--foreground-primary)', fontWeight: 500, outline: 'none' }}
-                      >
-                        <option value="">-- Select Year --</option>
-                        {RELEASE_YEARS.map((y) => (
-                          <option key={y} value={y}>{y}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
+              <button
+                type="button"
+                onClick={() => setModalTab('about_faq')}
+                className={`${styles.modalTabBtn} ${modalTab === 'about_faq' ? styles.modalTabBtnActive : ''}`}
+              >
+                <BookOpen size={15} />
+                <span>4. About Wiki & FAQ</span>
+              </button>
 
-                  <div className={styles.formGroup} style={{ marginBottom: '1.2rem' }}>
-                    <label>Production Studios (comma-separated)</label>
-                    <input
-                      type="text"
-                      className={styles.inputField}
-                      placeholder="e.g. PoRO, Bunnywalker"
-                      value={studio}
-                      onChange={(e) => setStudio(e.target.value)}
-                    />
-                    <div style={{ marginTop: '0.6rem', display: 'flex', gap: '0.4rem', flexWrap: 'wrap', maxHeight: '110px', overflowY: 'auto', padding: '0.5rem', border: '1px solid var(--border)', borderRadius: '8px', background: 'var(--surface-hover)' }}>
-                      {dynamicStudios.map((s) => {
-                        const currentStudios = studio.split(',').map(name => name.trim().toLowerCase());
-                        const isSelected = currentStudios.includes(s.toLowerCase());
-                        return (
-                          <button
-                            key={s}
-                            type="button"
-                            onClick={() => {
-                              const cleaned = studio.split(',').map(name => name.trim()).filter(name => name.length > 0);
-                              if (isSelected) {
-                                const filtered = cleaned.filter(name => name.toLowerCase() !== s.toLowerCase());
-                                setStudio(filtered.join(', '));
-                              } else {
-                                cleaned.push(s);
-                                setStudio(cleaned.join(', '));
-                              }
-                            }}
-                            style={{
-                              fontSize: '0.72rem',
-                              padding: '0.2rem 0.5rem',
-                              borderRadius: '4px',
-                              border: 'none',
-                              cursor: 'pointer',
-                              background: isSelected ? 'var(--primary)' : 'var(--surface)',
-                              color: isSelected ? '#ffffff' : 'var(--foreground-primary)',
-                              transition: 'all 0.15s ease'
-                            }}
-                          >
-                            {s}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
+              <button
+                type="button"
+                onClick={() => setModalTab('seo')}
+                className={`${styles.modalTabBtn} ${modalTab === 'seo' ? styles.modalTabBtnActive : ''}`}
+              >
+                <Globe size={15} />
+                <span>5. SEO & Google SERP</span>
+              </button>
+            </div>
 
-                  <div className={styles.formGroup} style={{ marginBottom: '1.2rem' }}>
-                    <label>Tags / Genres (comma-separated)</label>
-                    <input
-                      type="text"
-                      className={styles.inputField}
-                      placeholder="e.g. Sci-Fi, Action, Cyberpunk"
-                      value={tagsInput}
-                      onChange={(e) => setTagsInput(e.target.value)}
-                    />
-                    <div style={{ marginTop: '0.6rem', display: 'flex', gap: '0.4rem', flexWrap: 'wrap', maxHeight: '110px', overflowY: 'auto', padding: '0.5rem', border: '1px solid var(--border)', borderRadius: '8px', background: 'var(--surface-hover)' }}>
-                      {dynamicTags.map((genre) => {
-                        const currentTags = tagsInput.split(',').map(t => t.trim().toLowerCase());
-                        const isSelected = currentTags.includes(genre.toLowerCase());
-                        return (
-                          <button
-                            key={genre}
-                            type="button"
-                            onClick={() => {
-                              const cleaned = tagsInput.split(',').map(t => t.trim()).filter(t => t.length > 0);
-                              if (isSelected) {
-                                const filtered = cleaned.filter(t => t.toLowerCase() !== genre.toLowerCase());
-                                setTagsInput(filtered.join(', '));
-                              } else {
-                                cleaned.push(genre);
-                                setTagsInput(cleaned.join(', '));
-                              }
-                            }}
-                            style={{
-                              fontSize: '0.72rem',
-                              padding: '0.2rem 0.5rem',
-                              borderRadius: '4px',
-                              border: 'none',
-                              cursor: 'pointer',
-                              background: isSelected ? 'var(--primary)' : 'var(--surface)',
-                              color: isSelected ? '#ffffff' : 'var(--foreground-primary)',
-                              transition: 'all 0.15s ease'
-                            }}
-                          >
-                            {genre}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Column 2: Specs, Tags & SEO */}
-                <div>
-                  {/* Alternative Titles */}
-                  <div style={{ paddingTop: '0.2rem', marginBottom: '1.2rem' }}>
-                    <h4 style={{ fontSize: '0.9rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--primary)', marginBottom: '1rem' }}>Alternative Titles</h4>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
-                      <div className={styles.formGroup}>
-                        <label>Japanese Title</label>
-                        <input
-                          type="text"
-                          className={styles.inputField}
-                          placeholder="e.g. オーバーフロー"
-                          value={altTitleJapanese}
-                          onChange={(e) => setAltTitleJapanese(e.target.value)}
-                        />
-                      </div>
-                      <div className={styles.formGroup}>
-                        <label>Romaji Title</label>
-                        <input
-                          type="text"
-                          className={styles.inputField}
-                          placeholder="e.g. Ōbāfurō"
-                          value={altTitleRomaji}
-                          onChange={(e) => setAltTitleRomaji(e.target.value)}
-                        />
-                      </div>
-                      <div className={styles.formGroup}>
-                        <label>English Title</label>
-                        <input
-                          type="text"
-                          className={styles.inputField}
-                          placeholder="e.g. Overflow"
-                          value={altTitleEnglish}
-                          onChange={(e) => setAltTitleEnglish(e.target.value)}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Show Specifications */}
-                  <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1.2rem', marginBottom: '1.2rem' }}>
-                    <h4 style={{ fontSize: '0.9rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--primary)', marginBottom: '1rem' }}>Show Specifications</h4>
-                    
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-                      <div className={styles.formGroup}>
-                        <label>Original Language</label>
-                        <input
-                          type="text"
-                          className={styles.inputField}
-                          placeholder="e.g. Japanese"
-                          value={originalLanguage}
-                          onChange={(e) => setOriginalLanguage(e.target.value)}
-                        />
-                      </div>
-                      <div className={styles.formGroup}>
-                        <label>Airing Status</label>
-                        <select
-                          className={styles.selectField}
-                          value={status}
-                          onChange={(e) => setStatus(e.target.value)}
-                        >
-                          <option value="ongoing">Ongoing (Airing)</option>
-                          <option value="completed">Completed (Finalized)</option>
-                          <option value="upcoming">Upcoming</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    {status === 'upcoming' && (
-                      <div className={styles.formGroup} style={{ marginBottom: '1.2rem' }}>
-                        <label>Upcoming Series Preview/Trailer Video (Optional - Backwards Compatibility)</label>
-                        <FileUploader
-                          label="Upload Trailer Video"
-                          acceptedTypes="video/*"
-                          maxSizeMb={500}
-                          initialValue={metaTitle}
-                          onUploadComplete={(newKey) => {
-                            setMetaTitle(newKey);
-                          }}
-                          onClear={() => {
-                            setMetaTitle('');
-                          }}
-                          previewType="video"
-                        />
-                      </div>
-                    )}
-
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-                      <div className={styles.formGroup}>
-                        <label>Age Rating</label>
-                        <input
-                          type="text"
-                          className={styles.inputField}
-                          value={ageRating}
-                          onChange={(e) => setAgeRating(e.target.value)}
-                        />
-                      </div>
-                      <div className={styles.formGroup}>
-                        <label>Content Rating</label>
-                        <select
-                          className={styles.selectField}
-                          value={contentRating}
-                          onChange={(e) => setContentRating(e.target.value)}
-                        >
-                          <option value="soft">Soft</option>
-                          <option value="explicit">Explicit</option>
-                          <option value="extreme">Extreme</option>
-                        </select>
-                      </div>
-                      <div className={styles.formGroup}>
-                        <label>Country of Origin</label>
-                        <input
-                          type="text"
-                          className={styles.inputField}
-                          value={country}
-                          onChange={(e) => setCountry(e.target.value)}
-                        />
-                      </div>
-                    </div>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-                      <div className={styles.formGroup}>
-                        <label>Average Runtime</label>
-                        <input
-                          type="number"
-                          className={styles.inputField}
-                          value={runtime}
-                          onChange={(e) => setRuntime(e.target.value ? Number(e.target.value) : '')}
-                        />
-                        <span style={{ fontSize: '0.78rem', color: 'var(--foreground-muted)', marginTop: '0.2rem', display: 'block' }}>(minutes)</span>
-                      </div>
-                      <div className={styles.formGroup}>
-                        <label>Featured Section</label>
-                        <select
-                          className={styles.selectField}
-                          value={featuredType}
-                          onChange={(e) => setFeaturedType(e.target.value)}
-                        >
-                          <option value="none">Not Featured</option>
-                          <option value="banner">Hero Banner (Top)</option>
-                          <option value="trending">Trending Now</option>
-                          <option value="editors_pick">Editor's Pick</option>
-                        </select>
-                      </div>
-                      <div className={styles.formGroup}>
-                        <label>Planned Episode Count</label>
-                        <input
-                          type="number"
-                          className={styles.inputField}
-                          placeholder="e.g. 12 (blank for auto)"
-                          value={episodeCountOverride}
-                          onChange={(e) => setEpisodeCountOverride(e.target.value ? Number(e.target.value) : '')}
-                        />
-                      </div>
-                    </div>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-                      <div className={styles.formGroup}>
-                        <label>First Air Date</label>
-                        <input
-                          type="date"
-                          className={styles.inputField}
-                          value={firstAirDate}
-                          onChange={(e) => setFirstAirDate(e.target.value)}
-                        />
-                      </div>
-                      <div className={styles.formGroup}>
-                        <label>Last Air Date</label>
-                        <input
-                          type="date"
-                          className={styles.inputField}
-                          value={lastAirDate}
-                          onChange={(e) => setLastAirDate(e.target.value)}
-                        />
-                      </div>
-                    </div>
-
-                    <div className={styles.formGroup}>
-                      <label>Search Aliases / Alternate Slugs</label>
-                      <input
-                        type="text"
-                        className={styles.inputField}
-                        placeholder="e.g. overflow, overflow-hentai"
-                        value={aliasesInput}
-                        onChange={(e) => setAliasesInput(e.target.value)}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Additional SEO Metadata (Original Source, Content Warnings, About Series, FAQ Override) */}
-                  <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1.2rem', marginBottom: '1.2rem' }}>
-                    <h4 style={{ fontSize: '0.9rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--primary)', marginBottom: '1rem' }}>Additional SEO Metadata</h4>
-                    
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-                      <div className={styles.formGroup}>
-                        <label>Original Source</label>
-                        <input
-                          type="text"
-                          className={styles.inputField}
-                          placeholder="e.g. Manga, Light Novel, Game, Original"
-                          value={originalSource}
-                          onChange={(e) => setOriginalSource(e.target.value)}
-                        />
-                      </div>
-                      <div className={styles.formGroup}>
-                        <label>Content Warnings (comma-separated, optional)</label>
-                        <input
-                          type="text"
-                          className={styles.inputField}
-                          placeholder="e.g. NTR, Gore, Violence"
-                          value={contentWarningsInput}
-                          onChange={(e) => setContentWarningsInput(e.target.value)}
-                        />
-                        <span style={{ fontSize: '0.78rem', color: 'var(--foreground-muted)', marginTop: '0.2rem', display: 'block' }}>Left blank if none exist. Empty warnings are hidden.</span>
-                      </div>
-                    </div>
-
-                    {/* Upgraded Structured About Series Builder */}
-                    <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1.5rem', marginBottom: '1.5rem' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.2rem', gap: '1rem', flexWrap: 'wrap' }}>
-                        <div>
-                          <h4 style={{ margin: 0, fontSize: '0.9rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--primary)' }}>About This Series Builder</h4>
-                          <span style={{ fontSize: '0.74rem', color: 'var(--foreground-muted)' }}>Write or auto-generate structured, encyclopedic editorial content to complement the synopsis.</span>
+            {/* Main Studio Form */}
+            <form id="series-crud-form" onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflow: 'hidden' }}>
+              <div className={styles.modalWorkspaceLayout}>
+                
+                {/* Left Pane: Active Tab Editor */}
+                <div className={styles.modalEditorPane}>
+                  
+                  {/* TAB 1: General & Story */}
+                  {modalTab === 'general' && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                      <div className={styles.formRow} style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '1rem', alignItems: 'flex-start' }}>
+                        {/* Title */}
+                        <div className={styles.formGroup}>
+                          <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span>Series Title *</span>
+                            <span style={{ fontSize: '0.72rem', color: 'var(--foreground-muted)' }}>Main Display Name</span>
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            className={styles.inputField}
+                            placeholder="e.g. 3D – Bonding Ritual"
+                            value={title}
+                            onChange={handleTitleChange}
+                            style={{ fontSize: '0.95rem', fontWeight: 700 }}
+                          />
                         </div>
-                        
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--foreground-muted)', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>AI Model:</span>
-                            <select
-                              value={aboutModel}
-                              onChange={(e) => setAboutModel(e.target.value)}
-                              style={{
-                                padding: '0.45rem 0.75rem',
-                                borderRadius: '8px',
-                                border: '1px solid var(--border)',
-                                background: 'var(--surface-hover)',
-                                color: 'var(--foreground-primary)',
-                                fontSize: '0.78rem',
-                                outline: 'none',
-                                cursor: 'pointer',
-                                fontWeight: 600
-                              }}
-                            >
-                              <option value="gemini-3.6-flash">Gemini 3.6 Flash (Default)</option>
-                              <option value="gemini-3.5-flash">Gemini 3.5 Flash</option>
-                              <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash Lite</option>
-                              <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro Preview</option>
-                              <option value="gemini-3.1-flash-lite">Gemini 3.1 Flash Lite</option>
-                              <option value="gemini-3-flash-preview">Gemini 3 Flash Preview</option>
-                            </select>
-                          </div>
 
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginLeft: '0.2rem' }}>
-                            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--foreground-muted)', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>Gemini Key:</span>
-                            <select
-                              value={activeKeyId}
-                              onChange={(e) => handleSelectKey(e.target.value)}
-                              style={{
-                                padding: '0.45rem 0.75rem',
-                                borderRadius: '8px',
-                                border: '1px solid var(--border)',
-                                background: 'var(--surface-hover)',
-                                color: 'var(--foreground-primary)',
-                                fontSize: '0.78rem',
-                                outline: 'none',
-                                cursor: 'pointer',
-                                fontWeight: 600,
-                                maxWidth: '160px'
-                              }}
-                            >
-                              <option value="default">System Default Key</option>
-                              {customKeys.map(k => (
-                                <option key={k.id} value={k.id}>{k.nickname}</option>
-                              ))}
-                            </select>
+                        {/* URL Slug */}
+                        <div className={styles.formGroup}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
+                            <label style={{ margin: 0 }}>URL Slug *</label>
                             <button
                               type="button"
-                              onClick={() => setIsKeyModalOpen(true)}
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                padding: '0.48rem',
-                                borderRadius: '8px',
-                                border: '1px solid var(--border)',
-                                background: 'var(--surface-hover)',
-                                color: 'var(--foreground-primary)',
-                                cursor: 'pointer',
-                                transition: 'all 0.15s ease'
-                              }}
-                              title="Manage Gemini API Keys"
+                              onClick={handleAutoSlug}
+                              style={{ background: '#4c1d95', border: '1px solid #7c3aed', color: '#e9d5ff', padding: '0.15rem 0.5rem', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 800, cursor: 'pointer' }}
+                              title="Auto-generate clean kebab-case URL slug from Title"
                             >
-                              <Key size={14} />
+                              ⚡ Auto-Slug
                             </button>
                           </div>
+                          <input
+                            type="text"
+                            required
+                            className={styles.inputField}
+                            placeholder="e.g. 3d-bonding-ritual"
+                            value={slug}
+                            onChange={(e) => setSlug(e.target.value)}
+                            style={{ fontFamily: 'monospace', color: '#a7f3d0' }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Alternate Multilingual Titles */}
+                      <div style={{ background: '#131722', border: '1px solid #23283b', borderRadius: '12px', padding: '1rem' }}>
+                        <h4 style={{ margin: '0 0 0.8rem 0', fontSize: '0.82rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--primary)' }}>
+                          Multilingual Alternate Titles
+                        </h4>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.8rem' }}>
+                          <div className={styles.formGroup}>
+                            <label style={{ fontSize: '0.75rem' }}>Japanese Title</label>
+                            <input
+                              type="text"
+                              className={styles.inputField}
+                              placeholder="e.g. オーバーフロー"
+                              value={altTitleJapanese}
+                              onChange={(e) => setAltTitleJapanese(e.target.value)}
+                            />
+                          </div>
+                          <div className={styles.formGroup}>
+                            <label style={{ fontSize: '0.75rem' }}>Romaji Title</label>
+                            <input
+                              type="text"
+                              className={styles.inputField}
+                              placeholder="e.g. Ōbāfurō"
+                              value={altTitleRomaji}
+                              onChange={(e) => setAltTitleRomaji(e.target.value)}
+                            />
+                          </div>
+                          <div className={styles.formGroup}>
+                            <label style={{ fontSize: '0.75rem' }}>English Title</label>
+                            <input
+                              type="text"
+                              className={styles.inputField}
+                              placeholder="e.g. Overflow"
+                              value={altTitleEnglish}
+                              onChange={(e) => setAltTitleEnglish(e.target.value)}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Story Synopsis */}
+                      <div className={styles.formGroup}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
+                          <label style={{ margin: 0 }}>Synopsis Description (Story / Plot Summary) *</label>
+                          <span style={{ fontSize: '0.74rem', color: 'var(--foreground-muted)' }}>
+                            {description.split(/\s+/).filter(Boolean).length} words • {description.length} chars
+                          </span>
+                        </div>
+                        <textarea
+                          required
+                          className={styles.textareaField}
+                          placeholder="Write a comprehensive plot summary (recommended: 350-600 words mentioning story, main characters, themes, and subbed/dubbed info naturally)..."
+                          value={description}
+                          onChange={(e) => setDescription(e.target.value)}
+                          style={{ height: '180px', resize: 'vertical', fontSize: '0.9rem', lineHeight: 1.5 }}
+                        />
+                      </div>
+
+                      {/* Year & Studio */}
+                      <div className={styles.formRow} style={{ display: 'grid', gridTemplateColumns: '220px 1fr', gap: '1rem' }}>
+                        <div className={styles.formGroup}>
+                          <label>Release Year</label>
+                          <select
+                            value={releaseYear}
+                            onChange={(e) => setReleaseYear(e.target.value ? Number(e.target.value) : '')}
+                            style={{ width: '100%', height: '42px', padding: '0 0.75rem', borderRadius: '8px', border: '1px solid #282e44', background: '#181c2b', color: '#f1f5f9', fontWeight: 600, outline: 'none' }}
+                          >
+                            <option value="">-- Select Year --</option>
+                            {RELEASE_YEARS.map((y) => (
+                              <option key={y} value={y}>{y}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div className={styles.formGroup}>
+                          <label>Production Studios (comma-separated)</label>
+                          <input
+                            type="text"
+                            className={styles.inputField}
+                            placeholder="e.g. PoRO, Bunnywalker, Pink Pineapple"
+                            value={studio}
+                            onChange={(e) => setStudio(e.target.value)}
+                          />
+                          {/* Quick Studio Cloud */}
+                          <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.35rem', flexWrap: 'wrap', maxHeight: '80px', overflowY: 'auto', padding: '0.4rem', border: '1px solid #23283b', borderRadius: '8px', background: '#131722' }}>
+                            {dynamicStudios.slice(0, 16).map((s) => {
+                              const currentStudios = studio.split(',').map(name => name.trim().toLowerCase());
+                              const isSelected = currentStudios.includes(s.toLowerCase());
+                              return (
+                                <button
+                                  key={s}
+                                  type="button"
+                                  onClick={() => {
+                                    const cleaned = studio.split(',').map(name => name.trim()).filter(name => name.length > 0);
+                                    if (isSelected) {
+                                      const filtered = cleaned.filter(name => name.toLowerCase() !== s.toLowerCase());
+                                      setStudio(filtered.join(', '));
+                                    } else {
+                                      cleaned.push(s);
+                                      setStudio(cleaned.join(', '));
+                                    }
+                                  }}
+                                  style={{
+                                    fontSize: '0.72rem',
+                                    fontWeight: 700,
+                                    padding: '0.2rem 0.5rem',
+                                    borderRadius: '6px',
+                                    border: isSelected ? '1px solid #8b5cf6' : '1px solid #282e44',
+                                    cursor: 'pointer',
+                                    background: isSelected ? '#7c3aed' : '#181c2b',
+                                    color: isSelected ? '#ffffff' : '#cbd5e1',
+                                    transition: 'all 0.15s ease'
+                                  }}
+                                >
+                                  {s}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* TAB 2: Genres & Tags */}
+                  {modalTab === 'genres' && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                      <div className={styles.formGroup}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+                          <label style={{ margin: 0 }}>Tags / Genres (comma-separated)</label>
+                          <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            <button
+                              type="button"
+                              onClick={handleToggleDubbedTag}
+                              style={{ background: '#0c4a6e', border: '1px solid #0284c7', color: '#38bdf8', padding: '0.2rem 0.6rem', borderRadius: '4px', fontSize: '0.72rem', fontWeight: 800, cursor: 'pointer' }}
+                              title="Toggle English Dubbed tag preset"
+                            >
+                              ⚡ English Dubbed
+                            </button>
+                            <button
+                              type="button"
+                              onClick={handleToggleSubbedTag}
+                              style={{ background: '#4c1d95', border: '1px solid #7c3aed', color: '#c084fc', padding: '0.2rem 0.6rem', borderRadius: '4px', fontSize: '0.72rem', fontWeight: 800, cursor: 'pointer' }}
+                              title="Toggle English Subbed tag preset"
+                            >
+                              ⚡ English Subbed
+                            </button>
+                          </div>
+                        </div>
+                        <input
+                          type="text"
+                          className={styles.inputField}
+                          placeholder="e.g. 3D, Uncensored, Romance, Fantasy, Harem"
+                          value={tagsInput}
+                          onChange={(e) => setTagsInput(e.target.value)}
+                        />
+                      </div>
+
+                      {/* Interactive Genre Cloud */}
+                      <div style={{ background: '#131722', border: '1px solid #23283b', borderRadius: '12px', padding: '1rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.8rem' }}>
+                          <h4 style={{ margin: 0, fontSize: '0.82rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--primary)' }}>
+                            1-Click Popular Genre Picker ({dynamicTags.length} Genres Available)
+                          </h4>
+                          <span style={{ fontSize: '0.72rem', color: 'var(--foreground-muted)' }}>Click tag to toggle</span>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', maxHeight: '200px', overflowY: 'auto', padding: '0.4rem' }}>
+                          {dynamicTags.map((genre) => {
+                            const currentTags = tagsInput.split(',').map(t => t.trim().toLowerCase());
+                            const isSelected = currentTags.includes(genre.toLowerCase());
+                            return (
+                              <button
+                                key={genre}
+                                type="button"
+                                onClick={() => {
+                                  const cleaned = tagsInput.split(',').map(t => t.trim()).filter(t => t.length > 0);
+                                  if (isSelected) {
+                                    const filtered = cleaned.filter(t => t.toLowerCase() !== genre.toLowerCase());
+                                    setTagsInput(filtered.join(', '));
+                                  } else {
+                                    cleaned.push(genre);
+                                    setTagsInput(cleaned.join(', '));
+                                  }
+                                }}
+                                style={{
+                                  fontSize: '0.76rem',
+                                  fontWeight: 700,
+                                  padding: '0.3rem 0.7rem',
+                                  borderRadius: '8px',
+                                  border: isSelected ? '1px solid #8b5cf6' : '1px solid #282e44',
+                                  cursor: 'pointer',
+                                  background: isSelected ? '#7c3aed' : '#181c2b',
+                                  color: isSelected ? '#ffffff' : '#cbd5e1',
+                                  transition: 'all 0.15s ease'
+                                }}
+                              >
+                                #{genre}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Content Warnings & Source */}
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                        <div className={styles.formGroup}>
+                          <label>Content Warnings (optional)</label>
+                          <input
+                            type="text"
+                            className={styles.inputField}
+                            placeholder="e.g. NTR, Mind Break, Gore (Leave blank if none)"
+                            value={contentWarningsInput}
+                            onChange={(e) => setContentWarningsInput(e.target.value)}
+                          />
+                        </div>
+
+                        <div className={styles.formGroup}>
+                          <label>Original Source</label>
+                          <input
+                            type="text"
+                            className={styles.inputField}
+                            placeholder="e.g. Manga, Light Novel, Game, Original, Visual Novel"
+                            value={originalSource}
+                            onChange={(e) => setOriginalSource(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* TAB 3: Specifications & Airing */}
+                  {modalTab === 'specs' && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+                        <div className={styles.formGroup}>
+                          <label>Original Language</label>
+                          <input
+                            type="text"
+                            className={styles.inputField}
+                            placeholder="e.g. Japanese"
+                            value={originalLanguage}
+                            onChange={(e) => setOriginalLanguage(e.target.value)}
+                          />
+                        </div>
+
+                        <div className={styles.formGroup}>
+                          <label>Airing Status</label>
+                          <select
+                            className={styles.selectField}
+                            value={status}
+                            onChange={(e) => setStatus(e.target.value)}
+                          >
+                            <option value="ongoing">Ongoing (Airing)</option>
+                            <option value="completed">Completed (Finalized)</option>
+                            <option value="upcoming">Upcoming</option>
+                          </select>
+                        </div>
+
+                        <div className={styles.formGroup}>
+                          <label>Featured Section</label>
+                          <select
+                            className={styles.selectField}
+                            value={featuredType}
+                            onChange={(e) => setFeaturedType(e.target.value)}
+                          >
+                            <option value="none">Not Featured</option>
+                            <option value="banner">Hero Banner (Top)</option>
+                            <option value="trending">Trending Now</option>
+                            <option value="editors_pick">Editor's Pick</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+                        <div className={styles.formGroup}>
+                          <label>Age Rating</label>
+                          <input
+                            type="text"
+                            className={styles.inputField}
+                            value={ageRating}
+                            onChange={(e) => setAgeRating(e.target.value)}
+                          />
+                        </div>
+
+                        <div className={styles.formGroup}>
+                          <label>Content Rating</label>
+                          <select
+                            className={styles.selectField}
+                            value={contentRating}
+                            onChange={(e) => setContentRating(e.target.value)}
+                          >
+                            <option value="soft">Soft</option>
+                            <option value="explicit">Explicit</option>
+                            <option value="extreme">Extreme</option>
+                          </select>
+                        </div>
+
+                        <div className={styles.formGroup}>
+                          <label>Country of Origin</label>
+                          <input
+                            type="text"
+                            className={styles.inputField}
+                            value={country}
+                            onChange={(e) => setCountry(e.target.value)}
+                          />
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                        <div className={styles.formGroup}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.2rem' }}>
+                            <label style={{ margin: 0 }}>Average Runtime (Minutes)</label>
+                            {autoRuntimeInfo && (
+                              <span style={{ fontSize: '0.72rem', color: '#e9d5ff', fontWeight: 700, background: '#4c1d95', padding: '0.1rem 0.4rem', borderRadius: '4px', border: '1px solid #7c3aed' }}>
+                                ⚡ Auto ({autoRuntimeInfo.episodeCount} ep{autoRuntimeInfo.episodeCount > 1 ? 's' : ''})
+                              </span>
+                            )}
+                          </div>
+                          <input
+                            type="number"
+                            className={styles.inputField}
+                            value={runtime}
+                            onChange={(e) => {
+                              setAutoRuntimeInfo(null);
+                              setRuntime(e.target.value ? Math.ceil(Number(e.target.value)) : '');
+                            }}
+                            placeholder="Auto-calculated from uploaded episodes"
+                          />
+                        </div>
+
+                        <div className={styles.formGroup}>
+                          <label>Planned Episode Count</label>
+                          <input
+                            type="number"
+                            className={styles.inputField}
+                            placeholder="e.g. 12 (blank for auto)"
+                            value={episodeCountOverride}
+                            onChange={(e) => setEpisodeCountOverride(e.target.value ? Number(e.target.value) : '')}
+                          />
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                        <div className={styles.formGroup}>
+                          <label>First Air Date</label>
+                          <input
+                            type="date"
+                            className={styles.inputField}
+                            value={firstAirDate}
+                            onChange={(e) => setFirstAirDate(e.target.value)}
+                          />
+                        </div>
+                        <div className={styles.formGroup}>
+                          <label>Last Air Date</label>
+                          <input
+                            type="date"
+                            className={styles.inputField}
+                            value={lastAirDate}
+                            onChange={(e) => setLastAirDate(e.target.value)}
+                          />
+                        </div>
+                      </div>
+
+                      <div className={styles.formGroup}>
+                        <label>Search Aliases / Alternate Slugs</label>
+                        <input
+                          type="text"
+                          className={styles.inputField}
+                          placeholder="e.g. overflow, overflow-hentai, bonding-ritual"
+                          value={aliasesInput}
+                          onChange={(e) => setAliasesInput(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* TAB 4: About Wiki & FAQ */}
+                  {modalTab === 'about_faq' && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                      <div style={{ background: '#131722', border: '1px solid #23283b', borderRadius: '12px', padding: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+                        <div>
+                          <h4 style={{ margin: 0, fontSize: '0.9rem', fontWeight: 800, color: 'var(--primary)' }}>
+                            Structured 4-Part Editorial Wiki
+                          </h4>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--foreground-muted)' }}>
+                            Generates SEO-rich comprehensive editorial background for the public series page
+                          </span>
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                          <select
+                            value={aboutModel}
+                            onChange={(e) => setAboutModel(e.target.value)}
+                            style={{ background: '#181c2b', border: '1px solid #282e44', color: '#f1f5f9', fontSize: '0.78rem', padding: '0.35rem 0.65rem', borderRadius: '6px' }}
+                          >
+                            <option value="gemini-3.6-flash">Gemini 2.5 Flash</option>
+                            <option value="gemini-3.6-pro">Gemini 2.5 Pro</option>
+                          </select>
 
                           <button
                             type="button"
-                            onClick={handleGenerateAllAbout}
                             disabled={isGeneratingAll || !title}
-                            className={styles.actionBtn}
-                            style={{
-                              background: 'linear-gradient(135deg, #a855f7 0%, #7c3aed 100%)',
-                              color: '#ffffff',
-                              border: 'none',
-                              padding: '0.55rem 1.1rem',
-                              borderRadius: '8px',
-                              fontWeight: 700,
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '0.4rem',
-                              fontSize: '0.78rem',
-                              boxShadow: '0 4px 12px rgba(124, 58, 237, 0.3)'
-                            }}
+                            onClick={handleGenerateAllAbout}
+                            className={styles.saveBtn}
+                            style={{ padding: '0.4rem 1rem', fontSize: '0.78rem' }}
                           >
-                            {isGeneratingAll ? (
-                              <>
-                                <span className={styles.loadingSpinner} style={{ width: '12px', height: '12px', marginRight: '4px' }} />
-                                <span>Generating...</span>
-                              </>
-                            ) : (
-                              <>
-                                <span>✨</span>
-                                <span>Generate Entire About Article</span>
-                              </>
-                            )}
+                            <Sparkles size={14} />
+                            <span>{isGeneratingAll ? 'Generating...' : '✨ Generate All 4 Sections'}</span>
                           </button>
                         </div>
                       </div>
 
-                      {/* Intro context text */}
-                      <p style={{ margin: '0 0 1rem 0', fontSize: '0.82rem', color: 'var(--foreground-muted)', lineHeight: 1.6 }}>
-                        Learn more about the production, themes, presentation, and viewing experience of this series. Each section contributes to a structured editorial article shown on the series detail page.
-                      </p>
-
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                      {/* 4 Section Editors */}
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>
                         {[
-                          {
-                            key: 'overview',
-                            title: '1. Overview',
-                            desc: 'Genre, format, adaptation source and general focus. Write naturally — no plot spoilers or plot summaries.',
-                            value: aboutOverview,
-                            setter: setAboutOverview,
-                            min: 120,
-                            max: 180
-                          },
-                          {
-                            key: 'production',
-                            title: '2. Production & Presentation',
-                            desc: 'Animation style, visual presentation, and studio characteristics. Be specific — avoid generic phrases like "standard production values".',
-                            value: aboutProduction,
-                            setter: setAboutProduction,
-                            min: 80,
-                            max: 120
-                          },
-                          {
-                            key: 'themes',
-                            title: '3. Themes & Style',
-                            desc: 'Recurring themes (romance, vanilla, school life, etc.), tone, pacing, and character development focus.',
-                            value: aboutThemes,
-                            setter: setAboutThemes,
-                            min: 80,
-                            max: 120
-                          },
-                          {
-                            key: 'recommended',
-                            title: '4. Recommended For',
-                            desc: 'Who will enjoy this series? Write conversationally: "Viewers who enjoy... may appreciate..."',
-                            value: aboutRecommended,
-                            setter: setAboutRecommended,
-                            min: 50,
-                            max: 80
-                          }
+                          { key: 'overview', title: '1. Story & Setting Overview', desc: 'Narrative context, worldbuilding, and character dynamics.', value: aboutOverview, setter: setAboutOverview, min: 90, max: 130 },
+                          { key: 'production', title: '2. Production & Animation Details', desc: 'Animation style, art direction, and release info.', value: aboutProduction, setter: setAboutProduction, min: 60, max: 90 },
+                          { key: 'themes', title: '3. Notable Themes & Highlights', desc: 'Key themes, character relationships, and memorable elements.', value: aboutThemes, setter: setAboutThemes, min: 60, max: 90 },
+                          { key: 'recommended', title: '4. Recommended For', desc: 'Target audience and related genre appeal.', value: aboutRecommended, setter: setAboutRecommended, min: 50, max: 80 }
                         ].map((sec) => {
                           const wCount = getWordCount(sec.value);
                           const status = getWordCountStatus(wCount, sec.min, sec.max);
-                          const progressPercent = Math.min((wCount / sec.max) * 100, 100);
                           const isSectionGenerating = !!isGeneratingSection[sec.key];
 
                           return (
-                            <div
-                              key={sec.key}
-                              style={{
-                                background: 'rgba(255,255,255,0.01)',
-                                border: '1px solid var(--border)',
-                                borderRadius: '12px',
-                                padding: '1.25rem'
-                              }}
-                            >
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.6rem', gap: '1rem' }}>
-                                <div style={{ flex: 1 }}>
-                                  <h5 style={{ margin: 0, fontSize: '0.85rem', fontWeight: 800, color: '#ffffff' }}>{sec.title}</h5>
-                                  <span style={{ fontSize: '0.74rem', color: 'var(--foreground-muted)', display: 'block', marginTop: '0.1rem' }}>{sec.desc}</span>
+                            <div key={sec.key} style={{ background: '#131722', border: '1px solid #23283b', borderRadius: '10px', padding: '1rem' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                                <div>
+                                  <h5 style={{ margin: 0, fontSize: '0.85rem', fontWeight: 800, color: 'var(--foreground-primary)' }}>{sec.title}</h5>
+                                  <span style={{ fontSize: '0.72rem', color: 'var(--foreground-muted)' }}>{sec.desc}</span>
                                 </div>
-                                
-                                <div style={{ display: 'flex', gap: '0.4rem', flexShrink: 0 }}>
-                                  {wCount > 0 ? (
-                                    <>
-                                      <button
-                                        type="button"
-                                        disabled={isSectionGenerating}
-                                        onClick={() => handleGenerateSection(sec.key as any, false)}
-                                        style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', color: 'var(--foreground-primary)', padding: '0.35rem 0.65rem', borderRadius: '6px', fontSize: '0.72rem', cursor: 'pointer', fontWeight: 700 }}
-                                      >
-                                        {isSectionGenerating ? 'Wait...' : '↻ Regenerate'}
-                                      </button>
-                                      <button
-                                        type="button"
-                                        disabled={isSectionGenerating}
-                                        onClick={() => handleGenerateSection(sec.key as any, true)}
-                                        style={{ background: 'rgba(168, 85, 247, 0.1)', border: '1px solid rgba(168, 85, 247, 0.3)', color: '#c084fc', padding: '0.35rem 0.65rem', borderRadius: '6px', fontSize: '0.72rem', cursor: 'pointer', fontWeight: 700 }}
-                                      >
-                                        {isSectionGenerating ? 'Wait...' : '✨ Improve'}
-                                      </button>
-                                    </>
-                                  ) : (
-                                    <button
-                                      type="button"
-                                      disabled={isSectionGenerating || !title}
-                                      onClick={() => handleGenerateSection(sec.key as any, false)}
-                                      style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', color: 'var(--foreground-primary)', padding: '0.35rem 0.65rem', borderRadius: '6px', fontSize: '0.72rem', cursor: 'pointer', fontWeight: 700 }}
-                                    >
-                                      {isSectionGenerating ? 'Wait...' : '✨ Generate'}
-                                    </button>
-                                  )}
-                                </div>
+                                <button
+                                  type="button"
+                                  disabled={isSectionGenerating || !title}
+                                  onClick={() => handleGenerateSection(sec.key as any, false)}
+                                  style={{ background: '#4c1d95', border: '1px solid #7c3aed', color: '#e9d5ff', padding: '0.25rem 0.65rem', borderRadius: '6px', fontSize: '0.72rem', cursor: 'pointer', fontWeight: 700 }}
+                                >
+                                  {isSectionGenerating ? 'Generating...' : wCount > 0 ? '↻ Regenerate' : '✨ Generate'}
+                                </button>
                               </div>
 
                               <textarea
                                 className={styles.textareaField}
                                 value={sec.value}
                                 onChange={(e) => sec.setter(e.target.value)}
-                                style={{ height: '90px', resize: 'vertical', fontSize: '0.85rem', marginBottom: '0.4rem' }}
-                                placeholder={`Enter ${sec.title} description...`}
+                                style={{ height: '80px', resize: 'vertical', fontSize: '0.84rem' }}
+                                placeholder={`Enter ${sec.title} content...`}
                               />
 
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.72rem' }}>
-                                <span style={{ fontWeight: 700, color: 'var(--foreground-muted)' }}>
-                                  {wCount} / Rec: {sec.min}–{sec.max} words
-                                </span>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.72rem', marginTop: '0.2rem' }}>
+                                <span style={{ color: 'var(--foreground-muted)' }}>{wCount} words (Rec: {sec.min}–{sec.max})</span>
                                 <span style={{ fontWeight: 800, color: status.color }}>{status.label}</span>
-                              </div>
-
-                              <div style={{ width: '100%', height: '5px', background: 'rgba(255,255,255,0.06)', borderRadius: '3px', overflow: 'hidden', marginTop: '0.3rem' }}>
-                                <div style={{ width: `${progressPercent}%`, height: '100%', background: status.color, borderRadius: '3px', transition: 'width 0.2s ease' }} />
                               </div>
                             </div>
                           );
                         })}
                       </div>
 
-                      {/* Visual Live Preview matching public page styling */}
-                      <div style={{ marginTop: '2rem', borderTop: '1px solid var(--border)', paddingTop: '1.5rem' }}>
-                        <span style={{ fontSize: '0.72rem', color: 'var(--foreground-muted)', display: 'block', fontWeight: 700, textTransform: 'uppercase', marginBottom: '0.8rem', letterSpacing: '0.05em' }}>
-                          Live Editorial Preview ({(() => {
-                            const totalWords = getWordCount(aboutOverview) + getWordCount(aboutProduction) + getWordCount(aboutThemes) + getWordCount(aboutRecommended);
-                            const estSeconds = Math.ceil((totalWords / 200) * 60);
-                            return estSeconds < 60 ? `${estSeconds} sec` : `${Math.floor(estSeconds / 60)} min ${estSeconds % 60} sec`;
-                          })()} read)
+                      {/* Custom FAQ Override */}
+                      <div className={styles.formGroup} style={{ marginTop: '0.5rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
+                          <label style={{ margin: 0 }}>Custom FAQ Overrides (JSON array)</label>
+                          <span style={{ fontSize: '0.72rem', color: 'var(--foreground-muted)' }}>Optional custom Q&A items</span>
+                        </div>
+                        <textarea
+                          className={styles.textareaField}
+                          placeholder='[{"question": "Where can I watch?", "answer": "Stream in HD on Play Hentai"}]'
+                          value={faqOverrideInput}
+                          onChange={(e) => setFaqOverrideInput(e.target.value)}
+                          style={{ height: '70px', fontFamily: 'monospace', fontSize: '0.8rem' }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* TAB 5: SEO & Google SERP */}
+                  {modalTab === 'seo' && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#131722', border: '1px solid #23283b', padding: '0.85rem 1.25rem', borderRadius: '10px' }}>
+                        <div>
+                          <span style={{ fontWeight: 800, fontSize: '0.85rem', color: '#38bdf8', display: 'block' }}>Google Search Engine Optimization</span>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--foreground-muted)' }}>Customize the title and meta description indexed by search bots.</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleAutoFillSEO}
+                          style={{ background: '#0c4a6e', border: '1px solid #0284c7', color: '#38bdf8', padding: '0.35rem 0.85rem', borderRadius: '6px', fontSize: '0.76rem', fontWeight: 800, cursor: 'pointer' }}
+                        >
+                          ⚡ Auto-Fill SEO Meta
+                        </button>
+                      </div>
+
+                      <div className={styles.formGroup}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
+                          <label style={{ margin: 0 }}>SEO Meta Title</label>
+                          <span style={{ fontSize: '0.74rem', color: metaTitle.length > 60 ? '#ef4444' : 'var(--foreground-muted)' }}>
+                            {metaTitle.length} / 60 chars
+                          </span>
+                        </div>
+                        <input
+                          type="text"
+                          className={styles.inputField}
+                          placeholder={autoTitlePlaceholder}
+                          value={metaTitle}
+                          onChange={(e) => setMetaTitle(e.target.value)}
+                        />
+                      </div>
+
+                      <div className={styles.formGroup}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
+                          <label style={{ margin: 0 }}>SEO Meta Description</label>
+                          <span style={{ fontSize: '0.74rem', color: metaDescription.length > 160 ? '#ef4444' : 'var(--foreground-muted)' }}>
+                            {metaDescription.length} / 160 chars
+                          </span>
+                        </div>
+                        <textarea
+                          className={styles.textareaField}
+                          placeholder={autoDescriptionPlaceholder}
+                          value={metaDescription}
+                          onChange={(e) => setMetaDescription(e.target.value)}
+                          style={{ height: '90px', resize: 'vertical' }}
+                        />
+                      </div>
+
+                      {/* Google Search Result Preview Card */}
+                      <div style={{ background: '#131722', border: '1px solid #23283b', borderRadius: '12px', padding: '1.25rem' }}>
+                        <span style={{ fontSize: '0.72rem', color: '#94a3b8', display: 'block', fontWeight: 700, textTransform: 'uppercase', marginBottom: '0.6rem', letterSpacing: '0.05em' }}>
+                          Live Google Search Result Preview
                         </span>
-                        
-                        <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '14px', padding: '1.5rem' }}>
-                          <h4 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#ffffff', marginBottom: '1.2rem', textAlign: 'left' }}>About {title || 'Series Title'}</h4>
-                          
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', textAlign: 'left' }}>
-                            {aboutOverview.trim() && (
-                              <div>
-                                <h5 style={{ fontSize: '0.85rem', fontWeight: 700, color: '#a855f7', marginBottom: '0.3rem', borderBottom: '1px solid rgba(255, 255, 255, 0.06)', paddingBottom: '0.2rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Overview</h5>
-                                <p style={{ fontSize: '0.85rem', color: 'rgba(255, 255, 255, 0.8)', lineHeight: '1.6', margin: 0 }}>{aboutOverview}</p>
-                              </div>
-                            )}
-
-                            {aboutProduction.trim() && (
-                              <div>
-                                <h5 style={{ fontSize: '0.85rem', fontWeight: 700, color: '#a855f7', marginBottom: '0.3rem', borderBottom: '1px solid rgba(255, 255, 255, 0.06)', paddingBottom: '0.2rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Production & Presentation</h5>
-                                <p style={{ fontSize: '0.85rem', color: 'rgba(255, 255, 255, 0.8)', lineHeight: '1.6', margin: 0 }}>{aboutProduction}</p>
-                              </div>
-                            )}
-
-                            {aboutThemes.trim() && (
-                              <div>
-                                <h5 style={{ fontSize: '0.85rem', fontWeight: 700, color: '#a855f7', marginBottom: '0.3rem', borderBottom: '1px solid rgba(255, 255, 255, 0.06)', paddingBottom: '0.2rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Themes & Style</h5>
-                                <p style={{ fontSize: '0.85rem', color: 'rgba(255, 255, 255, 0.8)', lineHeight: '1.6', margin: 0 }}>{aboutThemes}</p>
-                              </div>
-                            )}
-
-                            {aboutRecommended.trim() && (
-                              <div>
-                                <h5 style={{ fontSize: '0.85rem', fontWeight: 700, color: '#a855f7', marginBottom: '0.3rem', borderBottom: '1px solid rgba(255, 255, 255, 0.06)', paddingBottom: '0.2rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Recommended For</h5>
-                                <p style={{ fontSize: '0.85rem', color: 'rgba(255, 255, 255, 0.8)', lineHeight: '1.6', margin: 0 }}>{aboutRecommended}</p>
-                              </div>
-                            )}
+                        <div style={{ textAlign: 'left', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+                          <div style={{ fontSize: '12px', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '2px' }}>
+                            <span>🌐</span>
+                            <span style={{ fontSize: '11px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              https://playhentai.net/series/{slug || 'series-slug'}
+                            </span>
+                          </div>
+                          <div style={{ fontSize: '18px', color: '#58a6ff', lineHeight: '1.2', marginBottom: '4px', fontWeight: 600 }}>
+                            {metaTitle || autoTitlePlaceholder}
+                          </div>
+                          <div style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: '1.4', wordBreak: 'break-word', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                            {metaDescription || autoDescriptionPlaceholder}
                           </div>
                         </div>
                       </div>
                     </div>
+                  )}
+                </div>
 
-                    <div className={styles.formGroup}>
-                      <label>Custom FAQ Override JSON (Optional)</label>
-                      <textarea
-                        className={styles.textareaField}
-                        placeholder='[{"q": "Is this show subbed?", "a": "Yes, it contains english subtitles..."}]'
-                        value={faqOverrideInput}
-                        onChange={(e) => setFaqOverrideInput(e.target.value)}
-                        style={{ height: '100px', fontFamily: 'monospace', fontSize: '0.82rem', resize: 'vertical' }}
-                      />
-                      <span style={{ fontSize: '0.78rem', color: 'var(--foreground-muted)', marginTop: '0.2rem', display: 'block' }}>If empty, the system automatically generates FAQs using database facts. Paste JSON array of Q&As only to override.</span>
+                {/* Right Pane: Live Series Card & Completeness Inspector */}
+                <div className={styles.modalPreviewPane} style={{ borderLeft: '1px solid #23283b' }}>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--primary)', letterSpacing: '0.05em', display: 'block' }}>
+                    Live Series Card Preview
+                  </span>
+
+                  {/* Simulated Series Card */}
+                  <div style={{
+                    background: '#131722',
+                    border: '1px solid #23283b',
+                    borderLeft: isPublished ? '4px solid #10b981' : '4px solid #f59e0b',
+                    borderRadius: '14px',
+                    padding: '1rem',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.6rem',
+                    boxShadow: '0 4px 15px rgba(0,0,0,0.3)'
+                  }}>
+                    {/* Top Row */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.4rem' }}>
+                      <span style={{
+                        fontSize: '0.68rem',
+                        fontWeight: 800,
+                        padding: '0.15rem 0.5rem',
+                        borderRadius: '20px',
+                        background: isPublished ? '#064e3b' : '#78350f',
+                        color: isPublished ? '#6ee7b7' : '#fcd34d',
+                        border: isPublished ? '1px solid #059669' : '1px solid #d97706',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.3rem'
+                      }}>
+                        <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: isPublished ? '#10b981' : '#f59e0b' }} />
+                        <span>{isPublished ? 'Published' : 'Draft'}</span>
+                      </span>
+
+                      <span style={{ textTransform: 'capitalize', fontSize: '0.66rem', fontWeight: 700, padding: '0.12rem 0.45rem', borderRadius: '10px', background: '#181c2b', color: '#cbd5e1', border: '1px solid #282e44' }}>
+                        {status || 'ongoing'}
+                      </span>
+                    </div>
+
+                    {/* Title & Aliases */}
+                    <div>
+                      <h4 style={{ margin: 0, fontSize: '0.98rem', fontWeight: 800, color: 'var(--foreground-primary)', lineHeight: 1.3 }}>
+                        {title || 'Untitled Series'}
+                      </h4>
+                      {slug && (
+                        <code style={{ fontSize: '0.68rem', color: '#a7f3d0' }}>/{slug}</code>
+                      )}
+                      {(altTitleRomaji || altTitleJapanese) && (
+                        <div style={{ fontSize: '0.7rem', color: '#94a3b8', fontStyle: 'italic', marginTop: '0.15rem' }}>
+                          {altTitleRomaji || altTitleJapanese}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Truncated Synopsis */}
+                    <p style={{ margin: 0, fontSize: '0.76rem', color: 'var(--foreground-secondary)', lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                      {description || 'No synopsis added yet...'}
+                    </p>
+
+                    {/* Studio, Year & Specs */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', flexWrap: 'wrap', fontSize: '0.72rem', color: 'var(--foreground-muted)', borderTop: '1px solid #23283b', paddingTop: '0.5rem' }}>
+                      <span style={{ background: 'var(--primary)', color: '#fff', fontSize: '0.62rem', fontWeight: 900, padding: '0.05rem 0.35rem', borderRadius: '3px' }}>HD</span>
+                      <span>{studio || 'Studio N/A'}</span>
+                      <span>•</span>
+                      <span>{releaseYear || 'Year N/A'}</span>
+                    </div>
+
+                    {/* Tags preview */}
+                    <div style={{ display: 'flex', gap: '0.2rem', flexWrap: 'wrap' }}>
+                      {tagsInput ? tagsInput.split(',').slice(0, 3).map((t, idx) => (
+                        <span key={idx} style={{ fontSize: '0.65rem', padding: '0.1rem 0.4rem', background: '#181c2b', borderRadius: '4px', color: '#cbd5e1', border: '1px solid #282e44' }}>
+                          #{t.trim()}
+                        </span>
+                      )) : (
+                        <span style={{ fontSize: '0.68rem', color: 'var(--foreground-muted)', fontStyle: 'italic' }}>No tags selected</span>
+                      )}
                     </div>
                   </div>
 
-                  {/* SEO Settings & Google Live Preview */}
-                  <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1.2rem', marginBottom: '1.2rem' }}>
-                    <h4 style={{ fontSize: '0.9rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--primary)', marginBottom: '1rem' }}>SEO Settings (Meta Tags)</h4>
-                    
-                    <div className={styles.formGroup} style={{ marginBottom: '1.2rem' }}>
-                      <label>Custom Meta Title</label>
-                      <input
-                        type="text"
-                        className={styles.inputField}
-                        placeholder={`Leave blank for automatic: ${autoTitlePlaceholder}`}
-                        value={metaTitle}
-                        onChange={(e) => setMetaTitle(e.target.value)}
-                      />
+                  {/* Completeness Meter */}
+                  <div style={{ background: '#131722', border: '1px solid #23283b', borderRadius: '12px', padding: '0.9rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+                      <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--foreground-primary)' }}>Completeness Score</span>
+                      <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--primary)' }}>
+                        {Math.round(
+                          ([!!title, !!slug, description.length > 20, !!studio, !!tagsInput, !!releaseYear].filter(Boolean).length / 6) * 100
+                        )}%
+                      </span>
                     </div>
 
-                    <div className={styles.formGroup} style={{ marginBottom: '1.2rem' }}>
-                      <label>Custom Meta Description</label>
-                      <textarea
-                        className={styles.textareaField}
-                        placeholder={`Leave blank for automatic: ${autoDescriptionPlaceholder}`}
-                        value={metaDescription}
-                        onChange={(e) => setMetaDescription(e.target.value)}
-                        style={{ height: '80px', resize: 'vertical' }}
-                      />
-                    </div>
-
-                    {/* Live Google Search Preview */}
-                    <div style={{ background: 'rgba(15, 23, 42, 0.4)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--border)', marginTop: '1rem' }}>
-                      <span style={{ fontSize: '0.72rem', color: 'var(--foreground-muted)', display: 'block', fontWeight: 700, textTransform: 'uppercase', marginBottom: '0.6rem', letterSpacing: '0.05em' }}>Google Search Result Preview</span>
-                      <div style={{ textAlign: 'left', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                        <div style={{ fontSize: '12px', color: 'var(--foreground-muted)', display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '2px' }}>
-                          <span>🌐</span>
-                          <span style={{ fontSize: '11px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                            https://playhentai.live/series/{slug || 'url-slug'}
-                          </span>
-                        </div>
-                        <div style={{ fontSize: '18px', color: '#58a6ff', textDecoration: 'none', cursor: 'pointer', lineHeight: '1.2', marginBottom: '4px', fontWeight: 500 }}>
-                          {metaTitle || autoTitlePlaceholder}
-                        </div>
-                        <div style={{ fontSize: '13px', color: '#c9d1d9', lineHeight: '1.4', wordBreak: 'break-word', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                          {metaDescription || autoDescriptionPlaceholder}
-                        </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', fontSize: '0.74rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: title ? '#10b981' : 'var(--foreground-muted)' }}>
+                        {title ? '✓' : '○'} Title: {title ? 'Set' : 'Missing'}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: slug ? '#10b981' : 'var(--foreground-muted)' }}>
+                        {slug ? '✓' : '○'} Slug: {slug ? `/${slug}` : 'Missing'}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: description.length > 20 ? '#10b981' : 'var(--foreground-muted)' }}>
+                        {description.length > 20 ? '✓' : '○'} Synopsis: {description.length > 20 ? `${description.split(/\s+/).filter(Boolean).length} words` : 'Too short'}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: studio ? '#10b981' : 'var(--foreground-muted)' }}>
+                        {studio ? '✓' : '○'} Studio: {studio ? studio.split(',')[0] : 'None'}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: tagsInput ? '#10b981' : 'var(--foreground-muted)' }}>
+                        {tagsInput ? '✓' : '○'} Genres: {tagsInput.split(',').filter(Boolean).length} tags
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: releaseYear ? '#10b981' : 'var(--foreground-muted)' }}>
+                        {releaseYear ? '✓' : '○'} Release Year: {releaseYear || 'Not set'}
                       </div>
                     </div>
                   </div>
+
+                  {/* Fast Helper Actions */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                    <button
+                      type="button"
+                      onClick={handleAutoSlug}
+                      style={{ background: '#181c2b', border: '1px solid #282e44', color: 'var(--foreground-primary)', padding: '0.4rem 0.8rem', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+                    >
+                      <Zap size={13} style={{ color: 'var(--primary)' }} />
+                      <span>Auto-Generate Slug from Title</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleAutoFillSEO}
+                      style={{ background: '#181c2b', border: '1px solid #282e44', color: 'var(--foreground-primary)', padding: '0.4rem 0.8rem', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+                    >
+                      <Globe size={13} style={{ color: '#38bdf8' }} />
+                      <span>Auto-Generate SEO Meta</span>
+                    </button>
+                  </div>
                 </div>
+
               </div>
 
               {/* Locked Footer Actions */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border)', paddingTop: '1rem', marginTop: 'auto' }}>
-                <div className={styles.checkboxRow} style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <input
-                    type="checkbox"
-                    id="is_published"
-                    checked={isPublished}
-                    onChange={(e) => setIsPublished(e.target.checked)}
-                    style={{ cursor: 'pointer' }}
-                  />
-                  <label htmlFor="is_published" style={{ cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem', color: 'var(--foreground-primary)' }}>Publish immediately (visible in public catalog)</label>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #23283b', paddingTop: '0.9rem', marginTop: 'auto', flexShrink: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+                  <div className={styles.checkboxRow} style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.55rem' }}>
+                    <input
+                      type="checkbox"
+                      id="is_published"
+                      checked={isPublished}
+                      onChange={(e) => setIsPublished(e.target.checked)}
+                      style={{ cursor: 'pointer', width: '18px', height: '18px', accentColor: '#10b981' }}
+                    />
+                    <label htmlFor="is_published" style={{ cursor: 'pointer', fontWeight: 800, fontSize: '0.88rem', color: isPublished ? '#10b981' : '#f59e0b', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                      {isPublished ? (
+                        <>
+                          <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981', boxShadow: '0 0 8px #10b981' }} />
+                          <span>Live Published (Visible in Public Catalog)</span>
+                        </>
+                      ) : (
+                        <>
+                          <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#f59e0b' }} />
+                          <span>Draft Mode (Hidden from Public Catalog)</span>
+                        </>
+                      )}
+                    </label>
+                  </div>
+                  <span style={{ fontSize: '0.74rem', color: 'var(--foreground-muted)', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+                    <Info size={13} />
+                    <span>Press <b>Ctrl+S</b> to save</span>
+                  </span>
                 </div>
 
-                <div className={styles.modalActions} style={{ margin: 0, display: 'flex', gap: '0.8rem' }}>
+                <div className={styles.modalActions} style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                   <button type="button" onClick={handleCloseModal} className={styles.cancelBtn}>
                     Cancel
                   </button>
-                  <button type="submit" disabled={saving} className={styles.saveBtn}>
-                    {saving ? 'Saving...' : 'Save Series'}
+                  <button
+                    type="button"
+                    disabled={saving}
+                    onClick={() => {
+                      setIsPublished(false);
+                      setTimeout(() => {
+                        const form = document.getElementById('series-crud-form') as HTMLFormElement;
+                        if (form) form.requestSubmit();
+                      }, 50);
+                    }}
+                    style={{
+                      background: '#1a1e2f',
+                      border: '1px solid #d97706',
+                      color: '#fcd34d',
+                      padding: '0.55rem 1.25rem',
+                      borderRadius: '30px',
+                      fontSize: '0.82rem',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.4rem',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    <span>💾 Save as Draft</span>
+                  </button>
+                  <button
+                    type="button"
+                    disabled={saving}
+                    onClick={() => {
+                      setIsPublished(true);
+                      setTimeout(() => {
+                        const form = document.getElementById('series-crud-form') as HTMLFormElement;
+                        if (form) form.requestSubmit();
+                      }, 50);
+                    }}
+                    className={styles.saveBtn}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.45rem',
+                      padding: '0.55rem 1.45rem',
+                      fontSize: '0.84rem',
+                      fontWeight: 800
+                    }}
+                  >
+                    {saving ? (
+                      <span>Saving...</span>
+                    ) : (
+                      <>
+                        <span>🚀</span>
+                        <span>{isPublished ? 'Save & Keep Published' : 'Publish Series (Live)'}</span>
+                      </>
+                    )}
                   </button>
                 </div>
               </div>
@@ -2920,8 +3325,6 @@ export default function AdminSeriesPage() {
           </div>
         </div>
       )}
-
-
 
       {/* Manage Media Modal */}
       {mediaModalOpen && mediaSeries && (

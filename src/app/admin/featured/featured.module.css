@@ -26,7 +26,7 @@
 }
 
 .titleArea p {
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   color: var(--foreground-secondary);
   margin-top: 0.25rem;
 }
@@ -53,10 +53,10 @@
   padding: 0.75rem 1.5rem;
   border-radius: 30px;
   font-weight: 700;
-  font-size: 0.85rem;
+  font-size: 0.88rem;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.25);
+  box-shadow: 0 4px 14px rgba(var(--primary-rgb), 0.3);
 }
 
 .saveBtn:hover:not(:disabled) {
@@ -92,6 +92,267 @@
   color: #ef4444;
 }
 
+/* =========================================================================
+   Live Preview Simulator Styles
+   ========================================================================= */
+.previewSection {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 1.8rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.previewHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.deviceToggleGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--surface-hover);
+  padding: 0.3rem;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
+.deviceBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 7px;
+  border: none;
+  background: transparent;
+  color: var(--foreground-secondary);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.deviceBtnActive {
+  background: var(--surface);
+  color: var(--primary);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border);
+}
+
+.simulatorContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  background: #05070c;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1rem;
+  position: relative;
+  min-height: 380px;
+}
+
+.simulatorStageDesktop {
+  width: 100%;
+  max-width: 100%;
+  height: 380px;
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+  background: #090d16;
+}
+
+.simulatorStageMobile {
+  width: 380px;
+  max-width: 100%;
+  height: 520px;
+  border-radius: 24px;
+  border: 3px solid #334155;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+  position: relative;
+  overflow: hidden;
+  background: #090d16;
+}
+
+.stageBackground {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.stageBgImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 25%;
+  filter: brightness(0.8);
+}
+
+.stageOverlay {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 75% 50%, rgba(8, 8, 8, 0.35) 0%, rgba(8, 8, 8, 0.95) 75%),
+    linear-gradient(to right, #080808 0%, rgba(8, 8, 8, 0.95) 25%, rgba(8, 8, 8, 0.6) 55%, rgba(8, 8, 8, 0.3) 100%),
+    linear-gradient(to top, #080808 0%, rgba(8, 8, 8, 0.6) 18%, transparent 40%);
+}
+
+.stageContentDesktop {
+  position: relative;
+  z-index: 5;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  padding: 1.5rem 2.5rem;
+}
+
+.stageContentMobile {
+  position: relative;
+  z-index: 5;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 1.5rem;
+  gap: 1rem;
+}
+
+.stagePoster {
+  width: 110px;
+  height: 155px;
+  border-radius: 10px;
+  overflow: hidden;
+  flex-shrink: 0;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.stagePoster img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.stageInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-width: 650px;
+}
+
+.stageTagline {
+  background: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%);
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  padding: 0.2rem 0.65rem;
+  border-radius: 20px;
+  text-transform: uppercase;
+  box-shadow: 0 0 10px rgba(236, 72, 153, 0.5);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  width: fit-content;
+}
+
+.stageTitle {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: #ffffff;
+  margin: 0;
+  line-height: 1.2;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+}
+
+.stageTags {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.stageTag {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  color: #e2e8f0;
+}
+
+.stageNavBtn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 20;
+  transition: all 0.2s ease;
+}
+
+.stageNavBtn:hover {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.stageNavPrev {
+  left: 1rem;
+}
+
+.stageNavNext {
+  right: 1rem;
+}
+
+.stageDots {
+  position: absolute;
+  bottom: 0.8rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  z-index: 20;
+}
+
+.stageDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.35);
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.2s ease;
+}
+
+.stageDotActive {
+  width: 22px;
+  border-radius: 10px;
+  background: var(--primary);
+}
+
+/* =========================================================================
+   Catalog & Rotation Columns
+   ========================================================================= */
 .grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -102,32 +363,122 @@
   border-radius: 20px;
   background: var(--surface);
   border: 1px solid var(--border);
-  padding: 2rem;
+  padding: 1.8rem;
   display: flex;
   flex-direction: column;
-  height: 620px;
+  height: 680px;
 }
 
 .cardHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.2rem;
 }
 
 .cardHeader h3 {
   font-size: 1.15rem;
   font-weight: 800;
+  margin: 0;
 }
 
 .badgeCount {
   font-size: 0.75rem;
   font-weight: 700;
-  padding: 0.2rem 0.6rem;
+  padding: 0.25rem 0.7rem;
   border-radius: 20px;
   background: var(--surface-hover);
   border: 1px solid var(--border);
   color: var(--foreground-secondary);
+}
+
+.badgeActive {
+  background: rgba(168, 85, 247, 0.15);
+  border-color: rgba(168, 85, 247, 0.3);
+  color: #c084fc;
+}
+
+/* =========================================================================
+   Filter Tabs & Smart Sort Toolbar
+   ========================================================================= */
+.filterTabs {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.filterTabBtn {
+  padding: 0.35rem 0.7rem;
+  border-radius: 8px;
+  background: var(--surface-hover);
+  border: 1px solid var(--border);
+  color: var(--foreground-secondary);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filterTabBtn:hover {
+  border-color: var(--primary);
+  color: var(--foreground-primary);
+}
+
+.filterTabActive {
+  background: rgba(var(--primary-rgb), 0.15);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.studioSelect {
+  padding: 0.35rem 0.7rem;
+  border-radius: 8px;
+  background: var(--surface-hover);
+  border: 1px solid var(--border);
+  color: var(--foreground-primary);
+  font-size: 0.78rem;
+  font-weight: 600;
+  outline: none;
+  cursor: pointer;
+}
+
+.sortToolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+  padding: 0.4rem;
+  background: var(--surface-hover);
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
+.sortActionBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--foreground-secondary);
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sortActionBtn:hover:not(:disabled) {
+  background: var(--primary);
+  color: #ffffff;
+  border-color: transparent;
+}
+
+.sortActionBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 .searchRow {
@@ -138,7 +489,7 @@
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 0.5rem 1rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.8rem;
 }
 
 .searchIcon {
@@ -175,7 +526,7 @@
 .seriesRow {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.85rem;
   padding: 0.75rem;
   border-radius: 12px;
   background: var(--surface-hover);
@@ -196,8 +547,9 @@
   font-size: 0.85rem;
   font-weight: 800;
   color: var(--primary);
-  width: 20px;
+  width: 22px;
   text-align: center;
+  flex-shrink: 0;
 }
 
 .posterThumb {
@@ -210,28 +562,12 @@
   background: #0f172a;
 }
 
-.seriesPoster {
-  position: relative;
-  width: 44px;
-  height: 60px;
-  border-radius: 6px;
-  overflow: hidden;
-  background: rgba(0, 0, 0, 0.2);
-  flex-shrink: 0;
-  border: 1px solid var(--border);
-}
-
-.seriesPoster img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
 .seriesInfo {
   display: flex;
   flex-direction: column;
   flex-grow: 1;
   min-width: 0;
+  gap: 0.2rem;
 }
 
 .seriesTitle {
@@ -243,23 +579,78 @@
   text-overflow: ellipsis;
 }
 
-.seriesSlug {
-  font-size: 0.75rem;
-  color: var(--foreground-muted);
-  font-family: monospace;
+.metaRow {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.badgeWideReady {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #10b981;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.badgePosterWarning {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  color: #f59e0b;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.taglineEditor {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-top: 0.25rem;
+}
+
+.taglineInput {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.2rem 0.5rem;
+  color: #ec4899;
+  font-size: 0.74rem;
+  font-weight: 700;
+  outline: none;
+  width: 100%;
+  max-width: 180px;
+}
+
+.taglineInput:focus {
+  border-color: #ec4899;
 }
 
 .actionBtn {
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
-  padding: 0.4rem 0.8rem;
-  border-radius: 20px;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
   font-size: 0.8rem;
   font-weight: 700;
   border: none;
   cursor: pointer;
   transition: all 0.2s ease;
+  flex-shrink: 0;
 }
 
 .addBtn {
@@ -278,15 +669,14 @@
   cursor: not-allowed;
 }
 
-.controls,
-.orderActions {
+.controls {
   display: flex;
   align-items: center;
   gap: 0.35rem;
+  flex-shrink: 0;
 }
 
-.reorderBtn,
-.iconBtn {
+.reorderBtn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -300,15 +690,13 @@
   transition: all 0.2s ease;
 }
 
-.reorderBtn:hover:not(:disabled),
-.iconBtn:hover:not(:disabled) {
+.reorderBtn:hover:not(:disabled) {
   background: var(--primary);
   color: #ffffff;
   border-color: transparent;
 }
 
-.reorderBtn:disabled,
-.iconBtn:disabled {
+.reorderBtn:disabled {
   opacity: 0.3;
   cursor: not-allowed;
 }
@@ -327,7 +715,7 @@
   transition: all 0.2s ease;
 }
 
-.removeBtn:hover:not(:disabled) {
+.removeBtn:hover {
   background: #ef4444 !important;
   color: #ffffff !important;
   border-color: #ef4444 !important;
@@ -375,6 +763,6 @@
   
   .columnCard {
     height: auto;
-    max-height: 500px;
+    max-height: 550px;
   }
 }

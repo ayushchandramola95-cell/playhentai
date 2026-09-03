@@ -24,16 +24,18 @@ export default function AdBanner({ zoneId = '5986176', insClass, mobileOnly = fa
   const isAdminUser = profile?.role === 'admin';
 
   useEffect(() => {
-    // Check if banners are globally blocked
+    // Check if banners are globally blocked or this specific zone is disabled
     fetch('/api/settings')
       .then(res => res.json())
       .then(data => {
         if (data.ads_block_banners) {
           setIsBlocked(true);
+        } else if (data.disabled_zones && Array.isArray(data.disabled_zones) && data.disabled_zones.includes(zoneId)) {
+          setIsBlocked(true);
         }
       })
       .catch(err => console.warn('Ad blocker settings load failed:', err));
-  }, []);
+  }, [zoneId]);
 
   useEffect(() => {
     if (isBlocked || !containerRef.current) return;

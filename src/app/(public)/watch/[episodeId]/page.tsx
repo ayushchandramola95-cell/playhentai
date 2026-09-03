@@ -39,7 +39,7 @@ async function resolveEpisode(supabase: any, episodeId: string) {
     try {
       const { data: seriesData } = await supabase
         .from('series')
-        .select('*, seasons(id, season_number, is_published, episodes(*))')
+        .select('*, seasons(id, season_number, title, is_published, episodes(*))')
         .eq('slug', parsed.seriesSlug)
         .eq('is_published', true)
         .maybeSingle();
@@ -47,12 +47,14 @@ async function resolveEpisode(supabase: any, episodeId: string) {
       if (seriesData && seriesData.seasons) {
         let foundEp: any = null;
         let seasonId: string = '';
+        let seasonTitle: string = '';
         for (const season of seriesData.seasons) {
           if (season.episodes) {
             const ep = season.episodes.find((e: any) => e.episode_number === parsed.episodeNumber && e.is_published);
             if (ep) {
               foundEp = ep;
               seasonId = season.id;
+              seasonTitle = season.title || '';
               break;
             }
           }
@@ -71,6 +73,7 @@ async function resolveEpisode(supabase: any, episodeId: string) {
             seriesDetails: seriesData,
             seriesTitle: seriesData.title,
             seriesSlug: seriesData.slug,
+            seasonTitle,
             seasonEpisodes: siblingEps || [foundEp],
             isDbEmpty: false
           };
@@ -103,6 +106,7 @@ async function resolveEpisode(supabase: any, episodeId: string) {
           seriesDetails: sData,
           seriesTitle: sData.title,
           seriesSlug: sData.slug,
+          seasonTitle: 'Trailer',
           seasonEpisodes: [activeEp],
           isDbEmpty: false
         };
@@ -117,6 +121,7 @@ async function resolveEpisode(supabase: any, episodeId: string) {
 
       if (epData) {
         const seriesObj = epData.seasons?.series || {};
+        const seasonTitle = epData.seasons?.title || '';
         const { data: siblingEps } = await supabase
           .from('episodes')
           .select('*')
@@ -129,6 +134,7 @@ async function resolveEpisode(supabase: any, episodeId: string) {
           seriesDetails: seriesObj,
           seriesTitle: seriesObj.title || 'Series',
           seriesSlug: seriesObj.slug || '',
+          seasonTitle,
           seasonEpisodes: siblingEps || [epData],
           isDbEmpty: false
         };
@@ -201,6 +207,10 @@ export async function generateMetadata({ params }: WatchPageProps): Promise<Meta
     if (resolved?.activeEpisode) {
       const ep = resolved.activeEpisode;
       const series = resolved.seriesDetails || {};
+      const seasonName = (resolved.seasonTitle || '').trim();
+      const isOva = /ova/i.test(seasonName);
+      const isSpecial = /special/i.test(seasonName);
+      const isCustomSeason = seasonName && !/^season\s*1$/i.test(seasonName);
       
       let titleText = resolved.seriesTitle;
       if (series.alt_title_english && series.alt_title_english.toLowerCase() !== resolved.seriesTitle.toLowerCase()) {
@@ -209,17 +219,35 @@ export async function generateMetadata({ params }: WatchPageProps): Promise<Meta
           titleText = combined;
         }
       }
+
+      // Dynamic episode prefix (e.g. "OVA 1", "Special 1", "Episode 1")
+      let epLabel = `Episode ${ep.episode_number}`;
+      if (isOva) {
+        epLabel = `OVA ${ep.episode_number}`;
+      } else if (isSpecial) {
+        epLabel = `Special ${ep.episode_number}`;
+      }
+
+      // Dynamic Season / OVA qualifier after series name
+      let seasonQualifier = '';
+      if (isCustomSeason && !isOva && !isSpecial) {
+        seasonQualifier = ` (${seasonName})`;
+      } else if (isOva && !titleText.toLowerCase().includes('ova')) {
+        seasonQualifier = ` OVA`;
+      } else if (isSpecial && !titleText.toLowerCase().includes('special')) {
+        seasonQualifier = ` Special`;
+      }
       
-      title = `${titleText} Episode ${ep.episode_number} — Watch Online | Play Hentai`;
+      title = `${titleText}${seasonQualifier} ${epLabel} — Watch Online | Play Hentai`;
       
       const isUncensored = 
         series.content_rating?.toLowerCase() === 'uncensored' ||
         series.tags?.some((t: string) => t.toLowerCase() === 'uncensored');
 
       if (isUncensored) {
-        description = `Watch ${resolved.seriesTitle} Episode ${ep.episode_number} uncensored in HD with English subtitles. Stream the hentai anime episode for free on Play Hentai.`;
+        description = `Watch ${resolved.seriesTitle}${seasonQualifier} ${epLabel} uncensored in HD with English subtitles. Stream the hentai anime episode for free on Play Hentai.`;
       } else {
-        description = `Watch ${resolved.seriesTitle} Episode ${ep.episode_number} online in HD with English subtitles. Stream the hentai anime episode for free on Play Hentai.`;
+        description = `Watch ${resolved.seriesTitle}${seasonQualifier} ${epLabel} online in HD with English subtitles. Stream the hentai anime episode for free on Play Hentai.`;
       }
 
       thumbnail = ep.thumbnail_key || ep.thumbnail || '';
@@ -287,7 +315,7 @@ export default async function WatchPage({ params }: WatchPageProps) {
     );
   }
 
-  const { activeEpisode, seriesDetails, seriesTitle, seriesSlug, seasonEpisodes, isDbEmpty } = resolved;
+  const { activeEpisode, seriesDetails, seriesTitle, seriesSlug, seasonTitle, seasonEpisodes, isDbEmpty } = resolved;
 
   const sourceList = isDbEmpty ? MOCK_SERIES : allSeriesList;
 
@@ -332,11 +360,22 @@ export default async function WatchPage({ params }: WatchPageProps) {
       if (Math.abs(sRating - actRating) <= 1.0) {
         score += 1;
       }
-      return { series: s, score };
+      return {
+        id: s.id,
+        title: s.title,
+        slug: s.slug,
+        poster_image_key: s.poster_image_key,
+        cover_image_key: s.cover_image_key,
+        poster_position: s.poster_position,
+        rating: s.rating || getStableRating(s.id),
+        status: s.status,
+        content_rating: s.content_rating,
+        tags: s.tags,
+        score
+      };
     })
-    .sort((a, b) => b.score - a.score)
-    .map((item) => item.series)
-    .slice(0, 12);
+    .sort((a: any, b: any) => b.score - a.score)
+    .slice(0, 10);
 
   const currentIdx = seasonEpisodes.findIndex((ep: any) => ep.id === activeEpisode.id || ep.episode_number === activeEpisode.episode_number);
   const prevEpisode = currentIdx > 0 ? seasonEpisodes[currentIdx - 1] : null;
@@ -364,6 +403,10 @@ export default async function WatchPage({ params }: WatchPageProps) {
 
   const seriesPageUrl = `${siteUrl}/series/${seriesSlug}`;
 
+  const seasonName = (seasonTitle || '').trim();
+  const isOva = /ova/i.test(seasonName);
+  const isSpecial = /special/i.test(seasonName);
+  const epPrefix = isOva ? `OVA ${activeEpisode.episode_number}` : isSpecial ? `Special ${activeEpisode.episode_number}` : `Episode ${activeEpisode.episode_number}`;
 
   const epTitleClean = activeEpisode.title?.trim();
   const isGenericEpTitle = !epTitleClean || 
@@ -373,10 +416,10 @@ export default async function WatchPage({ params }: WatchPageProps) {
     /^episode\s*\d+$/i.test(epTitleClean);
     
   const videoName = isGenericEpTitle
-    ? `${seriesTitle} Episode ${activeEpisode.episode_number}`
-    : `${seriesTitle} Episode ${activeEpisode.episode_number} — ${epTitleClean.replace(/^\[Preview\]\s*/i, '').replace(/^\[Trailer\]\s*/i, '')}`;
+    ? `${seriesTitle} ${epPrefix}`
+    : `${seriesTitle} ${epPrefix} — ${epTitleClean.replace(/^\[Preview\]\s*/i, '').replace(/^\[Trailer\]\s*/i, '')}`;
 
-  const fallbackDescription = `Watch ${seriesTitle} Episode ${activeEpisode.episode_number} online in HD with English subtitles on Play Hentai.`;
+  const fallbackDescription = `Watch ${seriesTitle} ${epPrefix} online in HD with English subtitles on Play Hentai.`;
 
   const videoJsonLd = {
     '@context': 'https://schema.org',
@@ -408,7 +451,7 @@ export default async function WatchPage({ params }: WatchPageProps) {
     'itemListElement': [
       { '@type': 'ListItem', 'position': 1, 'name': 'Home', 'item': siteUrl },
       { '@type': 'ListItem', 'position': 2, 'name': seriesTitle, 'item': seriesPageUrl },
-      { '@type': 'ListItem', 'position': 3, 'name': `Episode ${activeEpisode.episode_number}`, 'item': canonicalUrl }
+      { '@type': 'ListItem', 'position': 3, 'name': epPrefix, 'item': canonicalUrl }
     ]
   };
 
@@ -420,6 +463,7 @@ export default async function WatchPage({ params }: WatchPageProps) {
       <WatchPageClient
         activeEpisode={activeEpisode}
         seasonEpisodes={seasonEpisodes}
+        seasonTitle={seasonTitle}
         seriesDetails={seriesDetails}
         seriesTitle={seriesTitle}
         seriesSlug={seriesSlug}

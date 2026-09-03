@@ -31,7 +31,7 @@ export default function AdminNav({ isCollapsed }: AdminNavProps) {
     <nav className={styles.navMenu}>
       {navItems.map((item) => {
         const Icon = item.icon;
-        const isActive = pathname === item.href;
+        const isActive = item.href === '/admin' ? pathname === '/admin' : (pathname ? pathname.startsWith(item.href) : false);
         return (
           <Link
             key={item.href}

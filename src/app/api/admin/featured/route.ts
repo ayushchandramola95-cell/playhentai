@@ -10,7 +10,7 @@ export async function GET() {
     // Fetch all series with valid database columns
     const { data: allSeries, error } = await adminSupabase
       .from('series')
-      .select('id, title, slug, poster_image_key, cover_image_key, banner_image_key, description, tags, is_published, studio')
+      .select('id, title, slug, poster_image_key, cover_image_key, banner_image_key, image_library, description, tags, is_published, studio')
       .order('created_at', { ascending: false });
 
     if (error) throw error;
@@ -18,12 +18,29 @@ export async function GET() {
     // Fetch views map safely
     const viewsMap: Record<string, number> = await getSeriesViewsMap().catch(() => ({}));
 
-    // Attach views and map description to synopsis
-    const formattedSeries = (allSeries || []).map((s) => ({
-      ...s,
-      synopsis: s.description || '',
-      views: viewsMap[s.id] || 0,
-    }));
+    // Attach views and map description to synopsis + resolve image_library
+    const formattedSeries = (allSeries || []).map((s) => {
+      let poster = s.poster_image_key;
+      let cover = s.cover_image_key || s.banner_image_key;
+
+      if (!poster && Array.isArray(s.image_library)) {
+        const pObj = s.image_library.find((img: any) => img.role === 'poster');
+        if (pObj?.key) poster = pObj.key;
+      }
+      if (!cover && Array.isArray(s.image_library)) {
+        const cObj = s.image_library.find((img: any) => img.role === 'cover' || img.role === 'banner');
+        if (cObj?.key) cover = cObj.key;
+      }
+
+      return {
+        ...s,
+        poster_image_key: poster || s.poster_image_key,
+        cover_image_key: cover || s.cover_image_key,
+        banner_image_key: s.banner_image_key || cover || poster,
+        synopsis: s.description || '',
+        views: viewsMap[s.id] || 0,
+      };
+    });
 
     // Determine currently featured series and their order
     const featuredItems: { id: string; order: number }[] = [];

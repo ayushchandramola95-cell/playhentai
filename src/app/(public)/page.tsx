@@ -297,6 +297,26 @@ export default async function HomePage() {
     }
   }
 
+  // Parse custom promotional taglines and autoplay speed
+  const autoplaySpeed = parseInt(settingsMap.hero_banner_autoplay_speed || '6000', 10);
+  let heroTaglinesMap: Record<string, string> = {};
+  if (settingsMap.hero_banner_taglines) {
+    try {
+      const parsed = typeof settingsMap.hero_banner_taglines === 'string' 
+        ? JSON.parse(settingsMap.hero_banner_taglines) 
+        : settingsMap.hero_banner_taglines;
+      if (parsed && typeof parsed === 'object') {
+        heroTaglinesMap = parsed;
+      }
+    } catch (e) {}
+  }
+
+  // Attach tagline to featured series items
+  featuredSeries = featuredSeries.map((s) => ({
+    ...s,
+    tagline: heroTaglinesMap[s.id] || heroTaglinesMap[s.slug] || undefined,
+  }));
+
 
 
   // Sort Latest Series according to Admin Panel latest_series_sort_mode & release dates (excluding upcoming series)
@@ -481,7 +501,7 @@ export default async function HomePage() {
       <div className="ambient-glow-2" />
 
       {/* Featured Hero Carousel Banner */}
-      <HeroCarousel activeSeries={featuredSeries} isDbEmpty={isDbEmpty} />
+      <HeroCarousel activeSeries={featuredSeries} isDbEmpty={isDbEmpty} autoplaySpeed={autoplaySpeed} />
 
 
       {/* Hero Bottom Sponsored Ad Banner (728x90 Zone 5986176) */}

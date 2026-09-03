@@ -17,6 +17,7 @@ import styles from './watch.module.css';
 interface WatchPageClientProps {
   activeEpisode: any;
   seasonEpisodes: any[];
+  seasonTitle?: string;
   seriesDetails: any;
   seriesTitle: string;
   seriesSlug: string;
@@ -29,6 +30,7 @@ interface WatchPageClientProps {
 export default function WatchPageClient({
   activeEpisode,
   seasonEpisodes,
+  seasonTitle,
   seriesDetails,
   seriesTitle,
   seriesSlug,
@@ -195,13 +197,30 @@ export default function WatchPageClient({
             )}
 
             <div className={styles.epHeaderInfo}>
-              <span className={styles.epBadge}>Episode {activeEpisode.episode_number}</span>
-              {(activeEpisode.title.startsWith('[Preview]') || activeEpisode.title.startsWith('[Trailer]')) && (
-                <span className={styles.epBadge} style={{ background: '#3b82f6', color: 'white', fontWeight: 800 }}>
-                  PREVIEW / TRAILER
-                </span>
-              )}
-              <h1>Watch {seriesTitle} Episode {activeEpisode.episode_number}: {activeEpisode.title.replace(/^\[Preview\]\s*/i, '').replace(/^\[Trailer\]\s*/i, '')}</h1>
+              {(() => {
+                const sName = (seasonTitle || '').trim();
+                const isOva = /ova/i.test(sName);
+                const isSpecial = /special/i.test(sName);
+                const epLabel = isOva ? `OVA ${activeEpisode.episode_number}` : isSpecial ? `Special ${activeEpisode.episode_number}` : `Episode ${activeEpisode.episode_number}`;
+                const cleanEpTitle = (activeEpisode.title || '').replace(/^\[Preview\]\s*/i, '').replace(/^\[Trailer\]\s*/i, '').trim();
+
+                return (
+                  <>
+                    <span className={styles.epBadge}>{epLabel}</span>
+                    {(activeEpisode.title?.startsWith('[Preview]') || activeEpisode.title?.startsWith('[Trailer]')) && (
+                      <span className={styles.epBadge} style={{ background: '#3b82f6', color: 'white', fontWeight: 800 }}>
+                        PREVIEW / TRAILER
+                      </span>
+                    )}
+                    {sName && !/^season\s*1$/i.test(sName) && (
+                      <span className={styles.epBadge} style={{ background: '#4c1d95', color: '#e9d5ff', border: '1px solid #7c3aed' }}>
+                        {sName}
+                      </span>
+                    )}
+                    <h1>Watch {seriesTitle} {isOva && !seriesTitle.toLowerCase().includes('ova') ? 'OVA ' : ''}{epLabel}: {cleanEpTitle}</h1>
+                  </>
+                );
+              })()}
             </div>
 
             <div className={styles.epMetaRow}>

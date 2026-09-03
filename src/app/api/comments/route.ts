@@ -1,12 +1,15 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
+import { createAdminClient } from '@/utils/supabase/admin';
 
 export async function GET(request: Request) {
   try {
     const supabase = await createClient();
+    const adminSupabase = createAdminClient();
     const { searchParams } = new URL(request.url);
     const episodeId = searchParams.get('episode_id');
 
+    // Admin / Global comments retrieval
     if (!episodeId) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -23,26 +26,64 @@ export async function GET(request: Request) {
         return NextResponse.json({ error: 'Missing episode_id' }, { status: 400 });
       }
 
-      const { data, error } = await supabase
+      const { data, error } = await adminSupabase
         .from('comments')
         .select(`
           *,
           profiles (
             username,
             role
+          ),
+          episodes (
+            id,
+            title,
+            episode_number,
+            seasons (
+              id,
+              title,
+              season_number,
+              series (
+                id,
+                title,
+                slug,
+                poster_image_key
+              )
+            )
           )
         `)
         .order('created_at', { ascending: false })
-        .limit(50);
+        .limit(150);
 
       if (error) {
         console.warn('Comments table not available, returning empty list:', error.message);
         return NextResponse.json({ comments: [] });
       }
 
-      return NextResponse.json({ comments: data || [] });
+      // Format comments with flattened series and episode metadata
+      const formattedComments = (data || []).map((c: any) => {
+        const ep = c.episodes;
+        const season = ep?.seasons;
+        const series = season?.series;
+
+        return {
+          id: c.id,
+          content: c.content,
+          created_at: c.created_at,
+          profile_id: c.profile_id,
+          episode_id: c.episode_id,
+          status: c.status || 'approved',
+          profiles: c.profiles || { username: 'Anonymous', role: 'user' },
+          episodeTitle: ep?.title ? `Ep ${ep.episode_number}: ${ep.title}` : ep?.episode_number ? `Episode ${ep.episode_number}` : (c.episode_id ? `Episode ID: ${c.episode_id.substring(0, 8)}...` : 'General Discussion'),
+          seriesTitle: series?.title || (season?.title ? season.title : 'Global Discussion'),
+          seriesSlug: series?.slug || null,
+          posterKey: series?.poster_image_key || null
+        };
+      });
+
+      return NextResponse.json({ comments: formattedComments });
     }
 
+    // Public per-episode comments
     const { data, error } = await supabase
       .from('comments')
       .select(`
@@ -98,7 +139,7 @@ export async function POST(request: Request) {
       }
     } catch (pErr) {}
 
-    // 4. Try inserting into Supabase comments table
+    // 4. Try insert into DB
     try {
       const { data, error: insertError } = await supabase
         .from('comments')
@@ -147,6 +188,7 @@ export async function POST(request: Request) {
 export async function DELETE(request: Request) {
   try {
     const supabase = await createClient();
+    const adminSupabase = createAdminClient();
 
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
@@ -155,12 +197,26 @@ export async function DELETE(request: Request) {
 
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
-    if (!id) {
-      return NextResponse.json({ error: 'Missing comment ID' }, { status: 400 });
+    const ids = searchParams.get('ids');
+
+    if (!id && !ids) {
+      return NextResponse.json({ error: 'Missing comment ID or IDs' }, { status: 400 });
     }
 
     try {
-      const { error: deleteError } = await supabase
+      if (ids) {
+        const idList = ids.split(',').map(s => s.trim()).filter(Boolean);
+        const { error: deleteError } = await adminSupabase
+          .from('comments')
+          .delete()
+          .in('id', idList);
+        if (deleteError) {
+          console.warn('Supabase bulk delete comments failed:', deleteError.message);
+        }
+        return NextResponse.json({ success: true, count: idList.length });
+      }
+
+      const { error: deleteError } = await adminSupabase
         .from('comments')
         .delete()
         .eq('id', id);
@@ -173,6 +229,6 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ success: true });
   } catch (err: any) {
     console.error('Error deleting comment:', err);
-    return NextResponse.json({ success: true }); // Fallback success
+    return NextResponse.json({ success: true });
   }
 }

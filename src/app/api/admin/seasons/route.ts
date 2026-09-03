@@ -8,16 +8,22 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const seriesId = searchParams.get('series_id');
 
-    let query = adminSupabase.from('seasons').select('*, series(title)');
+    let query = adminSupabase.from('seasons').select('*, series(id, title, slug, poster_image_key, cover_image_key, is_published), episodes(id)');
     
     if (seriesId) {
       query = query.eq('series_id', seriesId);
     }
     
-    const { data, error } = await query.order('season_number', { ascending: true });
+    const { data, error } = await query.order('created_at', { ascending: false });
 
     if (error) throw error;
-    return NextResponse.json({ seasons: data });
+    
+    const mapped = (data || []).map((s: any) => ({
+      ...s,
+      episode_count: Array.isArray(s.episodes) ? s.episodes.length : 0
+    }));
+
+    return NextResponse.json({ seasons: mapped });
   } catch (err: any) {
     console.error('Error fetching admin seasons:', err);
     const status = err.message === 'Unauthorized' ? 401 : err.message === 'Forbidden' ? 403 : 500;
@@ -66,20 +72,27 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: 'Missing season ID' }, { status: 400 });
     }
 
+    const updateData: Record<string, any> = {};
+    if (payload.series_id !== undefined) updateData.series_id = payload.series_id;
+    if (payload.season_number !== undefined) updateData.season_number = payload.season_number;
+    if (payload.title !== undefined) updateData.title = payload.title;
+    if (payload.is_published !== undefined) updateData.is_published = payload.is_published;
+
     const { data, error } = await adminSupabase
       .from('seasons')
-      .update({
-        series_id: payload.series_id,
-        season_number: payload.season_number,
-        title: payload.title,
-        is_published: payload.is_published
-      })
+      .update(updateData)
       .eq('id', payload.id)
-      .select()
+      .select('*, series(id, title, slug, poster_image_key, cover_image_key, is_published), episodes(id)')
       .single();
 
     if (error) throw error;
-    return NextResponse.json({ success: true, season: data });
+    
+    const mapped = {
+      ...data,
+      episode_count: Array.isArray(data?.episodes) ? data.episodes.length : 0
+    };
+
+    return NextResponse.json({ success: true, season: mapped });
   } catch (err: any) {
     console.error('Error updating season:', err);
     const status = err.message === 'Unauthorized' ? 401 : err.message === 'Forbidden' ? 403 : 500;

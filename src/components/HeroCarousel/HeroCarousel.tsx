@@ -19,14 +19,16 @@ interface SeriesItem {
   tags?: string[];
   category?: string;
   firstEpisodeId?: string | null;
+  tagline?: string;
 }
 
 interface HeroCarouselProps {
   activeSeries: SeriesItem[];
   isDbEmpty: boolean;
+  autoplaySpeed?: number;
 }
 
-export default function HeroCarousel({ activeSeries, isDbEmpty }: HeroCarouselProps) {
+export default function HeroCarousel({ activeSeries, isDbEmpty, autoplaySpeed = 6000 }: HeroCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -34,12 +36,12 @@ export default function HeroCarousel({ activeSeries, isDbEmpty }: HeroCarouselPr
   const totalSlides = activeSeries ? activeSeries.length : 0;
 
   useEffect(() => {
-    if (totalSlides <= 1) return;
+    if (totalSlides <= 1 || autoplaySpeed <= 0) return;
 
     if (!isPaused) {
       timerRef.current = setInterval(() => {
         setCurrentIndex((prevIndex) => (prevIndex + 1) % totalSlides);
-      }, 6000);
+      }, autoplaySpeed);
     }
 
     return () => {
@@ -47,7 +49,7 @@ export default function HeroCarousel({ activeSeries, isDbEmpty }: HeroCarouselPr
         clearInterval(timerRef.current);
       }
     };
-  }, [totalSlides, isPaused]);
+  }, [totalSlides, isPaused, autoplaySpeed]);
 
   const handleNext = () => {
     if (totalSlides <= 1) return;
@@ -175,6 +177,11 @@ export default function HeroCarousel({ activeSeries, isDbEmpty }: HeroCarouselPr
                 )}
 
                 <div className={styles.badgeRow}>
+                  {series.tagline && (
+                    <span className={styles.taglineBadge}>
+                      {series.tagline}
+                    </span>
+                  )}
                   <span className={styles.qualityBadge}>HD</span>
                   <span className={styles.categoryBadge}>{series.category || 'Anime'}</span>
                 </div>
