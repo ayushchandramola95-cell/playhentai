@@ -17,6 +17,17 @@ export default function AnalyticsTracker() {
   const isAdminPath = pathname ? pathname.startsWith('/admin') : false;
   const isAdminUser = profile?.role === 'admin';
 
+  // Mark session permanently as developer if they visit /admin or have admin role
+  useEffect(() => {
+    if (typeof window !== 'undefined' && (isAdminPath || isAdminUser)) {
+      sessionStorage.setItem('ph_is_developer_session', 'true');
+    }
+  }, [isAdminPath, isAdminUser]);
+
+  const isDeveloperSession = typeof window !== 'undefined' 
+    ? (sessionStorage.getItem('ph_is_developer_session') === 'true' || isAdminPath || isAdminUser)
+    : false;
+
   // Helper to accurately detect real device type using User-Agent + Touch + Screen
   const getDeviceType = (): 'desktop' | 'mobile' | 'tablet' => {
     if (typeof window === 'undefined') return 'desktop';
@@ -40,7 +51,7 @@ export default function AnalyticsTracker() {
 
   // Initialize Session ID & Multi-Layer AdBlock Detection
   useEffect(() => {
-    if (typeof window === 'undefined' || isAdminPath || isAdminUser) return;
+    if (typeof window === 'undefined' || isDeveloperSession) return;
 
     // 1. Generate or load Session ID in sessionStorage (persists across page jumps in same tab)
     let storedSessionId = sessionStorage.getItem('ph_telemetry_sid');
@@ -99,11 +110,11 @@ export default function AnalyticsTracker() {
     };
 
     detectAdBlock();
-  }, [pathname]);
+  }, [pathname, isDeveloperSession]);
 
   // Track Scroll Depth Milestones (25%, 50%, 75%, 100%)
   useEffect(() => {
-    if (typeof window === 'undefined' || isAdminPath || isAdminUser) return;
+    if (typeof window === 'undefined' || isDeveloperSession) return;
 
     let ticking = false;
 
@@ -134,11 +145,11 @@ export default function AnalyticsTracker() {
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [pathname]);
+  }, [pathname, isDeveloperSession]);
 
   // Active Heartbeat & Visibility Lifecycle Handler
   useEffect(() => {
-    if (typeof window === 'undefined' || isAdminPath || isAdminUser) return;
+    if (typeof window === 'undefined' || isDeveloperSession) return;
 
     // Heartbeat every 30 seconds while tab is active
     const heartbeatInterval = setInterval(() => {
@@ -162,10 +173,10 @@ export default function AnalyticsTracker() {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       sendBeacon('unload');
     };
-  }, [pathname]);
+  }, [pathname, isDeveloperSession]);
 
   const sendBeacon = (event: string) => {
-    if (typeof window === 'undefined' || !sessionId.current || isAdminPath || isAdminUser) return;
+    if (typeof window === 'undefined' || !sessionId.current || isDeveloperSession) return;
 
     const elapsedSeconds = Math.max(Math.round((Date.now() - sessionStartTime.current) / 1000), 1);
     const device = getDeviceType();

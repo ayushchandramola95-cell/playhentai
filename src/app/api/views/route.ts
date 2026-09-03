@@ -257,6 +257,18 @@ export async function POST(request: Request) {
     // Get optional user session (views can be registered by guests)
     const { data: { user } } = await supabase.auth.getUser();
 
+    // Exclude admin/developer views from skewing public episode metrics
+    if (user) {
+      const { data: profile } = await adminSupabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+      if (profile?.role === 'admin') {
+        return NextResponse.json({ success: true, skipped: 'admin_developer_session' });
+      }
+    }
+
     // Insert view record into database using adminSupabase
     try {
       await adminSupabase
