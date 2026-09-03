@@ -42,37 +42,29 @@ interface TelemetryStore {
 
 const STORE_PATH = path.join(process.cwd(), 'src', 'utils', 'telemetry_store.json');
 
-// In-memory runtime cache for blazing fast performance
+// In-memory runtime cache for high-speed lookup
 let memoryStore: TelemetryStore | null = null;
 
-function getDefaultStore(): TelemetryStore {
+function getEmptyStore(): TelemetryStore {
   return {
     sessions: {},
-    routeVisits: {
-      '/': 1420,
-      '/watch': 3890,
-      '/series': 2180,
-      '/browse': 940,
-      '/3d': 520,
-      '/uncensored': 880,
-      '/playlists': 310,
-    },
+    routeVisits: {},
     scrollCounts: {
-      depth25: 3200,
-      depth50: 2450,
-      depth75: 1890,
-      depth100: 1240,
+      depth25: 0,
+      depth50: 0,
+      depth75: 0,
+      depth100: 0,
     },
     deviceCounts: {
-      desktop: 3850,
-      mobile: 4620,
-      tablet: 410,
+      desktop: 0,
+      mobile: 0,
+      tablet: 0,
     },
     adBlockCounts: {
-      blocked: 1840,
-      notBlocked: 7040,
+      blocked: 0,
+      notBlocked: 0,
     },
-    totalWatchEvents: 4230,
+    totalWatchEvents: 0,
     lastCleaned: Date.now(),
   };
 }
@@ -80,13 +72,13 @@ function getDefaultStore(): TelemetryStore {
 async function getStore(): Promise<TelemetryStore> {
   if (memoryStore) return memoryStore;
 
-  const defaultStore = getDefaultStore();
+  const emptyStore = getEmptyStore();
 
   // 1. Try to read from local file
   try {
     if (fs.existsSync(STORE_PATH)) {
       const data = fs.readFileSync(STORE_PATH, 'utf-8');
-      const loaded: TelemetryStore = { ...defaultStore, ...JSON.parse(data) };
+      const loaded: TelemetryStore = { ...emptyStore, ...JSON.parse(data) };
       memoryStore = loaded;
       return loaded;
     }
@@ -105,7 +97,7 @@ async function getStore(): Promise<TelemetryStore> {
 
     if (data && data.value) {
       const parsed = JSON.parse(data.value);
-      const loaded: TelemetryStore = { ...defaultStore, ...parsed };
+      const loaded: TelemetryStore = { ...emptyStore, ...parsed };
       memoryStore = loaded;
       return loaded;
     }
@@ -113,8 +105,8 @@ async function getStore(): Promise<TelemetryStore> {
     // Supabase fallback
   }
 
-  memoryStore = defaultStore;
-  return defaultStore;
+  memoryStore = emptyStore;
+  return emptyStore;
 }
 
 async function saveStore(store: TelemetryStore) {
@@ -129,7 +121,7 @@ async function saveStore(store: TelemetryStore) {
     console.error('Error saving local telemetry store:', err);
   }
 
-  // 2. Asynchronously persist to Supabase in background (Production database)
+  // 2. Persist to Supabase in background for production live domain
   try {
     const adminSupabase = createAdminClient();
     await adminSupabase
@@ -144,21 +136,21 @@ async function saveStore(store: TelemetryStore) {
   }
 }
 
-// GET: Returns processed live traffic metrics for Admin Analytics
+// GET: Returns 100% genuine calculated telemetry metrics for Admin Analytics
 export async function GET(request: Request) {
   try {
     const store = await getStore();
     const now = Date.now();
-    const fiveMinutesAgo = now - 5 * 60 * 1000;
+    const threeMinutesAgo = now - 3 * 60 * 1000; // 3-minute active window
 
-    // 1. Calculate Active Live Visitors (last 5 minutes)
-    const activeSessions = Object.values(store.sessions).filter(
-      (s) => s.lastSeen >= fiveMinutesAgo
+    // 1. Calculate Active Live Visitors (sessions with heartbeat in last 3 minutes)
+    const allSessions = Object.values(store.sessions);
+    const activeSessions = allSessions.filter(
+      (s) => s.lastSeen >= threeMinutesAgo
     );
-    const activeVisitorsCount = Math.max(activeSessions.length, 12);
+    const activeVisitorsCount = activeSessions.length;
 
     // 2. Average Session Duration
-    const allSessions = Object.values(store.sessions);
     let totalDuration = 0;
     let countedSessions = 0;
     allSessions.forEach((s) => {
@@ -170,9 +162,13 @@ export async function GET(request: Request) {
 
     const avgDurationSeconds = countedSessions > 0 
       ? Math.round(totalDuration / countedSessions) 
-      : 512; // ~8m 32s default baseline
+      : 0;
 
-    const avgDurationFormatted = `${Math.floor(avgDurationSeconds / 60)}m ${avgDurationSeconds % 60}s`;
+    const avgMinutes = Math.floor(avgDurationSeconds / 60);
+    const avgSecs = avgDurationSeconds % 60;
+    const avgDurationFormatted = countedSessions > 0 
+      ? (avgMinutes > 0 ? `${avgMinutes}m ${avgSecs}s` : `${avgSecs}s`)
+      : '0s';
 
     // 3. Pages per session
     let totalPagesCount = 0;
@@ -181,30 +177,33 @@ export async function GET(request: Request) {
     });
     const avgPagesPerSession = allSessions.length > 0 
       ? (totalPagesCount / allSessions.length).toFixed(1) 
-      : '3.6';
+      : '1.0';
 
     // 4. Device Breakdown Percentages
-    const totalDevices = (store.deviceCounts.desktop + store.deviceCounts.mobile + store.deviceCounts.tablet) || 1;
-    const desktopPercent = Math.round((store.deviceCounts.desktop / totalDevices) * 100);
-    const mobilePercent = Math.round((store.deviceCounts.mobile / totalDevices) * 100);
-    const tabletPercent = Math.max(100 - desktopPercent - mobilePercent, 0);
+    const totalDevices = (store.deviceCounts.desktop + store.deviceCounts.mobile + store.deviceCounts.tablet) || 0;
+    const desktopPercent = totalDevices > 0 ? Math.round((store.deviceCounts.desktop / totalDevices) * 100) : 0;
+    const mobilePercent = totalDevices > 0 ? Math.round((store.deviceCounts.mobile / totalDevices) * 100) : 0;
+    const tabletPercent = totalDevices > 0 ? Math.max(100 - desktopPercent - mobilePercent, 0) : 0;
 
     // 5. AdBlocker Usage Rate
-    const totalAdChecks = (store.adBlockCounts.blocked + store.adBlockCounts.notBlocked) || 1;
-    const adBlockPercent = Math.round((store.adBlockCounts.blocked / totalAdChecks) * 100);
+    const totalAdChecks = (store.adBlockCounts.blocked + store.adBlockCounts.notBlocked) || 0;
+    const adBlockPercent = totalAdChecks > 0 ? Math.round((store.adBlockCounts.blocked / totalAdChecks) * 100) : 0;
 
     // 6. Scroll Funnel Percentages
-    const maxScrollTotal = Math.max(store.scrollCounts.depth25, 1);
+    const depth25Count = store.scrollCounts.depth25;
     const scrollFunnel = {
-      depth25: 100,
-      depth50: Math.round((store.scrollCounts.depth50 / maxScrollTotal) * 100),
-      depth75: Math.round((store.scrollCounts.depth75 / maxScrollTotal) * 100),
-      depth100: Math.round((store.scrollCounts.depth100 / maxScrollTotal) * 100),
+      depth25: depth25Count > 0 ? 100 : 0,
+      depth50: depth25Count > 0 ? Math.round((store.scrollCounts.depth50 / depth25Count) * 100) : 0,
+      depth75: depth25Count > 0 ? Math.round((store.scrollCounts.depth75 / depth25Count) * 100) : 0,
+      depth100: depth25Count > 0 ? Math.round((store.scrollCounts.depth100 / depth25Count) * 100) : 0,
     };
 
-    // 7. Watch Video Conversion Rate
-    const totalRecordedSessions = Math.max(allSessions.length, 100);
-    const watchConversionRate = Math.min(Math.round((store.totalWatchEvents / totalRecordedSessions) * 100), 86);
+    // 7. Watch Video Conversion Rate (% of sessions that triggered playback)
+    const totalSessionsRecorded = allSessions.length;
+    const sessionsThatWatched = allSessions.filter(s => s.hasWatchedVideo).length;
+    const watchConversionRate = totalSessionsRecorded > 0 
+      ? Math.round((sessionsThatWatched / totalSessionsRecorded) * 100) 
+      : 0;
 
     // 8. Top Visited Routes List
     const topRoutes = Object.entries(store.routeVisits)
@@ -213,6 +212,7 @@ export async function GET(request: Request) {
       .slice(0, 8);
 
     return NextResponse.json({
+      totalSessionsCount: allSessions.length,
       activeVisitorsCount,
       avgDurationSeconds,
       avgDurationFormatted,
@@ -224,7 +224,7 @@ export async function GET(request: Request) {
       },
       adBlockRate: adBlockPercent,
       scrollFunnel,
-      watchConversionRate: Math.max(watchConversionRate, 68),
+      watchConversionRate,
       totalWatchEvents: store.totalWatchEvents,
       topRoutes,
     });
@@ -234,7 +234,7 @@ export async function GET(request: Request) {
   }
 }
 
-// POST: Collects incoming telemetry beacons from frontend (Production domain & Localhost)
+// POST: Ingests real-time visitor beacons from public website
 export async function POST(request: Request) {
   try {
     const payload = await request.json().catch(() => null);
@@ -314,7 +314,7 @@ export async function POST(request: Request) {
       store.totalWatchEvents++;
     }
 
-    // Cleanup stale sessions older than 48 hours
+    // Cleanup stale sessions older than 48 hours to prevent unbounded memory growth
     if (now - store.lastCleaned > 6 * 60 * 60 * 1000) {
       const cutoff = now - 48 * 60 * 60 * 1000;
       Object.keys(store.sessions).forEach((id) => {
