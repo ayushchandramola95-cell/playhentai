@@ -19,6 +19,21 @@ export default function GlobalAds({ adsSettings, disabledZones = [] }: GlobalAds
   const isAdminPath = pathname ? pathname.startsWith('/admin') : false;
   const isAdminUser = profile?.role === 'admin';
 
+  // Automatically re-trigger ExoClick ad provider on every client-side page navigation
+  React.useEffect(() => {
+    if (isAdminPath || isAdminUser) return;
+
+    const timer = setTimeout(() => {
+      try {
+        const w = window as any;
+        w.AdProvider = w.AdProvider || [];
+        w.AdProvider.push({ serve: {} });
+      } catch (e) {}
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [pathname, isAdminPath, isAdminUser]);
+
   if (isAdminPath || isAdminUser) {
     return null;
   }

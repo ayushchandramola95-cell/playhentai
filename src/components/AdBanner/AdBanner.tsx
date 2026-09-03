@@ -54,21 +54,25 @@ export default function AdBanner({ zoneId = '5986176', insClass, mobileOnly = fa
       document.head.appendChild(scriptObj);
     }
 
-    // Create ins element
-    const insObj = document.createElement('ins');
-    insObj.className = insClass || 'eas6a97888e2';
-    insObj.setAttribute('data-zoneid', zoneId);
-    containerRef.current.appendChild(insObj);
+    const timer = setTimeout(() => {
+      // Create ins element
+      const insObj = document.createElement('ins');
+      insObj.className = insClass || 'eas6a97888e2';
+      insObj.setAttribute('data-zoneid', zoneId);
+      containerRef.current?.appendChild(insObj);
 
-    // Push to AdProvider to render this newly added zone
-    try {
-      const w = window as any;
-      w.AdProvider = w.AdProvider || [];
-      w.AdProvider.push({ serve: {} });
-    } catch (e) {
-      console.warn('AdProvider push failed:', e);
-    }
-  }, [zoneId, insClass, isBlocked]);
+      // Push to AdProvider to render this newly added zone
+      try {
+        const w = window as any;
+        w.AdProvider = w.AdProvider || [];
+        w.AdProvider.push({ serve: {} });
+      } catch (e) {
+        console.warn('AdProvider push failed:', e);
+      }
+    }, 150);
+
+    return () => clearTimeout(timer);
+  }, [zoneId, insClass, isBlocked, pathname]);
 
   if (isBlocked || isAdminPath || isAdminUser) {
     return null; // Do not render anything at all if banners are hidden or user/path is admin
