@@ -78,7 +78,9 @@ export async function uploadFileWithMultipart(options: MultipartUploadOptions): 
 
     xhr.open('PUT', url, true);
     if (file.type) {
-      xhr.setRequestHeader('Content-Type', file.type);
+      try {
+        xhr.setRequestHeader('Content-Type', file.type);
+      } catch (_) {}
     }
 
     xhr.upload.onprogress = (event) => {
@@ -128,7 +130,11 @@ export async function uploadFileWithMultipart(options: MultipartUploadOptions): 
           etaSeconds: 0,
           stage: 'error',
         });
-        reject(new Error(`Upload failed with status code ${xhr.status}`));
+        let responseDetail = xhr.statusText || 'R2 Storage Rejection';
+        try {
+          if (xhr.responseText) responseDetail += ` - ${xhr.responseText.substring(0, 200)}`;
+        } catch (_) {}
+        reject(new Error(`Upload failed (Status: ${xhr.status} ${responseDetail})`));
       }
     };
 

@@ -39,11 +39,11 @@ export async function POST(request: Request) {
       },
     });
 
-    const key = `uploads/${Date.now()}-${filename}`;
+    const sanitizedName = filename.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+    const key = `uploads/${Date.now()}-${sanitizedName}`;
     const command = new PutObjectCommand({
       Bucket: bucketName,
       Key: key,
-      ContentType: contentType,
     });
 
     const url = await getSignedUrl(s3, command, { expiresIn: 3600 });
