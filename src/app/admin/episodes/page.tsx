@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import FileUploader from '@/components/FileUploader/FileUploader';
 import { getR2Url } from '@/utils/r2';
+import { uploadFileWithMultipart, formatUploadBytes, UploadProgressEvent } from '@/utils/multipartUploader';
 import styles from './episodes.module.css';
 import adminStyles from '../admin.module.css';
 
@@ -68,6 +69,12 @@ interface BatchEpisodeFile {
   thumbnailKey: string;
   status: 'metadata' | 'pending' | 'uploading' | 'saving' | 'success' | 'error';
   progress: number;
+  speedMBps?: number;
+  etaSeconds?: number;
+  loadedBytes?: number;
+  totalBytes?: number;
+  currentPart?: number;
+  totalParts?: number;
   errorMsg?: string;
   isPublished: boolean;
   isPreview: boolean;
@@ -1169,49 +1176,38 @@ export default function AdminEpisodesPage() {
 
       setBatches(prev => prev.map(b => b.id === batchId ? {
         ...b,
-        files: b.files.map(item => item.id === bf.id ? { ...item, status: 'uploading', progress: 0 } : item)
+        files: b.files.map(item => item.id === bf.id ? { 
+          ...item, 
+          status: 'uploading', 
+          progress: 0,
+          speedMBps: 0,
+          etaSeconds: 0,
+          loadedBytes: 0,
+          totalBytes: bf.file.size
+        } : item)
       } : b));
 
       try {
-        const presignRes = await fetch('/api/admin/presign', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            filename: bf.file.name,
-            contentType: bf.file.type
-          })
-        });
-
-        const presignData = await presignRes.json();
-        if (!presignRes.ok) throw new Error(presignData.error || 'Failed to initialize video upload');
-
-        const { url, key: videoKeyVal } = presignData;
-
-        await new Promise<void>((resolve, reject) => {
-          const xhr = new XMLHttpRequest();
-          xhr.open('PUT', url, true);
-          xhr.setRequestHeader('Content-Type', bf.file.type);
-
-          xhr.upload.onprogress = (event) => {
-            if (event.lengthComputable) {
-              const pct = Math.round((event.loaded / event.total) * 100);
-              setBatches(prev => prev.map(b => b.id === batchId ? {
-                ...b,
-                files: b.files.map(item => item.id === bf.id ? { ...item, progress: pct } : item)
-              } : b));
-            }
-          };
-
-          xhr.onload = () => {
-            if (xhr.status === 200 || xhr.status === 204 || xhr.status === 201) {
-              resolve();
-            } else {
-              reject(new Error(`Video upload failed (Status: ${xhr.status})`));
-            }
-          };
-
-          xhr.onerror = () => reject(new Error('Network error during video upload'));
-          xhr.send(bf.file);
+        // High-Speed Parallel Multipart Uploader directly to Cloudflare R2
+        const videoKeyVal = await uploadFileWithMultipart({
+          file: bf.file,
+          chunkSize: 10 * 1024 * 1024, // 10MB optimal chunks
+          concurrency: 3, // 3 parallel streams
+          onProgress: (p: UploadProgressEvent) => {
+            setBatches(prev => prev.map(b => b.id === batchId ? {
+              ...b,
+              files: b.files.map(item => item.id === bf.id ? {
+                ...item,
+                progress: p.percent,
+                speedMBps: p.speedMBps,
+                etaSeconds: p.etaSeconds,
+                loadedBytes: p.loadedBytes,
+                totalBytes: p.totalBytes,
+                currentPart: p.currentPart,
+                totalParts: p.totalParts
+              } : item)
+            } : b));
+          }
         });
 
         setBatches(prev => prev.map(b => b.id === batchId ? {
@@ -4887,12 +4883,39 @@ export default function AdminEpisodesPage() {
                                   </span>
                                 )}
                                 {bf.status === 'uploading' && (
-                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
-                                    <span style={{ fontSize: '0.72rem', color: 'var(--primary)', fontWeight: 700 }}>
-                                      Uploading: {bf.progress}%
-                                    </span>
-                                    <div style={{ height: '4px', background: '#23283b', borderRadius: '2px', overflow: 'hidden' }}>
-                                      <div style={{ width: `${bf.progress}%`, height: '100%', background: 'var(--primary)', transition: 'width 0.1s ease' }} />
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', minWidth: '160px' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.72rem' }}>
+                                      <span style={{ color: 'var(--primary)', fontWeight: 800 }}>
+                                        Uploading: {bf.progress}%
+                                      </span>
+                                      {bf.speedMBps !== undefined && bf.speedMBps > 0 && (
+                                        <span style={{ color: '#10b981', fontWeight: 700, fontSize: '0.7rem' }}>
+                                          ⚡ {bf.speedMBps} MB/s
+                                        </span>
+                                      )}
+                                    </div>
+                                    <div style={{ height: '5px', background: '#1c2237', borderRadius: '3px', overflow: 'hidden' }}>
+                                      <div 
+                                        style={{ 
+                                          width: `${bf.progress}%`, 
+                                          height: '100%', 
+                                          background: 'linear-gradient(90deg, #7c3aed 0%, #10b981 100%)', 
+                                          transition: 'width 0.2s ease',
+                                          boxShadow: '0 0 8px rgba(124, 58, 237, 0.6)'
+                                        }} 
+                                      />
+                                    </div>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.66rem', color: 'var(--foreground-muted)' }}>
+                                      <span>
+                                        {bf.loadedBytes && bf.totalBytes 
+                                          ? `${formatUploadBytes(bf.loadedBytes)} / ${formatUploadBytes(bf.totalBytes)}` 
+                                          : formatUploadBytes(bf.file.size)}
+                                      </span>
+                                      {bf.etaSeconds !== undefined && bf.etaSeconds > 0 ? (
+                                        <span>⏱️ {bf.etaSeconds}s remaining</span>
+                                      ) : bf.totalParts && bf.totalParts > 1 ? (
+                                        <span>Part {bf.currentPart || 1}/{bf.totalParts}</span>
+                                      ) : null}
                                     </div>
                                   </div>
                                 )}
@@ -5069,11 +5092,14 @@ export default function AdminEpisodesPage() {
                 <span>
                   Progress: {completedCount} / {totalCount} done
                 </span>
-                {isUploading && (
-                  <span style={{ maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    Active: {b.files.find(f => f.status === 'uploading')?.file.name || 'Saving...'}
-                  </span>
-                )}
+                {isUploading && (() => {
+                  const activeFile = b.files.find(f => f.status === 'uploading');
+                  return (
+                    <span style={{ maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#10b981', fontWeight: 700 }}>
+                      {activeFile ? `${activeFile.progress}% ${activeFile.speedMBps ? `• ⚡ ${activeFile.speedMBps}MB/s` : ''}` : 'Saving...'}
+                    </span>
+                  );
+                })()}
               </div>
               <div className={styles.track} style={{ height: '6px', background: 'var(--border)', borderRadius: '3px', overflow: 'hidden' }}>
                 <div
@@ -5081,7 +5107,7 @@ export default function AdminEpisodesPage() {
                   style={{
                     width: `${totalCount > 0 ? (completedCount / totalCount) * 100 : 0}%`,
                     height: '100%',
-                    background: isSuccess ? '#10b981' : 'linear-gradient(90deg, #10b981 0%, #059669 100%)',
+                    background: isSuccess ? '#10b981' : 'linear-gradient(90deg, #7c3aed 0%, #10b981 100%)',
                     transition: 'width 0.3s ease'
                   }}
                 />

@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { UploadCloud, CheckCircle, X, AlertCircle } from 'lucide-react';
 import { getR2Url } from '@/utils/r2';
+import { uploadFileWithMultipart, formatUploadBytes, UploadProgressEvent } from '@/utils/multipartUploader';
 import styles from './FileUploader.module.css';
 
 interface FileUploaderProps {
@@ -33,6 +34,10 @@ export default function FileUploader({
   const [dragActive, setDragActive] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [speedMBps, setSpeedMBps] = useState<number>(0);
+  const [etaSeconds, setEtaSeconds] = useState<number>(0);
+  const [loadedBytes, setLoadedBytes] = useState<number>(0);
+  const [totalBytes, setTotalBytes] = useState<number>(0);
   const [uploadedKey, setUploadedKey] = useState<string | null>(initialValue || null);
   const [filename, setFilename] = useState<string | null>(initialValue ? initialValue.split('/').pop() || null : null);
   
@@ -44,7 +49,7 @@ export default function FileUploader({
   const [error, setError] = useState<string | null>(null);
   
   const inputRef = useRef<HTMLInputElement>(null);
-  const xhrRef = useRef<XMLHttpRequest | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const formatBytes = (bytes: number) => {
     if (bytes === 0) return '0 Bytes';
@@ -68,6 +73,7 @@ export default function FileUploader({
     setUploading(true);
     setError(null);
     const uploadedKeys: string[] = [];
+
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       if (file.size > maxSizeMb * 1024 * 1024) {
@@ -75,7 +81,6 @@ export default function FileUploader({
         continue;
       }
       
-      // Basic type validation
       const typeRegex = new RegExp(acceptedTypes.replace('*', '.*'));
       if (!typeRegex.test(file.type) && acceptedTypes !== '*/*') {
         setError(`Invalid type for ${file.name}. Allowed: ${acceptedTypes}`);
@@ -85,64 +90,48 @@ export default function FileUploader({
       setFilename(`[${i + 1}/${files.length}] ${file.name}`);
       setFileSize(formatBytes(file.size));
       setProgress(0);
+      setSpeedMBps(0);
+      setEtaSeconds(0);
+      setLoadedBytes(0);
+      setTotalBytes(file.size);
+
+      abortControllerRef.current = new AbortController();
 
       try {
-        const presignRes = await fetch('/api/admin/presign', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            filename: file.name,
-            contentType: file.type
-          })
+        const key = await uploadFileWithMultipart({
+          file,
+          concurrency: 3,
+          signal: abortControllerRef.current.signal,
+          onProgress: (p: UploadProgressEvent) => {
+            setProgress(p.percent);
+            setSpeedMBps(p.speedMBps);
+            setEtaSeconds(p.etaSeconds);
+            setLoadedBytes(p.loadedBytes);
+            setTotalBytes(p.totalBytes);
+          }
         });
 
-        const presignData = await presignRes.json();
-        if (!presignRes.ok) throw new Error(presignData.error || 'Failed to initialize upload');
-
-        const { url, key } = presignData;
-
-        await new Promise<void>((resolve, reject) => {
-          const xhr = new XMLHttpRequest();
-          xhrRef.current = xhr;
-
-          xhr.open('PUT', url, true);
-          xhr.setRequestHeader('Content-Type', file.type);
-
-          xhr.upload.onprogress = (event) => {
-            if (event.lengthComputable) {
-              setProgress(Math.round((event.loaded / event.total) * 100));
-            }
-          };
-
-          xhr.onload = () => {
-            if (xhr.status === 200 || xhr.status === 204 || xhr.status === 201) {
-              uploadedKeys.push(key);
-              resolve();
-            } else {
-              reject(new Error(`Upload failed for ${file.name} (Status: ${xhr.status})`));
-            }
-          };
-
-          xhr.onerror = () => reject(new Error(`Network error uploading ${file.name}`));
-          xhr.send(file);
-        });
-
+        uploadedKeys.push(key);
       } catch (err: any) {
-        setError(err.message || 'An unexpected error occurred.');
+        if (err.message !== 'Upload aborted by user') {
+          setError(err.message || 'An unexpected error occurred.');
+        }
         break;
       }
     }
+
     setUploading(false);
     setProgress(0);
+    setSpeedMBps(0);
+    setEtaSeconds(0);
     setFilename(null);
     setFileSize(null);
 
     if (uploadedKeys.length > 0) {
       if (onMultipleUploadComplete) {
         onMultipleUploadComplete(uploadedKeys);
-      } else {
-        onUploadComplete(uploadedKeys[uploadedKeys.length - 1]);
       }
+      onUploadComplete(uploadedKeys[uploadedKeys.length - 1]);
     }
   };
 
@@ -172,13 +161,11 @@ export default function FileUploader({
   const validateAndUpload = (file: File) => {
     setError(null);
     
-    // Validate file size
     if (file.size > maxSizeMb * 1024 * 1024) {
       setError(`File size exceeds limit of ${maxSizeMb}MB.`);
       return;
     }
 
-    // Simple type check (Next.js file input wildcard validation fallback)
     const typeRegex = new RegExp(acceptedTypes.replace('*', '.*'));
     if (!typeRegex.test(file.type) && acceptedTypes !== '*/*') {
       setError(`Invalid file type. Allowed: ${acceptedTypes}`);
@@ -195,74 +182,45 @@ export default function FileUploader({
   const uploadFile = async (file: File) => {
     setUploading(true);
     setProgress(0);
+    setSpeedMBps(0);
+    setEtaSeconds(0);
+    setLoadedBytes(0);
+    setTotalBytes(file.size);
     setFilename(file.name);
     setFileSize(formatBytes(file.size));
 
+    abortControllerRef.current = new AbortController();
+
     try {
-      // 1. Get presigned R2 upload URL
-      const presignRes = await fetch('/api/admin/presign', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          filename: file.name,
-          contentType: file.type
-        })
+      const key = await uploadFileWithMultipart({
+        file,
+        concurrency: 3,
+        signal: abortControllerRef.current.signal,
+        onProgress: (p: UploadProgressEvent) => {
+          setProgress(p.percent);
+          setSpeedMBps(p.speedMBps);
+          setEtaSeconds(p.etaSeconds);
+          setLoadedBytes(p.loadedBytes);
+          setTotalBytes(p.totalBytes);
+        }
       });
 
-      const presignData = await presignRes.json();
-      if (!presignRes.ok) throw new Error(presignData.error || 'Failed to initialize upload');
-
-      const { url, key } = presignData;
-
-      // 2. Perform direct upload using XMLHttpRequest for progress events
-      const xhr = new XMLHttpRequest();
-      xhrRef.current = xhr;
-
-      xhr.open('PUT', url, true);
-      xhr.setRequestHeader('Content-Type', file.type);
-
-      // Track progress
-      xhr.upload.onprogress = (event) => {
-        if (event.lengthComputable) {
-          const pct = Math.round((event.loaded / event.total) * 100);
-          setProgress(pct);
-        }
-      };
-
-      // Handle completion
-      xhr.onload = () => {
-        if (xhr.status === 200 || xhr.status === 204 || xhr.status === 201) {
-          setUploadedKey(key);
-          onUploadComplete(key);
-        } else {
-          setError(`Upload failed with status code: ${xhr.status}`);
-          setFilename(null);
-        }
-        setUploading(false);
-      };
-
-      // Handle errors
-      xhr.onerror = () => {
-        setError('Network error occurred during file upload.');
-        setFilename(null);
-        setUploading(false);
-      };
-
-      // Send the file binary
-      xhr.send(file);
-
+      setUploadedKey(key);
+      onUploadComplete(key);
     } catch (err: any) {
-      setError(err.message || 'An unexpected error occurred.');
+      if (err.message !== 'Upload aborted by user') {
+        setError(err.message || 'An unexpected error occurred during upload.');
+      }
       setFilename(null);
+    } finally {
       setUploading(false);
     }
   };
 
   const handleClear = async () => {
-    // Abort active upload if running
-    if (xhrRef.current) {
-      xhrRef.current.abort();
-      xhrRef.current = null;
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
     }
 
     const keyToDelete = uploadedKey;
@@ -300,14 +258,20 @@ export default function FileUploader({
         <div className={styles.uploadingState}>
           <div className={styles.progressHeader}>
             <span className={styles.filename}>{filename}</span>
-            <span className={styles.percent}>{progress}%</span>
+            <span className={styles.percent}>
+              {speedMBps > 0 && <span style={{ marginRight: '0.5rem', color: '#10b981', fontWeight: 700, fontSize: '0.75rem' }}>⚡ {speedMBps} MB/s</span>}
+              {progress}%
+            </span>
           </div>
           <div className={styles.track}>
             <div className={styles.bar} style={{ width: `${progress}%` }} />
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span className={styles.sizeText}>{fileSize}</span>
-            <button type="button" onClick={handleClear} className={styles.clearBtn} style={{ color: '#ef4444', fontSize: '0.75rem', fontWeight: 700, background: 'none', border: 'none', padding: 0 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.75rem', color: 'var(--foreground-muted)' }}>
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              <span>{loadedBytes > 0 && totalBytes > 0 ? `${formatUploadBytes(loadedBytes)} / ${formatUploadBytes(totalBytes)}` : fileSize}</span>
+              {etaSeconds > 0 && <span>• ⏱️ {etaSeconds}s remaining</span>}
+            </div>
+            <button type="button" onClick={handleClear} className={styles.clearBtn} style={{ color: '#ef4444', fontSize: '0.75rem', fontWeight: 700, background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
               Cancel
             </button>
           </div>
