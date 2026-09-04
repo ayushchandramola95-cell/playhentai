@@ -746,6 +746,17 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
               <div className={styles.synopsisBox}>
                 <h3 className={styles.synopsisLabel}>SYNOPSIS</h3>
                 <p className={styles.synopsisText}>{activeSeries.description}</p>
+                {firstEpisode && (
+                  <div style={{ marginTop: '1.25rem' }}>
+                    <Link
+                      href={getEpisodeWatchUrl(firstEpisode.id, firstEpisode.episode_number, slug)}
+                      className={styles.watchNowCtaBtn}
+                    >
+                      <Play size={18} fill="currentColor" />
+                      <span>Watch Episode {firstEpisode.episode_number || 1}</span>
+                    </Link>
+                  </div>
+                )}
               </div>
             </div>
           </div>

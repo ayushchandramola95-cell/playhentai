@@ -4,6 +4,27 @@
   padding-bottom: 5rem;
 }
 
+.watchNowCtaBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+  color: #ffffff;
+  padding: 0.75rem 1.6rem;
+  border-radius: 30px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  text-decoration: none;
+  box-shadow: 0 4px 15px rgba(124, 58, 237, 0.4);
+  transition: all 0.25s ease;
+}
+
+.watchNowCtaBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.6);
+  background: linear-gradient(135deg, #6d28d9 0%, #9333ea 100%);
+}
+
 /* Ambient Backdrop Banner */
 .bannerContainer {
   position: absolute;
