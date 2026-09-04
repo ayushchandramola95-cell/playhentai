@@ -25,18 +25,27 @@ export async function GET() {
     );
     const { data: series } = await supabase
       .from('series')
-      .select('slug')
+      .select('slug, seasons(episodes(id, episode_number, is_published, video_key))')
       .eq('is_published', true);
 
     if (series && series.length > 0) {
       series.forEach((s: any) => {
         if (s.slug) {
           urlList.push(`${baseUrl}/series/${s.slug}`);
+          const seasons = s.seasons || [];
+          seasons.forEach((sea: any) => {
+            (sea.episodes || []).forEach((ep: any) => {
+              if (ep.is_published && ep.video_key) {
+                const watchSlug = s.slug && ep.episode_number ? `${s.slug}-episode-${ep.episode_number}` : ep.id;
+                urlList.push(`${baseUrl}/watch/${watchSlug}`);
+              }
+            });
+          });
         }
       });
     }
   } catch (err) {
-    console.error('Error fetching series for IndexNow payload:', err);
+    console.error('Error fetching series & episodes for IndexNow payload:', err);
   }
 
   // 1. Submit via IndexNow Protocol (Bing, Yandex, Yahoo, Naver)
