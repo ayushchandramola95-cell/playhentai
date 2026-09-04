@@ -270,7 +270,7 @@ const getCachedSeriesData = unstable_cache(
 
       const { data: allSeriesData } = await publicSupabaseClient
         .from('series')
-        .select('*')
+        .select('id, title, slug, studio, tags, status, release_year, rating, poster_image_key, cover_image_key, poster_position, content_rating')
         .eq('is_published', true);
       if (allSeriesData) {
         allSeriesList = allSeriesData.map((s: any) => ({
@@ -325,7 +325,7 @@ const getCachedSeriesData = unstable_cache(
     return { dbSeries, dbSeasons, isDbEmpty, allSeriesList };
   },
   ['series-details-full-cache-v1'],
-  { revalidate: 60, tags: ['series_details'] }
+  { revalidate: 3600, tags: ['series_details'] }
 );
 
 export default async function SeriesDetailsPage({ params }: SeriesPageProps) {

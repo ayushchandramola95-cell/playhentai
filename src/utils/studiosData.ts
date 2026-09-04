@@ -86,7 +86,7 @@ export const getAllStudiosWithStats = unstable_cache(
     try {
       const { data } = await publicSupabaseClient
         .from('series')
-        .select('*')
+        .select('id, studio, rating, tags, title, slug, poster_image_key, cover_image_key, release_year')
         .eq('is_published', true);
       if (data && data.length > 0) {
         seriesList = data;
@@ -166,7 +166,7 @@ export const getAllStudiosWithStats = unstable_cache(
   return allStudios.sort((a, b) => b.stats.totalSeries - a.stats.totalSeries);
 },
 ['all-studios-stats-cache-v1'],
-{ revalidate: 60, tags: ['studios_stats'] }
+{ revalidate: 3600, tags: ['studios_stats'] }
 );
 
 export async function getStudioDetails(slug: string) {

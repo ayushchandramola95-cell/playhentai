@@ -65,7 +65,7 @@ const getCachedRandomizerSeries = unstable_cache(
     try {
       const { data: dbSeries } = await publicSupabaseClient
         .from('series')
-        .select('*')
+        .select('id, title, slug, rating, release_year, studio, tags, status, poster_image_key, cover_image_key, poster_position, content_rating')
         .eq('is_published', true);
 
       if (dbSeries && dbSeries.length > 0) {
@@ -85,7 +85,7 @@ const getCachedRandomizerSeries = unstable_cache(
     return seriesList;
   },
   ['randomizer-series-catalog-cache-v1'],
-  { revalidate: 60, tags: ['randomizer_catalog'] }
+  { revalidate: 3600, tags: ['randomizer_catalog'] }
 );
 
 export default async function RandomPage() {

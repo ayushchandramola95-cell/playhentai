@@ -309,18 +309,27 @@ export async function generateMetadata({ params }: WatchPageProps): Promise<Meta
   };
 }
 
+const getCachedMinimalSeriesList = unstable_cache(
+  async () => {
+    try {
+      const { data } = await publicSupabaseClient
+        .from('series')
+        .select('id, title, slug, studio, tags, status, release_year, rating, poster_image_key, cover_image_key, poster_position, content_rating')
+        .eq('is_published', true);
+      return data || [];
+    } catch {
+      return [];
+    }
+  },
+  ['minimal-series-list-watch-cache-v1'],
+  { revalidate: 3600, tags: ['series_list'] }
+);
+
 export default async function WatchPage({ params }: WatchPageProps) {
   const resolvedParams = await params;
   const episodeId = resolvedParams.episodeId;
 
-  let allSeriesList: any[] = [];
-  try {
-    const { data: allSeriesData } = await publicSupabaseClient
-      .from('series')
-      .select('*')
-      .eq('is_published', true);
-    if (allSeriesData) allSeriesList = allSeriesData;
-  } catch (e) {}
+  const allSeriesList = await getCachedMinimalSeriesList();
 
   const resolved = await getCachedResolvedEpisode(episodeId);
 
