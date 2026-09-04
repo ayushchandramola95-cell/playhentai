@@ -28,7 +28,7 @@ function getStringHashIndex(str: string, length: number): number {
 }
 
 /**
- * Resolves a Cloudflare R2 object key or image URL into a fully qualified URL.
+ * Resolves a Cloudflare R2 object key or image URL into a fully qualified, valid RFC 3986 URL.
  */
 export function getR2Url(
   key: string | null | undefined,
@@ -47,13 +47,38 @@ export function getR2Url(
     cleanKey = cleanKey.replace(/^https?:\/\/[^/]+\.r2\.dev\//, '/');
   }
 
-  // If the key is an external URL (e.g. Unsplash or external storage), return as is
-  if (cleanKey.startsWith('http://') || cleanKey.startsWith('https://') || cleanKey.startsWith('data:')) {
+  // If the key is already a full external URL (e.g. Unsplash, GCP, etc.)
+  if (cleanKey.startsWith('http://') || cleanKey.startsWith('https://')) {
+    try {
+      const parsed = new URL(cleanKey);
+      parsed.pathname = parsed.pathname
+        .split('/')
+        .map((seg) => encodeURIComponent(decodeURIComponent(seg)))
+        .join('/');
+      return parsed.toString();
+    } catch {
+      return cleanKey;
+    }
+  }
+
+  if (cleanKey.startsWith('data:')) {
     return cleanKey;
   }
 
-  const sanitizedKey = cleanKey.startsWith('/') ? cleanKey : `/${cleanKey}`;
-  return `${sanitizedBase}${sanitizedKey}`;
+  const rawKey = cleanKey.startsWith('/') ? cleanKey.slice(1) : cleanKey;
+  // Encode every segment so that filenames with spaces or special characters resolve to valid RFC-3986 URIs
+  const encodedPath = rawKey
+    .split('/')
+    .map((seg) => {
+      try {
+        return encodeURIComponent(decodeURIComponent(seg));
+      } catch {
+        return encodeURIComponent(seg);
+      }
+    })
+    .join('/');
+
+  return `${sanitizedBase}/${encodedPath}`;
 }
 
 /**

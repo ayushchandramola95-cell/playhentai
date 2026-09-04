@@ -4,17 +4,21 @@ import { getR2Url } from '@/utils/r2';
 
 export const dynamic = 'force-dynamic';
 
-function escapeXml(unsafe: string): string {
-  return unsafe.replace(/[<>&'"]/g, (c) => {
-    switch (c) {
-      case '<': return '&lt;';
-      case '>': return '&gt;';
-      case '&': return '&amp;';
-      case '\'': return '&apos;';
-      case '"': return '&quot;';
-      default: return c;
-    }
-  });
+function escapeXml(unsafe: string | null | undefined): string {
+  if (!unsafe) return '';
+  return String(unsafe)
+    // Strip XML 1.0 invalid control characters
+    .replace(/[^\x09\x0A\x0D\x20-\uD7FF\uE000-\uFFFD\u10000-\u10FFFF]/g, '')
+    .replace(/[<>&'"]/g, (c) => {
+      switch (c) {
+        case '<': return '&lt;';
+        case '>': return '&gt;';
+        case '&': return '&amp;';
+        case '\'': return '&apos;';
+        case '"': return '&quot;';
+        default: return c;
+      }
+    });
 }
 
 export async function GET() {
@@ -26,8 +30,8 @@ export async function GET() {
 
   try {
     const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://kdesazliquregjbptyhc.supabase.co',
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
     );
 
     // Fetch published episodes with joined series details
@@ -55,13 +59,13 @@ export async function GET() {
         const watchSlug = seriesSlug && ep.episode_number ? `${seriesSlug}-episode-${ep.episode_number}` : ep.id;
         const watchPageUrl = `${baseUrl}/watch/${watchSlug}`;
 
-        // 2. Thumbnail Location
+        // 2. Thumbnail Location (must be a valid, accessible 200 OK image)
         let tempThumb = getR2Url(ep.thumbnail_key, 'thumbnail');
         if (!tempThumb || tempThumb.startsWith('data:')) {
           tempThumb = getR2Url(seriesObj?.cover_image_key || seriesObj?.poster_image_key, 'cover');
         }
         const thumbnailUrl = (!tempThumb || tempThumb.startsWith('data:'))
-          ? 'https://media.playhentai.live/og-banner.jpg'
+          ? `${baseUrl}/hero-banner.png`
           : tempThumb;
 
         // 3. Title (Descriptive, matching the player title)
@@ -77,12 +81,15 @@ export async function GET() {
           : `${seriesTitle} Episode ${ep.episode_number} — ${epTitleClean.replace(/^\[Preview\]\s*/i, '').replace(/^\[Trailer\]\s*/i, '')}`;
 
         // 4. Description (Synopsis or descriptive fallback)
-        const videoDescription = ep.description || `Watch ${seriesTitle} Episode ${ep.episode_number} online in HD with English subtitles on Play Hentai.`;
+        const rawDesc = ep.description?.trim();
+        const videoDescription = rawDesc && rawDesc.length >= 10
+          ? rawDesc
+          : `Watch ${seriesTitle} Episode ${ep.episode_number} online in HD with English subtitles on Play Hentai. Free streaming anime episode with full player controls.`;
 
         // 5. Video content MP4 URL (direct file URL)
         const videoContentUrl = getR2Url(ep.video_key, 'video');
 
-        // 6. Publication Date
+        // 6. Publication Date (ISO 8601)
         let formattedDate = new Date().toISOString();
         try {
           const pubDateStr = ep.release_date || ep.created_at;
@@ -103,8 +110,8 @@ export async function GET() {
           console.error(`Error formatting publication date for episode ${ep.id}:`, e);
         }
 
-        // 7. Duration seconds
-        const durationSeconds = ep.duration_seconds || 1440;
+        // 7. Duration seconds (Google requires positive integer, max 28800)
+        const durationSeconds = Math.max(1, Math.min(28800, Math.round(ep.duration_seconds || 1440)));
 
         xml += `
   <url>
@@ -113,10 +120,12 @@ export async function GET() {
       <video:thumbnail_loc>${escapeXml(thumbnailUrl)}</video:thumbnail_loc>
       <video:title>${escapeXml(videoTitle)}</video:title>
       <video:description>${escapeXml(videoDescription)}</video:description>
-      <video:content_loc>${escapeXml(videoContentUrl)}</video:content_loc>
+      <video:player_loc allow_embed="yes" autoplay="ap=1">${escapeXml(watchPageUrl)}</video:player_loc>
+      ${videoContentUrl ? `<video:content_loc>${escapeXml(videoContentUrl)}</video:content_loc>` : ''}
       <video:duration>${durationSeconds}</video:duration>
       <video:publication_date>${formattedDate}</video:publication_date>
       <video:family_friendly>no</video:family_friendly>
+      <video:live>no</video:live>
     </video:video>
   </url>`;
       }
@@ -129,8 +138,9 @@ export async function GET() {
 
   return new NextResponse(xml, {
     headers: {
-      'Content-Type': 'application/xml',
+      'Content-Type': 'application/xml; charset=utf-8',
       'Cache-Control': 'public, max-age=3600, s-maxage=3600',
     },
   });
 }
+

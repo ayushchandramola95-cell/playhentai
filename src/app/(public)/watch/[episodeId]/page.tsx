@@ -193,6 +193,27 @@ const getCachedResolvedEpisode = unstable_cache(
   { revalidate: 60, tags: ['watch_episode'] }
 );
 
+function formatIso8601Duration(seconds?: number): string {
+  const total = Math.max(1, Math.floor(seconds || 1440));
+  const hrs = Math.floor(total / 3600);
+  const mins = Math.floor((total % 3600) / 60);
+  const secs = total % 60;
+  let res = 'PT';
+  if (hrs > 0) res += `${hrs}H`;
+  if (mins > 0 || hrs > 0) res += `${mins}M`;
+  res += `${secs}S`;
+  return res;
+}
+
+function formatIso8601Date(dateStr?: string): string {
+  if (!dateStr) return new Date().toISOString();
+  try {
+    const d = new Date(dateStr);
+    if (!isNaN(d.getTime())) return d.toISOString();
+  } catch {}
+  return new Date().toISOString();
+}
+
 export async function generateMetadata({ params }: WatchPageProps): Promise<Metadata> {
   const resolvedParams = await params;
   const episodeId = resolvedParams.episodeId;
@@ -260,7 +281,7 @@ export async function generateMetadata({ params }: WatchPageProps): Promise<Meta
   const canonicalUrl = `${SITE_URL}${canonicalPath}`;
   const images = thumbnail
     ? [{ url: getR2Url(thumbnail, 'thumbnail') }]
-    : [{ url: 'https://media.playhentai.live/og-banner.jpg', width: 1200, height: 630, alt: title }];
+    : [{ url: `${SITE_URL}/hero-banner.png`, width: 1200, height: 630, alt: title }];
 
   return {
     title,
@@ -393,7 +414,7 @@ export default async function WatchPage({ params }: WatchPageProps) {
     '';
 
   const verifiedThumbnailUrl = (!tempThumb || tempThumb.startsWith('data:'))
-    ? 'https://media.playhentai.live/og-banner.jpg'
+    ? `${siteUrl}/hero-banner.png`
     : tempThumb;
 
   // Direct R2 video URL (MP4 publicly accessible) — required for Google video rich results
@@ -419,24 +440,30 @@ export default async function WatchPage({ params }: WatchPageProps) {
     ? `${seriesTitle} ${epPrefix}`
     : `${seriesTitle} ${epPrefix} — ${epTitleClean.replace(/^\[Preview\]\s*/i, '').replace(/^\[Trailer\]\s*/i, '')}`;
 
-  const fallbackDescription = `Watch ${seriesTitle} ${epPrefix} online in HD with English subtitles on Play Hentai.`;
+  const fallbackDescription = `Watch ${seriesTitle} ${epPrefix} online in HD with English subtitles on Play Hentai. Free streaming anime episode with full player controls.`;
 
   const videoJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'VideoObject',
-    '@id': canonicalUrl,
+    '@id': `${canonicalUrl}#video`,
     'name': videoName,
     'description': activeEpisode.description || fallbackDescription,
-    'thumbnailUrl': [verifiedThumbnailUrl],
-    'uploadDate': activeEpisode.release_date || activeEpisode.created_at || new Date().toISOString(),
-    'duration': activeEpisode.duration_seconds ? `PT${Math.floor(activeEpisode.duration_seconds / 60)}M` : 'PT24M',
+    'thumbnailUrl': [verifiedThumbnailUrl, `${siteUrl}/hero-banner.png`],
+    'uploadDate': formatIso8601Date(activeEpisode.release_date || activeEpisode.created_at),
+    'duration': formatIso8601Duration(activeEpisode.duration_seconds),
     'contentUrl': videoContentUrl,
+    'embedUrl': canonicalUrl,
     'url': canonicalUrl,
     'isFamilyFriendly': false,
+    'inLanguage': 'en',
     'publisher': {
       '@type': 'Organization',
       'name': 'Play Hentai',
-      'url': siteUrl
+      'url': siteUrl,
+      'logo': {
+        '@type': 'ImageObject',
+        'url': `${siteUrl}/icon-512x512.png`
+      }
     },
     'partOfSeries': {
       '@type': 'TVSeries',

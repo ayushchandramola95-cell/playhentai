@@ -43,7 +43,7 @@ export async function generateMetadata({ searchParams }: PageProps) {
       type: 'website' as const,
       images: [
         {
-          url: 'https://media.playhentai.live/og-banner.jpg',
+          url: `${SITE_URL}/hero-banner.png`,
           width: 1200,
           height: 630,
           alt: 'Play Hentai 3D Hentai & CGI Animations',
@@ -54,7 +54,7 @@ export async function generateMetadata({ searchParams }: PageProps) {
       card: 'summary_large_image',
       title: '3D Hentai Anime — Watch CGI Animations in HD | Play Hentai',
       description: 'Watch 3D hentai anime and CGI animation series online in HD with English subtitles. Browse complete series, available episodes, new releases, and popular 3D titles on Play Hentai.',
-      images: ['https://media.playhentai.live/og-banner.jpg'],
+      images: [`${SITE_URL}/hero-banner.png`],
     },
   };
 }

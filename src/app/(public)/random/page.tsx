@@ -43,7 +43,7 @@ export async function generateMetadata({ searchParams }: PageProps) {
       type: 'website' as const,
       images: [
         {
-          url: 'https://media.playhentai.live/og-banner.jpg',
+          url: `${SITE_URL}/hero-banner.png`,
           width: 1200,
           height: 630,
           alt: 'Play Hentai Random Hentai Anime Generator',
@@ -54,7 +54,7 @@ export async function generateMetadata({ searchParams }: PageProps) {
       card: 'summary_large_image',
       title: 'Random Hentai Anime Generator & Picker | Play Hentai',
       description: 'Discover random hentai anime series with the Random Hentai Anime Generator. Shuffle the library, explore recommendations, and find new series to watch on Play Hentai.',
-      images: ['https://media.playhentai.live/og-banner.jpg'],
+      images: [`${SITE_URL}/hero-banner.png`],
     },
   };
 }

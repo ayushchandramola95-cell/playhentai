@@ -23,7 +23,7 @@ export async function generateMetadata() {
       type: 'website' as const,
       images: [
         {
-          url: 'https://media.playhentai.live/og-banner.jpg',
+          url: `${SITE_URL}/hero-banner.png`,
           width: 1200,
           height: 630,
           alt: 'PlayHentai Hentai Production Studios Directory',
@@ -34,7 +34,7 @@ export async function generateMetadata() {
       card: 'summary_large_image',
       title: 'Hentai Production Studios Directory | PlayHentai',
       description: 'Browse all hentai animation production studios, releases, stats, ratings, and series catalogs on PlayHentai.',
-      images: ['https://media.playhentai.live/og-banner.jpg'],
+      images: [`${SITE_URL}/hero-banner.png`],
     },
   };
 }

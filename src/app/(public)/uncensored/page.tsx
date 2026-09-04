@@ -43,7 +43,7 @@ export async function generateMetadata({ searchParams }: PageProps) {
       type: 'website' as const,
       images: [
         {
-          url: 'https://media.playhentai.live/og-banner.jpg',
+          url: `${SITE_URL}/hero-banner.png`,
           width: 1200,
           height: 630,
           alt: 'Play Hentai Uncensored Hentai Anime',
@@ -54,7 +54,7 @@ export async function generateMetadata({ searchParams }: PageProps) {
       card: 'summary_large_image',
       title: 'Uncensored Hentai Anime — Watch Online in HD | Play Hentai',
       description: 'Watch uncensored hentai anime online in HD with English subtitles. Browse complete series, available episodes, new releases, and popular titles on Play Hentai.',
-      images: ['https://media.playhentai.live/og-banner.jpg'],
+      images: [`${SITE_URL}/hero-banner.png`],
     },
   };
 }

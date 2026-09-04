@@ -116,7 +116,7 @@ export async function generateMetadata({ params }: SeriesPageProps): Promise<Met
   const canonicalUrl = `${SITE_URL}/series/${slug}`;
   const images = ogImage 
     ? [{ url: getR2Url(ogImage, 'cover') }] 
-    : [{ url: 'https://media.playhentai.live/og-banner.jpg', width: 1200, height: 630, alt: title }];
+    : [{ url: `${SITE_URL}/hero-banner.png`, width: 1200, height: 630, alt: title }];
 
   return {
     title,
@@ -587,7 +587,7 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
   const tvSeriesJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'TVSeries',
-    '@id': seriesCanonicalUrl,
+    '@id': `${seriesCanonicalUrl}#series`,
     'url': seriesCanonicalUrl,
     'name': activeSeries.title,
     'alternateName': [
@@ -596,7 +596,10 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
       activeSeries.alt_title_japanese
     ].filter(Boolean),
     'description': activeSeries.description || `Watch ${activeSeries.title} online in HD on Play Hentai.`,
-    'image': getR2Url(activeSeries.cover_image_key || activeSeries.poster_image_key, 'cover'),
+    'image': [
+      getR2Url(activeSeries.cover_image_key || activeSeries.poster_image_key, 'cover'),
+      `${SITE_URL}/hero-banner.png`
+    ],
     'genre': Array.isArray(activeSeries.tags) && activeSeries.tags.length > 0 ? activeSeries.tags[0] : 'Animation',
     'numberOfSeasons': activeSeries.seasons?.length || 1,
     'numberOfEpisodes': activeSeries.episode_count_override || currentEpCount,
@@ -605,15 +608,24 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
     'isFamilyFriendly': false,
     'aggregateRating': {
       '@type': 'AggregateRating',
-      'ratingValue': rating,
-      'ratingCount': Math.round(views / 15) || 1,
-      'bestRating': 10,
-      'worstRating': 1
+      'ratingValue': Number(rating).toFixed(1),
+      'ratingCount': Math.max(12, Math.round((views || 100) / 15)),
+      'bestRating': '10',
+      'worstRating': '1',
+      'itemReviewed': {
+        '@type': 'TVSeries',
+        'name': activeSeries.title,
+        'url': seriesCanonicalUrl
+      }
     },
     'publisher': {
       '@type': 'Organization',
       'name': 'PlayHentai',
-      'url': SITE_URL
+      'url': SITE_URL,
+      'logo': {
+        '@type': 'ImageObject',
+        'url': `${SITE_URL}/icon-512x512.png`
+      }
     }
   };
 
