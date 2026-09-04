@@ -130,8 +130,9 @@ export default function FileUploader({
     if (uploadedKeys.length > 0) {
       if (onMultipleUploadComplete) {
         onMultipleUploadComplete(uploadedKeys);
+      } else {
+        onUploadComplete(uploadedKeys[uploadedKeys.length - 1]);
       }
-      onUploadComplete(uploadedKeys[uploadedKeys.length - 1]);
     }
   };
 

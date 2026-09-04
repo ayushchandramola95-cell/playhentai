@@ -1812,7 +1812,7 @@ export default function AdminEpisodesPage() {
     setThumbStudioError(null);
 
     try {
-      const updatedList = [...thumbStudioSavedList, key];
+      const updatedList = thumbStudioSavedList.includes(key) ? thumbStudioSavedList : [...thumbStudioSavedList, key];
       setThumbStudioSavedList(updatedList);
       setThumbStudioActiveKey(key);
       setIsSavedGalleryOpen(true);
