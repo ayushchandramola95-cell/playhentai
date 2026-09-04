@@ -1344,7 +1344,7 @@ export default function AdminEpisodesPage() {
     setCapturedFrameSizeKb(null);
     setThumbActiveTab('auto');
     setThumbStudioError(null);
-    setIsSavedGalleryOpen(false);
+    setIsSavedGalleryOpen(true);
     setImageBrightness(100);
     setImageContrast(100);
     setImageSaturation(100);
@@ -1815,6 +1815,7 @@ export default function AdminEpisodesPage() {
       const updatedList = [...thumbStudioSavedList, key];
       setThumbStudioSavedList(updatedList);
       setThumbStudioActiveKey(key);
+      setIsSavedGalleryOpen(true);
 
       const updateRes = await fetch('/api/admin/episodes', {
         method: 'PUT',
@@ -1859,6 +1860,7 @@ export default function AdminEpisodesPage() {
       setThumbStudioSavedList(nextList);
       const lastKey = keys[keys.length - 1];
       setThumbStudioActiveKey(lastKey);
+      setIsSavedGalleryOpen(true);
 
       const updateRes = await fetch('/api/admin/episodes', {
         method: 'PUT',
@@ -3594,6 +3596,108 @@ export default function AdminEpisodesPage() {
                       previewType="cover"
                     />
                   </div>
+
+                  {/* IN-TAB UPLOADED THUMBNAILS GALLERY */}
+                  {thumbStudioSavedList.length > 0 && (
+                    <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', background: '#121522', borderRadius: '16px', border: '1px solid #23283b' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>
+                          <h4 style={{ fontSize: '0.92rem', fontWeight: 800, color: '#f8fafc', margin: 0, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                            Uploaded & Saved Episode Thumbnails ({thumbStudioSavedList.length})
+                          </h4>
+                          <span style={{ fontSize: '0.74rem', color: '#94a3b8' }}>
+                            Click any thumbnail to set it as the active thumbnail for this episode.
+                          </span>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem' }}>
+                        {thumbStudioSavedList.map((key) => {
+                          const isActive = thumbStudioActiveKey === key;
+                          return (
+                            <div
+                              key={key}
+                              style={{
+                                position: 'relative',
+                                borderRadius: '12px',
+                                border: isActive ? '2px solid #10b981' : '1px solid #23283b',
+                                boxShadow: isActive ? '0 0 16px rgba(16, 185, 129, 0.4)' : 'none',
+                                cursor: 'pointer',
+                                overflow: 'hidden',
+                                background: '#0a0d18',
+                                transition: 'all 0.2s ease',
+                                display: 'flex',
+                                flexDirection: 'column'
+                              }}
+                              onClick={() => selectActiveThumbnail(key)}
+                            >
+                              <div style={{ position: 'relative', width: '100%', aspectRatio: '16/9', overflow: 'hidden' }}>
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={getR2Url(key, 'thumbnail')}
+                                  alt="Saved thumbnail"
+                                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                />
+
+                                {isActive ? (
+                                  <div style={{ position: 'absolute', top: '6px', left: '6px', background: '#10b981', color: 'white', fontSize: '0.65rem', fontWeight: 800, padding: '0.2rem 0.5rem', borderRadius: '4px', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '0.25rem', boxShadow: '0 2px 6px rgba(0,0,0,0.5)' }}>
+                                    <span>★ ACTIVE</span>
+                                  </div>
+                                ) : (
+                                  <div style={{ position: 'absolute', top: '6px', left: '6px', background: 'rgba(0,0,0,0.65)', color: '#cbd5e1', fontSize: '0.65rem', fontWeight: 700, padding: '0.15rem 0.4rem', borderRadius: '4px' }}>
+                                    Option
+                                  </div>
+                                )}
+
+                                <div style={{ position: 'absolute', bottom: '6px', right: '6px', display: 'flex', gap: '0.35rem' }}>
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      downloadThumbnailFile(key, `thumbnail-${key.slice(0, 8)}.jpg`);
+                                    }}
+                                    style={{ background: 'rgba(15, 23, 42, 0.85)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '50%', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', cursor: 'pointer', padding: 0 }}
+                                    title="Download Image"
+                                  >
+                                    <Download size={12} />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setZoomImageUrl(getR2Url(key, 'thumbnail'));
+                                    }}
+                                    style={{ background: 'rgba(15, 23, 42, 0.85)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '50%', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', cursor: 'pointer', padding: 0 }}
+                                    title="Zoom Preview"
+                                  >
+                                    <Maximize2 size={12} />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      deleteThumbnailOption(key);
+                                    }}
+                                    style={{ background: 'rgba(239, 68, 68, 0.9)', border: 'none', borderRadius: '50%', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', cursor: 'pointer', padding: 0 }}
+                                    title="Delete thumbnail"
+                                  >
+                                    <X size={12} />
+                                  </button>
+                                </div>
+                              </div>
+
+                              <div style={{ padding: '0.5rem 0.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#0e1220' }}>
+                                <span style={{ fontSize: '0.72rem', color: isActive ? '#10b981' : '#94a3b8', fontWeight: 700 }}>
+                                  {isActive ? '✓ Selected Active' : 'Click to Select'}
+                                </span>
+                                <ImageSize r2Key={key} />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
               ) : !localScrubFile && !isRemoteVideoLoaded ? (
                 /* Empty Video Source Picker */

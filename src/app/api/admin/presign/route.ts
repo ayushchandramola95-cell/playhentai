@@ -20,14 +20,10 @@ export async function POST(request: Request) {
 
     // Check if R2 is configured
     if (!bucketName || !accessKeyId || !secretAccessKey || !endpoint) {
-      // Fallback: If not configured, return a mock presigned response
-      console.warn('R2 credentials not fully configured in env. Returning simulated presigned upload details.');
-      const mockKey = `uploads/${Date.now()}-${filename}`;
+      console.error('Cloudflare R2 environment variables are missing on this server.');
       return NextResponse.json({
-        url: `/api/admin/upload-mock?key=${mockKey}`,
-        key: mockKey,
-        isMock: true
-      });
+        error: 'Cloudflare R2 environment variables are not configured on this server. Please add CLOUDFLARE_R2_BUCKET_NAME, CLOUDFLARE_R2_ENDPOINT, CLOUDFLARE_R2_ACCESS_KEY_ID, and CLOUDFLARE_R2_SECRET_ACCESS_KEY to your hosting settings.',
+      }, { status: 500 });
     }
 
     const s3 = new S3Client({
