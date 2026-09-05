@@ -563,14 +563,6 @@ export default async function HomePage() {
                       <Play size={36} fill="white" className={styles.cardPlayIcon} />
                     </div>
                     
-                    {/* Top-Left: Black UNCENSORED pill badge */}
-                    {ep.isUncensored && (
-                      <div className={styles.uncensoredBadge}>
-                        <Eye size={10} />
-                        <span>UNCENSORED</span>
-                      </div>
-                    )}
-
                     {/* Top-Right: Green NEW star badge */}
                     {ep.isNew && (
                       <div className={styles.newBadge}>
@@ -601,9 +593,16 @@ export default async function HomePage() {
                           : '0'}
                       </span>
                     </div>
-                    {ep.isSubbed && (
-                      <span className={styles.subTagBadge}>SUB</span>
-                    )}
+                    <div className={styles.episodeTagsGroup}>
+                      {ep.isUncensored ? (
+                        <span className={styles.uncensoredTagBadge}>UNCENSORED</span>
+                      ) : (
+                        <span className={styles.censoredTagBadge}>CENSORED</span>
+                      )}
+                      {ep.isSubbed && (
+                        <span className={styles.subTagBadge}>SUB</span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
