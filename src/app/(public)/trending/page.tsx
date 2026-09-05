@@ -59,7 +59,7 @@ export default async function TrendingPage({
   const sort = params.sort || 'views';
   const genreFilter = params.genre || 'all';
   const page = parseInt(params.page || '1', 10);
-  const pageSize = 12;
+  const pageSize = 18;
 
   const supabase = await createClient();
   let seriesList: any[] = [];
@@ -147,12 +147,19 @@ export default async function TrendingPage({
 
       {/* Header Banner */}
       <div className={styles.headerBanner}>
+        <div className={styles.headerTopMeta}>
+          <span className={styles.trendingHighlightPill}>
+            <Flame size={13} className={styles.fireIconPill} /> LIVE LEADERBOARD
+          </span>
+          <span className={styles.totalCountText}>
+            Showing {totalCount > 0 ? `${startIndex + 1}–${Math.min(startIndex + pageSize, totalCount)}` : 0} of {totalCount} Series
+          </span>
+        </div>
         <div className={styles.titleRow}>
-          <Flame size={28} className={styles.fireIcon} />
-          <h1>Trending & Most Viewed</h1>
+          <h1 className={styles.mainTitle}>Trending &amp; Most Viewed</h1>
         </div>
         <p className={styles.subtitle}>
-          Discover the top-rated and most streamed series across our entire catalog.
+          Discover the top-rated and most streamed hentai anime series across our entire catalog.
         </p>
 
         {/* Filter Controls */}
@@ -195,12 +202,22 @@ export default async function TrendingPage({
       {/* Series Grid */}
       {paginatedItems.length > 0 ? (
         <div className={styles.seriesGrid}>
-          {paginatedItems.map((item, index) => (
-            <div key={item.id} className={styles.rankCardWrapper}>
-              <span className={styles.rankBadge}>#{startIndex + index + 1}</span>
-              <SeriesCard item={item} />
-            </div>
-          ))}
+          {paginatedItems.map((item, index) => {
+            const rankNum = startIndex + index + 1;
+            let rankBadgeClass = styles.rankBadge;
+            if (rankNum === 1) rankBadgeClass = `${styles.rankBadge} ${styles.rankGold}`;
+            else if (rankNum === 2) rankBadgeClass = `${styles.rankBadge} ${styles.rankSilver}`;
+            else if (rankNum === 3) rankBadgeClass = `${styles.rankBadge} ${styles.rankBronze}`;
+
+            return (
+              <div key={item.id} className={styles.rankCardWrapper}>
+                <span className={rankBadgeClass}>
+                  {rankNum === 1 ? '👑 #1' : rankNum === 2 ? '🥈 #2' : rankNum === 3 ? '🥉 #3' : `#${rankNum}`}
+                </span>
+                <SeriesCard item={item} />
+              </div>
+            );
+          })}
         </div>
       ) : (
         <div className={styles.emptyState}>

@@ -1,7 +1,7 @@
 .container {
   max-width: 1720px;
   margin: 0 auto;
-  padding: 2rem 2rem 6rem;
+  padding: 1.75rem 2rem 6rem;
   width: 100%;
   position: relative;
   min-height: 80vh;
@@ -9,96 +9,133 @@
 }
 
 .headerBanner {
-  margin-bottom: 2.5rem;
+  margin-bottom: 2.2rem;
   text-align: left;
+}
+
+.headerTopMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.trendingHighlightPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(236, 72, 153, 0.12);
+  color: #f472b6;
+  border: 1px solid rgba(236, 72, 153, 0.3);
+  font-size: 0.68rem;
+  font-weight: 850;
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.fireIconPill {
+  color: #ec4899;
+}
+
+.totalCountText {
+  font-size: 0.82rem;
+  color: var(--foreground-muted);
+  font-weight: 600;
 }
 
 .titleRow {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.35rem;
 }
 
-.fireIcon {
-  color: #ec4899;
-}
-
-.headerBanner h1 {
-  font-size: 2.2rem;
+.mainTitle {
+  font-size: 2rem;
   font-weight: 850;
   color: #ffffff;
   letter-spacing: -0.02em;
+  margin: 0;
+  line-height: 1.2;
 }
 
 .subtitle {
-  font-size: 1rem;
+  font-size: 0.92rem;
   color: var(--foreground-secondary);
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.35rem;
+  line-height: 1.5;
+  max-width: 800px;
 }
 
 .filterBar {
-  padding: 1.25rem 1.5rem;
-  border-radius: 20px;
+  padding: 0.95rem 1.35rem;
+  border-radius: 14px;
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  gap: 1.5rem;
+  gap: 1.25rem;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(18, 14, 32, 0.6);
-  backdrop-filter: blur(12px);
+  background: rgba(15, 12, 26, 0.65);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
   flex-wrap: wrap;
 }
 
 .filterGroup {
   display: flex;
   align-items: center;
-  gap: 0.8rem;
+  gap: 0.75rem;
   flex-wrap: wrap;
 }
 
 .filterLabel {
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   font-weight: 800;
-  color: var(--foreground-muted);
+  color: #94a3b8;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
 }
 
 .chipRow {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.45rem;
   flex-wrap: wrap;
 }
 
 .filterChip {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  color: var(--foreground-secondary);
-  font-size: 0.82rem;
+  color: #cbd5e1;
+  font-size: 0.8rem;
   font-weight: 700;
-  padding: 0.45rem 1.1rem;
-  border-radius: 30px;
+  padding: 0.4rem 0.95rem;
+  border-radius: 25px;
   text-decoration: none;
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  transition: all 0.2s ease;
+  gap: 0.35rem;
+  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .filterChip:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.09);
   color: #ffffff;
-  border-color: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.18);
+  transform: translateY(-1px);
 }
 
 .activeChip {
   background: var(--primary) !important;
   border-color: transparent !important;
   color: #ffffff !important;
-  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35);
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.4);
 }
 
 /* Genre Dropdown Select Styling */
@@ -120,9 +157,9 @@
   background: rgba(8, 8, 8, 0.85);
   border: 1px solid rgba(124, 58, 237, 0.35);
   color: #ffffff;
-  font-size: 0.85rem;
-  font-weight: 850;
-  padding: 0.45rem 2.2rem 0.45rem 2.4rem;
+  font-size: 0.82rem;
+  font-weight: 800;
+  padding: 0.42rem 2.2rem 0.42rem 2.3rem;
   border-radius: 30px;
   outline: none;
   cursor: pointer;
@@ -148,11 +185,11 @@
   color: var(--foreground-muted);
 }
 
-/* Series Grid Layout */
+/* Series Grid Layout (6 columns on large desktop) */
 .seriesGrid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 1.35rem 1rem;
   align-items: start;
 }
 
@@ -165,19 +202,45 @@
 
 .rankBadge {
   position: absolute;
-  top: 10px;
-  left: 10px;
+  top: 8px;
+  left: 8px;
   z-index: 10;
-  background: rgba(8, 8, 8, 0.85);
-  border: 1px solid rgba(124, 58, 237, 0.4);
-  color: #ffffff;
-  font-size: 0.75rem;
+  background: rgba(15, 23, 42, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #f1f5f9;
+  font-size: 0.72rem;
   font-weight: 850;
-  padding: 0.2rem 0.6rem;
-  border-radius: 8px;
+  padding: 0.18rem 0.5rem;
+  border-radius: 6px;
   backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
   pointer-events: none;
+  line-height: 1.2;
+}
+
+.rankGold {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+  border: 1px solid rgba(254, 240, 138, 0.6) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.45), 0 0 10px rgba(245, 158, 11, 0.3) !important;
+  font-weight: 900 !important;
+}
+
+.rankSilver {
+  background: linear-gradient(135deg, #94a3b8 0%, #475569 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.45) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(148, 163, 184, 0.4) !important;
+  font-weight: 900 !important;
+}
+
+.rankBronze {
+  background: linear-gradient(135deg, #d97706 0%, #92400e 100%) !important;
+  border: 1px solid rgba(251, 191, 36, 0.45) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.4) !important;
+  font-weight: 900 !important;
 }
 
 .emptyState {
@@ -214,7 +277,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 1.5rem;
+  gap: 1.25rem;
   margin-top: 3.5rem;
 }
 
@@ -224,7 +287,7 @@
   color: #ffffff;
   font-size: 0.85rem;
   font-weight: 700;
-  padding: 0.55rem 1.2rem;
+  padding: 0.5rem 1.2rem;
   border-radius: 30px;
   text-decoration: none;
   display: flex;
@@ -250,19 +313,27 @@
 }
 
 /* Responsive Rules */
-@media (min-width: 1025px) and (max-width: 1280px) {
+@media (max-width: 1440px) {
   .seriesGrid {
-    grid-template-columns: repeat(4, 1fr) !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 1.25rem 0.95rem;
   }
 }
 
-@media (min-width: 769px) and (max-width: 1024px) {
+@media (max-width: 1120px) {
+  .seriesGrid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1.15rem 0.85rem;
+  }
+}
+
+@media (max-width: 840px) {
   .container {
-    padding: 1.5rem 1.25rem 5rem !important;
+    padding: 1.25rem 1rem 4rem !important;
   }
   .seriesGrid {
     grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-    gap: 1.25rem !important;
+    gap: 1rem 0.75rem !important;
     align-items: start !important;
     width: 100% !important;
   }
@@ -272,20 +343,20 @@
     width: 100% !important;
     overflow: hidden !important;
   }
-  /* Disable hover popover preview on tablet touch screens */
+  /* Disable hover popover preview on tablet/mobile touch screens */
   .rankCardWrapper :global(.popover) {
     display: none !important;
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 600px) {
   .container {
-    padding: 1rem 0.75rem 4rem !important;
+    padding: 1rem 0.75rem 3.5rem !important;
     overflow-x: hidden !important;
   }
   .seriesGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 0.75rem !important;
+    gap: 0.85rem 0.65rem !important;
     align-items: start !important;
     width: 100% !important;
     max-width: 100% !important;
@@ -296,33 +367,35 @@
     width: 100% !important;
     overflow: hidden !important;
   }
-  /* Disable hover popover preview on mobile screens to prevent layout breakage */
   .rankCardWrapper :global(.popover) {
     display: none !important;
+  }
+  .mainTitle {
+    font-size: 1.65rem;
   }
   .filterBar {
     flex-direction: column !important;
     align-items: stretch !important;
-    gap: 1rem !important;
-    padding: 1rem !important;
+    gap: 0.85rem !important;
+    padding: 0.85rem !important;
     width: 100% !important;
   }
   .filterGroup {
     flex-direction: column !important;
     align-items: stretch !important;
     width: 100% !important;
-    gap: 0.5rem !important;
+    gap: 0.4rem !important;
   }
   .chipRow {
     display: grid !important;
     grid-template-columns: repeat(3, 1fr) !important;
     width: 100% !important;
-    gap: 0.4rem !important;
+    gap: 0.35rem !important;
   }
   .filterChip {
     justify-content: center !important;
     width: 100% !important;
-    padding: 0.55rem 0.2rem !important;
+    padding: 0.45rem 0.2rem !important;
     font-size: 0.72rem !important;
     text-align: center !important;
     white-space: nowrap !important;
