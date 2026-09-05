@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { Tv, User, LogOut, Heart, Bookmark, History, Settings, ShieldCheck, ChevronDown, Menu, X, Home, Layers, Eye, Film, Dices, Box } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSidebar } from '@/contexts/SidebarContext';
 import SearchBar from '../SearchBar/SearchBar';
 import styles from './Header.module.css';
 
@@ -20,6 +21,7 @@ const LogoIcon = () => (
 
 export default function Header() {
   const { user, profile, loading, signOut } = useAuth();
+  const { isExpanded } = useSidebar();
   const pathname = usePathname();
   const router = useRouter();
   
@@ -86,7 +88,7 @@ export default function Header() {
 
   if (!mounted) {
     return (
-      <header className={styles.header}>
+      <header className={`${styles.header} ${isExpanded ? styles.headerExpanded : styles.headerCollapsed}`}>
         <div className={styles.logoContainer}>
           <LogoIcon />
           <span className={styles.logoText}>
@@ -99,7 +101,7 @@ export default function Header() {
   }
 
   return (
-    <header className={styles.header}>
+    <header className={`${styles.header} ${isExpanded ? styles.headerExpanded : styles.headerCollapsed}`}>
       <div className={`${styles.leftSection} ${searchFocused ? styles.leftSectionHidden : ''}`}>
         <Link href="/" className={styles.logoContainer}>
           <LogoIcon />

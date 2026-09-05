@@ -11,18 +11,23 @@
   flex-direction: column;
   padding-top: 74px;
   width: 100%;
-  transition: padding-left 0.25s ease;
+  transition: padding-left 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .footerSection {
   width: 100%;
-  transition: padding-left 0.25s ease;
+  transition: padding-left 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @media (min-width: 901px) {
-  .mainContent,
-  .footerSection {
+  .sidebarCollapsed .mainContent,
+  .sidebarCollapsed .footerSection {
     padding-left: 68px;
+  }
+
+  .sidebarExpanded .mainContent,
+  .sidebarExpanded .footerSection {
+    padding-left: 240px;
   }
 }
 
