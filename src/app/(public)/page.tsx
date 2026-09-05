@@ -500,8 +500,19 @@ export default async function HomePage() {
       <div className="ambient-glow" />
       <div className="ambient-glow-2" />
 
+      {/* Primary SEO H1 Heading Section */}
+      <section className={styles.seoHeroHeader} aria-label="Welcome to PlayHentai">
+        <h1 className={styles.seoHeroTitle}>
+          <span className={styles.seoHeroBrand}>PLAY</span><span className={styles.seoHeroBrandGold}>HENTAI</span> — Watch Hentai Anime Online Free in HD
+        </h1>
+        <p className={styles.seoHeroDescription}>
+          Watch new and popular hentai videos in HD — stream full episodes, uncensored anime scenes, series, genres, and playlists updated daily.
+        </p>
+      </section>
+
       {/* Featured Hero Carousel Banner */}
       <HeroCarousel activeSeries={featuredSeries} isDbEmpty={isDbEmpty} autoplaySpeed={autoplaySpeed} />
+
 
 
       {/* Hero Bottom Sponsored Ad Banner (728x90 Zone 5986176) */}
