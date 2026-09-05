@@ -734,9 +734,10 @@ export default async function HomePage() {
           
           {/* Main Title and Expanded Intro Block */}
           <div className={styles.introContent} style={{ background: 'rgba(15, 15, 15, 0.65)', border: '1px solid rgba(245, 158, 11, 0.15)', boxShadow: '0 8px 32px rgba(245, 158, 11, 0.04)' }}>
-            <h1 className={styles.mainTitle}>Play Hentai — Hentai Anime &amp; Adult Animation</h1>
+            <h2 className={styles.mainTitle}>Play Hentai — Hentai Anime &amp; Adult Animation</h2>
             
             <p className={styles.introText}>
+
               Welcome to <strong>Play Hentai</strong>, the premier online database and high-definition streaming platform for adult animation and hentai series. Our library catalogs an extensive range of premium uncensored hentai anime titles, ensuring you can discover legendary classics alongside the latest 3D CGI releases. We systematically organize our content by <Link href="/categories" style={{ color: '#f59e0b', textDecoration: 'underline' }}>genres</Link>, <Link href="/categories" style={{ color: '#f59e0b', textDecoration: 'underline' }}>tags</Link>, <Link href="/studios" style={{ color: '#f59e0b', textDecoration: 'underline' }}>production studios</Link>, and <Link href="/categories" style={{ color: '#f59e0b', textDecoration: 'underline' }}>release years</Link> to deliver a seamless, high-performance browsing experience.
             </p>
             

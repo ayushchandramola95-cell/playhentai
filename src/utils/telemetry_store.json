@@ -1,0 +1,38 @@
+{
+  "sessions": {
+    "ph_qobcrhd4_1788595536322": {
+      "sessionId": "ph_qobcrhd4_1788595536322",
+      "firstSeen": 1788595542091,
+      "lastSeen": 1788595542091,
+      "durationSeconds": 1,
+      "pageViews": 1,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": false,
+      "visitedRoutes": [
+        "/"
+      ]
+    }
+  },
+  "routeVisits": {
+    "/": 1
+  },
+  "scrollCounts": {
+    "depth25": 0,
+    "depth50": 0,
+    "depth75": 0,
+    "depth100": 0
+  },
+  "deviceCounts": {
+    "desktop": 1,
+    "mobile": 0,
+    "tablet": 0
+  },
+  "adBlockCounts": {
+    "blocked": 0,
+    "notBlocked": 1
+  },
+  "totalWatchEvents": 0,
+  "lastCleaned": 1788595541564
+}
