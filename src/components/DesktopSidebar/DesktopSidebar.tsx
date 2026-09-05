@@ -15,32 +15,21 @@ import {
   Bookmark, 
   History, 
   Heart, 
-  Settings,
-  Menu,
-  User,
-  LogIn,
-  UserPlus,
-  LogOut
+  Settings, 
+  User, 
+  LogIn, 
+  UserPlus, 
+  LogOut 
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSidebar } from '@/contexts/SidebarContext';
 import styles from './DesktopSidebar.module.css';
 
-const SidebarLogoIcon = () => (
-  <div className={styles.logoBadge}>
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.tvIconSvg}>
-      <rect x="2" y="7" width="20" height="14" rx="3" ry="3" stroke="#ffffff" strokeWidth="2" fill="none" />
-      <path d="M17 2l-5 5-5-5" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      <polygon points="10,11 15,14 10,17" fill="#f59e0b" stroke="#f59e0b" strokeWidth="1" strokeLinejoin="round" />
-    </svg>
-  </div>
-);
-
 export default function DesktopSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, profile, signOut } = useAuth();
-  const { isExpanded, toggleSidebar } = useSidebar();
+  const { isExpanded } = useSidebar();
 
   const isNavActive = (path: string) => {
     if (!pathname) return false;
@@ -93,28 +82,7 @@ export default function DesktopSidebar() {
       className={`${styles.sidebar} ${isExpanded ? styles.expanded : styles.collapsed}`} 
       aria-label="Main Desktop Navigation"
     >
-      {/* Top Header Section with Hamburger Toggle & Logo */}
-      <div className={styles.sidebarHeader}>
-        <button 
-          type="button"
-          onClick={toggleSidebar} 
-          className={styles.toggleBtn} 
-          aria-label={isExpanded ? 'Collapse sidebar' : 'Expand sidebar'}
-          title={isExpanded ? 'Collapse menu' : 'Expand menu'}
-        >
-          <Menu size={22} />
-        </button>
-
-        <Link href="/" className={styles.logoLink} aria-label="Play Hentai Home">
-          <SidebarLogoIcon />
-          <span className={styles.logoText}>
-            <span className={styles.logoTextPlay}>PLAY</span>
-            <span className={styles.logoTextGold}>HENTAI</span>
-          </span>
-        </Link>
-      </div>
-
-      {/* Scrollable Sidebar Body */}
+      {/* Scrollable Sidebar Navigation Body (Starts directly beneath top header) */}
       <div className={styles.sidebarBody}>
         {/* Main Navigation Section */}
         <nav className={styles.navSection}>

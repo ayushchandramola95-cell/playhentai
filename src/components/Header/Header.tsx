@@ -21,7 +21,7 @@ const LogoIcon = () => (
 
 export default function Header() {
   const { user, profile, loading, signOut } = useAuth();
-  const { isExpanded } = useSidebar();
+  const { isExpanded, toggleSidebar } = useSidebar();
   const pathname = usePathname();
   const router = useRouter();
   
@@ -88,7 +88,7 @@ export default function Header() {
 
   if (!mounted) {
     return (
-      <header className={`${styles.header} ${isExpanded ? styles.headerExpanded : styles.headerCollapsed}`}>
+      <header className={styles.header}>
         <div className={styles.logoContainer}>
           <LogoIcon />
           <span className={styles.logoText}>
@@ -101,8 +101,19 @@ export default function Header() {
   }
 
   return (
-    <header className={`${styles.header} ${isExpanded ? styles.headerExpanded : styles.headerCollapsed}`}>
+    <header className={styles.header}>
       <div className={`${styles.leftSection} ${searchFocused ? styles.leftSectionHidden : ''}`}>
+        {/* Desktop Hamburger Toggle Button */}
+        <button
+          type="button"
+          onClick={toggleSidebar}
+          className={styles.desktopHamburgerBtn}
+          aria-label={isExpanded ? 'Collapse sidebar menu' : 'Expand sidebar menu'}
+          title={isExpanded ? 'Collapse sidebar' : 'Expand sidebar'}
+        >
+          <Menu size={22} />
+        </button>
+
         <Link href="/" className={styles.logoContainer}>
           <LogoIcon />
           <span className={styles.logoText}>
