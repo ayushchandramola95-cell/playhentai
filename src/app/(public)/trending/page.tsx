@@ -9,17 +9,6 @@ import { MOCK_SERIES, MOCK_SERIES_DETAILS } from '@/utils/mockData';
 import { GENRES } from '@/utils/constants';
 import { getSeriesViewsMap } from '@/utils/views';
 
-function getStableRating(id: string): number {
-  let hash = 0;
-  for (let i = 0; i < id.length; i++) {
-    hash = id.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  const min = 50; // 5.0
-  const max = 95; // 9.5
-  const val = Math.abs(hash % (max - min));
-  return parseFloat(((min + val) / 10).toFixed(1));
-}
-
 export const metadata = {
   title: 'Trending Hentai Anime Series | Play Hentai',
   description: 'Discover the most popular and trending uncensored hentai anime series right now on Play Hentai.',
@@ -125,7 +114,7 @@ export default async function TrendingPage({
     views: isDbEmpty 
       ? (s.views || Math.max(1200, 18500 - idx * 2400))
       : (s.views || 0),
-    rating: s.rating || getStableRating(s.id || s.title),
+    rating: s.rating,
     firstEpisodeId: getFirstEpisodeId(s, isDbEmpty)
   }));
 

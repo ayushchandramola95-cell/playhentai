@@ -25,17 +25,6 @@ interface RandomizerPortalProps {
   seriesList: SeriesItem[];
 }
 
-function getStableRating(id: string): number {
-  let hash = 0;
-  for (let i = 0; i < id.length; i++) {
-    hash = id.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  const min = 50; // 5.0
-  const max = 95; // 9.5
-  const val = Math.abs(hash % (max - min));
-  return parseFloat(((min + val) / 10).toFixed(1));
-}
-
 function formatViews(views?: number): string {
   if (views === undefined || views === null) return '0';
   if (views >= 1000000) {
@@ -179,7 +168,9 @@ export default function RandomizerPortal({ seriesList }: RandomizerPortalProps) 
         ) : (
           <div className={`${styles.catalogList} ${isShuffling ? styles.gridFade : ''}`}>
             {paginatedItems.map((item) => {
-              const rating = item.rating || getStableRating(item.id || item.title);
+              const rating = typeof item.rating === 'number' && item.rating > 0 
+                ? item.rating 
+                : (item.rating && !isNaN(Number(item.rating)) && Number(item.rating) > 0 ? Number(item.rating) : null);
               const views = item.views_count !== undefined ? item.views_count : (item.views !== undefined ? item.views : 1420);
               
               return (
@@ -201,11 +192,15 @@ export default function RandomizerPortal({ seriesList }: RandomizerPortalProps) 
                     <h3 className={styles.listItemTitle}>{item.title}</h3>
                     
                     <div className={styles.listItemMeta}>
-                      <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-                        <Star size={12} fill="#eab308" color="#eab308" style={{ marginRight: '4px' }} />
-                        {rating.toFixed(1)}
-                      </span>
-                      <span>•</span>
+                      {rating !== null && rating > 0 && (
+                        <>
+                          <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                            <Star size={12} fill="#eab308" color="#eab308" style={{ marginRight: '4px' }} />
+                            {rating.toFixed(1)}
+                          </span>
+                          <span>•</span>
+                        </>
+                      )}
                       <span style={{ display: 'inline-flex', alignItems: 'center' }}>
                         <Eye size={12} style={{ marginRight: '4px' }} />
                         {formatViews(views)} Views

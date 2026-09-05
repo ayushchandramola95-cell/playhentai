@@ -49,25 +49,6 @@ interface SeriesCardProps {
   className?: string;
 }
 
-function getStableStatus(id: string): string {
-  let hash = 0;
-  for (let i = 0; i < id.length; i++) {
-    hash = id.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  return Math.abs(hash) % 2 === 0 ? 'airing' : 'finalized';
-}
-
-function getStableRating(id: string): number {
-  let hash = 0;
-  for (let i = 0; i < id.length; i++) {
-    hash = id.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  const min = 50; // 5.0
-  const max = 95; // 9.5
-  const val = Math.abs(hash % (max - min));
-  return parseFloat(((min + val) / 10).toFixed(1));
-}
-
 export default function SeriesCard({ item, className = '' }: SeriesCardProps) {
   // Synchronous, zero-lag DOM attribute side calculation (Always vertically centered)
   const handleMouseEnter = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -91,10 +72,12 @@ export default function SeriesCard({ item, className = '' }: SeriesCardProps) {
     card.setAttribute('data-side', side);
   };
 
-  const statusVal = (item.status || getStableStatus(item.id || item.title)).toLowerCase();
+  const statusVal = (item.status || '').toLowerCase();
   const isOngoing = statusVal === 'airing' || statusVal === 'ongoing';
-  const isUpcoming = statusVal === 'upcoming';
-  const rating = item.rating || getStableRating(item.id || item.title);
+  const isUpcoming = statusVal === 'upcoming' || Boolean((item as any).is_upcoming);
+  const rating = typeof item.rating === 'number' && item.rating > 0 
+    ? item.rating 
+    : (item.rating && !isNaN(Number(item.rating)) && Number(item.rating) > 0 ? Number(item.rating) : null);
   const releaseYear = item.release_year || item.releaseYear || 2026;
   const studio = item.studio || (item as any).studios?.name || '';
 
@@ -147,11 +130,13 @@ export default function SeriesCard({ item, className = '' }: SeriesCardProps) {
             }}
           />
           
-          {/* Rating Badge (Top Right) */}
-          <div className={styles.ratingBadge}>
-            <Star size={9.5} fill="#eab308" color="#eab308" className={styles.starIcon} />
-            <span>{rating.toFixed(1)}</span>
-          </div>
+          {/* Rating Badge (Top Right) - Only shown if a real rating exists */}
+          {rating !== null && rating > 0 && (
+            <div className={styles.ratingBadge}>
+              <Star size={9.5} fill="#eab308" color="#eab308" className={styles.starIcon} />
+              <span>{rating.toFixed(1)}</span>
+            </div>
+          )}
 
           {isUpcoming && (
             <div style={{
@@ -219,11 +204,15 @@ export default function SeriesCard({ item, className = '' }: SeriesCardProps) {
           </p>
           <div className={styles.popoverMeta}>
             <span><strong>Year:</strong> <span className={styles.metaYear}>{releaseYear}</span></span>
-            <span className={styles.metaDivider}>•</span>
-            <span className={styles.metaRating}>
-              <Star size={10} fill="#eab308" color="#eab308" className={styles.popoverStar} />
-              <strong>{rating.toFixed(1)}</strong>
-            </span>
+            {rating !== null && rating > 0 && (
+              <>
+                <span className={styles.metaDivider}>•</span>
+                <span className={styles.metaRating}>
+                  <Star size={10} fill="#eab308" color="#eab308" className={styles.popoverStar} />
+                  <strong>{rating.toFixed(1)}</strong>
+                </span>
+              </>
+            )}
           </div>
           <div className={styles.popoverBadges}>
             <span><strong>Studio:</strong></span>
