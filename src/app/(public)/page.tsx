@@ -354,6 +354,9 @@ export default async function HomePage() {
         const epTitle = ep.title || `Episode ${ep.episode_number}`;
         const fullTitle = seriesObj?.title ? `${seriesObj.title} - ${epTitle}` : epTitle;
         const isUncensored = (seriesObj?.tags || []).some((t: string) => t.toLowerCase() === 'uncensored');
+        const isSubbed = (seriesObj?.tags || []).some((t: string) => 
+          ['subbed', 'sub', 'english sub', 'eng sub', 'english subtitles'].includes(t.toLowerCase())
+        ) || epTitle.toLowerCase().includes('sub') || !(seriesObj?.tags || []).some((t: string) => t.toLowerCase() === 'raw');
         const seriesStatus = (seriesObj?.status || '').toLowerCase();
         
         // Exclude upcoming series or preview/trailer episodes from Recent Episodes section
@@ -382,6 +385,7 @@ export default async function HomePage() {
           effectiveDate: epTime,
           isNew,
           isUncensored,
+          isSubbed,
           views: ep.views || 0
         };
       })
@@ -401,7 +405,8 @@ export default async function HomePage() {
       return {
         ...ep,
         isNew: true,
-        isUncensored
+        isUncensored,
+        isSubbed: true
       };
     });
   }
@@ -536,7 +541,7 @@ export default async function HomePage() {
         </div>
         
         <div className={styles.episodeGrid}>
-          {processedEpisodes.slice(0, 25).map((ep) => {
+          {processedEpisodes.slice(0, 20).map((ep) => {
             const watchUrl = getEpisodeWatchUrl(ep.id, ep.episode_number, ep.showSlug);
             return (
               <div key={ep.id} className={`${styles.episodeCard} card-hover`}>
@@ -553,7 +558,15 @@ export default async function HomePage() {
                       <Play size={36} fill="white" className={styles.cardPlayIcon} />
                     </div>
                     
-                    {/* Green NEW star badge */}
+                    {/* Top-Left: Black UNCENSORED pill badge */}
+                    {ep.isUncensored && (
+                      <div className={styles.uncensoredBadge}>
+                        <Eye size={10} />
+                        <span>UNCENSORED</span>
+                      </div>
+                    )}
+
+                    {/* Top-Right: Green NEW star badge */}
                     {ep.isNew && (
                       <div className={styles.newBadge}>
                         <Star size={10} fill="currentColor" />
@@ -561,18 +574,10 @@ export default async function HomePage() {
                       </div>
                     )}
 
-                    {/* Episode Number badge — bottom-left */}
+                    {/* Bottom-Left: Episode Number badge */}
                     {ep.episode_number && (
                       <div className={styles.epNumBadge}>
                         EP {ep.episode_number}
-                      </div>
-                    )}
-
-                    {/* Black UNCENSORED pill badge */}
-                    {ep.isUncensored && (
-                      <div className={styles.uncensoredBadge}>
-                        <Eye size={10} />
-                        <span>UNCENSORED</span>
                       </div>
                     )}
                   </div>
@@ -582,13 +587,18 @@ export default async function HomePage() {
                   <h3 className={styles.cardTitle}>
                     <Link href={watchUrl} prefetch={false}>{ep.title}</Link>
                   </h3>
-                  <div className={styles.episodeViewsRow}>
-                    <Eye size={12} className={styles.eyeIcon} />
-                    <span>
-                      {ep.views !== undefined && ep.views !== null
-                        ? (ep.views >= 1000 ? (ep.views / 1000).toFixed(1) + 'K' : ep.views)
-                        : '0'}
-                    </span>
+                  <div className={styles.episodeMetaRow}>
+                    <div className={styles.episodeViewsRow}>
+                      <Eye size={12} className={styles.eyeIcon} />
+                      <span>
+                        {ep.views !== undefined && ep.views !== null
+                          ? (ep.views >= 1000 ? (ep.views / 1000).toFixed(1) + 'K' : ep.views)
+                          : '0'}
+                      </span>
+                    </div>
+                    {ep.isSubbed && (
+                      <span className={styles.subTagBadge}>SUB</span>
+                    )}
                   </div>
                 </div>
               </div>
