@@ -336,11 +336,23 @@
 }
 
 .prevBtn {
-  left: 2rem;
+  left: calc(2rem - 22px);
+}
+
+@media (min-width: 1780px) {
+  .prevBtn {
+    left: calc((100% - 1720px) / 2 + 2rem - 22px);
+  }
 }
 
 .nextBtn {
   right: 2rem;
+}
+
+@media (min-width: 1780px) {
+  .nextBtn {
+    right: calc((100% - 1720px) / 2 + 2rem);
+  }
 }
 
 /* Bottom Capsule Indicator Container */
@@ -395,7 +407,7 @@
     min-width: 165px;
   }
   .heroContentWrapper {
-    padding: 0 3rem;
+    padding: 0 2rem;
   }
 }
 
