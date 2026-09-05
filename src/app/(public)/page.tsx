@@ -633,7 +633,39 @@ export default async function HomePage() {
       {/* Sponsored Ad Banner: After Latest Series (Zone 5986226) - Desktop Only */}
       <AdBanner zoneId="5986226" desktopOnly />
 
-      {/* 2b. Random Section: Live Shuffle slider of active series */}
+      {/* 3. Trending & Most Viewed Section: Horizontal scroll slider up to 18 items */}
+      <section className={styles.section}>
+        <HorizontalScrollRow
+          title="Trending & Most Viewed"
+          subtitle="POPULAR NOW"
+          subtitleColor="#ec4899"
+          viewAllHref="/trending"
+        >
+          {[...activeSeries]
+            .sort((a, b) => (b.views || 0) - (a.views || 0))
+            .slice(0, 18)
+            .map((item) => (
+              <SeriesCard key={item.id} item={item} />
+            ))}
+        </HorizontalScrollRow>
+      </section>
+
+      {/* 4. Upcoming Anime Section: Horizontal scroll slider up to 18 items */}
+      {upcomingSeries && upcomingSeries.length > 0 && (
+        <section className={styles.section}>
+          <HorizontalScrollRow
+            title="Upcoming Hentai Anime"
+            subtitle="COMING SOON"
+            viewAllHref="/upcoming"
+          >
+            {upcomingSeries.slice(0, 18).map((item) => (
+              <SeriesCard key={item.id} item={item} />
+            ))}
+          </HorizontalScrollRow>
+        </section>
+      )}
+
+      {/* 5. Random Section: Live Shuffle slider of active series */}
       <section className={styles.section}>
         <RandomRowSection seriesPool={rawPool} />
       </section>
@@ -674,38 +706,6 @@ export default async function HomePage() {
               Watch History
             </Link>
           </div>
-        </section>
-      )}
-
-      {/* 2b. Trending & Most Viewed Section: Horizontal scroll slider up to 18 items */}
-      <section className={styles.section}>
-        <HorizontalScrollRow
-          title="Trending & Most Viewed"
-          subtitle="POPULAR NOW"
-          subtitleColor="#ec4899"
-          viewAllHref="/trending"
-        >
-          {[...activeSeries]
-            .sort((a, b) => (b.views || 0) - (a.views || 0))
-            .slice(0, 18)
-            .map((item) => (
-              <SeriesCard key={item.id} item={item} />
-            ))}
-        </HorizontalScrollRow>
-      </section>
-
-      {/* 3. Upcoming Anime Section: Horizontal scroll slider up to 18 items */}
-      {upcomingSeries && upcomingSeries.length > 0 && (
-        <section className={styles.section}>
-          <HorizontalScrollRow
-            title="Upcoming Hentai Anime"
-            subtitle="COMING SOON"
-            viewAllHref="/upcoming"
-          >
-            {upcomingSeries.slice(0, 18).map((item) => (
-              <SeriesCard key={item.id} item={item} />
-            ))}
-          </HorizontalScrollRow>
         </section>
       )}
 
