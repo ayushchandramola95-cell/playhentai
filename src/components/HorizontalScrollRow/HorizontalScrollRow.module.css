@@ -135,10 +135,23 @@
   width: 310px;
 }
 
-/* Portrait Series Item Width in Slider: Tight gap, 5.7 full cards + peek of 6th card on desktop */
+/* Portrait Series Item Width in Slider: Crisp, compact proportion (~190-205px) matching expanded sidebar */
 .seriesItem {
+  flex: 0 0 calc((100% - 3.5rem) / 6.7);
+  min-width: 180px;
+  max-width: 215px;
+}
+
+:global(.sidebarExpanded) .seriesItem {
   flex: 0 0 calc((100% - 2.5rem) / 5.7);
-  min-width: 195px;
+  min-width: 180px;
+  max-width: 220px;
+}
+
+@media (min-width: 1740px) {
+  :global(.sidebarExpanded) .seriesItem {
+    flex: 0 0 calc((100% - 3.5rem) / 6.7);
+  }
 }
 
 /* Dash Indicators below Row */
@@ -171,14 +184,25 @@
   box-shadow: 0 0 8px rgba(124, 58, 237, 0.5);
 }
 
-@media (max-width: 1280px) {
+@media (max-width: 1380px) {
+  .seriesItem,
+  :global(.sidebarExpanded) .seriesItem {
+    flex: 0 0 calc((100% - 2.5rem) / 5.5);
+    min-width: 170px;
+    max-width: 220px;
+  }
+}
+
+@media (max-width: 1100px) {
   .episodeItem {
     flex: 0 0 270px;
     width: 270px;
   }
-  .seriesItem {
-    flex: 0 0 calc((100% - 3.2rem) / 4.3);
-    min-width: 175px;
+  .seriesItem,
+  :global(.sidebarExpanded) .seriesItem {
+    flex: 0 0 calc((100% - 2rem) / 4.4);
+    min-width: 160px;
+    max-width: 220px;
   }
 }
 
@@ -187,14 +211,25 @@
     flex: 0 0 240px;
     width: 240px;
   }
-  .seriesItem {
-    flex: 0 0 calc((100% - 1.8rem) / 2.3);
-    min-width: 155px;
+  .seriesItem,
+  :global(.sidebarExpanded) .seriesItem {
+    flex: 0 0 calc((100% - 1.2rem) / 2.4);
+    min-width: 140px;
+    max-width: none;
   }
   .scrollContainer {
     gap: 0.6rem;
   }
   .sectionTitle {
     font-size: 1.15rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .seriesItem,
+  :global(.sidebarExpanded) .seriesItem {
+    flex: 0 0 calc((100% - 0.8rem) / 2.25);
+    min-width: 130px;
+    max-width: none;
   }
 }

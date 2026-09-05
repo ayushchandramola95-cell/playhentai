@@ -536,7 +536,7 @@ export default async function HomePage() {
         </div>
         
         <div className={styles.episodeGrid}>
-          {processedEpisodes.slice(0, 20).map((ep) => {
+          {processedEpisodes.slice(0, 25).map((ep) => {
             const watchUrl = getEpisodeWatchUrl(ep.id, ep.episode_number, ep.showSlug);
             return (
               <div key={ep.id} className={`${styles.episodeCard} card-hover`}>
@@ -603,14 +603,14 @@ export default async function HomePage() {
       {/* Mobile-Only After Recent Episodes Banner (Zone 5986994) */}
       <AdBanner zoneId="5986994" insClass="eas6a97888e10" mobileOnly />
 
-      {/* 2. Latest Series Section: Horizontal scroll slider up to 15 items */}
+      {/* 2. Latest Series Section: Horizontal scroll slider up to 18 items */}
       <section className={styles.section}>
         <HorizontalScrollRow
           title="Latest Hentai Anime Series"
           subtitle="UPDATED DAILY"
           viewAllHref="/recent/series"
         >
-          {sortedLatestSeries.slice(0, 15).map((item) => (
+          {sortedLatestSeries.slice(0, 18).map((item) => (
             <SeriesCard key={item.id} item={item} />
           ))}
         </HorizontalScrollRow>
@@ -663,7 +663,7 @@ export default async function HomePage() {
         </section>
       )}
 
-      {/* 2b. Trending & Most Viewed Section: Horizontal scroll slider up to 15 items */}
+      {/* 2b. Trending & Most Viewed Section: Horizontal scroll slider up to 18 items */}
       <section className={styles.section}>
         <HorizontalScrollRow
           title="Trending & Most Viewed"
@@ -673,14 +673,14 @@ export default async function HomePage() {
         >
           {[...activeSeries]
             .sort((a, b) => (b.views || 0) - (a.views || 0))
-            .slice(0, 15)
+            .slice(0, 18)
             .map((item) => (
               <SeriesCard key={item.id} item={item} />
             ))}
         </HorizontalScrollRow>
       </section>
 
-      {/* 3. Upcoming Anime Section: Horizontal scroll slider up to 15 items */}
+      {/* 3. Upcoming Anime Section: Horizontal scroll slider up to 18 items */}
       {upcomingSeries && upcomingSeries.length > 0 && (
         <section className={styles.section}>
           <HorizontalScrollRow
@@ -688,7 +688,7 @@ export default async function HomePage() {
             subtitle="COMING SOON"
             viewAllHref="/upcoming"
           >
-            {upcomingSeries.slice(0, 15).map((item) => (
+            {upcomingSeries.slice(0, 18).map((item) => (
               <SeriesCard key={item.id} item={item} />
             ))}
           </HorizontalScrollRow>
