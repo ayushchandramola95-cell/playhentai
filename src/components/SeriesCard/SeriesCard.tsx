@@ -96,7 +96,7 @@ export default function SeriesCard({ item, className = '' }: SeriesCardProps) {
   const isUpcoming = statusVal === 'upcoming';
   const rating = item.rating || getStableRating(item.id || item.title);
   const releaseYear = item.release_year || item.releaseYear || 2026;
-  const studio = item.studio || 'Juicymango';
+  const studio = item.studio || (item as any).studios?.name || '';
 
   // Calculate actual episodes from seasons
   let epCount = 0;
@@ -184,9 +184,16 @@ export default function SeriesCard({ item, className = '' }: SeriesCardProps) {
         <h4 className={styles.seriesTitleText} title={item.title}>
           <Link href={`/series/${item.slug}`} prefetch={false}>{item.title}</Link>
         </h4>
-        <div className={styles.seriesViewsRow}>
-          <Eye size={12} className={styles.eyeIcon} />
-          <span>{formatViews(item.views || 0)}</span>
+        <div className={styles.seriesBottomMeta}>
+          <div className={styles.seriesViewsRow}>
+            <Eye size={12} className={styles.eyeIcon} />
+            <span>{formatViews(item.views || 0)}</span>
+          </div>
+          {studio && (
+            <span className={styles.studioText} title={studio}>
+              {studio}
+            </span>
+          )}
         </div>
       </div>
 
