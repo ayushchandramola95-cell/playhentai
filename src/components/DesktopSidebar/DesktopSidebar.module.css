@@ -1,0 +1,197 @@
+/* ==========================================================================
+   DESKTOP SIDEBAR NAVIGATION (ICON RAIL)
+   Strictly desktop-only: hidden on mobile (< 900px)
+   ========================================================================== */
+
+.sidebar {
+  display: none;
+}
+
+@media (min-width: 901px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 68px;
+    height: 100vh;
+    z-index: 105;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: rgba(9, 13, 22, 0.96);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-right: 1px solid var(--border);
+    padding: 0 0 1.2rem 0;
+    overflow-y: auto;
+    overflow-x: visible;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    transition: background 0.3s ease, border-color 0.3s ease;
+  }
+
+  .sidebar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Top Logo Section */
+  .logoSection {
+    height: 74px; /* Matches 74px Header height */
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .logoLink {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    text-decoration: none;
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .logoLink:hover {
+    transform: scale(1.08);
+  }
+
+  .logoBadge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    filter: drop-shadow(0 2px 10px rgba(245, 158, 11, 0.35));
+  }
+
+  .tvIconSvg {
+    display: block;
+  }
+
+  /* Main Navigation Section */
+  .navSection {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    padding: 14px 0;
+    flex: 1;
+  }
+
+  /* Bottom Actions Section */
+  .bottomSection {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    margin-top: auto;
+  }
+
+  /* Icon Button */
+  .navItem {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--foreground-secondary);
+    text-decoration: none;
+    background: transparent;
+    border: 1px solid transparent;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .navIcon {
+    display: block;
+    transition: transform 0.2s ease, color 0.2s ease;
+  }
+
+  .navItem:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.12);
+    transform: translateY(-1px);
+  }
+
+  .navItem:hover .navIcon {
+    transform: scale(1.1);
+  }
+
+  /* Active State */
+  .activeItem {
+    color: #ffffff !important;
+    background: rgba(var(--primary-rgb), 0.18) !important;
+    border: 1px solid rgba(var(--primary-rgb), 0.45) !important;
+    box-shadow: 0 0 16px rgba(var(--primary-rgb), 0.35) !important;
+  }
+
+  .activeItem::before {
+    content: '';
+    position: absolute;
+    left: -12px;
+    width: 4px;
+    height: 22px;
+    border-radius: 0 4px 4px 0;
+    background: var(--primary);
+    box-shadow: 0 0 10px var(--primary);
+  }
+
+  .activeItem .navIcon {
+    color: #ffffff !important;
+    filter: drop-shadow(0 0 6px rgba(var(--primary-rgb), 0.6));
+  }
+
+  /* Interactive Hover Tooltip */
+  .tooltip {
+    position: absolute;
+    left: calc(100% + 12px);
+    top: 50%;
+    transform: translateY(-50%) translateX(-4px);
+    background: #0e1422;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    color: #ffffff;
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 8px;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.65);
+    z-index: 1000;
+    letter-spacing: 0.01em;
+  }
+
+  /* Tooltip Left Arrow */
+  .tooltip::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 100%;
+    transform: translateY(-50%);
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent #0e1422 transparent transparent;
+  }
+
+  .navItem:hover .tooltip,
+  .logoLink:hover .tooltip {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(-50%) translateX(0);
+  }
+}

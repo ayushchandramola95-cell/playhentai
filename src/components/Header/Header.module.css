@@ -11,10 +11,28 @@
   padding: 0 1.8rem;
   z-index: 100;
   border-bottom: 1px solid var(--border);
-  transition: all 0.3s ease;
+  transition: left 0.25s ease, width 0.25s ease, background 0.3s ease;
   background: var(--header-bg);
   backdrop-filter: blur(16px) saturate(180%);
   -webkit-backdrop-filter: blur(16px) saturate(180%);
+}
+
+@media (min-width: 901px) {
+  .header {
+    left: 68px;
+    width: calc(100% - 68px);
+    padding: 0 2rem;
+  }
+
+  .nav {
+    display: none !important; /* Managed seamlessly by Desktop Left Sidebar */
+  }
+
+  .centerSection {
+    flex: 1 !important;
+    max-width: 540px !important;
+    margin: 0 auto !important;
+  }
 }
 
 .leftSection {
@@ -66,63 +84,11 @@
   }
 
   .centerSectionFocused {
-    max-width: 500px !important;
+    max-width: 540px !important;
     width: 100% !important;
     flex: 1 !important;
     padding: 0 1rem !important;
     z-index: 10 !important;
-  }
-}
-
-@media (max-width: 1199px) and (min-width: 769px) {
-  .header {
-    padding: 0 0.75rem !important;
-  }
-
-  .leftSection {
-    gap: 0.65rem !important;
-    flex-shrink: 0 !important;
-  }
-
-  .logoText {
-    font-size: 1.25rem !important;
-  }
-
-  .nav {
-    gap: 0.2rem !important;
-  }
-
-  .navLink {
-    font-size: 0.85rem !important;
-    padding: 0.35rem 0.5rem !important;
-  }
-
-  .centerSection {
-    flex: 0 0 150px !important;
-    margin-right: 0.2rem !important;
-  }
-
-  .rightSection {
-    gap: 0.4rem !important;
-    flex-shrink: 0 !important;
-  }
-
-  .watchlistShortcut {
-    padding: 0.3rem 0.5rem !important;
-    font-size: 0.85rem !important;
-    flex-shrink: 0 !important;
-  }
-
-  .signInBtn {
-    padding: 0.35rem 0.75rem !important;
-    font-size: 0.85rem !important;
-    flex-shrink: 0 !important;
-  }
-
-  .profileBtn {
-    padding: 0.3rem 0.6rem !important;
-    font-size: 0.85rem !important;
-    flex-shrink: 0 !important;
   }
 }
 

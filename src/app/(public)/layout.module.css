@@ -1,0 +1,34 @@
+.publicLayout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  width: 100%;
+}
+
+.mainContent {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  padding-top: 74px;
+  width: 100%;
+  transition: padding-left 0.25s ease;
+}
+
+.footerSection {
+  width: 100%;
+  transition: padding-left 0.25s ease;
+}
+
+@media (min-width: 901px) {
+  .mainContent,
+  .footerSection {
+    padding-left: 68px;
+  }
+}
+
+@media (max-width: 900px) {
+  .mainContent,
+  .footerSection {
+    padding-left: 0 !important;
+  }
+}
