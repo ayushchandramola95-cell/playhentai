@@ -351,6 +351,7 @@ export default async function HomePage() {
       .map(ep => {
         const season = Array.isArray(ep.seasons) ? ep.seasons[0] : ep.seasons;
         const seriesObj = season ? (Array.isArray(season.series) ? season.series[0] : season.series) : null;
+        const seriesTitle = seriesObj?.title || ep.title || '';
         const epTitle = ep.title || `Episode ${ep.episode_number}`;
         const fullTitle = seriesObj?.title ? `${seriesObj.title} - ${epTitle}` : epTitle;
         const isUncensored = (seriesObj?.tags || []).some((t: string) => t.toLowerCase() === 'uncensored');
@@ -375,7 +376,8 @@ export default async function HomePage() {
 
         return {
           id: ep.id,
-          title: fullTitle,
+          title: seriesTitle,
+          fullTitle,
           showSlug: seriesObj?.slug || '',
           episode_number: ep.episode_number,
           thumbnail: ep.thumbnail_key || seriesObj?.poster_image_key,
@@ -402,8 +404,11 @@ export default async function HomePage() {
     processedEpisodes = MOCK_EPISODES.map(ep => {
       const parentSeries = MOCK_SERIES.find(s => s.slug === ep.showSlug);
       const isUncensored = (parentSeries?.tags || []).some(t => t.toLowerCase() === 'uncensored');
+      const seriesTitle = parentSeries?.title || ep.title;
       return {
         ...ep,
+        title: seriesTitle,
+        fullTitle: `${seriesTitle} - ${ep.title}`,
         isNew: true,
         isUncensored,
         isSubbed: true
@@ -549,7 +554,7 @@ export default async function HomePage() {
                   <div className={styles.cardImageWrapper}>
                     <Image
                       src={getR2Url(ep.thumbnail, 'thumbnail')}
-                      alt={ep.title}
+                      alt={ep.fullTitle || ep.title}
                       fill
                       sizes="(max-width: 480px) 100vw, (max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
                       className={styles.cardImage}
@@ -585,7 +590,7 @@ export default async function HomePage() {
 
                 <div className={styles.cardContent}>
                   <h3 className={styles.cardTitle}>
-                    <Link href={watchUrl} prefetch={false}>{ep.title}</Link>
+                    <Link href={watchUrl} prefetch={false} title={ep.fullTitle || ep.title}>{ep.title}</Link>
                   </h3>
                   <div className={styles.episodeMetaRow}>
                     <div className={styles.episodeViewsRow}>
