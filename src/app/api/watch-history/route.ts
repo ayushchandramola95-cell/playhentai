@@ -60,6 +60,30 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const { searchParams } = new URL(request.url);
+    const episodeId = searchParams.get('episode_id');
+    const id = searchParams.get('id');
+    const clearAll = searchParams.get('all') === 'true';
+
+    // Delete single item if specified
+    if (id || episodeId) {
+      let query = supabase.from('watch_history').delete().eq('profile_id', user.id);
+      if (id) {
+        query = query.eq('id', id);
+      } else if (episodeId) {
+        query = query.eq('episode_id', episodeId);
+      }
+
+      const { error: deleteSingleError } = await query;
+      if (deleteSingleError) {
+        console.error('Error removing watch history item:', deleteSingleError);
+        return NextResponse.json({ error: 'Failed to remove item' }, { status: 500 });
+      }
+
+      return NextResponse.json({ success: true, removed: true });
+    }
+
+    // Delete all user watch history
     const { error: deleteError } = await supabase
       .from('watch_history')
       .delete()
@@ -70,7 +94,7 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: 'Failed to clear history' }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, cleared: true });
   } catch (err) {
     console.error('Server error clearing watch history:', err);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
