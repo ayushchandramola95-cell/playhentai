@@ -2,9 +2,10 @@ import React, { Suspense } from 'react';
 import { ShieldCheck } from 'lucide-react';
 import { unstable_cache } from 'next/cache';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
-import UncensoredHub from '@/components/UncensoredHub/UncensoredHub';
+import BrowseHub from '@/components/BrowseHub/BrowseHub';
 import JsonLd from '@/components/JsonLd/JsonLd';
 import { isUncensoredSeries } from '@/utils/constants';
+import { getSeriesViewsMap } from '@/utils/views';
 import styles from './uncensored.module.css';
 import { MOCK_SERIES } from '@/utils/mockData';
 
@@ -17,6 +18,9 @@ const publicSupabaseClient = createSupabaseClient(supabaseUrl, supabaseAnonKey);
 interface PageProps {
   searchParams: Promise<{
     page?: string;
+    genre?: string;
+    studio?: string;
+    year?: string;
     sort?: string;
   }>;
 }
@@ -66,6 +70,8 @@ const getCachedUncensoredSeries = unstable_cache(
     let isDbEmpty = true;
 
     try {
+      const viewsMap = await getSeriesViewsMap();
+
       const { data: seriesData } = await publicSupabaseClient
         .from('series')
         .select(`
@@ -81,7 +87,10 @@ const getCachedUncensoredSeries = unstable_cache(
         .order('created_at', { ascending: false });
 
       if (seriesData && seriesData.length > 0) {
-        dbSeries = seriesData;
+        dbSeries = seriesData.map((s: any) => ({
+          ...s,
+          views: viewsMap[s.id] || 0
+        }));
         isDbEmpty = false;
       }
     } catch (err) {
@@ -98,7 +107,7 @@ export default async function UncensoredPage({ searchParams }: PageProps) {
   const params = await searchParams;
   const pageParam = params.page;
   const currentPage = pageParam ? parseInt(pageParam, 10) || 1 : 1;
-  const ITEMS_PER_PAGE = 25;
+  const ITEMS_PER_PAGE = 24;
 
   const { dbSeries, isDbEmpty } = await getCachedUncensoredSeries();
   const activeSeries = isDbEmpty ? MOCK_SERIES : dbSeries;
@@ -134,6 +143,7 @@ export default async function UncensoredPage({ searchParams }: PageProps) {
   return (
     <div className={styles.container}>
       <JsonLd data={[breadcrumbJsonLd, itemListJsonLd]} />
+      <div className="ambient-glow" />
 
       {/* Breadcrumbs */}
       <nav className={styles.breadcrumbs} aria-label="Breadcrumbs">
@@ -144,9 +154,13 @@ export default async function UncensoredPage({ searchParams }: PageProps) {
 
       {/* Dynamic Header Section */}
       <div className={styles.headerSection}>
+        <div className={styles.headerTopMeta}>
+          <span className={styles.uncensoredHighlightPill}>
+            <ShieldCheck size={13} className={styles.uncensoredIconPill} /> UNCENSORED CATALOG
+          </span>
+        </div>
         <div className={styles.titleRow}>
-          <ShieldCheck size={28} className={styles.headerIcon} />
-          <h1>Uncensored Hentai Anime</h1>
+          <h1 className={styles.mainTitle}>Uncensored Hentai Anime</h1>
         </div>
         <p className={styles.subtext}>
           Browse uncensored hentai anime series with English subtitles in HD. Explore complete series, available episodes, new releases, and popular uncensored titles on Play Hentai.
@@ -155,11 +169,10 @@ export default async function UncensoredPage({ searchParams }: PageProps) {
 
       {/* Dedicated Standalone Uncensored Catalog View */}
       <Suspense fallback={null}>
-        <UncensoredHub 
+        <BrowseHub 
           initialSeries={uncensoredSeries} 
           isDbEmpty={isDbEmpty} 
           basePath="/uncensored"
-          currentPage={currentPage}
         />
       </Suspense>
     </div>
