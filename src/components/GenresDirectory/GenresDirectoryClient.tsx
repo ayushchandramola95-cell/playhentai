@@ -13,7 +13,8 @@ import {
   Film,
   Star,
   ChevronRight,
-  FolderHeart
+  FolderHeart,
+  Eye
 } from 'lucide-react';
 import type { GenreWithStats } from '@/utils/genresData';
 import { getR2Url } from '@/utils/r2';
@@ -25,11 +26,22 @@ interface GenresDirectoryClientProps {
 
 const ALPHABET = ['ALL', '#', ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')];
 
+function formatViews(views?: number): string {
+  if (views === undefined || views === null || views === 0) return '0';
+  if (views >= 1000000) {
+    return (views / 1000000).toFixed(1) + 'M';
+  }
+  if (views >= 1000) {
+    return (views / 1000).toFixed(1) + 'K';
+  }
+  return views.toString();
+}
+
 export default function GenresDirectoryClient({ genres }: GenresDirectoryClientProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLetter, setSelectedLetter] = useState('ALL');
   const [filterTab, setFilterTab] = useState<'all' | 'with_series' | 'popular'>('all');
-  const [sortMode, setSortMode] = useState<'series_count' | 'name_asc' | 'rating'>('series_count');
+  const [sortMode, setSortMode] = useState<'popular' | 'series_count' | 'views' | 'name_asc'>('popular');
 
   // Filter & Sort Logic
   const filteredGenres = useMemo(() => {
@@ -39,7 +51,7 @@ export default function GenresDirectoryClient({ genres }: GenresDirectoryClientP
     if (filterTab === 'with_series') {
       list = list.filter((g) => g.seriesCount > 0);
     } else if (filterTab === 'popular') {
-      list = list.filter((g) => g.isTrending || g.seriesCount >= 2);
+      list = list.filter((g) => g.isTrending || g.seriesCount >= 10);
     }
 
     // 2. Alphabet Filter
@@ -63,20 +75,23 @@ export default function GenresDirectoryClient({ genres }: GenresDirectoryClientP
 
     // 4. Sorting
     list.sort((a, b) => {
-      if (sortMode === 'series_count') {
+      if (sortMode === 'popular' || sortMode === 'series_count') {
         if (b.seriesCount !== a.seriesCount) {
           return b.seriesCount - a.seriesCount;
         }
+        if (b.totalViews !== a.totalViews) {
+          return b.totalViews - a.totalViews;
+        }
         return a.name.localeCompare(b.name);
+      }
+      if (sortMode === 'views') {
+        if (b.totalViews !== a.totalViews) {
+          return b.totalViews - a.totalViews;
+        }
+        return b.seriesCount - a.seriesCount;
       }
       if (sortMode === 'name_asc') {
         return a.name.localeCompare(b.name);
-      }
-      if (sortMode === 'rating') {
-        const rA = typeof a.averageRating === 'number' ? a.averageRating : 0;
-        const rB = typeof b.averageRating === 'number' ? b.averageRating : 0;
-        if (rB !== rA) return rB - rA;
-        return b.seriesCount - a.seriesCount;
       }
       return 0;
     });
@@ -92,7 +107,7 @@ export default function GenresDirectoryClient({ genres }: GenresDirectoryClientP
     setSearchQuery('');
     setSelectedLetter('ALL');
     setFilterTab('all');
-    setSortMode('series_count');
+    setSortMode('popular');
   };
 
   return (
@@ -113,7 +128,7 @@ export default function GenresDirectoryClient({ genres }: GenresDirectoryClientP
             <Sparkles size={13} /> ANIME GENRES & THEMES
           </span>
           <span className={styles.totalGenresPill}>
-            <Layers size={13} /> {genres.length} Genres Cataloged
+            <Layers size={13} /> {genres.length} Genres Cataloged • {activeGenresCount} Active
           </span>
         </div>
         <div className={styles.titleRow}>
@@ -179,11 +194,12 @@ export default function GenresDirectoryClient({ genres }: GenresDirectoryClientP
                 className={styles.sortSelect}
                 aria-label="Sort genres"
               >
-                <option value="series_count">🔥 Most Series</option>
+                <option value="popular">🔥 Most Popular</option>
+                <option value="series_count">📁 Most Series</option>
+                <option value="views">👁️ Most Views</option>
                 <option value="name_asc">🔤 Name: A-Z</option>
-                <option value="rating">⭐ Highest Rated</option>
               </select>
-              <ChevronDown size={13} className={styles.sortArrow} />
+              <ChevronDown size={13} className={styles.filterArrow || styles.sortArrow} />
             </div>
           </div>
         </div>
@@ -209,7 +225,7 @@ export default function GenresDirectoryClient({ genres }: GenresDirectoryClientP
           {filteredGenres.map((genre) => {
             const hasPoster = Boolean(genre.featuredPoster || genre.featuredCover);
             const posterUrl = hasPoster
-              ? getR2Url((genre.featuredPoster || genre.featuredCover)!, 'poster')
+              ? getR2Url((genre.featuredCover || genre.featuredPoster)!, 'cover')
               : null;
 
             return (
@@ -254,10 +270,10 @@ export default function GenresDirectoryClient({ genres }: GenresDirectoryClientP
                     {genre.seriesCount} {genre.seriesCount === 1 ? 'Series' : 'Series'}
                   </span>
 
-                  {typeof genre.averageRating === 'number' && genre.averageRating > 0 && (
+                  {genre.totalViews > 0 && (
                     <span className={styles.ratingPill}>
-                      <Star size={11} fill="currentColor" />
-                      {genre.averageRating.toFixed(1)}
+                      <Eye size={11} style={{ marginRight: '2px' }} />
+                      {formatViews(genre.totalViews)}
                     </span>
                   )}
                 </div>
