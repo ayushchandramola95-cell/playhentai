@@ -858,6 +858,85 @@
   opacity: 0.8;
 }
 
+/* Years Cards Grid: 4 columns */
+.yearsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+}
+
+.yearCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1.1rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #e4e4e7;
+  font-size: 0.98rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.yearCard:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.yearCardActive {
+  background: rgba(59, 130, 246, 0.2) !important;
+  border-color: rgba(59, 130, 246, 0.6) !important;
+  color: #60a5fa !important;
+  box-shadow: 0 0 14px rgba(59, 130, 246, 0.25);
+}
+
+.yearNumber {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: inherit;
+}
+
+.yearCount {
+  font-size: 0.82rem;
+  opacity: 0.8;
+}
+
+/* Quick Era Presets Row */
+.eraPresetsRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  padding: 0.85rem 1.75rem 0.25rem;
+}
+
+.eraPresetBtn {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #cbd5e1;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 0.35rem 0.85rem;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.eraPresetBtn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.eraPresetBtnActive {
+  background: rgba(59, 130, 246, 0.25) !important;
+  border-color: rgba(59, 130, 246, 0.6) !important;
+  color: #60a5fa !important;
+}
+
 /* Modal Footer (BIGGER APPLY / CANCEL) */
 .modalFooter {
   display: flex;
@@ -1030,6 +1109,9 @@
   .brandsGrid {
     grid-template-columns: repeat(2, 1fr);
   }
+  .yearsGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
 @media (max-width: 840px) {
@@ -1059,6 +1141,9 @@
   .seriesGrid {
     grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
     gap: 1rem 0.75rem !important;
+  }
+  .yearsGrid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
@@ -1104,6 +1189,12 @@
   }
   .brandsGrid {
     grid-template-columns: 1fr;
+  }
+  .yearsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .eraPresetsRow {
+    padding: 0.6rem 0.85rem 0.25rem;
   }
 }
 

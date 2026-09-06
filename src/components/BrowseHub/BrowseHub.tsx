@@ -81,7 +81,7 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
   const [blockedTags, setBlockedTags] = useState<string[]>([]);
   const [isBroadMatches, setIsBroadMatches] = useState(false);
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
-  const [selectedYear, setSelectedYear] = useState<string>('all');
+  const [selectedYears, setSelectedYears] = useState<string[]>([]);
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortMode, setSortMode] = useState<string>('random'); // Default: Random
@@ -101,22 +101,26 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
   // Modal Open States
   const [isTagsModalOpen, setIsTagsModalOpen] = useState(false);
   const [isBrandsModalOpen, setIsBrandsModalOpen] = useState(false);
+  const [isYearsModalOpen, setIsYearsModalOpen] = useState(false);
 
   // Draft States for Modals (so Cancel / Apply work accurately)
   const [tempIncludedTags, setTempIncludedTags] = useState<string[]>([]);
   const [tempBlockedTags, setTempBlockedTags] = useState<string[]>([]);
   const [tempBroadMatches, setTempBroadMatches] = useState(false);
   const [tempSelectedBrands, setTempSelectedBrands] = useState<string[]>([]);
+  const [tempSelectedYears, setTempSelectedYears] = useState<string[]>([]);
 
   // Search inside Modals
   const [tagSearchQuery, setTagSearchQuery] = useState('');
   const [brandSearchQuery, setBrandSearchQuery] = useState('');
+  const [yearSearchQuery, setYearSearchQuery] = useState('');
   const [brandSortMode, setBrandSortMode] = useState<'count' | 'a_z'>('count');
 
   // Compute Tag & Brand Counts across initialSeries
-  const { tagCounts, brandCounts, allTags, allBrands, availableYears } = useMemo(() => {
+  const { tagCounts, brandCounts, yearCounts, allTags, allBrands, availableYears } = useMemo(() => {
     const tCounts: Record<string, number> = {};
     const bCounts: Record<string, number> = {};
+    const yCounts: Record<string, number> = {};
     const yearsSet = new Set<number>();
 
     initialSeries.forEach((series) => {
@@ -138,9 +142,13 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
       }
 
       // Years
-      const yr = series.release_year || series.releaseYear || (series.first_air_date ? new Date(series.first_air_date).getFullYear() : null);
+      const yr =
+        series.release_year ||
+        series.releaseYear ||
+        (series.first_air_date ? new Date(series.first_air_date).getFullYear() : null);
       if (yr && typeof yr === 'number' && yr > 1970 && yr < 2050) {
         yearsSet.add(yr);
+        yCounts[String(yr)] = (yCounts[String(yr)] || 0) + 1;
       }
     });
 
@@ -152,14 +160,22 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
       if (bCounts[s] === undefined) bCounts[s] = 0;
     });
     RELEASE_YEARS.forEach((y) => {
-      if (y >= 2018) yearsSet.add(y);
+      yearsSet.add(y);
+      if (yCounts[String(y)] === undefined) yCounts[String(y)] = 0;
     });
 
     const tagsList = Object.keys(tCounts).sort((a, b) => a.localeCompare(b));
     const brandsList = Object.keys(bCounts);
     const sortedYears = Array.from(yearsSet).sort((a, b) => b - a);
 
-    return { tagCounts: tCounts, brandCounts: bCounts, allTags: tagsList, allBrands: brandsList, availableYears: sortedYears };
+    return {
+      tagCounts: tCounts,
+      brandCounts: bCounts,
+      yearCounts: yCounts,
+      allTags: tagsList,
+      allBrands: brandsList,
+      availableYears: sortedYears,
+    };
   }, [initialSeries]);
 
   // Sync Initial URL Search Parameters
@@ -172,7 +188,7 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
     const pageParam = searchParams.get('page');
 
     if (sortParam) setSortMode(sortParam);
-    if (yearParam) setSelectedYear(yearParam);
+    if (yearParam && yearParam.toLowerCase() !== 'all') setSelectedYears([yearParam]);
     if (statusParam) setSelectedStatus(statusParam.toLowerCase());
     if (pageParam) {
       const p = parseInt(pageParam, 10);
@@ -201,6 +217,12 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
     setTempSelectedBrands([...selectedBrands]);
     setBrandSearchQuery('');
     setIsBrandsModalOpen(true);
+  };
+
+  const openYearsModal = () => {
+    setTempSelectedYears([...selectedYears]);
+    setYearSearchQuery('');
+    setIsYearsModalOpen(true);
   };
 
   // Tag Modal Actions
@@ -263,13 +285,34 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
     setTempSelectedBrands([]);
   };
 
+  // Year Modal Actions
+  const handleToggleYear = (yearStr: string) => {
+    setTempSelectedYears((prev) => {
+      if (prev.includes(yearStr)) {
+        return prev.filter((y) => y !== yearStr);
+      } else {
+        return [...prev, yearStr];
+      }
+    });
+  };
+
+  const handleApplyYears = () => {
+    setSelectedYears([...tempSelectedYears]);
+    setIsYearsModalOpen(false);
+    setCurrentPage(1);
+  };
+
+  const handleResetYearsModal = () => {
+    setTempSelectedYears([]);
+  };
+
   // Clear All Main Filters
   const handleClearAllFilters = () => {
     setIncludedTags([]);
     setBlockedTags([]);
     setIsBroadMatches(false);
     setSelectedBrands([]);
-    setSelectedYear('all');
+    setSelectedYears([]);
     setSelectedStatus('all');
     setSearchQuery('');
     setSortMode('random');
@@ -330,24 +373,24 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
         if (!matchBrand) return false;
       }
 
-      // 5. Year Match
-      if (selectedYear && selectedYear !== 'all') {
+      // 5. Years Match
+      if (selectedYears.length > 0) {
         const yr =
           series.release_year ||
           series.releaseYear ||
           (series.first_air_date ? new Date(series.first_air_date).getFullYear() : null);
         if (!yr) return false;
 
-        if (selectedYear === '2010s') {
-          if (yr < 2010 || yr > 2019) return false;
-        } else if (selectedYear === '2000s') {
-          if (yr < 2000 || yr > 2009) return false;
-        } else if (selectedYear === '1990s') {
-          if (yr > 1999) return false;
-        } else {
-          const targetYr = parseInt(selectedYear, 10);
-          if (!isNaN(targetYr) && yr !== targetYr) return false;
-        }
+        const matchesYear = selectedYears.some((y) => {
+          if (y === '2020s') return yr >= 2020 && yr <= 2029;
+          if (y === '2010s') return yr >= 2010 && yr <= 2019;
+          if (y === '2000s') return yr >= 2000 && yr <= 2009;
+          if (y === '1990s') return yr <= 1999;
+          const num = parseInt(y, 10);
+          return !isNaN(num) && yr === num;
+        });
+
+        if (!matchesYear) return false;
       }
 
       // 6. Status Match
@@ -413,7 +456,7 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
     }
 
     return sorted;
-  }, [initialSeries, searchQuery, includedTags, blockedTags, selectedBrands, selectedYear, selectedStatus, sortMode]);
+  }, [initialSeries, searchQuery, includedTags, blockedTags, selectedBrands, selectedYears, selectedStatus, sortMode]);
 
   // Calculate Pagination
   const totalItems = filteredSeries.length;
@@ -452,11 +495,18 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
     return sorted;
   }, [allBrands, brandSearchQuery, brandSortMode, brandCounts]);
 
+  // Filter Years List inside Modal by yearSearchQuery
+  const filteredModalYears = useMemo(() => {
+    if (!yearSearchQuery) return availableYears;
+    const q = yearSearchQuery.trim().toLowerCase();
+    return availableYears.filter((yr) => String(yr).toLowerCase().includes(q));
+  }, [availableYears, yearSearchQuery]);
+
   const hasActiveFilters =
     includedTags.length > 0 ||
     blockedTags.length > 0 ||
     selectedBrands.length > 0 ||
-    (selectedYear !== '' && selectedYear !== 'all') ||
+    selectedYears.length > 0 ||
     (selectedStatus !== '' && selectedStatus !== 'all') ||
     searchQuery !== '';
 
@@ -501,30 +551,22 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
             )}
           </button>
 
-          {/* Year Dropdown Filter */}
-          <div className={`${styles.filterSelectWrapper} ${selectedYear !== 'all' ? styles.filterBtnActive : ''}`}>
-            <Calendar size={15} className={styles.selectIcon} />
-            <select
-              value={selectedYear}
-              onChange={(e) => {
-                setSelectedYear(e.target.value);
-                setCurrentPage(1);
-              }}
-              className={styles.filterSelect}
-              aria-label="Filter by release year"
-            >
-              <option value="all">Year: All</option>
-              {availableYears.map((yr) => (
-                <option key={yr} value={String(yr)}>
-                  {yr}
-                </option>
-              ))}
-              <option value="2010s">2010s (2010–2019)</option>
-              <option value="2000s">2000s (2000–2009)</option>
-              <option value="1990s">1990s & Older</option>
-            </select>
-            <ChevronDown size={14} className={styles.filterArrow} />
-          </div>
+          {/* Year Trigger Button */}
+          <button
+            type="button"
+            onClick={openYearsModal}
+            className={`${styles.filterBtn} ${
+              selectedYears.length > 0 ? styles.filterBtnActive : ''
+            }`}
+          >
+            <Calendar size={15} />
+            <span>Year</span>
+            {selectedYears.length > 0 ? (
+              <span className={styles.btnBadge}>{selectedYears.length}</span>
+            ) : (
+              <ChevronDown size={14} className={styles.filterArrow} />
+            )}
+          </button>
 
           {/* Status Dropdown Filter */}
           <div className={`${styles.filterSelectWrapper} ${selectedStatus !== 'all' ? styles.filterBtnActive : ''}`}>
@@ -668,19 +710,19 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
             </span>
           ))}
 
-          {selectedYear !== 'all' && (
-            <span className={styles.activeBadgeYear}>
-              📅 {selectedYear}
+          {selectedYears.map((yr) => (
+            <span key={`year-${yr}`} className={styles.activeBadgeYear}>
+              📅 {yr}
               <button
                 type="button"
                 className={styles.badgeRemoveBtn}
-                onClick={() => setSelectedYear('all')}
-                aria-label="Remove year filter"
+                onClick={() => setSelectedYears((prev) => prev.filter((item) => item !== yr))}
+                aria-label={`Remove year ${yr}`}
               >
                 <X size={12} />
               </button>
             </span>
-          )}
+          ))}
 
           {selectedStatus !== 'all' && (
             <span className={styles.activeBadgeStatus}>
@@ -1023,6 +1065,134 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
                 Cancel
               </button>
               <button type="button" onClick={handleApplyBrands} className={styles.applyModalBtn}>
+                Apply
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ==========================================================================
+         YEARS FILTER MODAL
+         ========================================================================== */}
+      {isYearsModalOpen && (
+        <div className={styles.modalOverlay} onClick={() => setIsYearsModalOpen(false)}>
+          <div className={styles.modalBox} onClick={(e) => e.stopPropagation()}>
+            {/* Modal Header */}
+            <div className={styles.modalHeader}>
+              <div className={styles.modalTitleGroup}>
+                <div className={styles.modalTitleRow}>
+                  <Calendar size={22} className={styles.modalIcon} />
+                  <h2 className={styles.modalTitle}>Release Year</h2>
+                </div>
+                <p className={styles.modalSubtext}>Select release years or decade eras</p>
+              </div>
+
+              <div className={styles.modalHeaderActions}>
+                <button type="button" onClick={handleResetYearsModal} className={styles.modalResetBtn}>
+                  <RotateCcw size={14} />
+                  <span>Reset</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsYearsModalOpen(false)}
+                  className={styles.modalCloseBtn}
+                >
+                  <X size={20} />
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Filter Sub-header */}
+            <div className={styles.modalFilterBar}>
+              <span className={styles.selectedPill}>{tempSelectedYears.length} selected</span>
+
+              <div className={styles.searchBox}>
+                <Search size={14} className={styles.searchIcon} />
+                <input
+                  type="text"
+                  placeholder="Filter years..."
+                  value={yearSearchQuery}
+                  onChange={(e) => setYearSearchQuery(e.target.value)}
+                  className={styles.modalSearchInput}
+                />
+              </div>
+            </div>
+
+            {/* Quick Era Presets */}
+            <div className={styles.eraPresetsRow}>
+              <button
+                type="button"
+                onClick={() => handleToggleYear('2020s')}
+                className={`${styles.eraPresetBtn} ${
+                  tempSelectedYears.includes('2020s') ? styles.eraPresetBtnActive : ''
+                }`}
+              >
+                2020s (2020–2026)
+              </button>
+              <button
+                type="button"
+                onClick={() => handleToggleYear('2010s')}
+                className={`${styles.eraPresetBtn} ${
+                  tempSelectedYears.includes('2010s') ? styles.eraPresetBtnActive : ''
+                }`}
+              >
+                2010s (2010–2019)
+              </button>
+              <button
+                type="button"
+                onClick={() => handleToggleYear('2000s')}
+                className={`${styles.eraPresetBtn} ${
+                  tempSelectedYears.includes('2000s') ? styles.eraPresetBtnActive : ''
+                }`}
+              >
+                2000s (2000–2009)
+              </button>
+              <button
+                type="button"
+                onClick={() => handleToggleYear('1990s')}
+                className={`${styles.eraPresetBtn} ${
+                  tempSelectedYears.includes('1990s') ? styles.eraPresetBtnActive : ''
+                }`}
+              >
+                1990s & Older
+              </button>
+            </div>
+
+            {/* Years Cards Grid */}
+            <div className={styles.modalBody}>
+              <div className={styles.yearsGrid}>
+                {filteredModalYears.map((yearNum) => {
+                  const yearStr = String(yearNum);
+                  const isSelected = tempSelectedYears.includes(yearStr);
+                  const count = yearCounts[yearStr] || 0;
+
+                  return (
+                    <div
+                      key={yearStr}
+                      onClick={() => handleToggleYear(yearStr)}
+                      className={`${styles.yearCard} ${
+                        isSelected ? styles.yearCardActive : ''
+                      }`}
+                    >
+                      <span className={styles.yearNumber}>{yearNum}</span>
+                      <span className={styles.yearCount}>{count} videos</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className={styles.modalFooter}>
+              <button
+                type="button"
+                onClick={() => setIsYearsModalOpen(false)}
+                className={styles.cancelModalBtn}
+              >
+                Cancel
+              </button>
+              <button type="button" onClick={handleApplyYears} className={styles.applyModalBtn}>
                 Apply
               </button>
             </div>
