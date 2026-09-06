@@ -2,6 +2,7 @@ import React from 'react';
 import { unstable_cache } from 'next/cache';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { MOCK_SERIES } from '@/utils/mockData';
+import { getSeriesViewsMap } from '@/utils/views';
 import RandomizerPortal from './RandomizerPortal';
 import JsonLd from '@/components/JsonLd/JsonLd';
 
@@ -61,35 +62,46 @@ export async function generateMetadata({ searchParams }: PageProps) {
 
 const getCachedRandomizerSeries = unstable_cache(
   async () => {
-    let seriesList: any[] = [];
-    try {
-      const { data: dbSeries } = await publicSupabaseClient
-        .from('series')
-        .select('id, title, slug, rating, release_year, studio, tags, status, category, poster_image_key, cover_image_key, poster_position, content_rating')
-        .eq('is_published', true);
+    let dbSeries: any[] = [];
+    let isDbEmpty = true;
 
-      if (dbSeries && dbSeries.length > 0) {
-        seriesList = dbSeries;
+    try {
+      const viewsMap = await getSeriesViewsMap();
+
+      const { data: seriesData, error } = await publicSupabaseClient
+        .from('series')
+        .select(`
+          *,
+          seasons (
+            is_published,
+            episodes (
+              is_published
+            )
+          )
+        `)
+        .eq('is_published', true)
+        .order('created_at', { ascending: false });
+
+      if (!error && seriesData && seriesData.length > 0) {
+        dbSeries = seriesData.map((s: any) => ({
+          ...s,
+          views: viewsMap[s.id] || 0
+        }));
+        isDbEmpty = false;
       }
     } catch (err) {
-      console.error('Error fetching series for randomizer:', err);
+      console.error('Error fetching series from DB for randomizer:', err);
     }
 
-    if (seriesList.length === 0) {
-      seriesList = MOCK_SERIES;
-    }
-
-    // Deterministic sorting by title alphabetically for SEO stability
-    seriesList.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
-
-    return seriesList;
+    return { dbSeries, isDbEmpty };
   },
-  ['randomizer-series-catalog-cache-v1'],
-  { revalidate: 3600, tags: ['randomizer_catalog'] }
+  ['random-series-catalog-cache-v2'],
+  { revalidate: 60, tags: ['randomizer_catalog', 'series_catalog'] }
 );
 
 export default async function RandomPage() {
-  const seriesList = await getCachedRandomizerSeries();
+  const { dbSeries, isDbEmpty } = await getCachedRandomizerSeries();
+  const seriesList = isDbEmpty ? MOCK_SERIES : dbSeries;
 
   const breadcrumbJsonLd = {
     '@context': 'https://schema.org',
