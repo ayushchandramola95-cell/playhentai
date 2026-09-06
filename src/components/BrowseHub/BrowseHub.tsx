@@ -998,7 +998,7 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
       )}
 
       {/* ==========================================================================
-         BRANDS FILTER MODAL (Hanime Replica)
+         STUDIOS FILTER MODAL
          ========================================================================== */}
       {isBrandsModalOpen && (
         <div className={styles.modalOverlay} onClick={() => setIsBrandsModalOpen(false)}>
@@ -1008,7 +1008,7 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
               <div className={styles.modalTitleGroup}>
                 <div className={styles.modalTitleRow}>
                   <Building2 size={22} className={styles.modalIcon} />
-                  <h2 className={styles.modalTitle}>Brands</h2>
+                  <h2 className={styles.modalTitle}>Studios</h2>
                 </div>
                 <p className={styles.modalSubtext}>Select studios and production houses</p>
               </div>
@@ -1037,7 +1037,7 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
                   <Search size={14} className={styles.searchIcon} />
                   <input
                     type="text"
-                    placeholder="Filter brands..."
+                    placeholder="Filter studios..."
                     value={brandSearchQuery}
                     onChange={(e) => setBrandSearchQuery(e.target.value)}
                     className={styles.modalSearchInput}
