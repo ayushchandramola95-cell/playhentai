@@ -385,10 +385,12 @@
   position: absolute;
   inset: 0;
   background: linear-gradient(
-    to top,
-    rgba(10, 7, 18, 0.96) 0%,
-    rgba(10, 7, 18, 0.72) 48%,
-    rgba(10, 7, 18, 0.3) 100%
+    180deg,
+    rgba(10, 7, 18, 0.12) 0%,
+    rgba(10, 7, 18, 0.38) 32%,
+    rgba(7, 5, 14, 0.94) 52%,
+    rgba(17, 13, 27, 0.84) 75%,
+    rgba(15, 11, 24, 0.88) 100%
   );
   z-index: 2;
   transition: background 0.3s ease;
@@ -396,10 +398,12 @@
 
 .genreCard:hover .cardOverlay {
   background: linear-gradient(
-    to top,
-    rgba(10, 7, 18, 0.92) 0%,
-    rgba(10, 7, 18, 0.6) 48%,
-    rgba(10, 7, 18, 0.2) 100%
+    180deg,
+    rgba(10, 7, 18, 0.08) 0%,
+    rgba(10, 7, 18, 0.28) 32%,
+    rgba(7, 5, 14, 0.90) 52%,
+    rgba(17, 13, 27, 0.78) 75%,
+    rgba(15, 11, 24, 0.82) 100%
   );
 }
 
@@ -466,6 +470,7 @@
   letter-spacing: -0.01em;
   transition: color 0.2s ease;
   line-height: 1.25;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
 }
 
 .genreCard:hover .genreTitle {
@@ -473,14 +478,16 @@
 }
 
 .genreDesc {
-  font-size: 0.82rem;
-  color: var(--foreground-secondary);
-  line-height: 1.45;
+  font-size: 0.835rem;
+  color: #d1d5db;
+  line-height: 1.48;
+  font-weight: 450;
   margin: 0;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
 .cardFooter {
@@ -489,7 +496,7 @@
   justify-content: space-between;
   margin-top: 0.4rem;
   padding-top: 0.5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .exploreAction {

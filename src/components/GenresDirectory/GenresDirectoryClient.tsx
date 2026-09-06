@@ -40,7 +40,7 @@ function formatViews(views?: number): string {
 export default function GenresDirectoryClient({ genres }: GenresDirectoryClientProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLetter, setSelectedLetter] = useState('ALL');
-  const [filterTab, setFilterTab] = useState<'all' | 'with_series' | 'popular'>('all');
+  const [filterTab, setFilterTab] = useState<'with_series' | 'all'>('with_series');
   const [sortMode, setSortMode] = useState<'popular' | 'series_count' | 'views' | 'name_asc'>('popular');
 
   // Filter & Sort Logic
@@ -50,8 +50,6 @@ export default function GenresDirectoryClient({ genres }: GenresDirectoryClientP
     // 1. Tab Filter
     if (filterTab === 'with_series') {
       list = list.filter((g) => g.seriesCount > 0);
-    } else if (filterTab === 'popular') {
-      list = list.filter((g) => g.isTrending || g.seriesCount >= 10);
     }
 
     // 2. Alphabet Filter
@@ -106,7 +104,7 @@ export default function GenresDirectoryClient({ genres }: GenresDirectoryClientP
   const handleResetFilters = () => {
     setSearchQuery('');
     setSelectedLetter('ALL');
-    setFilterTab('all');
+    setFilterTab('with_series');
     setSortMode('popular');
   };
 
@@ -168,21 +166,21 @@ export default function GenresDirectoryClient({ genres }: GenresDirectoryClientP
           <div className={styles.filterActionsGroup}>
             <button
               type="button"
-              onClick={() => setFilterTab('all')}
-              className={`${styles.tabBtn} ${filterTab === 'all' ? styles.tabBtnActive : ''}`}
-            >
-              <span>All Genres</span>
-              <span className={styles.tabBadge}>{genres.length}</span>
-            </button>
-
-            <button
-              type="button"
               onClick={() => setFilterTab('with_series')}
               className={`${styles.tabBtn} ${filterTab === 'with_series' ? styles.tabBtnActive : ''}`}
             >
               <Sparkles size={13} />
               <span>With Releases</span>
               <span className={styles.tabBadge}>{activeGenresCount}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setFilterTab('all')}
+              className={`${styles.tabBtn} ${filterTab === 'all' ? styles.tabBtnActive : ''}`}
+            >
+              <span>All Genres</span>
+              <span className={styles.tabBadge}>{genres.length}</span>
             </button>
 
             {/* Sort Selector */}
