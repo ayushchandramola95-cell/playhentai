@@ -4,14 +4,25 @@ import { createAdminClient } from '@/utils/supabase/admin';
  * Dynamically queries all episode view logs and aggregates them by series_id.
  * Returns a map of series_id -> total view count.
  */
-export async function getSeriesViewsMap(): Promise<Record<string, number>> {
+export async function getSeriesViewsMap(timeframe: '7d' | '30d' | 'all' = 'all'): Promise<Record<string, number>> {
   const viewsMap: Record<string, number> = {};
   try {
     const adminSupabase = createAdminClient();
 
+    let daysCount = 0;
+    if (timeframe === '7d') daysCount = 7;
+    else if (timeframe === '30d') daysCount = 30;
+
+    let viewsQuery = adminSupabase.from('episode_views').select('episode_id, viewed_at');
+    if (daysCount > 0) {
+      const sinceDate = new Date();
+      sinceDate.setDate(sinceDate.getDate() - daysCount);
+      viewsQuery = viewsQuery.gte('viewed_at', sinceDate.toISOString());
+    }
+
     // Fetch view logs, episodes, and seasons in parallel without failing nested joins
     const [viewsResult, episodesResult, seasonsResult] = await Promise.all([
-      adminSupabase.from('episode_views').select('episode_id'),
+      viewsQuery,
       adminSupabase.from('episodes').select('id, season_id'),
       adminSupabase.from('seasons').select('id, series_id')
     ]);

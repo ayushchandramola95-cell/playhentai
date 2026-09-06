@@ -4,6 +4,7 @@ import { Flame, Star, Filter, Eye, ChevronLeft, ChevronRight } from 'lucide-reac
 import { createClient } from '@/utils/supabase/server';
 import SeriesCard from '@/components/SeriesCard/SeriesCard';
 import TrendingGenreSelect from './TrendingGenreSelect';
+import TrendingSortSelect from './TrendingSortSelect';
 import styles from './trending.module.css';
 import { MOCK_SERIES, MOCK_SERIES_DETAILS } from '@/utils/mockData';
 import { GENRES } from '@/utils/constants';
@@ -53,13 +54,16 @@ function getFirstEpisodeId(series: any, isDbEmpty: boolean): string | null {
 export default async function TrendingPage({
   searchParams,
 }: {
-  searchParams: Promise<{ sort?: string; genre?: string; page?: string }>;
+  searchParams: Promise<{ timeframe?: string; sort?: string; genre?: string; page?: string }>;
 }) {
   const params = await searchParams;
+  const timeframe = (params.timeframe === '30d' || params.timeframe === 'all' || params.timeframe === '7d')
+    ? params.timeframe
+    : '7d';
   const sort = params.sort || 'views';
   const genreFilter = params.genre || 'all';
   const page = parseInt(params.page || '1', 10);
-  const pageSize = 18;
+  const pageSize = 24; // 4 rows x 6 columns
 
   const supabase = await createClient();
   let seriesList: any[] = [];
@@ -84,7 +88,7 @@ export default async function TrendingPage({
 
     if (seriesData && seriesData.length > 0) {
       isDbEmpty = false;
-      const viewsMap = await getSeriesViewsMap();
+      const viewsMap = await getSeriesViewsMap(timeframe);
       seriesList = seriesData.map((s: any) => ({
         ...s,
         views: viewsMap[s.id] || 0
@@ -112,7 +116,11 @@ export default async function TrendingPage({
   let processedList = rawList.map((s, idx) => ({
     ...s,
     views: isDbEmpty 
-      ? (s.views || Math.max(1200, 18500 - idx * 2400))
+      ? (timeframe === '7d' 
+          ? Math.max(85, 1420 - idx * 160) 
+          : timeframe === '30d' 
+            ? Math.max(320, 5400 - idx * 620) 
+            : Math.max(1200, 18500 - idx * 2400))
       : (s.views || 0),
     rating: s.rating,
     firstEpisodeId: getFirstEpisodeId(s, isDbEmpty)
@@ -165,36 +173,48 @@ export default async function TrendingPage({
         {/* Filter Controls */}
         <div className={`${styles.filterBar} glass`}>
           <div className={styles.filterGroup}>
-            <span className={styles.filterLabel}>Sort By:</span>
+            <span className={styles.filterLabel}>Trending:</span>
             <div className={styles.chipRow}>
               <Link 
-                href={`/trending?sort=views&genre=${genreFilter}`}
-                className={`${styles.filterChip} ${sort === 'views' ? styles.activeChip : ''}`}
+                href={`/trending?timeframe=7d&sort=${sort}&genre=${genreFilter}`}
+                className={`${styles.filterChip} ${timeframe === '7d' ? styles.activeChip : ''}`}
               >
-                <Eye size={14} /> Most Viewed
+                7 Days
               </Link>
               <Link 
-                href={`/trending?sort=rating&genre=${genreFilter}`}
-                className={`${styles.filterChip} ${sort === 'rating' ? styles.activeChip : ''}`}
+                href={`/trending?timeframe=30d&sort=${sort}&genre=${genreFilter}`}
+                className={`${styles.filterChip} ${timeframe === '30d' ? styles.activeChip : ''}`}
               >
-                <Star size={14} /> Top Rated
+                30 Days
               </Link>
               <Link 
-                href={`/trending?sort=newest&genre=${genreFilter}`}
-                className={`${styles.filterChip} ${sort === 'newest' ? styles.activeChip : ''}`}
+                href={`/trending?timeframe=all&sort=${sort}&genre=${genreFilter}`}
+                className={`${styles.filterChip} ${timeframe === 'all' ? styles.activeChip : ''}`}
               >
-                <Flame size={14} /> Newest<span className={styles.desktopOnlyText}> Releases</span>
+                All Time
               </Link>
             </div>
           </div>
 
-          <div className={styles.filterGroup}>
-            <span className={styles.filterLabel}>Genre:</span>
-            <TrendingGenreSelect
-              currentGenre={genreFilter}
-              currentSort={sort}
-              genres={genresList}
-            />
+          <div className={styles.rightFiltersGroup}>
+            <div className={styles.filterGroup}>
+              <span className={styles.filterLabel}>Sort By:</span>
+              <TrendingSortSelect
+                currentSort={sort}
+                currentGenre={genreFilter}
+                currentTimeframe={timeframe}
+              />
+            </div>
+
+            <div className={styles.filterGroup}>
+              <span className={styles.filterLabel}>Genre:</span>
+              <TrendingGenreSelect
+                currentGenre={genreFilter}
+                currentSort={sort}
+                currentTimeframe={timeframe}
+                genres={genresList}
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -231,7 +251,7 @@ export default async function TrendingPage({
       {totalPages > 1 && (
         <div className={styles.paginationRow}>
           {page > 1 ? (
-            <Link href={`/trending?sort=${sort}&genre=${genreFilter}&page=${page - 1}`} className={styles.pageBtn}>
+            <Link href={`/trending?timeframe=${timeframe}&sort=${sort}&genre=${genreFilter}&page=${page - 1}`} className={styles.pageBtn}>
               <ChevronLeft size={16} /> Prev
             </Link>
           ) : (
@@ -241,7 +261,7 @@ export default async function TrendingPage({
           <span className={styles.pageIndicator}>Page {page} of {totalPages}</span>
 
           {page < totalPages ? (
-            <Link href={`/trending?sort=${sort}&genre=${genreFilter}&page=${page + 1}`} className={styles.pageBtn}>
+            <Link href={`/trending?timeframe=${timeframe}&sort=${sort}&genre=${genreFilter}&page=${page + 1}`} className={styles.pageBtn}>
               Next <ChevronRight size={16} />
             </Link>
           ) : (

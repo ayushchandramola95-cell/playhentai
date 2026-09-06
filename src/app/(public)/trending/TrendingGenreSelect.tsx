@@ -8,20 +8,26 @@ import styles from './trending.module.css';
 interface TrendingGenreSelectProps {
   currentGenre: string;
   currentSort: string;
+  currentTimeframe: string;
   genres: string[];
 }
 
-export default function TrendingGenreSelect({ currentGenre, currentSort, genres }: TrendingGenreSelectProps) {
+export default function TrendingGenreSelect({
+  currentGenre,
+  currentSort,
+  currentTimeframe,
+  genres,
+}: TrendingGenreSelectProps) {
   const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newGenre = e.target.value;
-    router.push(`/trending?sort=${currentSort}&genre=${newGenre}`);
+    router.push(`/trending?timeframe=${currentTimeframe}&sort=${currentSort}&genre=${newGenre}`);
   };
 
   return (
     <div className={styles.genreDropdownWrapper}>
-      <Filter size={15} className={styles.genreIcon} />
+      <Filter size={14} className={styles.genreIcon} />
       <select
         value={currentGenre.toLowerCase()}
         onChange={handleChange}
