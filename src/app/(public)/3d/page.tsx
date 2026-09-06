@@ -5,6 +5,7 @@ import { MOCK_SERIES } from '@/utils/mockData';
 import ThreeDHub from '@/components/ThreeDHub/ThreeDHub';
 import JsonLd from '@/components/JsonLd/JsonLd';
 import { isThreeDSeries } from '@/utils/constants';
+import { getSeriesViewsMap } from '@/utils/views';
 import { Box } from 'lucide-react';
 import styles from './ThreeD.module.css';
 
@@ -66,6 +67,8 @@ const getCached3DSeries = unstable_cache(
     let isDbEmpty = true;
 
     try {
+      const viewsMap = await getSeriesViewsMap();
+
       const { data: seriesData, error } = await publicSupabaseClient
         .from('series')
         .select(`
@@ -81,7 +84,10 @@ const getCached3DSeries = unstable_cache(
         .order('created_at', { ascending: false });
 
       if (!error && seriesData && seriesData.length > 0) {
-        dbSeries = seriesData;
+        dbSeries = seriesData.map((s: any) => ({
+          ...s,
+          views: viewsMap[s.id] || 0
+        }));
         isDbEmpty = false;
       }
     } catch (err) {
@@ -98,7 +104,7 @@ export default async function ThreeDPage({ searchParams }: PageProps) {
   const params = await searchParams;
   const pageParam = params.page;
   const currentPage = pageParam ? parseInt(pageParam, 10) || 1 : 1;
-  const ITEMS_PER_PAGE = 25;
+  const ITEMS_PER_PAGE = 24;
 
   const { dbSeries, isDbEmpty } = await getCached3DSeries();
   const activeSeries = isDbEmpty ? MOCK_SERIES : dbSeries;
@@ -134,6 +140,7 @@ export default async function ThreeDPage({ searchParams }: PageProps) {
   return (
     <div className={styles.container}>
       <JsonLd data={[breadcrumbJsonLd, itemListJsonLd]} />
+      <div className="ambient-glow" />
 
       {/* Breadcrumbs */}
       <nav className={styles.breadcrumbs} aria-label="Breadcrumbs">
@@ -144,9 +151,13 @@ export default async function ThreeDPage({ searchParams }: PageProps) {
 
       {/* Dynamic Header Section */}
       <div className={styles.headerSection}>
+        <div className={styles.headerTopMeta}>
+          <span className={styles.threeDHighlightPill}>
+            <Box size={13} className={styles.threeDIconPill} /> 3D & CGI CATALOG
+          </span>
+        </div>
         <div className={styles.titleRow}>
-          <Box size={28} className={styles.headerIcon} />
-          <h1>3D Hentai & CGI Animations</h1>
+          <h1 className={styles.mainTitle}>3D Hentai & CGI Animations</h1>
         </div>
         <p className={styles.subtext}>
           Browse 3D hentai anime series and CGI animation releases with English subtitles in HD. Explore complete series, available episodes, new releases, and popular 3D titles on Play Hentai.

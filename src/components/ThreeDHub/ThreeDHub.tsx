@@ -2,14 +2,11 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
-import { Search, X, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { Search, X, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ArrowUpDown, ChevronDown, RotateCcw } from 'lucide-react';
 import SeriesCard from '../SeriesCard/SeriesCard';
 import AdBanner from '../AdBanner/AdBanner';
-import JsonLd from '../JsonLd/JsonLd';
-import styles from '../BrowseHub/BrowseHub.module.css';
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
+import styles from './ThreeDHub.module.css';
 
 interface SeriesItem {
   id: string;
@@ -29,6 +26,9 @@ interface SeriesItem {
   altTitleRomaji?: string;
   altTitleEnglish?: string;
   aliases?: string[];
+  content_rating?: string;
+  views?: number;
+  rating?: number;
 }
 
 interface ThreeDHubProps {
@@ -46,13 +46,14 @@ function getStableHash(str: string): number {
   return Math.abs(hash);
 }
 
-export default function ThreeDHub({ 
+function ThreeDHubContent({ 
   initialSeries, 
   isDbEmpty,
   basePath = '/3d',
   currentPage: serverPage = 1
 }: ThreeDHubProps) {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const catalogRef = useRef<HTMLDivElement>(null);
   const filterBarRef = useRef<HTMLDivElement>(null);
 
@@ -60,13 +61,13 @@ export default function ThreeDHub({
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [sortMode, setSortMode] = useState<string>('random'); // DEFAULT: Random
   const [currentPage, setCurrentPage] = useState<number>(serverPage);
-  const [hasHydrated, setHasHydrated] = useState(false);
 
-  const ITEMS_PER_PAGE = 25; // 5 rows x 5 columns
+  const ITEMS_PER_PAGE = 24; // 4 rows x 6 columns
 
   const getPageLink = (pageNumber: number) => {
     if (pageNumber === 1) return basePath;
-    return `${basePath}?page=${pageNumber}`;
+    const querySymbol = basePath.includes('?') ? '&' : '?';
+    return `${basePath}${querySymbol}page=${pageNumber}`;
   };
 
   const handlePageClick = () => {
@@ -74,11 +75,10 @@ export default function ThreeDHub({
   };
 
   useEffect(() => {
-    setHasHydrated(true);
-  }, []);
-
-  useEffect(() => {
     const pageParam = searchParams.get('page');
+    const sortParam = searchParams.get('sort');
+
+    if (sortParam) setSortMode(sortParam);
     if (pageParam) {
       const parsedPage = parseInt(pageParam, 10);
       if (!isNaN(parsedPage) && parsedPage > 0) {
@@ -87,28 +87,33 @@ export default function ThreeDHub({
     }
   }, [searchParams]);
 
+  // Smooth Auto-scroll to hide header when search box is clicked / focused
   const handleSearchFocus = () => {
     setIsSearchFocused(true);
-    setTimeout(() => {
-      if (filterBarRef.current) {
-        const rect = filterBarRef.current.getBoundingClientRect();
-        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-        const targetY = rect.top + scrollTop - 75;
-        window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' });
-      }
-    }, 40);
+    if (filterBarRef.current) {
+      const NAVBAR_OFFSET = 86; // 74px navbar + 12px margin
+      const rect = filterBarRef.current.getBoundingClientRect();
+      const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+      const targetScroll = rect.top + currentScroll - NAVBAR_OFFSET;
+
+      window.scrollTo({
+        top: Math.max(0, targetScroll),
+        behavior: 'smooth',
+      });
+    }
   };
 
   const handleSearchBlur = () => {
     setIsSearchFocused(false);
   };
 
-  useEffect(() => {
+  const handleClearSearch = () => {
+    setSearchQuery('');
     setCurrentPage(1);
-  }, [searchQuery, sortMode]);
+  };
 
-  // Filter series based on search query (initialSeries is already strictly pre-filtered by isThreeDSeries)
-  const threeDFilteredSeries = useMemo(() => {
+  // Filter series based on search query
+  const filteredSeries = useMemo(() => {
     return initialSeries.filter((series) => {
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase().trim();
@@ -116,8 +121,11 @@ export default function ThreeDHub({
         const matchesDesc = series.description ? series.description.toLowerCase().includes(query) : false;
         const matchesTags = series.tags ? series.tags.some(t => t.toLowerCase().includes(query)) : false;
         const matchesStudio = series.studio ? series.studio.toLowerCase().includes(query) : false;
+        const matchesAltJa = series.altTitleJapanese || series.alt_title_japanese ? (series.altTitleJapanese || series.alt_title_japanese || '').toLowerCase().includes(query) : false;
+        const matchesAltRo = series.altTitleRomaji || series.alt_title_romaji ? (series.altTitleRomaji || series.alt_title_romaji || '').toLowerCase().includes(query) : false;
+        const matchesAltEn = series.altTitleEnglish || series.alt_title_english ? (series.altTitleEnglish || series.alt_title_english || '').toLowerCase().includes(query) : false;
 
-        if (!matchesTitle && !matchesDesc && !matchesTags && !matchesStudio) {
+        if (!matchesTitle && !matchesDesc && !matchesTags && !matchesStudio && !matchesAltJa && !matchesAltRo && !matchesAltEn) {
           return false;
         }
       }
@@ -127,7 +135,7 @@ export default function ThreeDHub({
 
   // Sort filtered series stably
   const sortedSeries = useMemo(() => {
-    const list = [...threeDFilteredSeries];
+    const list = [...filteredSeries];
     if (sortMode === 'random') {
       list.sort((a, b) => {
         const hashA = getStableHash(a.id || a.slug || '');
@@ -150,175 +158,195 @@ export default function ThreeDHub({
       list.sort((a, b) => b.title.localeCompare(a.title));
     }
     return list;
-  }, [threeDFilteredSeries, sortMode]);
+  }, [filteredSeries, sortMode]);
 
   // Pagination calculation
-  const totalPages = Math.ceil(sortedSeries.length / ITEMS_PER_PAGE) || 1;
+  const totalItems = sortedSeries.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / ITEMS_PER_PAGE));
   const validPage = Math.min(currentPage, totalPages);
-
-  const paginatedSeries = useMemo(() => {
-    const startIdx = (validPage - 1) * ITEMS_PER_PAGE;
-    return sortedSeries.slice(startIdx, startIdx + ITEMS_PER_PAGE);
-  }, [sortedSeries, validPage]);
+  const startIndex = (validPage - 1) * ITEMS_PER_PAGE;
+  const paginatedSeries = sortedSeries.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   return (
     <div className={styles.hubContainer} ref={catalogRef}>
-      {/* Search Bar & Controls */}
+      {/* Sleek Single-Bar Filter Control Panel */}
       <div 
         ref={filterBarRef}
-        className={styles.customFilterBar}
+        className={`${styles.filterBar} glass ${isSearchFocused ? styles.filterBarFocused : ''}`}
       >
-        {/* Dummy div to balance grid left column and keep search centered */}
-        <div style={{ pointerEvents: 'none' }} />
+        {/* Real-time Search Box */}
+        <div className={styles.searchBox}>
+          <Search size={15} className={styles.searchIcon} />
+          <input
+            type="text"
+            placeholder="Search 3D catalog..."
+            value={searchQuery}
+            onFocus={handleSearchFocus}
+            onClick={handleSearchFocus}
+            onBlur={handleSearchBlur}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setCurrentPage(1);
+            }}
+            className={`${styles.searchInput} ${isSearchFocused ? styles.searchInputFocused : ''}`}
+          />
+          {searchQuery && (
+            <button 
+              type="button"
+              onClick={handleClearSearch}
+              className={styles.clearSearch}
+              aria-label="Clear search"
+            >
+              <X size={14} />
+            </button>
+          )}
+        </div>
 
-        {/* Centered Search box */}
-        <div className={styles.customFilterBarCenter}>
-          <div className={styles.searchBox}>
-            <Search size={16} className={styles.searchIcon} />
-            <input
-              type="text"
-              placeholder="Search..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onFocus={handleSearchFocus}
-              onBlur={handleSearchBlur}
-              className={styles.searchInput}
-            />
-            {searchQuery && (
-              <button 
-                onClick={() => setSearchQuery('')}
-                className={styles.clearSearch}
-                title="Clear search"
-              >
-                <X size={14} />
-              </button>
-            )}
+        {/* Sort Dropdown */}
+        <div className={styles.sortGroup}>
+          <span className={styles.sortLabel}>Sort:</span>
+          <div className={styles.sortDropdownWrapper}>
+            <ArrowUpDown size={14} className={styles.sortIcon} />
+            <select 
+              id="threed-sort-select"
+              value={sortMode} 
+              onChange={(e) => {
+                setSortMode(e.target.value);
+                setCurrentPage(1);
+              }}
+              className={styles.sortSelect}
+              aria-label="Sort 3D catalog"
+            >
+              <option value="random">🎲 Random</option>
+              <option value="recent">🕒 Newest Releases</option>
+              <option value="most_viewed">🔥 Most Viewed</option>
+              <option value="rating">⭐ Highest Rated</option>
+              <option value="a_z">🔤 Name: A-Z</option>
+              <option value="z_a">🔤 Name: Z-A</option>
+            </select>
+            <ChevronDown size={14} className={styles.selectArrow} />
           </div>
         </div>
+      </div>
 
-        {/* Sort select dropdown aligned on the right */}
-        <div className={styles.customFilterBarRight}>
-          <select 
-            id="threed-sort-select"
-            value={sortMode} 
-            onChange={(e) => setSortMode(e.target.value)}
-            className={styles.sortSelect}
-          >
-            <option value="random">🎲 Random</option>
-            <option value="recent">≡ Recent Upload</option>
-            <option value="most_viewed">🔥 Most Viewed</option>
-            <option value="rating">⭐ Highest Rated</option>
-            <option value="a_z">🔤 Name: A-Z</option>
-            <option value="z_a">🔤 Name: Z-A</option>
-          </select>
-        </div>
+      {/* Results Header Bar */}
+      <div className={styles.catalogResultsHeader}>
+        {searchQuery ? (
+          <button type="button" onClick={handleClearSearch} className={styles.clearFiltersInlineBtn}>
+            <RotateCcw size={13} /> Clear Search
+          </button>
+        ) : (
+          <span />
+        )}
+        <span className={styles.resultsCountText}>
+          Showing <strong>{totalItems > 0 ? startIndex + 1 : 0}–{Math.min(startIndex + ITEMS_PER_PAGE, totalItems)}</strong> of <strong>{totalItems}</strong> Series
+        </span>
       </div>
 
       {/* Sponsored Ad Banner */}
       <AdBanner zoneId="5986838" />
 
-      {/* Catalog Grid Area */}
+      {/* Catalog Results Grid Section */}
+      <section className={styles.catalogSection}>
+        {paginatedSeries.length > 0 ? (
+          <>
+            <div className={styles.seriesGrid}>
+              {paginatedSeries.map((series) => (
+                <SeriesCard key={series.id || series.slug} item={series} />
+              ))}
+            </div>
 
-      {/* Grid of Series Cards */}
-      {paginatedSeries.length > 0 ? (
-        <div className={styles.seriesGrid}>
-          {paginatedSeries.map((series) => (
-            <SeriesCard key={series.id || series.slug} item={series} />
-          ))}
-        </div>
-      ) : (
-        <div className={styles.emptyState}>
-          <p>No 3D anime found matching your search term.</p>
-          <button 
-            onClick={() => setSearchQuery('')}
-            className={styles.clearFiltersBtn}
-          >
-            Clear Search Filter
-          </button>
-        </div>
-      )}
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className={styles.paginationContainer}>
+                {validPage <= 1 ? (
+                  <span className={`${styles.pageBtn} ${styles.pageBtnDisabled}`} aria-disabled="true">
+                    <ChevronsLeft size={16} />
+                  </span>
+                ) : (
+                  <Link
+                    href={getPageLink(1)}
+                    onClick={handlePageClick}
+                    className={styles.pageBtn}
+                    aria-label="First Page"
+                  >
+                    <ChevronsLeft size={16} />
+                  </Link>
+                )}
 
-      {/* Pagination Controls */}
-      {totalPages > 1 && (
-        <div className={styles.paginationContainer}>
-          {validPage <= 1 ? (
-            <span className={`${styles.pageBtn} ${styles.pageBtnDisabled}`} aria-disabled="true">
-              <ChevronsLeft size={16} />
-            </span>
-          ) : (
-            <Link
-              href={getPageLink(1)}
-              onClick={handlePageClick}
-              className={styles.pageBtn}
-              aria-label="First Page"
+                {validPage <= 1 ? (
+                  <span className={`${styles.pageBtn} ${styles.pageBtnDisabled}`} aria-disabled="true">
+                    <ChevronLeft size={16} />
+                  </span>
+                ) : (
+                  <Link
+                    href={getPageLink(validPage - 1)}
+                    onClick={handlePageClick}
+                    className={styles.pageBtn}
+                    aria-label="Previous Page"
+                  >
+                    <ChevronLeft size={16} />
+                  </Link>
+                )}
+
+                <span className={styles.pageIndicator}>
+                  Page <strong>{validPage}</strong> of <strong>{totalPages}</strong>
+                </span>
+
+                {validPage >= totalPages ? (
+                  <span className={`${styles.pageBtn} ${styles.pageBtnDisabled}`} aria-disabled="true">
+                    <ChevronRight size={16} />
+                  </span>
+                ) : (
+                  <Link
+                    href={getPageLink(validPage + 1)}
+                    onClick={handlePageClick}
+                    className={styles.pageBtn}
+                    aria-label="Next Page"
+                  >
+                    <ChevronRight size={16} />
+                  </Link>
+                )}
+
+                {validPage >= totalPages ? (
+                  <span className={`${styles.pageBtn} ${styles.pageBtnDisabled}`} aria-disabled="true">
+                    <ChevronsRight size={16} />
+                  </span>
+                ) : (
+                  <Link
+                    href={getPageLink(totalPages)}
+                    onClick={handlePageClick}
+                    className={styles.pageBtn}
+                    aria-label="Last Page"
+                  >
+                    <ChevronsRight size={16} />
+                  </Link>
+                )}
+              </div>
+            )}
+          </>
+        ) : (
+          <div className={styles.emptyState}>
+            <h3>No matches found</h3>
+            <p>Try searching for another keyword or title!</p>
+            <button 
+              type="button"
+              onClick={handleClearSearch}
+              className={styles.clearFiltersBtn}
             >
-              <ChevronsLeft size={16} />
-            </Link>
-          )}
-
-          {validPage <= 1 ? (
-            <span className={`${styles.pageBtn} ${styles.pageBtnDisabled}`} aria-disabled="true">
-              <ChevronLeft size={16} />
-            </span>
-          ) : (
-            <Link
-              href={getPageLink(validPage - 1)}
-              onClick={handlePageClick}
-              className={styles.pageBtn}
-              aria-label="Previous Page"
-            >
-              <ChevronLeft size={16} />
-            </Link>
-          )}
-
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
-            validPage === pageNum ? (
-              <span key={pageNum} className={`${styles.pageBtn} ${styles.pageBtnActive}`}>
-                {pageNum}
-              </span>
-            ) : (
-              <Link
-                key={pageNum}
-                href={getPageLink(pageNum)}
-                onClick={handlePageClick}
-                className={styles.pageBtn}
-              >
-                {pageNum}
-              </Link>
-            )
-          ))}
-
-          {validPage >= totalPages ? (
-            <span className={`${styles.pageBtn} ${styles.pageBtnDisabled}`} aria-disabled="true">
-              <ChevronRight size={16} />
-            </span>
-          ) : (
-            <Link
-              href={getPageLink(validPage + 1)}
-              onClick={handlePageClick}
-              className={styles.pageBtn}
-              aria-label="Next Page"
-            >
-              <ChevronRight size={16} />
-            </Link>
-          )}
-
-          {validPage >= totalPages ? (
-            <span className={`${styles.pageBtn} ${styles.pageBtnDisabled}`} aria-disabled="true">
-              <ChevronsRight size={16} />
-            </span>
-          ) : (
-            <Link
-              href={getPageLink(totalPages)}
-              onClick={handlePageClick}
-              className={styles.pageBtn}
-              aria-label="Last Page"
-            >
-              <ChevronsRight size={16} />
-            </Link>
-          )}
-        </div>
-      )}
+              Clear Search
+            </button>
+          </div>
+        )}
+      </section>
     </div>
+  );
+}
+
+export default function ThreeDHub(props: ThreeDHubProps) {
+  return (
+    <React.Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center', color: '#888' }}>Loading 3D Catalog...</div>}>
+      <ThreeDHubContent {...props} />
+    </React.Suspense>
   );
 }

@@ -1,59 +1,87 @@
 .container {
   max-width: 1720px;
   margin: 0 auto;
-  padding: 1.5rem 2rem 4rem;
+  padding: 1.75rem 2rem 6rem;
   width: 100%;
   position: relative;
-  min-height: 70vh;
+  min-height: 80vh;
+  overflow-x: hidden;
 }
 
 .headerSection {
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
   text-align: left;
-  animation: fade-in 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.headerTopMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.threeDHighlightPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(139, 92, 246, 0.14);
+  color: #a78bfa;
+  border: 1px solid rgba(139, 92, 246, 0.35);
+  font-size: 0.68rem;
+  font-weight: 850;
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.threeDIconPill {
+  color: #a78bfa;
 }
 
 .titleRow {
   display: flex;
   align-items: center;
-  gap: 0.8rem;
-  margin-bottom: 0.5rem;
+  gap: 0.75rem;
+  margin-bottom: 0.35rem;
 }
 
-.headerIcon {
-  color: var(--primary);
-}
-
-.headerSection h1 {
-  font-size: 2.2rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
+.mainTitle {
+  font-size: 2rem;
+  font-weight: 850;
   color: #ffffff;
+  letter-spacing: -0.02em;
+  margin: 0;
+  line-height: 1.2;
 }
 
 .subtext {
+  font-size: 0.92rem;
   color: var(--foreground-secondary);
-  font-size: 1.05rem;
+  line-height: 1.5;
+  max-width: 800px;
+  margin: 0;
 }
 
 /* Tablet Responsive Rules (769px to 1024px) */
 @media (min-width: 769px) and (max-width: 1024px) {
   .container {
-    padding: 1.5rem 1.25rem;
+    padding: 1.5rem 1.25rem 5rem;
   }
 }
 
 /* Mobile Responsive Rules (max-width: 768px) */
 @media (max-width: 768px) {
   .container {
-    padding: 1rem 0.75rem 4rem;
-    overflow-x: hidden;
+    padding: 1.25rem 1rem 4rem;
   }
-  .headerSection h1 {
-    font-size: 1.8rem;
+  .mainTitle {
+    font-size: 1.75rem;
   }
   .subtext {
-    font-size: 0.95rem;
+    font-size: 0.88rem;
   }
 }
 
@@ -62,7 +90,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   color: var(--foreground-secondary);
   margin-bottom: 1.25rem;
 }
