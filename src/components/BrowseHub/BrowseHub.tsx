@@ -18,8 +18,11 @@ import {
   ArrowUpDown,
   SlidersHorizontal,
   ChevronDown,
+  Calendar,
+  Activity,
+  Sparkles,
 } from 'lucide-react';
-import { GENRES, STUDIOS } from '@/utils/constants';
+import { GENRES, STUDIOS, RELEASE_YEARS } from '@/utils/constants';
 import SeriesCard from '../SeriesCard/SeriesCard';
 import AdBanner from '../AdBanner/AdBanner';
 import JsonLd from '../JsonLd/JsonLd';
@@ -38,6 +41,10 @@ interface SeriesItem {
   studio?: string;
   releaseYear?: number;
   release_year?: number;
+  status?: string;
+  first_air_date?: string;
+  created_at?: string;
+  content_rating?: string;
   alt_title_japanese?: string;
   alt_title_romaji?: string;
   alt_title_english?: string;
@@ -74,6 +81,8 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
   const [blockedTags, setBlockedTags] = useState<string[]>([]);
   const [isBroadMatches, setIsBroadMatches] = useState(false);
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
+  const [selectedYear, setSelectedYear] = useState<string>('all');
+  const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortMode, setSortMode] = useState<string>('random'); // Default: Random
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -105,9 +114,10 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
   const [brandSortMode, setBrandSortMode] = useState<'count' | 'a_z'>('count');
 
   // Compute Tag & Brand Counts across initialSeries
-  const { tagCounts, brandCounts, allTags, allBrands } = useMemo(() => {
+  const { tagCounts, brandCounts, allTags, allBrands, availableYears } = useMemo(() => {
     const tCounts: Record<string, number> = {};
     const bCounts: Record<string, number> = {};
+    const yearsSet = new Set<number>();
 
     initialSeries.forEach((series) => {
       // Tags & Category
@@ -126,6 +136,12 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
       if (series.studio) {
         bCounts[series.studio] = (bCounts[series.studio] || 0) + 1;
       }
+
+      // Years
+      const yr = series.release_year || series.releaseYear || (series.first_air_date ? new Date(series.first_air_date).getFullYear() : null);
+      if (yr && typeof yr === 'number' && yr > 1970 && yr < 2050) {
+        yearsSet.add(yr);
+      }
     });
 
     // Ensure default GENRES & STUDIOS exist in counts
@@ -135,21 +151,29 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
     STUDIOS.forEach((s) => {
       if (bCounts[s] === undefined) bCounts[s] = 0;
     });
+    RELEASE_YEARS.forEach((y) => {
+      if (y >= 2018) yearsSet.add(y);
+    });
 
     const tagsList = Object.keys(tCounts).sort((a, b) => a.localeCompare(b));
     const brandsList = Object.keys(bCounts);
+    const sortedYears = Array.from(yearsSet).sort((a, b) => b - a);
 
-    return { tagCounts: tCounts, brandCounts: bCounts, allTags: tagsList, allBrands: brandsList };
+    return { tagCounts: tCounts, brandCounts: bCounts, allTags: tagsList, allBrands: brandsList, availableYears: sortedYears };
   }, [initialSeries]);
 
   // Sync Initial URL Search Parameters
   useEffect(() => {
     const genreParam = searchParams.get('genre');
     const studioParam = searchParams.get('studio');
+    const yearParam = searchParams.get('year');
+    const statusParam = searchParams.get('status');
     const sortParam = searchParams.get('sort');
     const pageParam = searchParams.get('page');
 
     if (sortParam) setSortMode(sortParam);
+    if (yearParam) setSelectedYear(yearParam);
+    if (statusParam) setSelectedStatus(statusParam.toLowerCase());
     if (pageParam) {
       const p = parseInt(pageParam, 10);
       if (!isNaN(p) && p > 0) setCurrentPage(p);
@@ -245,6 +269,8 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
     setBlockedTags([]);
     setIsBroadMatches(false);
     setSelectedBrands([]);
+    setSelectedYear('all');
+    setSelectedStatus('all');
     setSearchQuery('');
     setSortMode('random');
     setCurrentPage(1);
@@ -304,6 +330,60 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
         if (!matchBrand) return false;
       }
 
+      // 5. Year Match
+      if (selectedYear && selectedYear !== 'all') {
+        const yr =
+          series.release_year ||
+          series.releaseYear ||
+          (series.first_air_date ? new Date(series.first_air_date).getFullYear() : null);
+        if (!yr) return false;
+
+        if (selectedYear === '2010s') {
+          if (yr < 2010 || yr > 2019) return false;
+        } else if (selectedYear === '2000s') {
+          if (yr < 2000 || yr > 2009) return false;
+        } else if (selectedYear === '1990s') {
+          if (yr > 1999) return false;
+        } else {
+          const targetYr = parseInt(selectedYear, 10);
+          if (!isNaN(targetYr) && yr !== targetYr) return false;
+        }
+      }
+
+      // 6. Status Match
+      if (selectedStatus && selectedStatus !== 'all') {
+        const statusLower = (series.status || '').toLowerCase();
+        const tagsLower = (series.tags || []).map((t) => t.toLowerCase());
+        const catLower = (series.category || '').toLowerCase();
+        const contentRating = (series.content_rating || '').toLowerCase();
+
+        if (selectedStatus === 'completed') {
+          const isCompleted =
+            statusLower.includes('finish') ||
+            statusLower.includes('complete') ||
+            statusLower === 'finished_airing';
+          if (!isCompleted) return false;
+        } else if (selectedStatus === 'ongoing') {
+          const isOngoing =
+            statusLower.includes('releas') ||
+            statusLower.includes('ongoing') ||
+            statusLower === 'releasing';
+          if (!isOngoing) return false;
+        } else if (selectedStatus === 'upcoming') {
+          const isUpcoming = statusLower.includes('upcom');
+          if (!isUpcoming) return false;
+        } else if (selectedStatus === 'uncensored') {
+          const isUncensored =
+            tagsLower.includes('uncensored') ||
+            catLower === 'uncensored' ||
+            contentRating.includes('uncensored');
+          if (!isUncensored) return false;
+        } else if (selectedStatus === '3d') {
+          const is3D = tagsLower.includes('3d') || catLower === '3d';
+          if (!is3D) return false;
+        }
+      }
+
       return true;
     });
 
@@ -318,8 +398,8 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
       });
     } else if (sortMode === 'recent') {
       sorted.sort((a, b) => {
-        const dateA = new Date((a as any).release_date || (a as any).created_at || a.releaseYear || 0).getTime();
-        const dateB = new Date((b as any).release_date || (b as any).created_at || b.releaseYear || 0).getTime();
+        const dateA = new Date((a as any).release_date || (a as any).created_at || a.release_year || a.releaseYear || 0).getTime();
+        const dateB = new Date((b as any).release_date || (b as any).created_at || b.release_year || b.releaseYear || 0).getTime();
         return dateB - dateA;
       });
     } else if (sortMode === 'most_viewed') {
@@ -333,7 +413,7 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
     }
 
     return sorted;
-  }, [initialSeries, searchQuery, includedTags, blockedTags, selectedBrands, sortMode]);
+  }, [initialSeries, searchQuery, includedTags, blockedTags, selectedBrands, selectedYear, selectedStatus, sortMode]);
 
   // Calculate Pagination
   const totalItems = filteredSeries.length;
@@ -373,54 +453,112 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
   }, [allBrands, brandSearchQuery, brandSortMode, brandCounts]);
 
   const hasActiveFilters =
-    includedTags.length > 0 || blockedTags.length > 0 || selectedBrands.length > 0 || searchQuery !== '';
+    includedTags.length > 0 ||
+    blockedTags.length > 0 ||
+    selectedBrands.length > 0 ||
+    (selectedYear !== '' && selectedYear !== 'all') ||
+    (selectedStatus !== '' && selectedStatus !== 'all') ||
+    searchQuery !== '';
 
   return (
     <div className={styles.hubContainer}>
 
-      {/* Top Filter Action Bar */}
-      <div className={`${styles.filterActionBar} glass`}>
-        <div className={styles.leftControls}>
+      {/* 2-Tier Master Filter Control Panel */}
+      <div className={`${styles.filterPanel} glass`}>
+        {/* Row 1: Taxonomy / Facet Filter Controls */}
+        <div className={styles.filterTopRow}>
           {/* Genre Trigger Button */}
           <button
             type="button"
             onClick={openTagsModal}
-            className={`${styles.actionTriggerBtn} ${
-              includedTags.length > 0 || blockedTags.length > 0 ? styles.activeTriggerBtn : ''
+            className={`${styles.filterBtn} ${
+              includedTags.length > 0 || blockedTags.length > 0 ? styles.filterBtnActive : ''
             }`}
           >
-            <Filter size={16} />
+            <Filter size={15} />
             <span>Genre</span>
-            {includedTags.length + blockedTags.length > 0 && (
+            {includedTags.length + blockedTags.length > 0 ? (
               <span className={styles.btnBadge}>{includedTags.length + blockedTags.length}</span>
+            ) : (
+              <ChevronDown size={14} className={styles.filterArrow} />
             )}
           </button>
 
-          {/* Brands Trigger Button */}
+          {/* Studio Trigger Button */}
           <button
             type="button"
             onClick={openBrandsModal}
-            className={`${styles.actionTriggerBtn} ${
-              selectedBrands.length > 0 ? styles.activeTriggerBtn : ''
+            className={`${styles.filterBtn} ${
+              selectedBrands.length > 0 ? styles.filterBtnActive : ''
             }`}
           >
-            <Building2 size={16} />
-            <span>Studios</span>
-            {selectedBrands.length > 0 && (
+            <Building2 size={15} />
+            <span>Studio</span>
+            {selectedBrands.length > 0 ? (
               <span className={styles.btnBadge}>{selectedBrands.length}</span>
+            ) : (
+              <ChevronDown size={14} className={styles.filterArrow} />
             )}
           </button>
+
+          {/* Year Dropdown Filter */}
+          <div className={`${styles.filterSelectWrapper} ${selectedYear !== 'all' ? styles.filterBtnActive : ''}`}>
+            <Calendar size={15} className={styles.selectIcon} />
+            <select
+              value={selectedYear}
+              onChange={(e) => {
+                setSelectedYear(e.target.value);
+                setCurrentPage(1);
+              }}
+              className={styles.filterSelect}
+              aria-label="Filter by release year"
+            >
+              <option value="all">Year: All</option>
+              {availableYears.map((yr) => (
+                <option key={yr} value={String(yr)}>
+                  {yr}
+                </option>
+              ))}
+              <option value="2010s">2010s (2010–2019)</option>
+              <option value="2000s">2000s (2000–2009)</option>
+              <option value="1990s">1990s & Older</option>
+            </select>
+            <ChevronDown size={14} className={styles.filterArrow} />
+          </div>
+
+          {/* Status Dropdown Filter */}
+          <div className={`${styles.filterSelectWrapper} ${selectedStatus !== 'all' ? styles.filterBtnActive : ''}`}>
+            <Activity size={15} className={styles.selectIcon} />
+            <select
+              value={selectedStatus}
+              onChange={(e) => {
+                setSelectedStatus(e.target.value);
+                setCurrentPage(1);
+              }}
+              className={styles.filterSelect}
+              aria-label="Filter by series status"
+            >
+              <option value="all">Status: All</option>
+              <option value="completed">Completed</option>
+              <option value="ongoing">Ongoing</option>
+              <option value="upcoming">Upcoming</option>
+              <option value="uncensored">Uncensored</option>
+              <option value="3d">3D Anime</option>
+            </select>
+            <ChevronDown size={14} className={styles.filterArrow} />
+          </div>
 
           {/* Reset All Filters Button */}
           {hasActiveFilters && (
             <button type="button" onClick={handleClearAllFilters} className={styles.resetBtn}>
-              <RotateCcw size={14} />
+              <RotateCcw size={13} />
               <span>Reset</span>
             </button>
           )}
         </div>
 
-        <div className={styles.rightControls}>
+        {/* Row 2: Search Catalog & Sort Controls */}
+        <div className={styles.filterBottomRow}>
           {/* Real-time Search Box */}
           <div className={styles.searchBox}>
             <Search size={15} className={styles.searchIcon} />
@@ -447,25 +585,28 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
           </div>
 
           {/* Sort Dropdown */}
-          <div className={styles.sortDropdownWrapper}>
-            <ArrowUpDown size={14} className={styles.sortIcon} />
-            <select
-              value={sortMode}
-              onChange={(e) => {
-                setSortMode(e.target.value);
-                setCurrentPage(1);
-              }}
-              className={styles.sortSelect}
-              aria-label="Sort catalog"
-            >
-              <option value="random">🎲 Random</option>
-              <option value="recent">🕒 Newest Releases</option>
-              <option value="most_viewed">🔥 Most Viewed</option>
-              <option value="rating">⭐ Highest Rated</option>
-              <option value="a_z">🔤 Name: A-Z</option>
-              <option value="z_a">🔤 Name: Z-A</option>
-            </select>
-            <ChevronDown size={14} className={styles.selectArrow} />
+          <div className={styles.sortGroup}>
+            <span className={styles.sortLabel}>Sort:</span>
+            <div className={styles.sortDropdownWrapper}>
+              <ArrowUpDown size={14} className={styles.sortIcon} />
+              <select
+                value={sortMode}
+                onChange={(e) => {
+                  setSortMode(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className={styles.sortSelect}
+                aria-label="Sort catalog"
+              >
+                <option value="random">🎲 Random</option>
+                <option value="recent">🕒 Newest Releases</option>
+                <option value="most_viewed">🔥 Most Viewed</option>
+                <option value="rating">⭐ Highest Rated</option>
+                <option value="a_z">🔤 Name: A-Z</option>
+                <option value="z_a">🔤 Name: Z-A</option>
+              </select>
+              <ChevronDown size={14} className={styles.selectArrow} />
+            </div>
           </div>
         </div>
       </div>
@@ -492,6 +633,7 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
                 type="button"
                 className={styles.badgeRemoveBtn}
                 onClick={() => setIncludedTags((prev) => prev.filter((item) => item !== t))}
+                aria-label={`Remove included genre ${t}`}
               >
                 <X size={12} />
               </button>
@@ -505,6 +647,7 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
                 type="button"
                 className={styles.badgeRemoveBtn}
                 onClick={() => setBlockedTags((prev) => prev.filter((item) => item !== t))}
+                aria-label={`Remove blocked genre ${t}`}
               >
                 <X size={12} />
               </button>
@@ -518,11 +661,40 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
                 type="button"
                 className={styles.badgeRemoveBtn}
                 onClick={() => setSelectedBrands((prev) => prev.filter((item) => item !== b))}
+                aria-label={`Remove studio ${b}`}
               >
                 <X size={12} />
               </button>
             </span>
           ))}
+
+          {selectedYear !== 'all' && (
+            <span className={styles.activeBadgeYear}>
+              📅 {selectedYear}
+              <button
+                type="button"
+                className={styles.badgeRemoveBtn}
+                onClick={() => setSelectedYear('all')}
+                aria-label="Remove year filter"
+              >
+                <X size={12} />
+              </button>
+            </span>
+          )}
+
+          {selectedStatus !== 'all' && (
+            <span className={styles.activeBadgeStatus}>
+              ⚡ {selectedStatus.charAt(0).toUpperCase() + selectedStatus.slice(1)}
+              <button
+                type="button"
+                className={styles.badgeRemoveBtn}
+                onClick={() => setSelectedStatus('all')}
+                aria-label="Remove status filter"
+              >
+                <X size={12} />
+              </button>
+            </span>
+          )}
         </div>
       )}
 
