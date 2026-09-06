@@ -64,6 +64,8 @@ interface BrowseHubProps {
   isDbEmpty: boolean;
   initialGenre?: string;
   basePath?: string;
+  isUncensoredPage?: boolean;
+  searchPlaceholder?: string;
 }
 
 function getStableHash(str: string): number {
@@ -74,7 +76,14 @@ function getStableHash(str: string): number {
   return Math.abs(hash);
 }
 
-function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '/categories' }: BrowseHubProps) {
+function BrowseHubContent({ 
+  initialSeries, 
+  isDbEmpty, 
+  initialGenre, 
+  basePath = '/categories',
+  isUncensoredPage = false,
+  searchPlaceholder
+}: BrowseHubProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const catalogRef = useRef<HTMLDivElement>(null);
@@ -89,7 +98,7 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const [sortMode, setSortMode] = useState<string>('random'); // Default: Random
+  const [sortMode, setSortMode] = useState<string>('most_viewed'); // Default: Popular
   const [viewMode, setViewMode] = useState<'grid' | 'compact'>('grid');
   const [currentPage, setCurrentPage] = useState<number>(1);
   const ITEMS_PER_PAGE = 24; // 4 rows x 6 columns
@@ -180,7 +189,9 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
       if (yCounts[String(y)] === undefined) yCounts[String(y)] = 0;
     });
 
-    const tagsList = Object.keys(tCounts).sort((a, b) => a.localeCompare(b));
+    const tagsList = Object.keys(tCounts)
+      .filter((t) => !isUncensoredPage || (t.toLowerCase() !== 'uncensored' && t.toLowerCase() !== 'censored'))
+      .sort((a, b) => a.localeCompare(b));
     const brandsList = Object.keys(bCounts);
     const sortedYears = Array.from(yearsSet).sort((a, b) => b - a);
 
@@ -192,7 +203,7 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
       allBrands: brandsList,
       availableYears: sortedYears,
     };
-  }, [initialSeries]);
+  }, [initialSeries, isUncensoredPage]);
 
   // Sync Initial URL Search Parameters
   useEffect(() => {
@@ -461,8 +472,20 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
         const dateB = new Date((b as any).release_date || (b as any).created_at || b.release_year || b.releaseYear || 0).getTime();
         return dateB - dateA;
       });
-    } else if (sortMode === 'most_viewed') {
+    } else if (sortMode === 'most_viewed' || sortMode === 'popular') {
       sorted.sort((a, b) => ((b.views || (b as any).views_count) || 0) - ((a.views || (a as any).views_count) || 0));
+    } else if (sortMode === 'recent') {
+      sorted.sort((a, b) => {
+        const dateA = new Date((a as any).release_date || (a as any).created_at || a.release_year || a.releaseYear || 0).getTime();
+        const dateB = new Date((b as any).release_date || (b as any).created_at || b.release_year || b.releaseYear || 0).getTime();
+        return dateB - dateA;
+      });
+    } else if (sortMode === 'updated') {
+      sorted.sort((a, b) => {
+        const dateA = new Date((a as any).updated_at || (a as any).created_at || (a as any).release_date || 0).getTime();
+        const dateB = new Date((b as any).updated_at || (b as any).created_at || (b as any).release_date || 0).getTime();
+        return dateB - dateA;
+      });
     } else if (sortMode === 'rating') {
       sorted.sort((a, b) => (b.rating || 0) - (a.rating || 0));
     } else if (sortMode === 'a_z') {
@@ -626,7 +649,7 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
               <option value="completed">Completed</option>
               <option value="ongoing">Ongoing</option>
               <option value="upcoming">Upcoming</option>
-              <option value="uncensored">Uncensored</option>
+              {!isUncensoredPage && <option value="uncensored">Uncensored</option>}
               <option value="3d">3D Anime</option>
             </select>
             <ChevronDown size={14} className={styles.filterArrow} />
@@ -648,7 +671,7 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
             <Search size={15} className={styles.searchIcon} />
             <input
               type="text"
-              placeholder="Search catalog..."
+              placeholder={searchPlaceholder || "Search catalog..."}
               value={searchQuery}
               onFocus={handleSearchFocus}
               onClick={handleSearchFocus}
@@ -689,12 +712,12 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
                   className={styles.sortSelect}
                   aria-label="Sort catalog"
                 >
-                  <option value="random">🎲 Random</option>
-                  <option value="recent">🕒 Newest Releases</option>
-                  <option value="most_viewed">🔥 Most Viewed</option>
-                  <option value="rating">⭐ Highest Rated</option>
+                  <option value="most_viewed">🔥 Popular</option>
+                  <option value="recent">🕒 Newest</option>
+                  <option value="updated">✨ Recently Updated</option>
+                  <option value="rating">⭐ Top Rated</option>
                   <option value="a_z">🔤 Name: A-Z</option>
-                  <option value="z_a">🔤 Name: Z-A</option>
+                  <option value="random">🎲 Random</option>
                 </select>
                 <ChevronDown size={14} className={styles.selectArrow} />
               </div>

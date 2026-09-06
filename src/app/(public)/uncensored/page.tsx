@@ -2,7 +2,7 @@ import React, { Suspense } from 'react';
 import { ShieldCheck } from 'lucide-react';
 import { unstable_cache } from 'next/cache';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
-import UncensoredHub from '@/components/UncensoredHub/UncensoredHub';
+import BrowseHub from '@/components/BrowseHub/BrowseHub';
 import JsonLd from '@/components/JsonLd/JsonLd';
 import { isUncensoredSeries } from '@/utils/constants';
 import { getSeriesViewsMap } from '@/utils/views';
@@ -121,17 +121,14 @@ export default async function UncensoredPage({ searchParams }: PageProps) {
     ],
   };
 
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const pageSeries = uncensoredSeries.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-
   const itemListJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
     'name': 'Uncensored Hentai Anime Series & Catalog',
     'url': `${SITE_URL}/uncensored`,
-    'itemListElement': pageSeries.map((s: any, i: number) => ({
+    'itemListElement': uncensoredSeries.slice(0, 24).map((s: any, i: number) => ({
       '@type': 'ListItem',
-      'position': startIndex + i + 1,
+      'position': i + 1,
       'name': s.title,
       'url': `${SITE_URL}/series/${s.slug}`,
     })),
@@ -160,19 +157,44 @@ export default async function UncensoredPage({ searchParams }: PageProps) {
           <h1 className={styles.mainTitle}>Uncensored Hentai Anime</h1>
         </div>
         <p className={styles.subtext}>
-          Browse uncensored hentai anime series with English subtitles in HD. Explore complete series, available episodes, new releases, and popular uncensored titles on Play Hentai.
+          Browse our collection of uncensored hentai anime with English subtitles, including complete series, new releases, and popular titles.
         </p>
       </div>
 
-      {/* Dedicated Standalone Uncensored Catalog View */}
+      {/* Dedicated Tailored Uncensored Browse Hub */}
       <Suspense fallback={null}>
-        <UncensoredHub 
+        <BrowseHub 
           initialSeries={uncensoredSeries} 
           isDbEmpty={isDbEmpty} 
           basePath="/uncensored"
-          currentPage={currentPage}
+          isUncensoredPage={true}
+          searchPlaceholder="Search uncensored catalog..."
         />
       </Suspense>
+
+      {/* Informative SEO Section at the Bottom */}
+      <section className={styles.seoSection}>
+        <div className={styles.seoCard}>
+          <h2>Watch Uncensored Hentai Anime in HD Online</h2>
+          <p>
+            Welcome to the ultimate uncensored hentai anime catalog on Play Hentai. Explore hundreds of full-length, high-definition hentai releases completely unfiltered and uncut. Whether you are looking for classic masterpieces, new seasonal releases, 3D CGI animations, or trending OVAs with English subtitles, our dedicated library is curated for the best streaming experience.
+          </p>
+          <div className={styles.seoGrid}>
+            <div className={styles.seoFeature}>
+              <h3>100% Uncensored Quality</h3>
+              <p>Experience explicit anime series presented in their authentic, unpixelated form with crystal-clear 1080p and 4K HD video streams.</p>
+            </div>
+            <div className={styles.seoFeature}>
+              <h3>English Subtitles & Dubs</h3>
+              <p>All series feature accurate English subtitles, detailed synopses, voice cast info, and studio credits for seamless viewing.</p>
+            </div>
+            <div className={styles.seoFeature}>
+              <h3>Multi-Facet Filtering</h3>
+              <p>Easily filter the entire uncensored database by genre, studio, release year, or airing status to find exactly what you love.</p>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
