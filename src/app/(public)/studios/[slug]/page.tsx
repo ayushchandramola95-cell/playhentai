@@ -16,8 +16,9 @@ export async function generateMetadata({ params }: StudioDetailPageProps) {
   const studio = await getStudioDetails(slug);
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
   const canonicalUrl = `${siteUrl}/studios/${slug}`;
-  const title = studio ? `${studio.name} - Animation Studio` : 'Studio Not Found';
-  const description = studio?.bio || 'Animation studio production profile and releases catalog.';
+  const title = studio ? `${studio.name} Hentai Anime Series & Releases | Play Hentai` : 'Studio Not Found | Play Hentai';
+  const description = studio?.bio || 'Animation studio production profile, ratings, and series releases catalog on Play Hentai.';
+  
   return {
     title,
     description,
@@ -29,6 +30,20 @@ export async function generateMetadata({ params }: StudioDetailPageProps) {
       description,
       url: canonicalUrl,
       type: 'website',
+      images: [
+        {
+          url: `${siteUrl}/hero-banner.png`,
+          width: 1200,
+          height: 630,
+          alt: `${studio?.name || 'Studio'} Releases`,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [`${siteUrl}/hero-banner.png`],
     },
   };
 }
@@ -50,7 +65,7 @@ export default async function StudioDetailPage({ params }: StudioDetailPageProps
     '@id': studioUrl,
     'url': studioUrl,
     'name': studio.name,
-    'description': studio.bio || `${studio.name} is an animation studio producing hentai series.`,
+    'description': studio.bio || `${studio.name} is an animation studio producing anime series on Play Hentai.`,
     'foundingDate': studio.founded ? String(studio.founded) : undefined,
     'foundingLocation': studio.country || undefined,
   };
@@ -58,7 +73,7 @@ export default async function StudioDetailPage({ params }: StudioDetailPageProps
   const itemListJsonLd = studio.series.length > 0 ? {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
-    'name': `${studio.name} Series`,
+    'name': `${studio.name} Releases`,
     'url': studioUrl,
     'itemListElement': studio.series.map((s: any, i: number) => ({
       '@type': 'ListItem',
@@ -89,12 +104,12 @@ export default async function StudioDetailPage({ params }: StudioDetailPageProps
 
       {/* Back link */}
       <Link href="/studios" className={styles.backLink}>
-        <ArrowLeft size={16} />
+        <ArrowLeft size={15} />
         <span>Back to Studios</span>
       </Link>
 
       {/* Studio Header Card */}
-      <div className={`${styles.studioHero} glass`}>
+      <div className={styles.studioHero}>
         <div className={styles.heroBgGradient} style={{ '--accent-gradient': studio.gradient } as React.CSSProperties} />
 
         <div className={styles.heroLayout}>
@@ -109,11 +124,11 @@ export default async function StudioDetailPage({ params }: StudioDetailPageProps
           <div className={styles.infoCol}>
             <div className={styles.metaRow}>
               <div className={styles.metaItem}>
-                <Calendar size={14} />
+                <Calendar size={13} />
                 <span>Est. {studio.founded}</span>
               </div>
               <div className={styles.metaItem}>
-                <MapPin size={14} />
+                <MapPin size={13} />
                 <span>{studio.country}</span>
               </div>
             </div>
@@ -126,7 +141,7 @@ export default async function StudioDetailPage({ params }: StudioDetailPageProps
               <div className={styles.genresRow}>
                 {studio.tags
                   .filter((t: string) => t.toLowerCase() !== 'featured' && !t.toLowerCase().startsWith('featured:'))
-                  .slice(0, 5)
+                  .slice(0, 6)
                   .map((tag: string) => {
                     const cleanSlug = tag.toLowerCase().replace(/[^a-z0-9]+/g, '-');
                     return (
@@ -143,7 +158,7 @@ export default async function StudioDetailPage({ params }: StudioDetailPageProps
           <div className={styles.statsCol}>
             <div className={styles.statBox}>
               <div className={styles.statHeader}>
-                <Film size={16} className={styles.statIcon} />
+                <Film size={14} className={styles.statIcon} />
                 <span>Total Series</span>
               </div>
               <div className={styles.statValue}>{studio.stats.totalSeries}</div>
@@ -151,7 +166,7 @@ export default async function StudioDetailPage({ params }: StudioDetailPageProps
 
             <div className={styles.statBox}>
               <div className={styles.statHeader}>
-                <Star size={16} className={styles.statStarIcon} />
+                <Star size={14} className={styles.statStarIcon} />
                 <span>Avg Rating</span>
               </div>
               <div className={styles.statValue} style={{ color: 'var(--primary)' }}>
@@ -165,8 +180,13 @@ export default async function StudioDetailPage({ params }: StudioDetailPageProps
       {/* Studio Releases Grid */}
       <section className={styles.releasesSection}>
         <div className={styles.sectionHeader}>
-          <Award size={20} style={{ color: 'var(--primary)' }} />
-          <h2>Studio Releases</h2>
+          <div className={styles.sectionTitleRow}>
+            <Award size={20} style={{ color: 'var(--primary)' }} />
+            <h2>Studio Releases</h2>
+          </div>
+          <span className={styles.seriesCountBadge}>
+            {studio.series.length} {studio.series.length === 1 ? 'Release' : 'Releases'}
+          </span>
         </div>
 
         {studio.series.length > 0 ? (
@@ -177,8 +197,14 @@ export default async function StudioDetailPage({ params }: StudioDetailPageProps
           </div>
         ) : (
           <div className={styles.emptyState}>
-            <Film size={36} style={{ marginBottom: '1rem', color: 'var(--foreground-muted)' }} />
-            <p>No active series matching this studio found in the database.</p>
+            <Film size={40} style={{ color: 'var(--foreground-muted)' }} />
+            <h3>No series uploaded yet</h3>
+            <p>
+              We are actively digitizing and indexing the complete catalog for {studio.name}. Check back soon for new high-definition releases!
+            </p>
+            <Link href="/studios" className={styles.browseAllBtn}>
+              Browse All Studios
+            </Link>
           </div>
         )}
       </section>
@@ -187,8 +213,10 @@ export default async function StudioDetailPage({ params }: StudioDetailPageProps
       {studio.relatedStudios && studio.relatedStudios.length > 0 && (
         <section className={styles.relatedSection}>
           <div className={styles.sectionHeader}>
-            <Film size={20} style={{ color: 'var(--primary)' }} />
-            <h2>Similar Studios</h2>
+            <div className={styles.sectionTitleRow}>
+              <Film size={18} style={{ color: 'var(--primary)' }} />
+              <h2>Similar Studios</h2>
+            </div>
           </div>
           <div className={styles.relatedGrid}>
             {studio.relatedStudios.map((other: any) => (
@@ -210,4 +238,3 @@ export default async function StudioDetailPage({ params }: StudioDetailPageProps
     </div>
   );
 }
-

@@ -1,24 +1,22 @@
-import React from 'react';
-import Link from 'next/link';
-import { Calendar, MapPin, Building2 } from 'lucide-react';
+import React, { Suspense } from 'react';
 import { getAllStudiosWithStats } from '@/utils/studiosData';
+import StudiosDirectoryClient from '@/components/StudiosDirectory/StudiosDirectoryClient';
 import JsonLd from '@/components/JsonLd/JsonLd';
-import styles from './studiosIndex.module.css';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
 
 export async function generateMetadata() {
   return {
-    title: 'Hentai Production Studios Directory | PlayHentai',
-    description: 'Browse all hentai animation production studios, releases, stats, ratings, and series catalogs on PlayHentai.',
+    title: 'Hentai Production Studios Directory — 118+ Studios | Play Hentai',
+    description: 'Browse 118+ hentai animation production studios, releases, stats, ratings, and series catalogs on Play Hentai.',
     alternates: {
       canonical: '/studios',
     },
     openGraph: {
-      title: 'Hentai Production Studios Directory | PlayHentai',
-      description: 'Browse all hentai animation production studios, releases, stats, ratings, and series catalogs on PlayHentai.',
+      title: 'Hentai Production Studios Directory — 118+ Studios | Play Hentai',
+      description: 'Browse 118+ hentai animation production studios, releases, stats, ratings, and series catalogs on Play Hentai.',
       url: `${SITE_URL}/studios`,
-      siteName: 'PlayHentai',
+      siteName: 'Play Hentai',
       locale: 'en_US',
       type: 'website' as const,
       images: [
@@ -26,14 +24,14 @@ export async function generateMetadata() {
           url: `${SITE_URL}/hero-banner.png`,
           width: 1200,
           height: 630,
-          alt: 'PlayHentai Hentai Production Studios Directory',
+          alt: 'Play Hentai Hentai Production Studios Directory',
         },
       ],
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'Hentai Production Studios Directory | PlayHentai',
-      description: 'Browse all hentai animation production studios, releases, stats, ratings, and series catalogs on PlayHentai.',
+      title: 'Hentai Production Studios Directory — 118+ Studios | Play Hentai',
+      description: 'Browse 118+ hentai animation production studios, releases, stats, ratings, and series catalogs on Play Hentai.',
       images: [`${SITE_URL}/hero-banner.png`],
     },
   };
@@ -56,7 +54,7 @@ export default async function StudiosIndexPage() {
     '@type': 'ItemList',
     'name': 'Hentai Animation Production Studios Directory',
     'url': `${SITE_URL}/studios`,
-    'itemListElement': studios.map((s, i) => ({
+    'itemListElement': studios.slice(0, 50).map((s, i) => ({
       '@type': 'ListItem',
       'position': i + 1,
       'name': s.name,
@@ -65,78 +63,11 @@ export default async function StudiosIndexPage() {
   };
 
   return (
-    <div className={styles.container}>
+    <>
       <JsonLd data={[breadcrumbJsonLd, itemListJsonLd]} />
-      <div className="ambient-glow" />
-
-      {/* Breadcrumbs */}
-      <nav className={styles.breadcrumbs} aria-label="Breadcrumbs">
-        <a href="/">Home</a>
-        <span className={styles.crumbDivider}>/</span>
-        <span className={styles.activeCrumb}>Studios</span>
-      </nav>
-
-      <div className={styles.titleSection}>
-        <div className={styles.titleIconRow}>
-          <Building2 size={30} className={styles.titleIcon} />
-          <h1>Hentai Production Studios</h1>
-        </div>
-        <p className={styles.subtitle}>
-          Browse full profiles, ratings, release calendars, and watch catalogs of your favorite animation production houses on PlayHentai.
-        </p>
-      </div>
-
-      <div className={styles.grid}>
-        {studios.map((studio, idx) => (
-          <Link href={`/studios/${studio.slug}`} key={studio.slug || `studio-${idx}`} className={`${styles.studioCard} glass`}>
-            <div className={styles.cardBgGradient} style={{ '--accent-gradient': studio.gradient } as React.CSSProperties} />
-            
-            <div className={styles.cardHeader}>
-              <div className={styles.logoAvatar} style={{ background: studio.gradient }}>
-                {studio.logoChar}
-              </div>
-              <div className={styles.headerInfo}>
-                <h2>{studio.name}</h2>
-                <div className={styles.metaRow}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
-                    <Calendar size={12} />
-                    <span>Est. {studio.founded}</span>
-                  </div>
-                  <span>•</span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
-                    <MapPin size={12} />
-                    <span>{studio.country}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <p className={styles.bioText}>{studio.bio}</p>
-
-            <div className={styles.statsRow}>
-              <div className={styles.statBox}>
-                <span className={styles.statLabel}>Total Series</span>
-                <span className={styles.statValue}>{studio.stats.totalSeries}</span>
-              </div>
-              <div className={styles.statBox}>
-                <span className={styles.statLabel}>Avg Rating</span>
-                <span
-                  className={styles.statValue}
-                  style={{
-                    color: typeof studio.stats.averageRating === 'number'
-                      ? 'var(--primary)'
-                      : 'var(--foreground-muted)'
-                  }}
-                >
-                  {typeof studio.stats.averageRating === 'number'
-                    ? studio.stats.averageRating.toFixed(1)
-                    : studio.stats.averageRating}
-                </span>
-              </div>
-            </div>
-          </Link>
-        ))}
-      </div>
-    </div>
+      <Suspense fallback={null}>
+        <StudiosDirectoryClient studios={studios} />
+      </Suspense>
+    </>
   );
 }
