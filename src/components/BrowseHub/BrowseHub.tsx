@@ -65,6 +65,7 @@ interface BrowseHubProps {
   initialGenre?: string;
   basePath?: string;
   isUncensoredPage?: boolean;
+  is3DPage?: boolean;
   searchPlaceholder?: string;
 }
 
@@ -82,6 +83,7 @@ function BrowseHubContent({
   initialGenre, 
   basePath = '/categories',
   isUncensoredPage = false,
+  is3DPage = false,
   searchPlaceholder
 }: BrowseHubProps) {
   const searchParams = useSearchParams();
@@ -190,7 +192,12 @@ function BrowseHubContent({
     });
 
     const tagsList = Object.keys(tCounts)
-      .filter((t) => !isUncensoredPage || (t.toLowerCase() !== 'uncensored' && t.toLowerCase() !== 'censored'))
+      .filter((t) => {
+        const lower = t.toLowerCase();
+        if (isUncensoredPage && (lower === 'uncensored' || lower === 'censored')) return false;
+        if (is3DPage && (lower === '3d' || lower === '3d anime' || lower === '3d hentai' || lower === 'cgi')) return false;
+        return true;
+      })
       .sort((a, b) => a.localeCompare(b));
     const brandsList = Object.keys(bCounts);
     const sortedYears = Array.from(yearsSet).sort((a, b) => b - a);
@@ -203,7 +210,7 @@ function BrowseHubContent({
       allBrands: brandsList,
       availableYears: sortedYears,
     };
-  }, [initialSeries, isUncensoredPage]);
+  }, [initialSeries, isUncensoredPage, is3DPage]);
 
   // Sync Initial URL Search Parameters
   useEffect(() => {
@@ -650,7 +657,7 @@ function BrowseHubContent({
               <option value="ongoing">Ongoing</option>
               <option value="upcoming">Upcoming</option>
               {!isUncensoredPage && <option value="uncensored">Uncensored</option>}
-              <option value="3d">3D Anime</option>
+              {!is3DPage && <option value="3d">3D Anime</option>}
             </select>
             <ChevronDown size={14} className={styles.filterArrow} />
           </div>

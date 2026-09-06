@@ -2,7 +2,7 @@ import React, { Suspense } from 'react';
 import { unstable_cache } from 'next/cache';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { MOCK_SERIES } from '@/utils/mockData';
-import ThreeDHub from '@/components/ThreeDHub/ThreeDHub';
+import BrowseHub from '@/components/BrowseHub/BrowseHub';
 import JsonLd from '@/components/JsonLd/JsonLd';
 import { isThreeDSeries } from '@/utils/constants';
 import { getSeriesViewsMap } from '@/utils/views';
@@ -121,17 +121,14 @@ export default async function ThreeDPage({ searchParams }: PageProps) {
     ],
   };
 
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const pageSeries = threedSeries.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-
   const itemListJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
     'name': '3D Hentai & CGI Animations Catalog',
     'url': `${SITE_URL}/3d`,
-    'itemListElement': pageSeries.map((s: any, i: number) => ({
+    'itemListElement': threedSeries.slice(0, 24).map((s: any, i: number) => ({
       '@type': 'ListItem',
-      'position': startIndex + i + 1,
+      'position': i + 1,
       'name': s.title,
       'url': `${SITE_URL}/series/${s.slug}`,
     })),
@@ -160,19 +157,44 @@ export default async function ThreeDPage({ searchParams }: PageProps) {
           <h1 className={styles.mainTitle}>3D Hentai & CGI Animations</h1>
         </div>
         <p className={styles.subtext}>
-          Browse 3D hentai anime series and CGI animation releases with English subtitles in HD. Explore complete series, available episodes, new releases, and popular 3D titles on Play Hentai.
+          Browse our collection of 3D hentai anime and CGI animation series with English subtitles, including complete series, new releases, and popular titles.
         </p>
       </div>
 
-      {/* Main 3D Catalog Hub */}
+      {/* Dedicated Tailored 3D Browse Hub */}
       <Suspense fallback={null}>
-        <ThreeDHub 
+        <BrowseHub 
           initialSeries={threedSeries} 
           isDbEmpty={isDbEmpty} 
           basePath="/3d"
-          currentPage={currentPage}
+          is3DPage={true}
+          searchPlaceholder="Search 3D catalog..."
         />
       </Suspense>
+
+      {/* Informative SEO Section at the Bottom */}
+      <section className={styles.seoSection}>
+        <div className={styles.seoCard}>
+          <h2>Watch 3D Hentai Anime & CGI Animations in HD Online</h2>
+          <p>
+            Welcome to the ultimate 3D hentai and CGI animation collection on Play Hentai. Explore high-framerate, beautifully rendered 3D hentai animations with English subtitles in crystal-clear 1080p and 4K HD. Discover complete series, character models, trending 3D creators, and virtual studio releases curated for an immersive streaming experience.
+          </p>
+          <div className={styles.seoGrid}>
+            <div className={styles.seoFeature}>
+              <h3>Stunning 3D CGI Visuals</h3>
+              <p>Experience ultra-detailed 3D models, smooth physics animations, and high-fidelity rendering produced by top creators and studios.</p>
+            </div>
+            <div className={styles.seoFeature}>
+              <h3>English Subtitles & High Bitrate</h3>
+              <p>Every release includes synchronized English subtitles, detailed chapter metadata, voice acting details, and fast buffer-free playback.</p>
+            </div>
+            <div className={styles.seoFeature}>
+              <h3>Multi-Facet Filtering</h3>
+              <p>Easily refine the entire 3D library by genre, studio, release year, or airing status to find your favorite CGI series in seconds.</p>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
