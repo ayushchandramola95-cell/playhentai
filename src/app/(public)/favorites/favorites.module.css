@@ -227,9 +227,51 @@
 }
 
 .loadingBox {
-  text-align: center;
-  padding: 4rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 5rem 1rem;
   color: var(--foreground-muted);
+}
+
+.spinIcon {
+  animation: spin 1s linear infinite;
+  color: #ec4899;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.guestNotice {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: rgba(236, 72, 153, 0.08);
+  border: 1px solid rgba(236, 72, 153, 0.2);
+  padding: 0.6rem 1rem;
+  border-radius: 10px;
+  margin-top: 1rem;
+  font-size: 0.85rem;
+  color: var(--foreground-secondary);
+}
+
+.guestNotice svg {
+  color: #ec4899;
+  flex-shrink: 0;
+}
+
+.loginInlineLink {
+  color: #ec4899;
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+.loginInlineLink:hover {
+  color: #f472b6;
 }
 
 .cardShell,

@@ -1,45 +1,62 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
+import { createAdminClient } from '@/utils/supabase/admin';
 
 export async function GET(request: Request) {
   try {
     const supabase = await createClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return NextResponse.json({ isFavorite: false });
-    }
 
     const { searchParams } = new URL(request.url);
     const seriesId = searchParams.get('series_id');
-    if (seriesId) {
-      const { data, error } = await supabase
-        .from('favorites')
-        .select('id')
-        .eq('profile_id', user.id)
-        .eq('series_id', seriesId)
-        .maybeSingle();
 
-      if (error) {
-        return NextResponse.json({ isFavorite: false });
-      }
-
-      return NextResponse.json({ isFavorite: !!data });
+    if (authError || !user) {
+      return NextResponse.json({ isFavorite: false, favorites: [] });
     }
 
-    // Fetch full user favorites list
-    const { data: favorites, error } = await supabase
-      .from('favorites')
-      .select('id, created_at, series(*)')
-      .eq('profile_id', user.id)
-      .order('created_at', { ascending: false });
+    const userFavs: string[] = Array.isArray(user.user_metadata?.favorites)
+      ? user.user_metadata.favorites
+      : [];
 
-    if (error) {
+    if (seriesId) {
+      const isFavorite = userFavs.includes(seriesId);
+      return NextResponse.json({ isFavorite });
+    }
+
+    if (userFavs.length === 0) {
       return NextResponse.json({ favorites: [] });
     }
 
-    return NextResponse.json({ favorites });
+    // Fetch full series details for these IDs
+    const adminSupabase = createAdminClient();
+    const { data: seriesList, error: seriesError } = await adminSupabase
+      .from('series')
+      .select('id, title, slug, description, poster_image_key, cover_image_key, banner_image_key, tags, release_year, status, is_published, created_at')
+      .in('id', userFavs);
+
+    if (seriesError || !seriesList) {
+      console.error('Error fetching favorite series:', seriesError);
+      return NextResponse.json({ favorites: [] });
+    }
+
+    // Sort matching order of favorites (newest first)
+    const sorted = [...seriesList].sort((a, b) => {
+      const idxA = userFavs.indexOf(a.id);
+      const idxB = userFavs.indexOf(b.id);
+      return idxB - idxA;
+    });
+
+    const formattedFavorites = sorted.map((s) => ({
+      id: s.id,
+      series_id: s.id,
+      created_at: s.created_at,
+      series: s,
+    }));
+
+    return NextResponse.json({ favorites: formattedFavorites });
   } catch (err: any) {
-    return NextResponse.json({ isFavorite: false, favorites: [] });
+    console.error('Error in GET /api/favorites:', err);
+    return NextResponse.json({ isFavorite: false, favorites: [], error: err.message }, { status: 500 });
   }
 }
 
@@ -51,38 +68,93 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { series_id } = await request.json();
-    if (!series_id) return NextResponse.json({ error: 'Missing series_id' }, { status: 400 });
+    const body = await request.json();
+    const { series_id, series_ids } = body;
 
-    const { data: existing, error: selectErr } = await supabase
-      .from('favorites')
-      .select('id')
-      .eq('profile_id', user.id)
-      .eq('series_id', series_id)
-      .maybeSingle();
+    const currentFavs: string[] = Array.isArray(user.user_metadata?.favorites)
+      ? [...user.user_metadata.favorites]
+      : [];
 
-    if (selectErr) {
-      return NextResponse.json({ success: true });
-    }
+    let updatedFavs = [...currentFavs];
+    let isFavorite = false;
 
-    if (existing) {
-      await supabase
-        .from('favorites')
-        .delete()
-        .eq('profile_id', user.id)
-        .eq('series_id', series_id);
-      return NextResponse.json({ isFavorite: false });
+    // Support batch merge (e.g. sync local favorites upon login)
+    if (Array.isArray(series_ids) && series_ids.length > 0) {
+      for (const id of series_ids) {
+        if (typeof id === 'string' && id && !updatedFavs.includes(id)) {
+          updatedFavs.push(id);
+        }
+      }
+      isFavorite = true;
+    } else if (series_id) {
+      const idx = updatedFavs.indexOf(series_id);
+      if (idx > -1) {
+        updatedFavs.splice(idx, 1);
+        isFavorite = false;
+      } else {
+        updatedFavs.push(series_id);
+        isFavorite = true;
+      }
     } else {
-      await supabase
-        .from('favorites')
-        .insert({
-          profile_id: user.id,
-          series_id,
-          created_at: new Date().toISOString()
-        });
-      return NextResponse.json({ isFavorite: true });
+      return NextResponse.json({ error: 'Missing series_id' }, { status: 400 });
     }
+
+    const adminSupabase = createAdminClient();
+    const { error: updateError } = await adminSupabase.auth.admin.updateUserById(user.id, {
+      user_metadata: {
+        ...user.user_metadata,
+        favorites: updatedFavs,
+      },
+    });
+
+    if (updateError) {
+      console.error('Error updating user favorites metadata:', updateError);
+      return NextResponse.json({ error: updateError.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ isFavorite, favorites: updatedFavs });
   } catch (err: any) {
-    return NextResponse.json({ success: true });
+    console.error('Error in POST /api/favorites:', err);
+    return NextResponse.json({ error: err.message || 'Server Error' }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const seriesId = searchParams.get('series_id');
+    const clearAll = searchParams.get('all') === 'true';
+
+    let updatedFavs: string[] = [];
+
+    if (!clearAll && seriesId) {
+      const currentFavs: string[] = Array.isArray(user.user_metadata?.favorites)
+        ? user.user_metadata.favorites
+        : [];
+      updatedFavs = currentFavs.filter((id) => id !== seriesId);
+    }
+
+    const adminSupabase = createAdminClient();
+    const { error: updateError } = await adminSupabase.auth.admin.updateUserById(user.id, {
+      user_metadata: {
+        ...user.user_metadata,
+        favorites: updatedFavs,
+      },
+    });
+
+    if (updateError) {
+      return NextResponse.json({ error: updateError.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true, favorites: updatedFavs });
+  } catch (err: any) {
+    console.error('Error in DELETE /api/favorites:', err);
+    return NextResponse.json({ error: err.message || 'Server Error' }, { status: 500 });
   }
 }

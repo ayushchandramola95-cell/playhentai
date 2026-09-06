@@ -12,6 +12,7 @@ import VideoPlayer from '@/components/VideoPlayer/VideoPlayer';
 import CommentSection from '@/components/CommentSection/CommentSection';
 import SimilarTitles from '@/components/SimilarTitles/SimilarTitles';
 import AdBanner from '@/components/AdBanner/AdBanner';
+import FavoriteToggle from '@/components/FavoriteToggle/FavoriteToggle';
 import styles from './watch.module.css';
 
 interface WatchPageClientProps {
@@ -41,8 +42,6 @@ export default function WatchPageClient({
 }: WatchPageClientProps) {
   const [activeServer, setActiveServer] = useState<string>('Server 1');
   const [isTheatreMode, setIsTheatreMode] = useState<boolean>(false);
-  const [isFavorited, setIsFavorited] = useState<boolean>(false);
-  const [isFavLoading, setIsFavLoading] = useState<boolean>(false);
 
   const activeItemRef = useRef<HTMLAnchorElement | null>(null);
 
@@ -53,10 +52,7 @@ export default function WatchPageClient({
 
   // Auto-scroll page to top & active playing episode into view inside queue
   useEffect(() => {
-    // 1. Instantly scroll main browser window to top
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
-
-    // 2. Scroll active playing episode item inside sidebar queue box (without scrolling main window)
     if (activeItemRef.current) {
       const queueListElement = activeItemRef.current.parentElement;
       if (queueListElement) {
@@ -64,41 +60,6 @@ export default function WatchPageClient({
       }
     }
   }, [activeEpisode.id]);
-
-  // Check if series is in user watchlist
-  useEffect(() => {
-    if (seriesDetails?.id) {
-      fetch(`/api/watchlist?series_id=${seriesDetails.id}`)
-        .then((res) => res.json())
-        .then((data) => {
-          if (data && typeof data.inWatchlist === 'boolean') {
-            setIsFavorited(data.inWatchlist);
-          }
-        })
-        .catch((err) => console.error('Error checking watchlist status:', err));
-    }
-  }, [seriesDetails]);
-
-  // Toggle favorite / watchlist
-  const handleToggleFavorite = async () => {
-    if (!seriesDetails?.id) return;
-    setIsFavLoading(true);
-    try {
-      const res = await fetch('/api/watchlist', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ series_id: seriesDetails.id }),
-      });
-      const data = await res.json();
-      if (res.ok && typeof data.inWatchlist === 'boolean') {
-        setIsFavorited(data.inWatchlist);
-      }
-    } catch (err) {
-      console.error('Error toggling favorite:', err);
-    } finally {
-      setIsFavLoading(false);
-    }
-  };
 
   return (
     <div className={`${styles.container} ${isTheatreMode ? styles.theatreContainer : ''}`}>
@@ -175,16 +136,9 @@ export default function WatchPageClient({
               )}
 
               {/* Favorite Button */}
-              <button
-                type="button"
-                onClick={handleToggleFavorite}
-                disabled={isFavLoading}
-                className={`${styles.actionBtn} ${isFavorited ? styles.favoritedBtn : ''}`}
-                title={isFavorited ? 'Remove from Watchlist' : 'Add to Favorites'}
-              >
-                <Heart size={15} fill={isFavorited ? '#ef4444' : 'none'} color={isFavorited ? '#ef4444' : 'currentColor'} />
-                <span>{isFavorited ? 'Favorited' : 'Favorite'}</span>
-              </button>
+              {seriesDetails?.id && (
+                <FavoriteToggle seriesId={seriesDetails.id} variant="player" />
+              )}
             </div>
           </div>
 

@@ -6,26 +6,95 @@
   background: rgba(244, 63, 94, 0.08);
   border: 1px solid rgba(244, 63, 94, 0.25);
   color: #f43f5e;
-  padding: 0.65rem 1rem;
+  padding: 0.65rem 1.1rem;
   border-radius: 30px;
   font-weight: 700;
   font-size: 0.85rem;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   outline: none;
   font-family: inherit;
   width: 100%;
+  position: relative;
+  user-select: none;
 }
 
 .favoriteBtn:hover {
   background: rgba(244, 63, 94, 0.18);
   border-color: #f43f5e;
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(244, 63, 94, 0.25);
+}
+
+.favoriteBtn:active {
+  transform: translateY(0);
 }
 
 .active {
-  background: rgba(244, 63, 94, 0.25);
+  background: rgba(244, 63, 94, 0.22);
   border-color: #f43f5e;
   color: #ffffff;
-  box-shadow: 0 4px 12px rgba(244, 63, 94, 0.3);
+  box-shadow: 0 4px 14px rgba(244, 63, 94, 0.35);
+}
+
+.active:hover {
+  background: rgba(244, 63, 94, 0.32);
+}
+
+.heartIcon {
+  transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.heartPop {
+  animation: heartPulse 0.35s ease-out forwards;
+}
+
+@keyframes heartPulse {
+  0% {
+    transform: scale(0.8);
+  }
+  50% {
+    transform: scale(1.3);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Compact variant for card overlays / small bars */
+.compactVariant {
+  padding: 0.4rem 0.65rem;
+  font-size: 0.75rem;
+  border-radius: 20px;
+  width: auto;
+}
+
+/* Hero variant for giant banner headers */
+.heroVariant {
+  padding: 0.75rem 1.5rem;
+  font-size: 0.95rem;
+  border-radius: 40px;
+}
+
+/* Player variant for watch page control bars */
+.playerVariant {
+  padding: 0.45rem 0.85rem;
+  font-size: 0.8rem;
+  border-radius: 8px;
+  width: auto;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--foreground-secondary, #94a3b8);
+}
+
+.playerVariant:hover {
+  background: rgba(244, 63, 94, 0.15);
+  border-color: #f43f5e;
+  color: #f43f5e;
+}
+
+.playerVariant.active {
+  background: rgba(244, 63, 94, 0.2);
+  border-color: #f43f5e;
+  color: #f43f5e;
 }
