@@ -195,40 +195,27 @@ export const getAllGenresWithStats = unstable_cache(
       console.error('Error in getAllGenresWithStats:', err);
     }
 
-    // Build map of all genres from constants + any dynamic tags from series
-    const allGenreNamesSet = new Set<string>(GENRES);
-    seriesList.forEach((s) => {
-      (s.tags || []).forEach((t: string) => {
-        if (typeof t === 'string' && t.trim()) {
-          allGenreNamesSet.add(t.trim());
-        }
-      });
-    });
+    // Standard canonical GENRES list (prevents duplicates like Big Boobs vs Large Breasts)
+    const canonicalGenreNames = Array.from(new Set(GENRES));
 
-    const allGenreNames = Array.from(allGenreNamesSet);
-
-    const genresData: GenreWithStats[] = allGenreNames.map((genreName) => {
+    // 1. Gather all matching series for each genre
+    const rawGenreData = canonicalGenreNames.map((genreName) => {
       const slug = tagToSlug(genreName);
       const normG = normalizeTag(genreName);
-      const genLower = genreName.toLowerCase();
 
-      // Find matching series with smart aliases & tag normalization
+      // Match series with smart synonyms & tag normalization
       const matchingSeries = seriesList.filter((s) => {
         const sTagsNorm = (s.tags || []).map((t: string) => normalizeTag(t));
         const sTitleNorm = normalizeTag(s.title);
 
         if (sTagsNorm.includes(normG)) return true;
 
-        // Alias matching
-        if (normG === 'largebreasts' && (sTagsNorm.includes('bigboobs') || sTagsNorm.includes('hugeboobs') || sTagsNorm.includes('largebreasts'))) return true;
-        if (normG === 'bigboobs' && (sTagsNorm.includes('largebreasts') || sTagsNorm.includes('bigboobs'))) return true;
-        if (normG === 'schoolgirls' && (sTagsNorm.includes('schoolgirl') || sTagsNorm.includes('schoolgirls'))) return true;
-        if (normG === 'schoolgirl' && (sTagsNorm.includes('schoolgirls') || sTagsNorm.includes('schoolgirl'))) return true;
-        if (normG === 'blowjob' && (sTagsNorm.includes('blowjob') || sTagsNorm.includes('deepthroat'))) return true;
-        if (normG === 'virgins' && (sTagsNorm.includes('virgin') || sTagsNorm.includes('virgins'))) return true;
-        if (normG === 'virgin' && (sTagsNorm.includes('virgins') || sTagsNorm.includes('virgin'))) return true;
-        if (normG === 'titsfuck' && (sTagsNorm.includes('paizuri') || sTagsNorm.includes('boobjob') || sTagsNorm.includes('titsfuck'))) return true;
-        if (normG === 'paizuri' && (sTagsNorm.includes('titsfuck') || sTagsNorm.includes('paizuri') || sTagsNorm.includes('boobjob'))) return true;
+        // Semantic tag aliases & synonyms
+        if (normG === 'largebreasts' && (sTagsNorm.includes('bigboobs') || sTagsNorm.includes('hugeboobs') || sTagsNorm.includes('largebreasts') || sTagsNorm.includes('oppai'))) return true;
+        if (normG === 'schoolgirls' && (sTagsNorm.includes('schoolgirl') || sTagsNorm.includes('schoolgirls') || sTagsNorm.includes('schooluniform') || sTagsNorm.includes('jk'))) return true;
+        if (normG === 'blowjob' && (sTagsNorm.includes('blowjob') || sTagsNorm.includes('deepthroat') || sTagsNorm.includes('fellatio'))) return true;
+        if (normG === 'virgins' && (sTagsNorm.includes('virgin') || sTagsNorm.includes('virgins') || sTagsNorm.includes('defloration'))) return true;
+        if (normG === 'titsfuck' && (sTagsNorm.includes('paizuri') || sTagsNorm.includes('boobjob') || sTagsNorm.includes('titsfuck') || sTagsNorm.includes('boobsjob'))) return true;
         if (normG === 'animalgirls' && (sTagsNorm.includes('animalgirl') || sTagsNorm.includes('catgirl') || sTagsNorm.includes('foxgirl') || sTagsNorm.includes('kemonomimi'))) return true;
         if (normG === 'catgirl' && (sTagsNorm.includes('animalgirl') || sTagsNorm.includes('catgirl') || sTagsNorm.includes('nekomimi'))) return true;
         if (normG === 'stepmother' && (sTagsNorm.includes('stepmom') || sTagsNorm.includes('stepmother'))) return true;
@@ -240,7 +227,7 @@ export const getAllGenresWithStats = unstable_cache(
         return false;
       });
 
-      // Sort matching series by popularity (views) so the most popular real cover is featured
+      // Sort matching series by popularity (views)
       matchingSeries.sort((a, b) => {
         const viewsA = Number(a.views) || 0;
         const viewsB = Number(b.views) || 0;
@@ -253,15 +240,6 @@ export const getAllGenresWithStats = unstable_cache(
         totalViews += Number(s.views) || 0;
       });
 
-      // Best artwork from the most popular series in this genre
-      const topMatch = matchingSeries[0];
-      const featuredPoster = topMatch?.cover_image_key || topMatch?.poster_image_key || topMatch?.banner_image_key || undefined;
-      const featuredCover = topMatch?.cover_image_key || topMatch?.poster_image_key || undefined;
-      const previewPosters = matchingSeries
-        .slice(0, 3)
-        .map((s) => s.poster_image_key || s.cover_image_key)
-        .filter(Boolean);
-
       const description =
         GENRE_DESCRIPTIONS[genreName] ||
         `Discover popular ${genreName} hentai anime series, episodes, and complete release catalogs on Play Hentai.`;
@@ -271,9 +249,7 @@ export const getAllGenresWithStats = unstable_cache(
         slug,
         description,
         seriesCount,
-        featuredPoster,
-        featuredCover,
-        previewPosters,
+        matchingSeries,
         totalViews,
         averageRating: seriesCount > 0 ? (8.0 + (seriesCount % 15) * 0.1).toFixed(1) : 'N/A',
         gradient: getGenreGradient(genreName),
@@ -281,8 +257,8 @@ export const getAllGenresWithStats = unstable_cache(
       };
     });
 
-    // Default sort: Most popular (highest seriesCount & totalViews first), then alphabetically
-    return genresData.sort((a, b) => {
+    // 2. Sort genres by most popular (highest seriesCount & totalViews first)
+    rawGenreData.sort((a, b) => {
       if (b.seriesCount !== a.seriesCount) {
         return b.seriesCount - a.seriesCount;
       }
@@ -291,7 +267,56 @@ export const getAllGenresWithStats = unstable_cache(
       }
       return a.name.localeCompare(b.name);
     });
+
+    // 3. Unique Artwork Allocator: Ensure each genre gets a DISTINCT series cover/poster
+    const usedArtwork = new Set<string>();
+
+    const genresData: GenreWithStats[] = rawGenreData.map((g) => {
+      let chosenSeries: any = null;
+      let chosenPoster: string | undefined = undefined;
+      let chosenCover: string | undefined = undefined;
+
+      // Find first matching series whose artwork hasn't been used yet
+      for (const s of g.matchingSeries) {
+        const artKey = s.cover_image_key || s.poster_image_key || s.banner_image_key;
+        if (artKey && !usedArtwork.has(artKey)) {
+          chosenSeries = s;
+          chosenPoster = s.poster_image_key || artKey;
+          chosenCover = s.cover_image_key || s.poster_image_key || artKey;
+          usedArtwork.add(artKey);
+          break;
+        }
+      }
+
+      // If all matching series were already allocated, pick the top series for this genre
+      if (!chosenPoster && g.matchingSeries.length > 0) {
+        chosenSeries = g.matchingSeries[0];
+        chosenPoster = chosenSeries.poster_image_key || chosenSeries.cover_image_key;
+        chosenCover = chosenSeries.cover_image_key || chosenSeries.poster_image_key;
+      }
+
+      const previewPosters = g.matchingSeries
+        .slice(0, 3)
+        .map((s) => s.poster_image_key || s.cover_image_key)
+        .filter(Boolean);
+
+      return {
+        name: g.name,
+        slug: g.slug,
+        description: g.description,
+        seriesCount: g.seriesCount,
+        featuredPoster: chosenPoster,
+        featuredCover: chosenCover,
+        previewPosters,
+        totalViews: g.totalViews,
+        averageRating: g.averageRating,
+        gradient: g.gradient,
+        isTrending: g.isTrending,
+      };
+    });
+
+    return genresData;
   },
-  ['all-genres-directory-real-v3'],
+  ['all-genres-directory-unique-art-v4'],
   { revalidate: 60, tags: ['genres_catalog', 'series_catalog'] }
 );
