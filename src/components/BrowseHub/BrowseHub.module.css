@@ -97,44 +97,6 @@
   color: #ffffff;
 }
 
-/* Quick Genre Filter Row */
-.quickGenresRow {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  flex-wrap: wrap;
-  flex: 1;
-  justify-content: center;
-  min-width: 260px;
-}
-
-.quickGenreChip {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: #cbd5e1;
-  font-size: 0.76rem;
-  font-weight: 750;
-  padding: 0.32rem 0.75rem;
-  border-radius: 20px;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
-  font-family: inherit;
-  white-space: nowrap;
-}
-
-.quickGenreChip:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #ffffff;
-  border-color: rgba(255, 255, 255, 0.18);
-  transform: translateY(-1px);
-}
-
-.quickGenreActive {
-  background: var(--primary) !important;
-  border-color: transparent !important;
-  color: #ffffff !important;
-  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
-}
 
 .rightControls {
   display: flex;

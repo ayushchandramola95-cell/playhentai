@@ -79,36 +79,6 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
   const [currentPage, setCurrentPage] = useState<number>(1);
   const ITEMS_PER_PAGE = 24; // 4 rows x 6 columns
 
-  const QUICK_GENRES = [
-    'All',
-    'Uncensored',
-    '3D',
-    'Action',
-    'Fantasy',
-    'Romance',
-    'Harem',
-    'Ecchi',
-    'Comedy',
-    'Sci-Fi',
-    'Supernatural',
-  ];
-
-  const handleQuickGenreClick = (genre: string) => {
-    if (genre === 'All') {
-      setIncludedTags([]);
-      setBlockedTags([]);
-      setCurrentPage(1);
-    } else {
-      if (includedTags.some((t) => t.toLowerCase() === genre.toLowerCase())) {
-        setIncludedTags((prev) => prev.filter((t) => t.toLowerCase() !== genre.toLowerCase()));
-      } else {
-        setIncludedTags([genre]);
-        setBlockedTags((prev) => prev.filter((t) => t.toLowerCase() !== genre.toLowerCase()));
-      }
-      setCurrentPage(1);
-    }
-  };
-
   const getPageLink = (pageNumber: number) => {
     if (pageNumber === 1) return basePath;
     const querySymbol = basePath.includes('?') ? '&' : '?';
@@ -411,7 +381,7 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
       {/* Top Filter Action Bar */}
       <div className={`${styles.filterActionBar} glass`}>
         <div className={styles.leftControls}>
-          {/* Tags Trigger Button */}
+          {/* Genre Trigger Button */}
           <button
             type="button"
             onClick={openTagsModal}
@@ -419,8 +389,8 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
               includedTags.length > 0 || blockedTags.length > 0 ? styles.activeTriggerBtn : ''
             }`}
           >
-            <Tag size={16} />
-            <span>Tags</span>
+            <Filter size={16} />
+            <span>Genre</span>
             {includedTags.length + blockedTags.length > 0 && (
               <span className={styles.btnBadge}>{includedTags.length + blockedTags.length}</span>
             )}
@@ -448,26 +418,6 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
               <span>Reset</span>
             </button>
           )}
-        </div>
-
-        {/* Quick Genre Filter Row */}
-        <div className={styles.quickGenresRow}>
-          {QUICK_GENRES.map((g) => {
-            const isAllActive = g === 'All' && includedTags.length === 0;
-            const isTagActive = g !== 'All' && includedTags.some((t) => t.toLowerCase() === g.toLowerCase());
-            const isActive = isAllActive || isTagActive;
-
-            return (
-              <button
-                key={g}
-                type="button"
-                onClick={() => handleQuickGenreClick(g)}
-                className={`${styles.quickGenreChip} ${isActive ? styles.quickGenreActive : ''}`}
-              >
-                {g}
-              </button>
-            );
-          })}
         </div>
 
         <div className={styles.rightControls}>
@@ -680,10 +630,10 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
             <div className={styles.modalHeader}>
               <div className={styles.modalTitleGroup}>
                 <div className={styles.modalTitleRow}>
-                  <Tag size={22} className={styles.modalIcon} />
-                  <h2 className={styles.modalTitle}>Tags</h2>
+                  <Filter size={22} className={styles.modalIcon} />
+                  <h2 className={styles.modalTitle}>Genre</h2>
                 </div>
-                <p className={styles.modalSubtext}>Include or block tags to refine results</p>
+                <p className={styles.modalSubtext}>Include or block genres to refine results</p>
               </div>
 
               <div className={styles.modalHeaderActions}>
@@ -707,7 +657,7 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
               <div className={styles.broadMatchesCard}>
                 <div className={styles.broadTextGroup}>
                   <span className={styles.broadTitle}>Broad Matches</span>
-                  <span className={styles.broadDesc}>Must match all selected tags</span>
+                  <span className={styles.broadDesc}>Must match all selected genres</span>
                 </div>
                 <label className={styles.switchToggle}>
                   <input
@@ -721,7 +671,7 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
 
               {/* Tag Decisions Section Header & Search */}
               <div className={styles.sectionHeaderRow}>
-                <h3 className={styles.sectionTitle}>Tag Decisions</h3>
+                <h3 className={styles.sectionTitle}>Genre Decisions</h3>
                 <div className={styles.statusPillsRow}>
                   <span className={styles.includedPill}>{tempIncludedTags.length} included</span>
                   <span className={styles.blockedPill}>{tempBlockedTags.length} blocked</span>
@@ -733,7 +683,7 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
                   <Search size={16} className={styles.searchIcon} />
                   <input
                     type="text"
-                    placeholder="Filter tags..."
+                    placeholder="Filter genres..."
                     value={tagSearchQuery}
                     onChange={(e) => setTagSearchQuery(e.target.value)}
                     className={styles.modalSearchInput}
