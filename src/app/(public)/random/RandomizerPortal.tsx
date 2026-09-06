@@ -6,15 +6,13 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import {
   Shuffle,
-  Dices,
+  Zap,
   Filter,
   Star,
   Activity,
   ChevronDown,
   LayoutGrid,
   List,
-  ChevronLeft,
-  ChevronRight,
   Eye,
   Film
 } from 'lucide-react';
@@ -57,6 +55,8 @@ function formatViews(views?: number): string {
   return views.toString();
 }
 
+const BATCH_SIZE = 24;
+
 export default function RandomizerPortal({ seriesList }: RandomizerPortalProps) {
   const router = useRouter();
 
@@ -66,12 +66,10 @@ export default function RandomizerPortal({ seriesList }: RandomizerPortalProps) 
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
-  // Shuffled List State
-  const [shuffledList, setShuffledList] = useState<SeriesItem[]>(seriesList);
-  const [currentPage, setCurrentPage] = useState<number>(1);
+  // Random Batch State (no pagination, always fresh 24 random items)
+  const [randomBatch, setRandomBatch] = useState<SeriesItem[]>([]);
   const [isShuffling, setIsShuffling] = useState<boolean>(false);
   const [shuffleCount, setShuffleCount] = useState<number>(1);
-  const pageSize = 24; // 4 rows x 6 columns
 
   // Load saved viewMode
   useEffect(() => {
@@ -131,15 +129,14 @@ export default function RandomizerPortal({ seriesList }: RandomizerPortalProps) 
   const handleRandomize = useCallback(() => {
     setIsShuffling(true);
     setTimeout(() => {
-      setShuffledList(shuffleArray(filteredList));
-      setCurrentPage(1);
+      setRandomBatch(shuffleArray(filteredList).slice(0, BATCH_SIZE));
       setIsShuffling(false);
       setShuffleCount((c) => c + 1);
     }, 220);
   }, [filteredList]);
 
-  // Quick Pick / I'm Feeling Lucky
-  const handleQuickPick = () => {
+  // Surprise Me: Pick 1 random anime and immediately open its page
+  const handleSurpriseMe = () => {
     if (filteredList.length === 0) return;
     const randomIndex = Math.floor(Math.random() * filteredList.length);
     const chosen = filteredList[randomIndex];
@@ -148,18 +145,10 @@ export default function RandomizerPortal({ seriesList }: RandomizerPortalProps) 
     }
   };
 
-  // Shuffle client-side when filtered list changes or on initial mount
+  // Generate initial or updated random batch whenever filtered list changes
   useEffect(() => {
-    setShuffledList(shuffleArray(filteredList));
-    setCurrentPage(1);
+    setRandomBatch(shuffleArray(filteredList).slice(0, BATCH_SIZE));
   }, [filteredList]);
-
-  // Pagination calculation
-  const totalPages = Math.ceil(shuffledList.length / pageSize) || 1;
-  const paginatedItems = useMemo(() => {
-    const start = (currentPage - 1) * pageSize;
-    return shuffledList.slice(start, start + pageSize);
-  }, [shuffledList, currentPage, pageSize]);
 
   return (
     <div className={styles.container}>
@@ -180,7 +169,7 @@ export default function RandomizerPortal({ seriesList }: RandomizerPortalProps) 
               <Shuffle size={13} /> RANDOM GENERATOR
             </span>
             <span className={styles.metaPill}>
-              🎲 {filteredList.length} Titles Available • Shuffle #{shuffleCount}
+              🎲 Showing {randomBatch.length} Random Titles • Shuffle #{shuffleCount}
             </span>
           </div>
           <div className={styles.titleRow}>
@@ -191,7 +180,7 @@ export default function RandomizerPortal({ seriesList }: RandomizerPortalProps) 
           </p>
         </div>
 
-        {/* Action Bar: Big Randomize Button, Filters, View & Page Controls */}
+        {/* Action Bar: Big Randomize Button, Filters, Surprise Me, View Controls */}
         <div className={styles.controlsSection}>
           <div className={styles.leftControls}>
             {/* Primary Randomize Button */}
@@ -205,15 +194,15 @@ export default function RandomizerPortal({ seriesList }: RandomizerPortalProps) 
               <span>Shuffle Library</span>
             </button>
 
-            {/* Quick Pick / Feeling Lucky */}
+            {/* Surprise Me Button */}
             <button
               type="button"
-              onClick={handleQuickPick}
-              className={styles.luckyBtn}
-              title="Pick 1 random anime and start watching immediately"
+              onClick={handleSurpriseMe}
+              className={styles.surpriseBtn}
+              title="Immediately open a surprise random anime series"
             >
-              <Dices size={15} />
-              <span>Quick Pick</span>
+              <Zap size={14} className={styles.surpriseIcon} />
+              <span>Surprise Me</span>
             </button>
 
             {/* Genre Filter Dropdown */}
@@ -270,7 +259,7 @@ export default function RandomizerPortal({ seriesList }: RandomizerPortalProps) 
             </div>
           </div>
 
-          {/* Right Controls: View Mode & Mini Pagination */}
+          {/* Right Controls: View Mode Switcher (Grid / List) */}
           <div className={styles.rightControls}>
             <div className={styles.viewModeToggle} role="group" aria-label="View Mode">
               <button
@@ -300,30 +289,6 @@ export default function RandomizerPortal({ seriesList }: RandomizerPortalProps) 
                 <span>List</span>
               </button>
             </div>
-
-            <div className={styles.miniPagination}>
-              <button
-                type="button"
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage <= 1}
-                className={styles.pageArrowBtn}
-                aria-label="Previous page"
-              >
-                <ChevronLeft size={15} />
-              </button>
-              <span className={styles.pageIndicator}>
-                {currentPage} / {totalPages}
-              </span>
-              <button
-                type="button"
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage >= totalPages}
-                className={styles.pageArrowBtn}
-                aria-label="Next page"
-              >
-                <ChevronRight size={15} />
-              </button>
-            </div>
           </div>
         </div>
 
@@ -331,13 +296,13 @@ export default function RandomizerPortal({ seriesList }: RandomizerPortalProps) 
         {filteredList.length > 0 ? (
           viewMode === 'grid' ? (
             <div className={`${styles.catalogGrid} ${isShuffling ? styles.gridFade : ''}`}>
-              {paginatedItems.map((item) => (
+              {randomBatch.map((item) => (
                 <SeriesCard key={item.id} item={item} />
               ))}
             </div>
           ) : (
             <div className={`${styles.catalogList} ${isShuffling ? styles.gridFade : ''}`}>
-              {paginatedItems.map((item) => {
+              {randomBatch.map((item) => {
                 const rating = typeof item.rating === 'number' && item.rating > 0 
                   ? item.rating 
                   : (item.rating && !isNaN(Number(item.rating)) && Number(item.rating) > 0 ? Number(item.rating) : null);
@@ -411,33 +376,23 @@ export default function RandomizerPortal({ seriesList }: RandomizerPortalProps) 
           </div>
         )}
 
-        {/* Bottom Pagination */}
-        {totalPages > 1 && (
-          <div className={styles.bottomPagination}>
-            <button
-              type="button"
-              onClick={() => {
-                setCurrentPage((p) => Math.max(1, p - 1));
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-              disabled={currentPage <= 1}
-              className={styles.paginationBtn}
-            >
-              Previous Page
-            </button>
-            <span className={styles.pageInfoText}>
-              Showing Page {currentPage} of {totalPages} ({filteredList.length} Filtered Titles)
+        {/* Bottom Shuffle Section (No Pagination!) */}
+        {filteredList.length > 0 && (
+          <div className={styles.bottomShuffleSection}>
+            <span className={styles.bottomCountText}>
+              Showing {randomBatch.length} randomized titles
             </span>
             <button
               type="button"
               onClick={() => {
-                setCurrentPage((p) => Math.min(totalPages, p + 1));
+                handleRandomize();
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
-              disabled={currentPage >= totalPages}
-              className={styles.paginationBtn}
+              className={styles.bottomShuffleBtn}
+              disabled={isShuffling}
             >
-              Next Page
+              <Shuffle size={16} className={styles.shuffleIcon} />
+              <span>Shuffle Again</span>
             </button>
           </div>
         )}
@@ -459,8 +414,8 @@ export default function RandomizerPortal({ seriesList }: RandomizerPortalProps) 
                 <p>Filter by 100+ genre tags, uncensored releases, 3D CGI animations, or minimum rating thresholds before shuffling.</p>
               </div>
               <div className={styles.seoFeature}>
-                <h3>One-Click Quick Pick</h3>
-                <p>Use the Quick Pick action to jump straight into a surprise anime series with HD streaming and English subtitles.</p>
+                <h3>One-Click Surprise Me</h3>
+                <p>Use the Surprise Me action to jump straight into a surprise anime series with HD streaming and English subtitles.</p>
               </div>
             </div>
           </div>

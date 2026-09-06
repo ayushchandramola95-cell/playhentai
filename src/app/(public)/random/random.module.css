@@ -178,28 +178,33 @@
   }
 }
 
-/* Lucky Quick Pick Button */
-.luckyBtn {
+/* Surprise Me Button */
+.surpriseBtn {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
   height: 40px;
-  padding: 0 1rem;
+  padding: 0 1.1rem;
   background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 20px;
   color: #ffffff;
-  font-size: 0.84rem;
-  font-weight: 750;
+  font-size: 0.85rem;
+  font-weight: 800;
   cursor: pointer;
   transition: all 0.2s ease;
   text-decoration: none;
 }
 
-.luckyBtn:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.2);
+.surpriseBtn:hover {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: #fbbf24;
   transform: translateY(-1px);
+}
+
+.surpriseIcon {
+  color: #fbbf24;
 }
 
 /* Filter Dropdowns */
@@ -286,48 +291,6 @@
 .viewModeActive {
   background: rgba(255, 255, 255, 0.12);
   color: #ffffff;
-}
-
-/* Mini Pagination */
-.miniPagination {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 20px;
-  padding: 3px 6px;
-}
-
-.pageArrowBtn {
-  background: none;
-  border: none;
-  color: var(--foreground-secondary);
-  padding: 0.3rem 0.4rem;
-  border-radius: 14px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.15s ease;
-}
-
-.pageArrowBtn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.1);
-  color: #ffffff;
-}
-
-.pageArrowBtn:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-}
-
-.pageIndicator {
-  font-size: 0.78rem;
-  font-weight: 750;
-  color: #ffffff;
-  padding: 0 0.4rem;
-  white-space: nowrap;
 }
 
 /* 6-Column Responsive Catalog Grid */
@@ -448,44 +411,50 @@
   overflow: hidden;
 }
 
-/* Bottom Pagination */
-.bottomPagination {
+/* Bottom Shuffle Section */
+.bottomShuffleSection {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1.25rem;
+  gap: 1rem;
   margin-top: 3.5rem;
-  margin-bottom: 1rem;
-  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+  text-align: center;
 }
 
-.paginationBtn {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  color: #ffffff;
-  font-size: 0.86rem;
-  font-weight: 750;
-  padding: 0.55rem 1.3rem;
-  border-radius: 20px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.paginationBtn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.09);
-  border-color: rgba(255, 255, 255, 0.2);
-  transform: translateY(-1px);
-}
-
-.paginationBtn:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-}
-
-.pageInfoText {
-  font-size: 0.86rem;
+.bottomCountText {
+  font-size: 0.92rem;
   color: var(--foreground-secondary);
-  font-weight: 600;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+}
+
+.bottomShuffleBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  height: 44px;
+  padding: 0 1.6rem;
+  background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);
+  border: none;
+  border-radius: 22px;
+  color: #ffffff;
+  font-size: 0.92rem;
+  font-weight: 850;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 18px rgba(236, 72, 153, 0.35);
+}
+
+.bottomShuffleBtn:hover:not(:disabled) {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 6px 24px rgba(236, 72, 153, 0.5);
+  filter: brightness(1.1);
+}
+
+.bottomShuffleBtn:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
 }
 
 /* Empty State */
@@ -613,12 +582,12 @@
     flex-direction: column;
     align-items: stretch;
   }
-  .randomizeBtn, .luckyBtn, .filterSelectWrapper, .filterSelect {
+  .randomizeBtn, .surpriseBtn, .filterSelectWrapper, .filterSelect {
     width: 100%;
     justify-content: center;
   }
   .rightControls {
-    justify-content: space-between;
+    justify-content: flex-end;
   }
   .seoGrid {
     grid-template-columns: 1fr;
