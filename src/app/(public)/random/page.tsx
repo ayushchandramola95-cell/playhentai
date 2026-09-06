@@ -65,7 +65,7 @@ const getCachedRandomizerSeries = unstable_cache(
     try {
       const { data: dbSeries } = await publicSupabaseClient
         .from('series')
-        .select('id, title, slug, rating, release_year, studio, tags, status, poster_image_key, cover_image_key, poster_position, content_rating')
+        .select('id, title, slug, rating, release_year, studio, tags, status, category, poster_image_key, cover_image_key, poster_position, content_rating')
         .eq('is_published', true);
 
       if (dbSeries && dbSeries.length > 0) {
