@@ -1,5 +1,6 @@
 import React from 'react';
 import { createClient } from '@/utils/supabase/server';
+import { getSeriesViewsMap } from '@/utils/views';
 import WatchlistClient from '@/components/WatchlistClient/WatchlistClient';
 
 export const metadata = {
@@ -24,14 +25,26 @@ export default async function WatchlistPage() {
     user = authUser;
 
     if (user) {
-      const { data, error } = await supabase
-        .from('watchlist')
-        .select('*, series(*)')
-        .eq('profile_id', user.id)
-        .order('created_at', { ascending: false });
+      const [watchlistResult, viewsMap] = await Promise.all([
+        supabase
+          .from('watchlist')
+          .select('*, series(*)')
+          .eq('profile_id', user.id)
+          .order('created_at', { ascending: false }),
+        getSeriesViewsMap('all').catch(() => ({} as Record<string, number>))
+      ]);
 
-      if (!error && data) {
-        watchlistItems = data.map(item => item.series).filter(Boolean);
+      if (!watchlistResult.error && watchlistResult.data) {
+        watchlistItems = watchlistResult.data
+          .map((item) => {
+            if (!item.series) return null;
+            return {
+              ...item.series,
+              added_at: item.created_at,
+              views: viewsMap[item.series.id] || 0
+            };
+          })
+          .filter(Boolean);
       }
     }
   } catch (err) {

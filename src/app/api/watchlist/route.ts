@@ -84,3 +84,44 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: err.message || 'Server Error' }, { status: 500 });
   }
 }
+
+export async function DELETE(request: Request) {
+  try {
+    const supabase = await createClient();
+    
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const seriesId = searchParams.get('series_id');
+    const clearAll = searchParams.get('all') === 'true';
+
+    if (clearAll) {
+      const { error } = await supabase
+        .from('watchlist')
+        .delete()
+        .eq('profile_id', user.id);
+
+      if (error) throw error;
+      return NextResponse.json({ success: true, cleared: true });
+    }
+
+    if (!seriesId) {
+      return NextResponse.json({ error: 'Missing series_id' }, { status: 400 });
+    }
+
+    const { error } = await supabase
+      .from('watchlist')
+      .delete()
+      .eq('profile_id', user.id)
+      .eq('series_id', seriesId);
+
+    if (error) throw error;
+    return NextResponse.json({ success: true, inWatchlist: false });
+  } catch (err: any) {
+    console.error('Error deleting from watchlist:', err);
+    return NextResponse.json({ error: err.message || 'Server Error' }, { status: 500 });
+  }
+}
