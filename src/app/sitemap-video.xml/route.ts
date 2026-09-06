@@ -37,7 +37,7 @@ export async function GET() {
     // Fetch published episodes with joined series details
     const { data: episodes } = await supabase
       .from('episodes')
-      .select('id, episode_number, title, description, duration_seconds, release_date, created_at, thumbnail_key, video_key, seasons(series(title, slug, poster_image_key, cover_image_key, is_published))')
+      .select('id, episode_number, title, description, duration_seconds, release_date, created_at, thumbnail_key, video_key, seasons(series(title, slug, poster_image_key, cover_image_key, is_published, tags))')
       .eq('is_published', true);
 
     if (episodes && episodes.length > 0) {
@@ -113,6 +113,16 @@ export async function GET() {
         // 7. Duration seconds (Google requires positive integer, max 28800)
         const durationSeconds = Math.max(1, Math.min(28800, Math.round(ep.duration_seconds || 1440)));
 
+        // 8. Tags / Categories (Up to 32 tags, max 32 chars each per Google specs)
+        const rawTags = seriesObj?.tags;
+        const tagList: string[] = Array.isArray(rawTags)
+          ? rawTags
+          : (typeof rawTags === 'string' ? rawTags.split(',').map((t: string) => t.trim()) : []);
+        const validTags = tagList
+          .map((t: string) => t.trim())
+          .filter((t: string) => t.length > 0 && t.length <= 32)
+          .slice(0, 32);
+
         xml += `
   <url>
     <loc>${escapeXml(watchPageUrl)}</loc>
@@ -120,12 +130,14 @@ export async function GET() {
       <video:thumbnail_loc>${escapeXml(thumbnailUrl)}</video:thumbnail_loc>
       <video:title>${escapeXml(videoTitle)}</video:title>
       <video:description>${escapeXml(videoDescription)}</video:description>
-      <video:player_loc allow_embed="yes" autoplay="ap=1">${escapeXml(watchPageUrl)}</video:player_loc>
       ${videoContentUrl ? `<video:content_loc>${escapeXml(videoContentUrl)}</video:content_loc>` : ''}
       <video:duration>${durationSeconds}</video:duration>
       <video:publication_date>${formattedDate}</video:publication_date>
       <video:family_friendly>no</video:family_friendly>
       <video:live>no</video:live>
+      <video:uploader info="${escapeXml(baseUrl)}">Play Hentai</video:uploader>
+      <video:category>Anime &amp; Animation</video:category>
+      ${validTags.map((t: string) => `<video:tag>${escapeXml(t)}</video:tag>`).join('\n      ')}
     </video:video>
   </url>`;
       }
