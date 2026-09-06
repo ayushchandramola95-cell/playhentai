@@ -309,6 +309,8 @@
   font-size: 0.86rem;
   color: var(--foreground-muted);
   font-weight: 600;
+  margin-left: auto;
+  text-align: right;
 }
 
 .resultsCountText strong {

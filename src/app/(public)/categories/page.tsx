@@ -288,9 +288,6 @@ export default async function CategoriesPage({ searchParams }: PageProps) {
           <span className={styles.libraryHighlightPill}>
             <Layers size={13} className={styles.libraryIconPill} /> COMPLETE CATALOG
           </span>
-          <span className={styles.totalCountText}>
-            Showing {activeSeries.length} Series
-          </span>
         </div>
         <div className={styles.titleRow}>
           <h1 className={styles.mainTitle}>{h1Text}</h1>

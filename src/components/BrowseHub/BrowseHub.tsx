@@ -688,14 +688,16 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
 
       {/* Results Header Bar */}
       <div className={styles.catalogResultsHeader}>
-        <span className={styles.resultsCountText}>
-          Showing <strong>{totalItems > 0 ? startIndex + 1 : 0}–{Math.min(startIndex + ITEMS_PER_PAGE, totalItems)}</strong> of <strong>{totalItems}</strong> Series
-        </span>
-        {hasActiveFilters && (
+        {hasActiveFilters ? (
           <button type="button" onClick={handleClearAllFilters} className={styles.clearFiltersInlineBtn}>
             <RotateCcw size={13} /> Reset Filters
           </button>
+        ) : (
+          <span />
         )}
+        <span className={styles.resultsCountText}>
+          Showing <strong>{totalItems > 0 ? startIndex + 1 : 0}–{Math.min(startIndex + ITEMS_PER_PAGE, totalItems)}</strong> of <strong>{totalItems}</strong> Series
+        </span>
       </div>
 
       {/* Active Badges Banner */}
