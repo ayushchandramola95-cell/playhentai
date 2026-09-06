@@ -2,7 +2,7 @@ import React, { Suspense } from 'react';
 import { ShieldCheck } from 'lucide-react';
 import { unstable_cache } from 'next/cache';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
-import BrowseHub from '@/components/BrowseHub/BrowseHub';
+import UncensoredHub from '@/components/UncensoredHub/UncensoredHub';
 import JsonLd from '@/components/JsonLd/JsonLd';
 import { isUncensoredSeries } from '@/utils/constants';
 import { getSeriesViewsMap } from '@/utils/views';
@@ -18,9 +18,6 @@ const publicSupabaseClient = createSupabaseClient(supabaseUrl, supabaseAnonKey);
 interface PageProps {
   searchParams: Promise<{
     page?: string;
-    genre?: string;
-    studio?: string;
-    year?: string;
     sort?: string;
   }>;
 }
@@ -169,10 +166,11 @@ export default async function UncensoredPage({ searchParams }: PageProps) {
 
       {/* Dedicated Standalone Uncensored Catalog View */}
       <Suspense fallback={null}>
-        <BrowseHub 
+        <UncensoredHub 
           initialSeries={uncensoredSeries} 
           isDbEmpty={isDbEmpty} 
           basePath="/uncensored"
+          currentPage={currentPage}
         />
       </Suspense>
     </div>
