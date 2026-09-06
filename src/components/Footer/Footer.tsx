@@ -35,6 +35,7 @@ export default function Footer() {
           <h4 className={styles.heading}>Explore</h4>
           <ul className={styles.linksList}>
             <li><Link href="/" prefetch={false} className={styles.link}>Home</Link></li>
+            <li><Link href="/genres" prefetch={false} className={styles.link}>Genres Directory</Link></li>
             <li><Link href="/categories" prefetch={false} className={styles.link}>Browse Library</Link></li>
             <li><Link href="/trending" prefetch={false} className={styles.link}>Trending</Link></li>
             <li><Link href="/search" prefetch={false} className={styles.link}>Search Catalog</Link></li>

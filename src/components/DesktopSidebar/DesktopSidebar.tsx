@@ -7,6 +7,7 @@ import {
   Home, 
   Flame, 
   Layers, 
+  Sparkles,
   ShieldCheck, 
   Box, 
   Film, 
@@ -43,6 +44,9 @@ export default function DesktopSidebar() {
         pathname.startsWith('/year/')
       );
     }
+    if (path === '/genres') {
+      return pathname.startsWith('/genres');
+    }
     if (path === '/playlists') {
       return pathname.startsWith('/playlists') || pathname.startsWith('/collections');
     }
@@ -64,6 +68,7 @@ export default function DesktopSidebar() {
     { label: 'Home', href: '/', icon: Home },
     { label: 'Trending', href: '/trending', icon: Flame, iconColor: '#f97316' },
     { label: 'Browse Hentai', href: '/categories', icon: Layers },
+    { label: 'Genres', href: '/genres', icon: Sparkles, iconColor: '#ec4899' },
     { label: 'Uncensored', href: '/uncensored', icon: ShieldCheck, iconColor: '#10b981' },
     { label: '3D Animations', href: '/3d', icon: Box, iconColor: '#06b6d4' },
     { label: 'Playlists', href: '/playlists', icon: Film },
