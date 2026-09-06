@@ -17,6 +17,7 @@ import {
   Grid,
   ArrowUpDown,
   SlidersHorizontal,
+  ChevronDown,
 } from 'lucide-react';
 import { GENRES, STUDIOS } from '@/utils/constants';
 import SeriesCard from '../SeriesCard/SeriesCard';
@@ -76,7 +77,37 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
   const [searchQuery, setSearchQuery] = useState('');
   const [sortMode, setSortMode] = useState<string>('random'); // Default: Random
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const ITEMS_PER_PAGE = 25;
+  const ITEMS_PER_PAGE = 24; // 4 rows x 6 columns
+
+  const QUICK_GENRES = [
+    'All',
+    'Uncensored',
+    '3D',
+    'Action',
+    'Fantasy',
+    'Romance',
+    'Harem',
+    'Ecchi',
+    'Comedy',
+    'Sci-Fi',
+    'Supernatural',
+  ];
+
+  const handleQuickGenreClick = (genre: string) => {
+    if (genre === 'All') {
+      setIncludedTags([]);
+      setBlockedTags([]);
+      setCurrentPage(1);
+    } else {
+      if (includedTags.some((t) => t.toLowerCase() === genre.toLowerCase())) {
+        setIncludedTags((prev) => prev.filter((t) => t.toLowerCase() !== genre.toLowerCase()));
+      } else {
+        setIncludedTags([genre]);
+        setBlockedTags((prev) => prev.filter((t) => t.toLowerCase() !== genre.toLowerCase()));
+      }
+      setCurrentPage(1);
+    }
+  };
 
   const getPageLink = (pageNumber: number) => {
     if (pageNumber === 1) return basePath;
@@ -378,7 +409,7 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
     <div className={styles.hubContainer}>
 
       {/* Top Filter Action Bar */}
-      <div className={styles.filterActionBar}>
+      <div className={`${styles.filterActionBar} glass`}>
         <div className={styles.leftControls}>
           {/* Tags Trigger Button */}
           <button
@@ -388,7 +419,7 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
               includedTags.length > 0 || blockedTags.length > 0 ? styles.activeTriggerBtn : ''
             }`}
           >
-            <Tag size={18} />
+            <Tag size={16} />
             <span>Tags</span>
             {includedTags.length + blockedTags.length > 0 && (
               <span className={styles.btnBadge}>{includedTags.length + blockedTags.length}</span>
@@ -403,8 +434,8 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
               selectedBrands.length > 0 ? styles.activeTriggerBtn : ''
             }`}
           >
-            <Building2 size={18} />
-            <span>Brands</span>
+            <Building2 size={16} />
+            <span>Studios</span>
             {selectedBrands.length > 0 && (
               <span className={styles.btnBadge}>{selectedBrands.length}</span>
             )}
@@ -413,19 +444,39 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
           {/* Reset All Filters Button */}
           {hasActiveFilters && (
             <button type="button" onClick={handleClearAllFilters} className={styles.resetBtn}>
-              <RotateCcw size={15} />
-              <span>Reset All</span>
+              <RotateCcw size={14} />
+              <span>Reset</span>
             </button>
           )}
+        </div>
+
+        {/* Quick Genre Filter Row */}
+        <div className={styles.quickGenresRow}>
+          {QUICK_GENRES.map((g) => {
+            const isAllActive = g === 'All' && includedTags.length === 0;
+            const isTagActive = g !== 'All' && includedTags.some((t) => t.toLowerCase() === g.toLowerCase());
+            const isActive = isAllActive || isTagActive;
+
+            return (
+              <button
+                key={g}
+                type="button"
+                onClick={() => handleQuickGenreClick(g)}
+                className={`${styles.quickGenreChip} ${isActive ? styles.quickGenreActive : ''}`}
+              >
+                {g}
+              </button>
+            );
+          })}
         </div>
 
         <div className={styles.rightControls}>
           {/* Real-time Search Box */}
           <div className={styles.searchBox}>
-            <Search size={16} className={styles.searchIcon} />
+            <Search size={15} className={styles.searchIcon} />
             <input
               type="text"
-              placeholder="Search..."
+              placeholder="Search catalog..."
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
@@ -438,6 +489,7 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
                 type="button"
                 onClick={() => setSearchQuery('')}
                 className={styles.clearSearch}
+                aria-label="Clear search"
               >
                 <X size={14} />
               </button>
@@ -445,22 +497,39 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
           </div>
 
           {/* Sort Dropdown */}
-          <select
-            value={sortMode}
-            onChange={(e) => {
-              setSortMode(e.target.value);
-              setCurrentPage(1);
-            }}
-            className={styles.sortSelect}
-          >
-            <option value="random">🎲 Random</option>
-            <option value="recent">≡ Recent Upload</option>
-            <option value="most_viewed">🔥 Most Viewed</option>
-            <option value="rating">⭐ Highest Rated</option>
-            <option value="a_z">🔤 Name: A-Z</option>
-            <option value="z_a">🔤 Name: Z-A</option>
-          </select>
+          <div className={styles.sortDropdownWrapper}>
+            <ArrowUpDown size={14} className={styles.sortIcon} />
+            <select
+              value={sortMode}
+              onChange={(e) => {
+                setSortMode(e.target.value);
+                setCurrentPage(1);
+              }}
+              className={styles.sortSelect}
+              aria-label="Sort catalog"
+            >
+              <option value="random">🎲 Random</option>
+              <option value="recent">🕒 Newest Releases</option>
+              <option value="most_viewed">🔥 Most Viewed</option>
+              <option value="rating">⭐ Highest Rated</option>
+              <option value="a_z">🔤 Name: A-Z</option>
+              <option value="z_a">🔤 Name: Z-A</option>
+            </select>
+            <ChevronDown size={14} className={styles.selectArrow} />
+          </div>
         </div>
+      </div>
+
+      {/* Results Header Bar */}
+      <div className={styles.catalogResultsHeader}>
+        <span className={styles.resultsCountText}>
+          Showing <strong>{totalItems > 0 ? startIndex + 1 : 0}–{Math.min(startIndex + ITEMS_PER_PAGE, totalItems)}</strong> of <strong>{totalItems}</strong> Series
+        </span>
+        {hasActiveFilters && (
+          <button type="button" onClick={handleClearAllFilters} className={styles.clearFiltersInlineBtn}>
+            <RotateCcw size={13} /> Reset Filters
+          </button>
+        )}
       </div>
 
       {/* Active Badges Banner */}

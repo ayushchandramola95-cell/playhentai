@@ -284,9 +284,16 @@ export default async function CategoriesPage({ searchParams }: PageProps) {
 
       {/* Header */}
       <div className={styles.headerSection}>
+        <div className={styles.headerTopMeta}>
+          <span className={styles.libraryHighlightPill}>
+            <Layers size={13} className={styles.libraryIconPill} /> COMPLETE CATALOG
+          </span>
+          <span className={styles.totalCountText}>
+            Showing {activeSeries.length} Series
+          </span>
+        </div>
         <div className={styles.titleRow}>
-          <Layers size={28} className={styles.headerIcon} />
-          <h1>{h1Text}</h1>
+          <h1 className={styles.mainTitle}>{h1Text}</h1>
         </div>
         <p className={styles.subtext}>
           {introText}
