@@ -332,14 +332,14 @@
   }
 }
 
-/* Remove Button Styling */
+/* Remove Button Styling - Reveal only on card hover */
 .removeBtn {
   position: absolute;
   top: 8px;
   right: 8px;
   z-index: 10;
-  background: rgba(15, 12, 24, 0.85);
-  border: 1px solid rgba(239, 68, 68, 0.35);
+  background: rgba(15, 12, 24, 0.88);
+  border: 1px solid rgba(239, 68, 68, 0.45);
   color: #f87171;
   border-radius: 16px;
   padding: 0.28rem 0.6rem;
@@ -351,21 +351,46 @@
   gap: 0.3rem;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-4px) scale(0.92);
+  transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.cardContainer:hover .removeBtn,
+.cardContainer:focus-within .removeBtn,
+.removeBtn:focus-visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
 }
 
 .removeBtn:hover {
   background: #ef4444;
   color: #ffffff;
   border-color: #ef4444;
-  transform: scale(1.04);
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+  transform: translateY(0) scale(1.05);
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.5);
 }
 
 .removeBtn:disabled {
-  opacity: 0.6;
+  opacity: 0.7;
   cursor: not-allowed;
+  pointer-events: auto;
+}
+
+@media (max-width: 768px) {
+  /* On touch devices, keep accessible or reveal with subtle opacity */
+  .removeBtn {
+    opacity: 1;
+    pointer-events: auto;
+    transform: none;
+    top: 6px;
+    right: 6px;
+    padding: 0.22rem 0.5rem;
+    font-size: 0.68rem;
+  }
 }
 
 /* Empty Search Results */
