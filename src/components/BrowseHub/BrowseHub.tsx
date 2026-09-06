@@ -75,6 +75,7 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
   const searchParams = useSearchParams();
   const router = useRouter();
   const catalogRef = useRef<HTMLDivElement>(null);
+  const filterPanelRef = useRef<HTMLDivElement>(null);
 
   // Active Main Filters
   const [includedTags, setIncludedTags] = useState<string[]>([]);
@@ -84,6 +85,7 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
   const [selectedYears, setSelectedYears] = useState<string[]>([]);
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [sortMode, setSortMode] = useState<string>('random'); // Default: Random
   const [currentPage, setCurrentPage] = useState<number>(1);
   const ITEMS_PER_PAGE = 24; // 4 rows x 6 columns
@@ -502,6 +504,27 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
     return availableYears.filter((yr) => String(yr).toLowerCase().includes(q));
   }, [availableYears, yearSearchQuery]);
 
+  // Smooth Auto-scroll to hide header when search box is clicked / focused
+  const handleSearchFocus = () => {
+    setIsSearchFocused(true);
+    if (filterPanelRef.current) {
+      // Navbar height (74px) + margin offset (12px)
+      const NAVBAR_OFFSET = 86;
+      const rect = filterPanelRef.current.getBoundingClientRect();
+      const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+      const targetScroll = rect.top + currentScroll - NAVBAR_OFFSET;
+
+      window.scrollTo({
+        top: Math.max(0, targetScroll),
+        behavior: 'smooth',
+      });
+    }
+  };
+
+  const handleSearchBlur = () => {
+    setIsSearchFocused(false);
+  };
+
   const hasActiveFilters =
     includedTags.length > 0 ||
     blockedTags.length > 0 ||
@@ -514,7 +537,12 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
     <div className={styles.hubContainer}>
 
       {/* 2-Tier Master Filter Control Panel */}
-      <div className={`${styles.filterPanel} glass`}>
+      <div
+        ref={filterPanelRef}
+        className={`${styles.filterPanel} glass ${
+          isSearchFocused ? styles.filterPanelFocused : ''
+        }`}
+      >
         {/* Row 1: Taxonomy / Facet Filter Controls */}
         <div className={styles.filterTopRow}>
           {/* Genre Trigger Button */}
@@ -608,11 +636,16 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
               type="text"
               placeholder="Search catalog..."
               value={searchQuery}
+              onFocus={handleSearchFocus}
+              onClick={handleSearchFocus}
+              onBlur={handleSearchBlur}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
                 setCurrentPage(1);
               }}
-              className={styles.searchInput}
+              className={`${styles.searchInput} ${
+                isSearchFocused ? styles.searchInputFocused : ''
+              }`}
             />
             {searchQuery && (
               <button
