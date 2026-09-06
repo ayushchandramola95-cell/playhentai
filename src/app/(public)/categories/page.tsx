@@ -251,7 +251,7 @@ export default async function CategoriesPage({ searchParams }: PageProps) {
   };
 
   let h1Text = 'Browse Hentai Anime';
-  let introText = 'Filter through our complete collection of hentai anime series by genres, tags, production studios, and release years.';
+  let introText = 'Explore our complete catalog by genre, studio, tags, and release year.';
   let basePath = '/categories';
 
   if (genre && genre.toLowerCase() !== 'all' && genre.toLowerCase() !== 'all genres') {

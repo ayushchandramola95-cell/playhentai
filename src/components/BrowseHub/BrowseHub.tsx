@@ -21,9 +21,12 @@ import {
   Calendar,
   Activity,
   Sparkles,
+  LayoutGrid,
+  List,
 } from 'lucide-react';
 import { GENRES, STUDIOS, RELEASE_YEARS } from '@/utils/constants';
 import SeriesCard from '../SeriesCard/SeriesCard';
+import SeriesCompactCard from '../SeriesCard/SeriesCompactCard';
 import AdBanner from '../AdBanner/AdBanner';
 import JsonLd from '../JsonLd/JsonLd';
 import styles from './BrowseHub.module.css';
@@ -87,8 +90,19 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [sortMode, setSortMode] = useState<string>('random'); // Default: Random
+  const [viewMode, setViewMode] = useState<'grid' | 'compact'>('grid');
   const [currentPage, setCurrentPage] = useState<number>(1);
   const ITEMS_PER_PAGE = 24; // 4 rows x 6 columns
+
+  // Restore saved view mode preference
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('playhentai_browse_view_mode');
+      if (saved === 'compact' || saved === 'grid') {
+        setViewMode(saved);
+      }
+    } catch {}
+  }, []);
 
   const getPageLink = (pageNumber: number) => {
     if (pageNumber === 1) return basePath;
@@ -659,28 +673,61 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
             )}
           </div>
 
-          {/* Sort Dropdown */}
-          <div className={styles.sortGroup}>
-            <span className={styles.sortLabel}>Sort:</span>
-            <div className={styles.sortDropdownWrapper}>
-              <ArrowUpDown size={14} className={styles.sortIcon} />
-              <select
-                value={sortMode}
-                onChange={(e) => {
-                  setSortMode(e.target.value);
-                  setCurrentPage(1);
+          {/* Controls Group: Sort & View Mode */}
+          <div className={styles.controlsGroup}>
+            {/* Sort Dropdown */}
+            <div className={styles.sortGroup}>
+              <span className={styles.sortLabel}>Sort:</span>
+              <div className={styles.sortDropdownWrapper}>
+                <ArrowUpDown size={14} className={styles.sortIcon} />
+                <select
+                  value={sortMode}
+                  onChange={(e) => {
+                    setSortMode(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className={styles.sortSelect}
+                  aria-label="Sort catalog"
+                >
+                  <option value="random">🎲 Random</option>
+                  <option value="recent">🕒 Newest Releases</option>
+                  <option value="most_viewed">🔥 Most Viewed</option>
+                  <option value="rating">⭐ Highest Rated</option>
+                  <option value="a_z">🔤 Name: A-Z</option>
+                  <option value="z_a">🔤 Name: Z-A</option>
+                </select>
+                <ChevronDown size={14} className={styles.selectArrow} />
+              </div>
+            </div>
+
+            {/* View Mode Toggle */}
+            <div className={styles.viewModeToggle} role="group" aria-label="View Mode">
+              <button
+                type="button"
+                onClick={() => {
+                  setViewMode('grid');
+                  try { localStorage.setItem('playhentai_browse_view_mode', 'grid'); } catch {}
                 }}
-                className={styles.sortSelect}
-                aria-label="Sort catalog"
+                className={`${styles.viewModeBtn} ${viewMode === 'grid' ? styles.viewModeActive : ''}`}
+                aria-label="Grid View"
+                title="Grid View"
               >
-                <option value="random">🎲 Random</option>
-                <option value="recent">🕒 Newest Releases</option>
-                <option value="most_viewed">🔥 Most Viewed</option>
-                <option value="rating">⭐ Highest Rated</option>
-                <option value="a_z">🔤 Name: A-Z</option>
-                <option value="z_a">🔤 Name: Z-A</option>
-              </select>
-              <ChevronDown size={14} className={styles.selectArrow} />
+                <LayoutGrid size={15} />
+                <span className={styles.viewModeText}>Grid</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setViewMode('compact');
+                  try { localStorage.setItem('playhentai_browse_view_mode', 'compact'); } catch {}
+                }}
+                className={`${styles.viewModeBtn} ${viewMode === 'compact' ? styles.viewModeActive : ''}`}
+                aria-label="Compact View"
+                title="Compact View"
+              >
+                <List size={15} />
+                <span className={styles.viewModeText}>Compact</span>
+              </button>
             </div>
           </div>
         </div>
@@ -782,11 +829,19 @@ function BrowseHubContent({ initialSeries, isDbEmpty, initialGenre, basePath = '
       <section className={styles.catalogSection} ref={catalogRef}>
         {currentSeries.length > 0 ? (
           <>
-            <div className={styles.seriesGrid}>
-              {currentSeries.map((item) => (
-                <SeriesCard key={item.id} item={item} />
-              ))}
-            </div>
+            {viewMode === 'grid' ? (
+              <div className={styles.seriesGrid}>
+                {currentSeries.map((item) => (
+                  <SeriesCard key={item.id} item={item} />
+                ))}
+              </div>
+            ) : (
+              <div className={styles.compactGrid}>
+                {currentSeries.map((item) => (
+                  <SeriesCompactCard key={item.id} item={item} />
+                ))}
+              </div>
+            )}
 
             {/* Pagination Controls */}
             {totalPages > 1 && (
