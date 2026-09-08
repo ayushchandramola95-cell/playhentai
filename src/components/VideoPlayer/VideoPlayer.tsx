@@ -942,7 +942,7 @@ export default function VideoPlayer({
                 <button
                   type="button"
                   onClick={(e) => { e.stopPropagation(); setShowShortcutsModal(true); }}
-                  className={styles.controlBtn}
+                  className={`${styles.controlBtn} ${styles.shortcutsBtn}`}
                   title="Keyboard Shortcuts (?)"
                   aria-label="Keyboard Shortcuts"
                 >
@@ -954,7 +954,7 @@ export default function VideoPlayer({
                   <button
                     type="button"
                     onClick={(e) => { e.stopPropagation(); onToggleCinema(); }}
-                    className={`${styles.controlBtn} ${isLightsOff ? styles.cinemaActiveBtn : ''}`}
+                    className={`${styles.controlBtn} ${styles.cinemaBtn} ${isLightsOff ? styles.cinemaActiveBtn : ''}`}
                     title={isLightsOff ? 'Cinema Mode: Turn Lights On (C)' : 'Cinema Mode: Turn Lights Off (C)'}
                     aria-label="Toggle Cinema Mode"
                   >

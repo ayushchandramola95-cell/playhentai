@@ -104,7 +104,11 @@ export default function RateSeriesButton({
         >
           <Star size={13} fill={savedRating ? '#eab308' : 'transparent'} color="#eab308" />
           <span>
-            {savedRating ? `You Rated: ${savedRating}/10` : 'Rate this Series'}
+            {savedRating ? `Rated ${savedRating}/10` : (
+              <>
+                Rate<span className={styles.extraRateText}> this Series</span>
+              </>
+            )}
           </span>
         </button>
       ) : (
@@ -116,7 +120,11 @@ export default function RateSeriesButton({
         >
           <Star size={16} fill="currentColor" />
           <span>
-            {savedRating ? `You Rated: ${savedRating}/10` : 'Rate this Series'}
+            {savedRating ? `Rated ${savedRating}/10` : (
+              <>
+                Rate<span className={styles.extraRateText}> this Series</span>
+              </>
+            )}
           </span>
         </button>
       )}

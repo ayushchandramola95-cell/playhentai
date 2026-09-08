@@ -802,6 +802,11 @@ export default function WatchPageClient({
 
               {/* Utility Tools */}
               <div className={styles.actionToolsGroup}>
+                {/* Favorite Toggle */}
+                {seriesDetails?.id && (
+                  <FavoriteToggle seriesId={seriesDetails.id} variant="player" />
+                )}
+
                 {/* Share Episode (Opens Multi-Platform Popup) */}
                 <button
                   type="button"
@@ -813,6 +818,15 @@ export default function WatchPageClient({
                   <span>Share</span>
                 </button>
 
+                {/* Direct Rating Button */}
+                {seriesDetails?.id && (
+                  <RateSeriesButton
+                    seriesId={seriesDetails.id}
+                    seriesTitle={seriesTitle}
+                    variant="compact"
+                  />
+                )}
+
                 {/* Report Issue */}
                 <button
                   type="button"
@@ -823,20 +837,6 @@ export default function WatchPageClient({
                   <AlertTriangle size={15} />
                   <span>Report</span>
                 </button>
-
-                {/* Direct Rating Button */}
-                {seriesDetails?.id && (
-                  <RateSeriesButton
-                    seriesId={seriesDetails.id}
-                    seriesTitle={seriesTitle}
-                    variant="compact"
-                  />
-                )}
-
-                {/* Favorite Toggle */}
-                {seriesDetails?.id && (
-                  <FavoriteToggle seriesId={seriesDetails.id} variant="player" />
-                )}
               </div>
             </div>
           </div>
@@ -942,14 +942,8 @@ export default function WatchPageClient({
             </div>
           </div>
 
-          {/* Similar Titles Carousel */}
-          {similarSeries.length > 0 && (
-            <SimilarTitles list={similarSeries} />
-          )}
-
-          {/* MOBILE ONLY: Episodes Queue */}
-          <div className={styles.mobileOnlySeriesQueueBlock}>
-            {/* Mobile Queue Card */}
+          {/* MOBILE ONLY: Episodes Queue (Placed directly below series card for quick access) */}
+          <div className={styles.mobileOnlyQueueCard}>
             <div className={styles.queueCard}>
               <div className={styles.queueHeader}>
                 <Tv size={16} className={styles.sidebarIcon} />
@@ -1088,8 +1082,15 @@ export default function WatchPageClient({
                 </div>
               )}
             </div>
+          </div>
 
-            {/* Mobile POPULAR / NEW Ranked List */}
+          {/* Similar Titles Carousel */}
+          {similarSeries.length > 0 && (
+            <SimilarTitles list={similarSeries} />
+          )}
+
+          {/* MOBILE ONLY: Popular / New Ranked List */}
+          <div className={styles.mobileOnlyRankedBlock}>
             <RankedTabWidget
               popularList={popularSeries}
               newList={newSeries}

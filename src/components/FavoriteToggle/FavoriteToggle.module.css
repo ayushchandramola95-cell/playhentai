@@ -108,3 +108,19 @@
   color: #ff758f;
   box-shadow: 0 0 16px rgba(244, 63, 94, 0.3);
 }
+
+@media (max-width: 640px) {
+  .playerVariant {
+    height: 36px;
+    padding: 0 0.4rem;
+    font-size: 0.74rem;
+    border-radius: 10px;
+    gap: 0.3rem;
+    width: 100%;
+  }
+
+  .playerVariant svg {
+    width: 13px;
+    height: 13px;
+  }
+}

@@ -136,17 +136,33 @@
 
 @media (max-width: 768px) {
   .similarSection {
-    padding: 1.25rem 1rem;
+    padding: 0.95rem 1rem;
+    border-radius: 14px;
+    margin: 0.25rem 0 0.5rem;
+  }
+
+  .sectionHeader {
+    padding-bottom: 0.65rem;
+    margin-bottom: 0.85rem;
+  }
+
+  .sectionHeaderTitle h2 {
+    font-size: 1.05rem;
   }
 
   .scrollArrow {
     display: none !important;
   }
 
+  .similarGrid {
+    gap: 0.75rem;
+    padding: 0.15rem 0 0.5rem;
+  }
+
   .cardItemWrapper {
-    flex: 0 0 145px;
-    width: 145px;
-    min-width: 135px;
+    flex: 0 0 135px;
+    width: 135px;
+    min-width: 125px;
   }
 }
 

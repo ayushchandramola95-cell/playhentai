@@ -745,3 +745,55 @@
   }
 }
 
+@media (max-width: 640px) {
+  .shortcutsBtn,
+  .cinemaBtn {
+    display: none !important;
+  }
+
+  .playerContainer {
+    border-radius: 12px;
+  }
+
+  .bottomControls {
+    padding: 0.35rem 0.5rem 0.5rem;
+    gap: 0.3rem;
+  }
+
+  .leftControls,
+  .rightControls {
+    gap: 0.35rem;
+  }
+
+  .inPlayerAutoplayBtn {
+    padding: 0.15rem 0.35rem;
+    gap: 0.25rem;
+  }
+
+  .inPlayerAutoplayText {
+    font-size: 0.68rem;
+  }
+
+  .inPlayerToggleTrack {
+    width: 26px;
+    height: 14px;
+  }
+
+  .inPlayerToggleThumb {
+    width: 10px;
+    height: 10px;
+  }
+
+  .inPlayerToggleThumbActive {
+    transform: translateX(12px);
+  }
+
+  .speedLabel {
+    font-size: 0.72rem;
+  }
+
+  .timeDisplay {
+    font-size: 0.72rem;
+  }
+}
+
