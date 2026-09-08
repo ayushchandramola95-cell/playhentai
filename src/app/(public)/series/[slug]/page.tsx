@@ -12,7 +12,6 @@ import SeriesCard from '@/components/SeriesCard/SeriesCard';
 import SeriesEpisodesSection from '@/components/SeriesEpisodesSection/SeriesEpisodesSection';
 import DynamicWatchCTA from '@/components/DynamicWatchCTA/DynamicWatchCTA';
 import SynopsisBox from './SynopsisBox';
-import AdBanner from '@/components/AdBanner/AdBanner';
 import JsonLd from '@/components/JsonLd/JsonLd';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -955,10 +954,6 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
             </div>
           </section>
         )}
-
-        {/* Ad Banner Before Recommendations */}
-        <AdBanner zoneId="5986920" desktopOnly />
-        <AdBanner zoneId="5986998" mobileOnly />
 
         {/* Similar Titles Recommendation Carousel */}
         {similarSeries.length > 0 && (

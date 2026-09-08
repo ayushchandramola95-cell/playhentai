@@ -10,7 +10,6 @@ import HeroCarousel from '@/components/HeroCarousel/HeroCarousel';
 import SeriesCard from '@/components/SeriesCard/SeriesCard';
 import HorizontalScrollRow from '@/components/HorizontalScrollRow/HorizontalScrollRow';
 import RandomRowSection from '@/components/RandomRowSection/RandomRowSection';
-import AdBanner from '@/components/AdBanner/AdBanner';
 import JsonLd from '@/components/JsonLd/JsonLd';
 import { createClient } from '@/utils/supabase/server';
 import styles from './page.module.css';
@@ -523,16 +522,6 @@ export default async function HomePage() {
       {/* Featured Hero Carousel Banner */}
       <HeroCarousel activeSeries={featuredSeries} isDbEmpty={isDbEmpty} autoplaySpeed={autoplaySpeed} />
 
-
-
-      {/* Hero Bottom Sponsored Ad Banner (728x90 Zone 5986176) */}
-      <AdBanner zoneId="5986176" desktopOnly />
-
-      {/* Mobile-Only Hero Bottom Banner (Zone 5986984) */}
-      <AdBanner zoneId="5986984" insClass="eas6a97888e10" mobileOnly />
-
-
-
       {/* 1. Recent Episodes Section: 4x5 landscape grid (20 items total) */}
       <section className={styles.section}>
         <div className={styles.seriesSectionHeader}>
@@ -611,12 +600,6 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Sponsored Ad Banner: After Recent Episodes (Zone 5986194) */}
-      <AdBanner zoneId="5986194" desktopOnly />
-
-      {/* Mobile-Only After Recent Episodes Banner (Zone 5986994) */}
-      <AdBanner zoneId="5986994" insClass="eas6a97888e10" mobileOnly />
-
       {/* 2. Latest Series Section: Horizontal scroll slider up to 18 items */}
       <section className={styles.section}>
         <HorizontalScrollRow
@@ -629,9 +612,6 @@ export default async function HomePage() {
           ))}
         </HorizontalScrollRow>
       </section>
-
-      {/* Sponsored Ad Banner: After Latest Series (Zone 5986226) - Desktop Only */}
-      <AdBanner zoneId="5986226" desktopOnly />
 
       {/* 3. Trending & Most Viewed Section: Horizontal scroll slider up to 18 items */}
       <section className={styles.section}>
@@ -668,11 +648,6 @@ export default async function HomePage() {
       {/* 5. Random Section: Live Shuffle slider of active series */}
       <section className={styles.section}>
         <RandomRowSection seriesPool={rawPool} />
-      </section>
-
-      {/* Sponsored Native Recommendation Feed Widget (Zone 5986302) - Desktop Only */}
-      <section className={styles.section}>
-        <AdBanner zoneId="5986302" insClass="eas6a97888e20" desktopOnly className={styles.homepageNativeAd} />
       </section>
 
       {/* Recommendations Banner */}

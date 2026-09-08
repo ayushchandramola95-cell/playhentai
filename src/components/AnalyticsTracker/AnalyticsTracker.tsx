@@ -88,23 +88,6 @@ export default function AnalyticsTracker() {
         bait.remove();
       } catch (e) {}
 
-      // Layer B: Network fetch test to ad provider script
-      if (!isBlocked) {
-        try {
-          const testFetch = await fetch('https://a.magsrv.com/ad-provider.js', {
-            method: 'HEAD',
-            mode: 'no-cors',
-            cache: 'no-store',
-          }).catch(() => null);
-
-          if (!testFetch && (window as any).AdProvider === undefined) {
-            isBlocked = true;
-          }
-        } catch (netErr) {
-          isBlocked = true;
-        }
-      }
-
       hasAdBlocker.current = isBlocked;
       sendBeacon('pageview');
     };

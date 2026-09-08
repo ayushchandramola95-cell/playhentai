@@ -27,7 +27,6 @@ import {
 import { GENRES, STUDIOS, RELEASE_YEARS } from '@/utils/constants';
 import SeriesCard from '../SeriesCard/SeriesCard';
 import SeriesCompactCard from '../SeriesCard/SeriesCompactCard';
-import AdBanner from '../AdBanner/AdBanner';
 import JsonLd from '../JsonLd/JsonLd';
 import styles from './BrowseHub.module.css';
 
@@ -851,9 +850,6 @@ function BrowseHubContent({
           )}
         </div>
       )}
-
-      {/* Ad Banner Zone */}
-      <AdBanner zoneId="5986838" />
 
       {/* Catalog Results Grid Section */}
       <section className={styles.catalogSection} ref={catalogRef}>

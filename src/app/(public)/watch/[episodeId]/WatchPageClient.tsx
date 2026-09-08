@@ -15,7 +15,6 @@ import VideoPlayer from '@/components/VideoPlayer/VideoPlayer';
 import CommentSection from '@/components/CommentSection/CommentSection';
 import SimilarTitles from '@/components/SimilarTitles/SimilarTitles';
 import RankedTabWidget from '@/components/RankedTabWidget/RankedTabWidget';
-import AdBanner from '@/components/AdBanner/AdBanner';
 import FavoriteToggle from '@/components/FavoriteToggle/FavoriteToggle';
 import RateSeriesButton from '@/components/RateSeriesButton/RateSeriesButton';
 import styles from './watch.module.css';
@@ -1097,10 +1096,6 @@ export default function WatchPageClient({
               maxItems={5}
             />
           </div>
-
-          {/* Sponsored Ad Banner: Episode Before Similar Titles (Zone 5986956) */}
-          <AdBanner zoneId="5986956" desktopOnly />
-          <AdBanner zoneId="5987000" insClass="eas6a97888e10" mobileOnly />
 
         </div>
 

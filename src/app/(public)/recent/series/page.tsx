@@ -8,7 +8,6 @@ import { getR2Url } from '@/utils/r2';
 import { MOCK_SERIES } from '@/utils/mockData';
 import SeriesCard from '@/components/SeriesCard/SeriesCard';
 import RecentFilterBar from '@/components/RecentFilterBar/RecentFilterBar';
-import AdBanner from '@/components/AdBanner/AdBanner';
 import styles from '../recent.module.css';
 
 export const metadata = {
@@ -238,9 +237,6 @@ export default async function RecentSeriesPage({
         <Suspense fallback={null}>
           <RecentFilterBar type="series" />
         </Suspense>
-
-        {/* Sponsored Ad Banner: Series After Filters (Zone 5986838) */}
-        <AdBanner zoneId="5986838" />
 
         {currentSeries.length === 0 ? (
           <div style={{

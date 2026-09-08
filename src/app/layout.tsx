@@ -5,7 +5,6 @@ import { Providers } from "./providers";
 import Script from "next/script";
 import fs from 'fs';
 import path from 'path';
-import GlobalAds from "@/components/GlobalAds/GlobalAds";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -173,7 +172,6 @@ export default function RootLayout({
         />
         <Providers>
           <AnalyticsTracker />
-          <GlobalAds adsSettings={ads} disabledZones={disabledZones} />
           {children}
         </Providers>
         {/* Optional Cloudflare Web Analytics */}

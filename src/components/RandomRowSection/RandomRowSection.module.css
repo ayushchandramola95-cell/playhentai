@@ -197,25 +197,75 @@
 }
 
 @media (max-width: 768px) {
+  .headerRow {
+    padding-bottom: 0.35rem !important;
+    margin-bottom: 0.4rem !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+    align-items: flex-end !important;
+  }
+
   .sectionTitle {
-    font-size: 1.15rem;
+    font-size: 1.15rem !important;
+    font-weight: 850 !important;
+    line-height: 1.25 !important;
+    letter-spacing: -0.015em !important;
   }
+
+  .sectionSubtitle {
+    font-size: 0.64rem !important;
+    padding: 0.12rem 0.45rem !important;
+    margin-top: 0.15rem !important;
+    border-radius: 4px !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.06em !important;
+  }
+
+  .arrowBtn {
+    display: none !important;
+  }
+
+  .shuffleBtn {
+    padding: 0.35rem 0.65rem !important;
+    font-size: 0.72rem !important;
+    border-radius: 8px !important;
+    height: 28px !important;
+  }
+
+  .viewAllBtn {
+    padding: 0.35rem 0.65rem !important;
+    font-size: 0.74rem !important;
+    font-weight: 750 !important;
+    border-radius: 8px !important;
+    height: 28px !important;
+    white-space: nowrap !important;
+  }
+
   .seriesItem {
-    flex: 0 0 150px;
-    width: 150px;
-    min-width: 150px;
-    max-width: 150px;
+    flex: 0 0 145px !important;
+    width: 145px !important;
+    min-width: 145px !important;
+    max-width: 145px !important;
   }
+
   .scrollContainer {
-    gap: 0.6rem;
+    gap: 0.6rem !important;
+    padding: 0.15rem 0 0.5rem !important;
+  }
+
+  .indicatorRow {
+    display: none !important;
   }
 }
 
 @media (max-width: 480px) {
+  .sectionTitle {
+    font-size: 1.1rem !important;
+  }
+
   .seriesItem {
-    flex: 0 0 135px;
-    width: 135px;
-    min-width: 135px;
-    max-width: 135px;
+    flex: 0 0 135px !important;
+    width: 135px !important;
+    min-width: 135px !important;
+    max-width: 135px !important;
   }
 }

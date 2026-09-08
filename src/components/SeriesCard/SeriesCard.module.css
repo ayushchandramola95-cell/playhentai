@@ -354,3 +354,63 @@
   border-radius: 4px;
   text-transform: capitalize;
 }
+
+/* =========================================================
+   MOBILE SCREEN SPECIFIC POLISH (Max width 768px & below)
+   ========================================================= */
+
+@media (max-width: 768px) {
+  .seriesCard {
+    border-radius: 8px !important;
+  }
+
+  .seriesImageWrapper {
+    border-radius: 8px 8px 0 0 !important;
+  }
+
+  .cardMetaContent {
+    padding: 0.45rem 0.55rem 0.5rem !important;
+    gap: 0.15rem !important;
+  }
+
+  .seriesTitleText {
+    font-size: 0.76rem !important;
+    line-height: 1.25 !important;
+    height: 2.5em !important;
+    font-weight: 750 !important;
+  }
+
+  .seriesBottomMeta {
+    font-size: 0.66rem !important;
+    gap: 0.25rem !important;
+    margin-top: 0.1rem !important;
+  }
+
+  .seriesViewsRow {
+    font-size: 0.66rem !important;
+    gap: 0.2rem !important;
+  }
+
+  .eyeIcon {
+    width: 11px !important;
+    height: 11px !important;
+  }
+
+  .studioText {
+    font-size: 0.64rem !important;
+  }
+
+  .ratingBadge {
+    top: 6px !important;
+    right: 6px !important;
+    font-size: 0.64rem !important;
+    padding: 0.12rem 0.4rem !important;
+    border-radius: 12px !important;
+  }
+
+  .starIcon {
+    width: 9px !important;
+    height: 9px !important;
+  }
+}
+

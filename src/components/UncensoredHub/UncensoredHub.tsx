@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Search, X, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ArrowUpDown, ChevronDown, RotateCcw } from 'lucide-react';
 import SeriesCard from '../SeriesCard/SeriesCard';
-import AdBanner from '../AdBanner/AdBanner';
 import styles from './UncensoredHub.module.css';
 
 interface SeriesItem {
@@ -242,9 +241,6 @@ function UncensoredHubContent({
           Showing <strong>{totalItems > 0 ? startIndex + 1 : 0}–{Math.min(startIndex + ITEMS_PER_PAGE, totalItems)}</strong> of <strong>{totalItems}</strong> Series
         </span>
       </div>
-
-      {/* Sponsored Ad Banner */}
-      <AdBanner zoneId="5986838" />
 
       {/* Catalog Results Grid Section */}
       <section className={styles.catalogSection}>
