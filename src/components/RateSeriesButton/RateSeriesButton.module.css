@@ -42,6 +42,45 @@
   box-shadow: 0 6px 16px rgba(234, 179, 8, 0.4);
 }
 
+.compactRateWrapper {
+  width: auto;
+  display: inline-flex;
+}
+
+.compactRateBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 38px;
+  padding: 0 1rem;
+  background: rgba(234, 179, 8, 0.08);
+  border: 1px solid rgba(234, 179, 8, 0.28);
+  border-radius: 12px;
+  color: #facc15;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+  outline: none;
+  font-family: inherit;
+}
+
+.compactRateBtn:hover {
+  background: rgba(234, 179, 8, 0.18);
+  border-color: #facc15;
+  color: #fef08a;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(234, 179, 8, 0.25);
+}
+
+.activeCompactRateBtn {
+  background: rgba(234, 179, 8, 0.22);
+  border-color: #facc15;
+  color: #fef08a;
+  box-shadow: 0 0 16px rgba(234, 179, 8, 0.3);
+}
+
 .starIconOnlyBtn {
   display: inline-flex;
   align-items: center;
@@ -69,17 +108,19 @@
   border-color: #eab308;
 }
 
-/* Glassmorphic Popover */
+/* Solid, High-Contrast Popover */
 .ratePopover {
   position: absolute;
   bottom: calc(100% + 12px);
   left: 50%;
   transform: translateX(-50%);
-  width: 290px;
+  width: 295px;
   padding: 1.25rem;
   border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.08);
-  z-index: 110;
+  background: #0d121f;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(168, 85, 247, 0.35);
+  z-index: 120;
   text-align: center;
   animation: fade-in-up 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -92,7 +133,7 @@
   transform: translateX(-50%);
   border-width: 6px;
   border-style: solid;
-  border-color: rgba(17, 23, 38, 0.9) transparent transparent transparent;
+  border-color: #0d121f transparent transparent transparent;
 }
 
 @keyframes fade-in-up {

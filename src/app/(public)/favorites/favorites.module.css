@@ -348,21 +348,65 @@
   box-shadow: 0 2px 10px rgba(239, 68, 68, 0.2);
 }
 
-/* Quick Tags Row */
+/* Quick Tags Row (Horizontally Scrollable) */
 .tagsFilterRow {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
+  gap: 0.75rem;
   padding-top: 0.75rem;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
+  min-width: 0;
+  width: 100%;
 }
 
 .tagsFilterLabel {
   font-size: 0.8rem;
   font-weight: 600;
   color: var(--text-muted, #94a3b8);
-  margin-right: 0.25rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.tagsScrollContainer {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex: 1;
+  min-width: 0;
+  position: relative;
+}
+
+.tagsScrollTrack {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+  padding: 0.15rem 0.1rem;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  flex: 1;
+  min-width: 0;
+}
+
+.tagsScrollTrack::-webkit-scrollbar {
+  height: 4px;
+}
+
+.tagsScrollTrack::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tagsScrollTrack::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+}
+
+.tagsScrollTrack::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
 }
 
 .tagFilterChip {
@@ -377,7 +421,10 @@
   font-weight: 500;
   border-radius: 8px;
   cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
   transition: all 0.2s ease;
+  user-select: none;
 }
 
 .tagFilterChip:hover {
@@ -400,6 +447,27 @@
 
 .tagFilterActive .tagCount {
   color: #f472b6;
+}
+
+.tagsScrollBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.tagsScrollBtn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 /* Catalog Grid Section */

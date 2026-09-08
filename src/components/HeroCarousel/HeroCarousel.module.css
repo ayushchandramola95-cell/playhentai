@@ -426,12 +426,35 @@
   }
 }
 
+/* Mobile Screens (max-width: 768px) */
 @media (max-width: 768px) {
   .heroSection {
-    min-height: 260px;
-    height: auto;
-    padding: 2.4rem 0 3.8rem 0;
+    min-height: 410px;
+    height: 58vh;
+    max-height: 480px;
+    padding: 0;
+    margin: 0;
     overflow: hidden;
+  }
+
+  .heroBg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .heroImage {
+    object-fit: cover;
+    object-position: center 18%;
+    filter: brightness(0.92);
+  }
+
+  /* Cinematic mobile-optimized vignette overlay */
+  .heroOverlay {
+    background: 
+      linear-gradient(to bottom, rgba(8, 8, 12, 0.45) 0%, transparent 22%),
+      linear-gradient(to top, #08080c 0%, rgba(8, 8, 12, 0.96) 32%, rgba(8, 8, 12, 0.65) 60%, rgba(8, 8, 12, 0.12) 100%) !important;
   }
 
   .posterCardWrapper {
@@ -439,86 +462,181 @@
   }
 
   .heroContentWrapper {
-    padding: 0 1.2rem;
+    padding: 0 1.25rem 2.85rem 1.25rem;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+
+  .heroCardContainer {
+    width: 100%;
+    gap: 0;
+  }
+
+  .heroContent {
+    max-width: 100%;
+    gap: 0.4rem;
   }
 
   .navBtn {
     display: none;
   }
 
+  .badgeRow {
+    gap: 0.45rem;
+    margin-bottom: 0.1rem;
+  }
+
+  .taglineBadge {
+    font-size: 0.68rem;
+    padding: 0.2rem 0.6rem;
+    letter-spacing: 0.03em;
+  }
+
+  .qualityBadge {
+    font-size: 0.68rem;
+    padding: 0.2rem 0.55rem;
+  }
+
+  .categoryBadge {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.6rem;
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
   .heroTitle {
-    font-size: 1.4rem;
-    line-height: 1.25;
-    margin-bottom: 0.25rem;
+    font-size: 1.45rem;
+    line-height: 1.2;
+    margin: 0;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    text-shadow: 0 2px 14px rgba(0, 0, 0, 0.9);
   }
 
   .genreSubLine {
     font-size: 0.8rem;
-    margin-bottom: 0.3rem;
+    color: #e2e8f0;
+    font-weight: 700;
+    margin: 0.05rem 0 0.1rem 0;
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.85);
   }
 
   .heroDescription {
-    font-size: 0.84rem;
-    line-height: 1.45;
+    font-size: 0.82rem;
+    line-height: 1.4;
+    color: rgba(255, 255, 255, 0.8);
     -webkit-line-clamp: 2;
-    margin: 0.25rem 0 0.85rem 0;
+    margin: 0 0 0.75rem 0;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
   }
 
   .heroButtons {
     display: flex;
     flex-direction: row;
     align-items: center;
-    gap: 0.45rem;
+    gap: 0.5rem;
     width: 100%;
   }
 
   .heroButtons > * {
-    flex: 1;
-    min-width: 0;
+    min-height: 42px;
+    display: inline-flex;
+    align-items: center;
     justify-content: center;
-    font-size: 0.8rem !important;
-    padding: 0.58rem 0.45rem !important;
-    border-radius: 8px !important;
+    border-radius: 11px !important;
   }
 
   .playBtn {
-    flex: 1.1;
-    gap: 0.35rem;
+    flex: 1.5 !important;
+    font-size: 0.86rem !important;
+    font-weight: 800 !important;
+    gap: 0.4rem;
+    padding: 0.65rem 0.75rem !important;
+    background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%) !important;
+    box-shadow: 0 4px 18px rgba(168, 85, 247, 0.45) !important;
+    border: none !important;
   }
 
   .detailsBtn {
-    gap: 0.3rem;
+    flex: 1 !important;
+    font-size: 0.82rem !important;
+    font-weight: 700 !important;
+    gap: 0.35rem;
+    padding: 0.65rem 0.5rem !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid rgba(255, 255, 255, 0.18) !important;
+    backdrop-filter: blur(10px) !important;
+    color: #ffffff !important;
+  }
+
+  .heroButtons :global(button) {
+    flex: 1 !important;
+    font-size: 0.82rem !important;
+    font-weight: 700 !important;
+    gap: 0.35rem;
+    padding: 0.65rem 0.5rem !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid rgba(255, 255, 255, 0.18) !important;
+    backdrop-filter: blur(10px) !important;
+    color: #ffffff !important;
   }
 
   .capsuleDotsContainer {
-    bottom: 0.8rem;
-    padding: 0.25rem 0.6rem;
+    bottom: 0.75rem;
+    background: rgba(10, 8, 20, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    backdrop-filter: blur(12px);
+    padding: 0.28rem 0.75rem;
+    border-radius: 30px;
     gap: 0.4rem;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.65);
+  }
+
+  .dot {
+    width: 6.5px;
+    height: 6.5px;
+  }
+
+  .dotActive {
+    width: 22px;
+    background: linear-gradient(135deg, #c084fc, #9333ea);
+    box-shadow: 0 0 10px rgba(192, 132, 252, 0.6);
   }
 }
 
 @media (max-width: 480px) {
   .heroSection {
-    min-height: 250px;
-    padding: 2.2rem 0 3.6rem 0;
+    min-height: 390px;
+    height: 60vh;
+    max-height: 450px;
   }
 
   .heroContentWrapper {
-    padding: 0 0.85rem;
+    padding: 0 1rem 2.65rem 1rem;
   }
 
   .heroTitle {
-    font-size: 1.3rem;
+    font-size: 1.35rem;
   }
 
-  .heroDescription {
-    font-size: 0.82rem;
-    -webkit-line-clamp: 2;
-    margin-bottom: 0.75rem;
+  .heroButtons {
+    gap: 0.4rem;
   }
 
-  .heroButtons > * {
-    font-size: 0.76rem !important;
-    padding: 0.52rem 0.3rem !important;
+  .playBtn {
+    font-size: 0.82rem !important;
+    padding: 0.6rem 0.5rem !important;
+  }
+
+  .detailsBtn {
+    font-size: 0.78rem !important;
+    padding: 0.6rem 0.4rem !important;
+  }
+
+  .heroButtons :global(button) {
+    font-size: 0.78rem !important;
+    padding: 0.6rem 0.4rem !important;
   }
 }

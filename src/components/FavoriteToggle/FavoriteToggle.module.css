@@ -78,23 +78,33 @@
 
 /* Player variant for watch page control bars */
 .playerVariant {
-  padding: 0.45rem 0.85rem;
-  font-size: 0.8rem;
-  border-radius: 8px;
+  height: 38px;
+  padding: 0 1rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  border-radius: 12px;
   width: auto;
   background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: var(--foreground-secondary, #94a3b8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #cbd5e1;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .playerVariant:hover {
   background: rgba(244, 63, 94, 0.15);
   border-color: #f43f5e;
-  color: #f43f5e;
+  color: #ff758f;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(244, 63, 94, 0.25);
 }
 
 .playerVariant.active {
-  background: rgba(244, 63, 94, 0.2);
+  background: rgba(244, 63, 94, 0.22);
   border-color: #f43f5e;
-  color: #f43f5e;
+  color: #ff758f;
+  box-shadow: 0 0 16px rgba(244, 63, 94, 0.3);
 }

@@ -7,9 +7,10 @@ import styles from './SimilarTitles.module.css';
 
 interface SimilarTitlesProps {
   list: SeriesItem[];
+  title?: string;
 }
 
-export default function SimilarTitles({ list }: SimilarTitlesProps) {
+export default function SimilarTitles({ list, title = 'You May Also Like' }: SimilarTitlesProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(true);
@@ -26,8 +27,6 @@ export default function SimilarTitles({ list }: SimilarTitlesProps) {
     const container = scrollContainerRef.current;
     if (container) {
       container.addEventListener('scroll', handleScroll);
-      // Run initial check once mounted
-      // Use short delay to ensure browser layout completed
       const timer = setTimeout(handleScroll, 200);
       return () => {
         container.removeEventListener('scroll', handleScroll);
@@ -39,7 +38,7 @@ export default function SimilarTitles({ list }: SimilarTitlesProps) {
   const scroll = (direction: 'left' | 'right') => {
     if (scrollContainerRef.current) {
       const container = scrollContainerRef.current;
-      const scrollAmount = 400; // scrolls roughly 2 cards
+      const scrollAmount = container.clientWidth * 0.75;
       const target = direction === 'left' ? container.scrollLeft - scrollAmount : container.scrollLeft + scrollAmount;
       container.scrollTo({
         left: target,
@@ -54,8 +53,11 @@ export default function SimilarTitles({ list }: SimilarTitlesProps) {
     <section className={styles.similarSection}>
       <div className={styles.sectionHeader}>
         <div className={styles.sectionHeaderTitle}>
-          <Compass size={22} className={styles.headerIcon} />
-          <h2>Similar Titles</h2>
+          <div className={styles.iconCircle}>
+            <Compass size={18} className={styles.headerIcon} />
+          </div>
+          <h2>{title}</h2>
+          <span className={styles.recBadge}>RECOMMENDED</span>
         </div>
       </div>
 
@@ -66,15 +68,18 @@ export default function SimilarTitles({ list }: SimilarTitlesProps) {
             className={`${styles.scrollArrow} ${styles.leftArrow}`} 
             onClick={() => scroll('left')}
             aria-label="Scroll left"
+            type="button"
           >
-            <ChevronLeft size={24} />
+            <ChevronLeft size={22} />
           </button>
         )}
 
         {/* Similar Scroll Grid */}
         <div className={styles.similarGrid} ref={scrollContainerRef}>
           {list.map((series) => (
-            <SeriesCard key={series.id} item={series} />
+            <div key={series.id} className={styles.cardItemWrapper}>
+              <SeriesCard item={series} />
+            </div>
           ))}
         </div>
 
@@ -84,11 +89,13 @@ export default function SimilarTitles({ list }: SimilarTitlesProps) {
             className={`${styles.scrollArrow} ${styles.rightArrow}`} 
             onClick={() => scroll('right')}
             aria-label="Scroll right"
+            type="button"
           >
-            <ChevronRight size={24} />
+            <ChevronRight size={22} />
           </button>
         )}
       </div>
     </section>
   );
 }
+

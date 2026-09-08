@@ -5,6 +5,7 @@ import { unstable_cache } from 'next/cache';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { getR2Url } from '@/utils/r2';
 import { MOCK_SERIES, MOCK_SERIES_DETAILS } from '@/utils/mockData';
+import { getSeriesViewsMap } from '@/utils/views';
 import { parseEpisodeSlug, getEpisodeWatchUrl } from '@/utils/episodeUrl';
 import WatchPageClient from './WatchPageClient';
 import JsonLd from '@/components/JsonLd/JsonLd';
@@ -312,17 +313,29 @@ export async function generateMetadata({ params }: WatchPageProps): Promise<Meta
 const getCachedMinimalSeriesList = unstable_cache(
   async () => {
     try {
-      const { data } = await publicSupabaseClient
+      const viewsMap = await getSeriesViewsMap();
+      const { data, error } = await publicSupabaseClient
         .from('series')
-        .select('id, title, slug, studio, tags, status, release_year, rating, poster_image_key, cover_image_key, poster_position, content_rating')
+        .select('id, title, slug, studio, tags, status, release_year, poster_image_key, cover_image_key, poster_position, content_rating, description, created_at')
         .eq('is_published', true);
-      return data || [];
-    } catch {
+      if (error) {
+        console.error('Error fetching minimal series list for watch page:', error);
+        return [];
+      }
+      if (data && data.length > 0) {
+        return data.map((s: any) => ({
+          ...s,
+          views: viewsMap[s.id] || 0,
+        }));
+      }
+      return [];
+    } catch (err) {
+      console.error('Exception in getCachedMinimalSeriesList:', err);
       return [];
     }
   },
-  ['minimal-series-list-watch-cache-v1'],
-  { revalidate: 3600, tags: ['series_list'] }
+  ['minimal-series-list-watch-cache-v7'],
+  { revalidate: 60, tags: ['series_list'] }
 );
 
 export default async function WatchPage({ params }: WatchPageProps) {
@@ -347,33 +360,35 @@ export default async function WatchPage({ params }: WatchPageProps) {
 
   const { activeEpisode, seriesDetails, seriesTitle, seriesSlug, seasonTitle, seasonEpisodes, isDbEmpty } = resolved;
 
-  const sourceList = isDbEmpty ? MOCK_SERIES : allSeriesList;
+  const sourceList = (allSeriesList && allSeriesList.length > 0) ? allSeriesList : MOCK_SERIES;
 
-  // Helper helper to get stable ratings
-  function getStableRating(id: string) {
-    let hash = 0;
-    for (let i = 0; i < id.length; i++) {
-      hash = id.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    return 7.0 + (Math.abs(hash) % 25) / 10;
-  }
+  const currentStudios = (seriesDetails?.studio || '')
+    .split(',')
+    .map((st: string) => st.trim().toLowerCase())
+    .filter(Boolean);
 
-  const similarSeries = [...sourceList]
-    .filter((s: any) => s.slug !== seriesSlug)
+  const currentTags = Array.isArray(seriesDetails?.tags)
+    ? seriesDetails.tags.map((t: string) => t.toLowerCase())
+    : [];
+
+  const actRating = typeof seriesDetails?.rating === 'number' && seriesDetails?.rating > 0
+    ? seriesDetails.rating
+    : null;
+
+  let scoredCandidates = sourceList
+    .filter((s: any) => s.slug !== seriesSlug && s.id !== seriesDetails?.id)
     .map((s: any) => {
       let score = 0;
-      // 1. Same Studio (+6 points)
-      if (s.studio && seriesDetails?.studio) {
-        const sStudios = s.studio.split(',').map((st: string) => st.trim().toLowerCase());
-        const actStudios = seriesDetails.studio.split(',').map((st: string) => st.trim().toLowerCase());
-        const hasOverlap = sStudios.some((st: string) => actStudios.includes(st));
-        if (hasOverlap) score += 6;
+      // 1. Same Studio (+8 points)
+      if (currentStudios.length > 0 && s.studio) {
+        const sStudios = s.studio.split(',').map((st: string) => st.trim().toLowerCase()).filter(Boolean);
+        const hasOverlap = sStudios.some((st: string) => currentStudios.includes(st));
+        if (hasOverlap) score += 8;
       }
       // 2. Shared Tags (+4 points for EACH matching tag)
-      if (s.tags && seriesDetails?.tags) {
+      if (currentTags.length > 0 && Array.isArray(s.tags)) {
         const sTags = s.tags.map((t: string) => t.toLowerCase());
-        const actTags = seriesDetails.tags.map((t: string) => t.toLowerCase());
-        const intersection = sTags.filter((t: string) => actTags.includes(t));
+        const intersection = sTags.filter((t: string) => currentTags.includes(t));
         score += intersection.length * 4;
       }
       // 3. Same Airing Status (+2 points)
@@ -385,27 +400,68 @@ export default async function WatchPage({ params }: WatchPageProps) {
         score += 1;
       }
       // 5. Similar Rating (within ±1.0) (+1 point)
-      const sRating = s.rating || getStableRating(s.id || s.title);
-      const actRating = seriesDetails?.rating || getStableRating(seriesDetails?.id || seriesDetails?.title || '');
-      if (Math.abs(sRating - actRating) <= 1.0) {
+      const sRating = typeof s.rating === 'number' && s.rating > 0 ? Number(s.rating.toFixed(1)) : null;
+      if (actRating !== null && sRating !== null && Math.abs(sRating - actRating) <= 1.0) {
         score += 1;
       }
+
       return {
         id: s.id,
         title: s.title,
         slug: s.slug,
+        description: s.description || '',
         poster_image_key: s.poster_image_key,
         cover_image_key: s.cover_image_key,
-        poster_position: s.poster_position,
-        rating: s.rating || getStableRating(s.id),
+        poster_position: s.poster_position || 'center',
+        rating: sRating,
         status: s.status,
         content_rating: s.content_rating,
-        tags: s.tags,
+        tags: s.tags || [],
+        views: s.views || 0,
         score
       };
-    })
-    .sort((a: any, b: any) => b.score - a.score)
+    });
+
+  // Sort candidates by match score descending, then views descending
+  scoredCandidates.sort((a: any, b: any) => {
+    if (b.score !== a.score) return b.score - a.score;
+    return (b.views || 0) - (a.views || 0);
+  });
+
+  // Pick scored matches first
+  let similarSeries = scoredCandidates
+    .filter((item: any) => item.score > 0)
     .slice(0, 10);
+
+  // If fewer than 10 matches, backfill from other catalog series
+  if (similarSeries.length < 10) {
+    const existingIds = new Set(similarSeries.map((s: any) => s.id || s.slug));
+    const backfill = scoredCandidates
+      .filter((s: any) => !existingIds.has(s.id || s.slug))
+      .slice(0, 10 - similarSeries.length);
+    similarSeries = [...similarSeries, ...backfill];
+  }
+
+  if (similarSeries.length === 0) {
+    similarSeries = MOCK_SERIES
+      .filter((s: any) => s.slug !== seriesSlug)
+      .map((s: any) => ({
+        id: s.id,
+        title: s.title,
+        slug: s.slug,
+        description: s.description || '',
+        poster_image_key: s.poster_image_key,
+        cover_image_key: s.cover_image_key,
+        poster_position: s.poster_position || 'center',
+        rating: s.rating || 8.5,
+        status: s.status || 'finalized',
+        content_rating: s.content_rating || 'censored',
+        tags: s.tags || [],
+        views: s.views || 0,
+        score: 0,
+      }))
+      .slice(0, 10);
+  }
 
   const currentIdx = seasonEpisodes.findIndex((ep: any) => ep.id === activeEpisode.id || ep.episode_number === activeEpisode.episode_number);
   const prevEpisode = currentIdx > 0 ? seasonEpisodes[currentIdx - 1] : null;
@@ -493,6 +549,43 @@ export default async function WatchPage({ params }: WatchPageProps) {
 
   const showVideoSchema = !!activeEpisode.video_key && activeEpisode.video_key.trim() !== '';
 
+  // Popular Series: Top 10 by views/ratings for sidebar widget
+  const popularSeries = [...sourceList]
+    .map((s: any) => ({
+      id: s.id,
+      title: s.title,
+      slug: s.slug,
+      poster_image_key: s.poster_image_key,
+      cover_image_key: s.cover_image_key,
+      poster_position: s.poster_position || 'center',
+      rating: typeof s.rating === 'number' && s.rating > 0 ? Number(s.rating.toFixed(1)) : null,
+      release_year: s.release_year || 2024,
+      views: s.views || 0,
+    }))
+    .sort((a, b) => (b.views || 0) - (a.views || 0) || (b.rating || 0) - (a.rating || 0))
+    .slice(0, 10);
+
+  // New Series: Top 10 by release_year / created_at for sidebar widget
+  const newSeries = [...sourceList]
+    .map((s: any) => ({
+      id: s.id,
+      title: s.title,
+      slug: s.slug,
+      poster_image_key: s.poster_image_key,
+      cover_image_key: s.cover_image_key,
+      poster_position: s.poster_position || 'center',
+      rating: typeof s.rating === 'number' && s.rating > 0 ? Number(s.rating.toFixed(1)) : null,
+      release_year: s.release_year || 2024,
+      created_at: s.created_at,
+    }))
+    .sort((a, b) => {
+      if ((b.release_year || 0) !== (a.release_year || 0)) {
+        return (b.release_year || 0) - (a.release_year || 0);
+      }
+      return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+    })
+    .slice(0, 10);
+
   return (
     <>
       <JsonLd data={showVideoSchema ? [videoJsonLd, breadcrumbJsonLd] : [breadcrumbJsonLd]} />
@@ -504,9 +597,12 @@ export default async function WatchPage({ params }: WatchPageProps) {
         seriesTitle={seriesTitle}
         seriesSlug={seriesSlug}
         similarSeries={similarSeries}
+        popularSeries={popularSeries}
+        newSeries={newSeries}
         isDbEmpty={isDbEmpty}
         prevEpisode={prevEpisode}
         nextEpisode={nextEpisode}
+        allSeasons={seriesDetails?.seasons || []}
       />
     </>
   );

@@ -158,7 +158,8 @@ export default function CommentSection({ episodeId }: CommentSectionProps) {
     setCommentReactions(prev => {
       const cmtEmotes = { ...(prev[commentId] || {}) };
       const hasEmote = userActiveEmotes[commentId]?.has(emote);
-      cmtEmotes[emote] = (cmtEmotes[emote] || Math.floor(Math.random() * 4 + 1)) + (hasEmote ? -1 : 1);
+      const currentVal = cmtEmotes[emote] || 0;
+      cmtEmotes[emote] = Math.max(0, currentVal + (hasEmote ? -1 : 1));
       return { ...prev, [commentId]: cmtEmotes };
     });
   };

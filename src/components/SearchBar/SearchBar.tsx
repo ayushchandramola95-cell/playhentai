@@ -136,7 +136,7 @@ export default function SearchBar({ onFocusChange }: SearchBarProps) {
         <input
           ref={inputRef}
           type="text"
-          placeholder="Search series, categories, tags..."
+          placeholder="Search series, tags..."
           value={query}
           onChange={(e) => {
             setQuery(e.target.value);

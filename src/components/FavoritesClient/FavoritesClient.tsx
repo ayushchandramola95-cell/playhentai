@@ -10,6 +10,8 @@ import {
   X,
   ArrowUpDown,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   LayoutGrid,
   ListFilter,
   Sparkles,
@@ -65,6 +67,15 @@ export default function FavoritesClient({ initialFavorites = [], user: initialUs
   const [removingId, setRemovingId] = useState<string | null>(null);
   const [showClearModal, setShowClearModal] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
+
+  const tagsScrollRef = React.useRef<HTMLDivElement>(null);
+
+  const scrollTags = (direction: 'left' | 'right') => {
+    if (tagsScrollRef.current) {
+      const scrollAmount = direction === 'left' ? -220 : 220;
+      tagsScrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+  };
 
   // Helper to read local favorites
   const getLocalFavIds = useCallback((): string[] => {
@@ -150,7 +161,6 @@ export default function FavoritesClient({ initialFavorites = [], user: initialUs
 
     const sorted = Object.entries(tagCounts)
       .sort((a, b) => b[1] - a[1])
-      .slice(0, 8)
       .map(([name, count]) => ({ name, count }));
 
     return sorted;
@@ -408,27 +418,58 @@ export default function FavoritesClient({ initialFavorites = [], user: initialUs
             </div>
           </div>
 
-          {/* Quick Tag Pills */}
+          {/* Quick Tag Pills (Horizontally Scrollable) */}
           {availableTags.length > 0 && (
             <div className={styles.tagsFilterRow}>
               <span className={styles.tagsFilterLabel}>Filter by:</span>
-              <button
-                type="button"
-                onClick={() => setSelectedTag('all')}
-                className={`${styles.tagFilterChip} ${selectedTag === 'all' ? styles.tagFilterActive : ''}`}
-              >
-                All ({favorites.length})
-              </button>
-              {availableTags.map((tag) => (
+
+              <div className={styles.tagsScrollContainer}>
                 <button
-                  key={tag.name}
                   type="button"
-                  onClick={() => setSelectedTag(selectedTag === tag.name ? 'all' : tag.name)}
-                  className={`${styles.tagFilterChip} ${selectedTag === tag.name ? styles.tagFilterActive : ''}`}
+                  onClick={() => scrollTags('left')}
+                  className={styles.tagsScrollBtn}
+                  aria-label="Scroll tags left"
                 >
-                  {tag.name} <span className={styles.tagCount}>({tag.count})</span>
+                  <ChevronLeft size={14} />
                 </button>
-              ))}
+
+                <div
+                  ref={tagsScrollRef}
+                  className={styles.tagsScrollTrack}
+                  onWheel={(e) => {
+                    if (e.deltaY !== 0 && tagsScrollRef.current) {
+                      tagsScrollRef.current.scrollLeft += e.deltaY;
+                    }
+                  }}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setSelectedTag('all')}
+                    className={`${styles.tagFilterChip} ${selectedTag === 'all' ? styles.tagFilterActive : ''}`}
+                  >
+                    All <span className={styles.tagCount}>({favorites.length})</span>
+                  </button>
+                  {availableTags.map((tag) => (
+                    <button
+                      key={tag.name}
+                      type="button"
+                      onClick={() => setSelectedTag(selectedTag === tag.name ? 'all' : tag.name)}
+                      className={`${styles.tagFilterChip} ${selectedTag === tag.name ? styles.tagFilterActive : ''}`}
+                    >
+                      {tag.name} <span className={styles.tagCount}>({tag.count})</span>
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => scrollTags('right')}
+                  className={styles.tagsScrollBtn}
+                  aria-label="Scroll tags right"
+                >
+                  <ChevronRight size={14} />
+                </button>
+              </div>
             </div>
           )}
         </div>

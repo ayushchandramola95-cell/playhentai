@@ -35,11 +35,21 @@
   height: 100%;
   object-fit: contain;
   cursor: pointer;
+  background: #000000;
   -webkit-tap-highlight-color: transparent !important;
   -webkit-touch-callout: none !important;
   -webkit-user-select: none !important;
   user-select: none !important;
   outline: none !important;
+}
+
+/* Pure Black Screen Backdrop Before Video Plays */
+.blackScreenBackdrop {
+  position: absolute;
+  inset: 0;
+  background: #000000;
+  z-index: 4;
+  pointer-events: none;
 }
 
 /* Controls Overlay */
@@ -136,10 +146,10 @@
 
 /* Bottom Controls */
 .bottomControls {
-  padding: 1rem 1.5rem 1.25rem;
+  padding: 0.65rem 1.1rem 0.85rem;
   display: flex;
   flex-direction: column;
-  gap: 0.8rem;
+  gap: 0.55rem;
 }
 
 .progressBarRow {
@@ -162,8 +172,8 @@
 
 .seekSlider::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 13px;
-  height: 13px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
   background: #ffffff;
   cursor: pointer;
@@ -173,7 +183,7 @@
 }
 
 .seekSlider:hover::-webkit-slider-thumb {
-  transform: scale(1.25);
+  transform: scale(1.2);
 }
 
 /* Controls Buttons Row */
@@ -187,7 +197,7 @@
 .leftControls, .rightControls {
   display: flex;
   align-items: center;
-  gap: 1.2rem;
+  gap: 0.65rem;
 }
 
 .controlBtn {
@@ -198,7 +208,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.4rem;
+  padding: 0.3rem;
   border-radius: 50%;
   transition: all 0.2s ease;
   position: relative;
@@ -206,16 +216,43 @@
 
 .controlBtn:hover {
   background: rgba(255, 255, 255, 0.18);
-  color: #ff5e00;
+  color: #c084fc;
+}
+
+.cinemaActiveBtn {
+  color: #fbbf24 !important;
+  background: rgba(251, 191, 36, 0.2) !important;
+}
+
+.seekStepBtn {
+  background: transparent;
+  border: none;
+  color: #e2e8f0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.2rem 0.35rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 750;
+  font-family: inherit;
+  transition: all 0.15s ease;
+}
+
+.seekStepBtn:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
 }
 
 .timeDisplay {
-  font-size: 0.85rem;
-  font-weight: 700;
+  font-size: 0.82rem;
+  font-weight: 750;
   display: flex;
   align-items: center;
-  gap: 0.3rem;
+  gap: 0.25rem;
   color: #e2e8f0;
+  margin-left: 0.15rem;
 }
 
 .timeDivider {
@@ -226,13 +263,13 @@
 .volumeGroup {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.25rem;
 }
 
 .volumeSlider {
   -webkit-appearance: none;
-  width: 70px;
-  height: 4px;
+  width: 52px;
+  height: 3.5px;
   border-radius: 2px;
   outline: none;
   cursor: pointer;
@@ -240,11 +277,67 @@
 
 .volumeSlider::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 10px;
-  height: 10px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
   background: #ffffff;
   cursor: pointer;
+}
+
+/* In-Player Autoplay Switch */
+.inPlayerAutoplayBtn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  padding: 0.2rem 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  cursor: pointer;
+  color: #e2e8f0;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  outline: none;
+}
+
+.inPlayerAutoplayBtn:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+}
+
+.inPlayerAutoplayText {
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.inPlayerToggleTrack {
+  width: 22px;
+  height: 12px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  position: relative;
+  transition: background 0.25s ease;
+}
+
+.inPlayerToggleTrackActive {
+  background: #a855f7;
+}
+
+.inPlayerToggleThumb {
+  width: 8px;
+  height: 8px;
+  background: #ffffff;
+  border-radius: 50%;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.inPlayerToggleThumbActive {
+  transform: translateX(10px);
 }
 
 /* Speed Dropdown Menu */
@@ -273,6 +366,7 @@
   background: rgba(18, 14, 32, 0.95);
   border: 1px solid rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(16px);
+  z-index: 30;
 }
 
 @keyframes slide-up-dropdown {
@@ -307,13 +401,306 @@
 }
 
 .activeSpeed {
-  color: #ff5e00;
-  background: rgba(255, 94, 0, 0.15) !important;
+  color: var(--primary);
+  background: rgba(168, 85, 247, 0.15) !important;
+}
+
+/* Quick Seek Buttons (10s back/fwd) */
+.seekStepBtn {
+  background: transparent;
+  border: none;
+  color: #cbd5e1;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 0.35rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  transition: all 0.15s ease;
+}
+
+.seekStepBtn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+}
+
+/* Floating Resume Playback Pill */
+.resumePrompt {
+  position: absolute;
+  top: 75px;
+  left: 25px;
+  background: rgba(15, 23, 42, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #f1f5f9;
+  padding: 0.45rem 0.85rem;
+  border-radius: 30px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(16px);
+  z-index: 18;
+  animation: slide-in-left 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.resumeIcon {
+  color: #a855f7;
+}
+
+.resumePlayBtn {
+  background: #a855f7;
+  border: none;
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 0.25rem 0.65rem;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.resumePlayBtn:hover {
+  background: #c084fc;
+  transform: scale(1.05);
+}
+
+.resumeDismissBtn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  border-radius: 50%;
+  transition: color 0.15s ease;
+}
+
+.resumeDismissBtn:hover {
+  color: #ffffff;
+}
+
+/* Autoplay Countdown Overlay */
+.autoplayOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(9, 13, 22, 0.88);
+  backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 25;
+  animation: fade-in-autoplay 0.3s ease;
+}
+
+@keyframes fade-in-autoplay {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.autoplayCard {
+  background: rgba(18, 24, 38, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  padding: 2rem 2.5rem;
+  text-align: center;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(168, 85, 247, 0.25);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 360px;
+  width: 90%;
+}
+
+.countdownRing {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 3px solid rgba(168, 85, 247, 0.3);
+  border-top-color: #a855f7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+  animation: spin-countdown 1s linear infinite;
+}
+
+@keyframes spin-countdown {
+  to { transform: rotate(360deg); }
+}
+
+.countdownNumber {
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: #ffffff;
+  animation: counter-spin 1s linear infinite reverse;
+}
+
+@keyframes counter-spin {
+  to { transform: rotate(360deg); }
+}
+
+.autoplayCard h4 {
+  font-size: 1.15rem;
+  font-weight: 850;
+  color: #ffffff;
+  margin-bottom: 0.3rem;
+}
+
+.autoplayCard p {
+  font-size: 0.88rem;
+  color: #94a3b8;
+  margin-bottom: 1.5rem;
+}
+
+.autoplayActions {
+  display: flex;
+  gap: 0.8rem;
+  width: 100%;
+}
+
+.autoplayCancelBtn {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #cbd5e1;
+  padding: 0.65rem 1rem;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.autoplayCancelBtn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+}
+
+.autoplayPlayBtn {
+  flex: 1;
+  background: #a855f7;
+  border: none;
+  color: #ffffff;
+  padding: 0.65rem 1rem;
+  border-radius: 10px;
+  font-weight: 800;
+  font-size: 0.85rem;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(168, 85, 247, 0.4);
+  transition: all 0.2s ease;
+}
+
+.autoplayPlayBtn:hover {
+  background: #c084fc;
+  transform: translateY(-1px);
+}
+
+/* Keyboard Shortcuts Modal */
+.shortcutsModalBackdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 35;
+  padding: 1rem;
+}
+
+.shortcutsModal {
+  background: #0d121f;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 18px;
+  padding: 1.5rem 1.8rem;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(168, 85, 247, 0.3);
+  color: #ffffff;
+}
+
+.shortcutsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.2rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 0.75rem;
+}
+
+.shortcutsHeader h3 {
+  font-size: 1rem;
+  font-weight: 850;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #ffffff;
+}
+
+.shortcutsList {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem 1.2rem;
+}
+
+.shortcutItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.82rem;
+  color: #cbd5e1;
+}
+
+.shortcutKey {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #a855f7;
+  font-family: monospace;
 }
 
 @media (max-width: 900px) {
   .theaterBtn {
     display: none !important;
+  }
+
+  .seekStepBtn {
+    display: none !important;
+  }
+
+  .floatingSkipIntroBtn {
+    bottom: 60px;
+    right: 15px;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.75rem;
+  }
+
+  .resumePrompt {
+    top: 50px;
+    left: 12px;
+    font-size: 0.75rem;
+    padding: 0.35rem 0.65rem;
   }
 
   .topHeader {
@@ -357,3 +744,4 @@
     padding: 0.25rem;
   }
 }
+

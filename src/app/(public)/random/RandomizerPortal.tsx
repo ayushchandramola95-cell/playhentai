@@ -306,7 +306,7 @@ export default function RandomizerPortal({ seriesList }: RandomizerPortalProps) 
                 const rating = typeof item.rating === 'number' && item.rating > 0 
                   ? item.rating 
                   : (item.rating && !isNaN(Number(item.rating)) && Number(item.rating) > 0 ? Number(item.rating) : null);
-                const views = item.views_count !== undefined ? item.views_count : (item.views !== undefined ? item.views : 1420);
+                const views = item.views_count !== undefined ? item.views_count : (item.views !== undefined ? item.views : 0);
                 
                 return (
                   <Link

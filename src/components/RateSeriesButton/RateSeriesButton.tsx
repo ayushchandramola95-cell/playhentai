@@ -8,6 +8,7 @@ interface RateSeriesButtonProps {
   seriesId: string;
   seriesTitle: string;
   iconOnly?: boolean;
+  variant?: 'default' | 'compact' | 'iconOnly';
 }
 
 const RATING_LABELS = [
@@ -23,7 +24,12 @@ const RATING_LABELS = [
   'Masterpiece',
 ];
 
-export default function RateSeriesButton({ seriesId, seriesTitle, iconOnly = false }: RateSeriesButtonProps) {
+export default function RateSeriesButton({
+  seriesId,
+  seriesTitle,
+  iconOnly = false,
+  variant = 'default',
+}: RateSeriesButtonProps) {
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [hoveredStar, setHoveredStar] = useState<number | null>(null);
   const [savedRating, setSavedRating] = useState<number | null>(null);
@@ -54,14 +60,12 @@ export default function RateSeriesButton({ seriesId, seriesTitle, iconOnly = fal
 
   const handleRate = async (score: number) => {
     setSubmitting(true);
-    // Simulate API request delay
     await new Promise((resolve) => setTimeout(resolve, 800));
     localStorage.setItem(`rate-${seriesId}`, score.toString());
     setSavedRating(score);
     setSubmitting(false);
     setSubmitted(true);
 
-    // Auto close popover after success message
     setTimeout(() => {
       setPopoverOpen(false);
       setSubmitted(false);
@@ -76,10 +80,12 @@ export default function RateSeriesButton({ seriesId, seriesTitle, iconOnly = fal
   };
 
   const activeHoverValue = hoveredStar !== null ? hoveredStar : 0;
+  const isIconOnly = iconOnly || variant === 'iconOnly';
+  const isCompact = variant === 'compact';
 
   return (
-    <div className={styles.rateWrapper} ref={popoverRef}>
-      {iconOnly ? (
+    <div className={`${styles.rateWrapper} ${isCompact ? styles.compactRateWrapper : ''}`} ref={popoverRef}>
+      {isIconOnly ? (
         <button 
           onClick={() => setPopoverOpen(!popoverOpen)}
           className={`${styles.starIconOnlyBtn} ${savedRating ? styles.activeStarBtn : ''}`}
@@ -88,6 +94,18 @@ export default function RateSeriesButton({ seriesId, seriesTitle, iconOnly = fal
           type="button"
         >
           <Star size={16} fill={savedRating ? '#eab308' : 'none'} color="#eab308" />
+        </button>
+      ) : isCompact ? (
+        <button 
+          onClick={() => setPopoverOpen(!popoverOpen)}
+          className={`${styles.compactRateBtn} ${savedRating ? styles.activeCompactRateBtn : ''}`}
+          aria-label="Rate this series"
+          type="button"
+        >
+          <Star size={13} fill={savedRating ? '#eab308' : 'transparent'} color="#eab308" />
+          <span>
+            {savedRating ? `You Rated: ${savedRating}/10` : 'Rate this Series'}
+          </span>
         </button>
       ) : (
         <button 
@@ -104,7 +122,7 @@ export default function RateSeriesButton({ seriesId, seriesTitle, iconOnly = fal
       )}
 
       {popoverOpen && (
-        <div className={`${styles.ratePopover} glass`}>
+        <div className={styles.ratePopover}>
           {submitted ? (
             <div className={styles.successState}>
               <div className={styles.checkmarkCircle}>

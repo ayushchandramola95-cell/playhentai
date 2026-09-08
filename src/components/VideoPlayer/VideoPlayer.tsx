@@ -4,7 +4,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Play, Pause, Volume2, VolumeX, Maximize, Minimize,
-  Settings, SkipForward, Layout
+  Settings, Layout, RotateCcw, RotateCw,
+  HelpCircle, X, Clock, Keyboard, Lightbulb
 } from 'lucide-react';
 import styles from './VideoPlayer.module.css';
 
@@ -14,8 +15,13 @@ interface VideoPlayerProps {
   title: string;
   episodeNumber: number;
   nextEpisodeUrl?: string | null;
+  prevEpisodeUrl?: string | null;
   onToggleTheater?: () => void;
+  isLightsOff?: boolean;
+  onToggleCinema?: () => void;
   posterUrl?: string;
+  autoplay?: boolean;
+  onToggleAutoplay?: () => void;
 }
 
 // ExoClick VAST tag — replace with your actual VAST URL from ExoClick dashboard
@@ -33,8 +39,13 @@ export default function VideoPlayer({
   title,
   episodeNumber,
   nextEpisodeUrl,
+  prevEpisodeUrl,
   onToggleTheater,
-  posterUrl
+  isLightsOff = false,
+  onToggleCinema,
+  posterUrl,
+  autoplay = true,
+  onToggleAutoplay,
 }: VideoPlayerProps) {
   const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -42,6 +53,7 @@ export default function VideoPlayer({
   const adContainerRef = useRef<HTMLDivElement>(null);
 
   const [isPlaying, setIsPlaying] = useState(false);
+  const [hasStartedPlaying, setHasStartedPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
@@ -51,6 +63,14 @@ export default function VideoPlayer({
   const [isTheater, setIsTheater] = useState(false);
   const [playbackRate, setPlaybackRate] = useState(1);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
+  const [showShortcutsModal, setShowShortcutsModal] = useState(false);
+
+  // Resume prompt state
+  const [resumeTime, setResumeTime] = useState<number | null>(null);
+  const [showResumePrompt, setShowResumePrompt] = useState(false);
+
+  // Autoplay countdown state
+  const [autoplayCountdown, setAutoplayCountdown] = useState<number | null>(null);
 
   // IMA state
   const [adPlaying, setAdPlaying] = useState(false);
@@ -66,7 +86,7 @@ export default function VideoPlayer({
 
   // Load Google IMA SDK script once
   useEffect(() => {
-    if (!VAST_TAG_URL) return; // Skip if no VAST URL configured
+    if (!VAST_TAG_URL) return;
     if (window.google?.ima) {
       setImaReady(true);
       return;
@@ -85,13 +105,16 @@ export default function VideoPlayer({
     document.head.appendChild(script);
   }, []);
 
-  // Reload video element on URL change; reset ad state
+  // Reload video element on URL change; reset state
   useEffect(() => {
     setIsPlaying(false);
     setCurrentTime(0);
     setDuration(0);
     setAdPlaying(false);
     setAdInitialized(false);
+    setShowResumePrompt(false);
+    setResumeTime(null);
+    setAutoplayCountdown(null);
     viewLoggedRef.current = false;
 
     // Destroy existing ads manager on episode change
@@ -106,10 +129,29 @@ export default function VideoPlayer({
       adDisplayContainerRef.current = null;
     }
 
+    setHasStartedPlaying(false);
     if (videoRef.current) {
       videoRef.current.load();
     }
   }, [episodeId, videoUrl]);
+
+  // Autoplay countdown timer effect
+  useEffect(() => {
+    if (autoplayCountdown === null) return;
+    if (autoplayCountdown <= 0) {
+      if (nextEpisodeUrl) {
+        router.push(nextEpisodeUrl);
+      }
+      setAutoplayCountdown(null);
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setAutoplayCountdown((prev) => (prev !== null ? prev - 1 : null));
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [autoplayCountdown, nextEpisodeUrl, router]);
 
   // ─── IMA: Initialize ad display container + loader ──────────────────────
   const initializeIMA = () => {
@@ -119,36 +161,30 @@ export default function VideoPlayer({
 
     const ima = window.google.ima;
 
-    // Create AdDisplayContainer
     const adDisplayContainer = new ima.AdDisplayContainer(
       adContainerRef.current,
       videoRef.current
     );
     adDisplayContainerRef.current = adDisplayContainer;
 
-    // Create AdsLoader
     const adsLoader = new ima.AdsLoader(adDisplayContainer);
     adsLoaderRef.current = adsLoader;
 
-    // Listen for ads loaded
     adsLoader.addEventListener(
       ima.AdsManagerLoadedEvent.Type.ADS_MANAGER_LOADED,
       onAdsManagerLoaded,
       false
     );
 
-    // Listen for ad error (just play main video)
     adsLoader.addEventListener(
       ima.AdErrorEvent.Type.AD_ERROR,
       onAdError,
       false
     );
 
-    // Build ads request
     const adsRequest = new ima.AdsRequest();
     adsRequest.adTagUrl = VAST_TAG_URL;
 
-    // Match ad size to video dimensions
     const w = containerRef.current?.offsetWidth || 640;
     const h = containerRef.current?.offsetHeight || 360;
     adsRequest.linearAdSlotWidth = w;
@@ -156,9 +192,7 @@ export default function VideoPlayer({
     adsRequest.nonLinearAdSlotWidth = w;
     adsRequest.nonLinearAdSlotHeight = 150;
 
-    // Initialize the container (must be called via user gesture)
     adDisplayContainer.initialize();
-
     adsLoader.requestAds(adsRequest);
     setAdInitialized(true);
   };
@@ -174,7 +208,6 @@ export default function VideoPlayer({
     );
     adsManagerRef.current = adsManager;
 
-    // Ad events
     adsManager.addEventListener(ima.AdEvent.Type.CONTENT_PAUSE_REQUESTED, onContentPauseRequested, false);
     adsManager.addEventListener(ima.AdEvent.Type.CONTENT_RESUME_REQUESTED, onContentResumeRequested, false);
     adsManager.addEventListener(ima.AdEvent.Type.ALL_ADS_COMPLETED, onAllAdsCompleted, false);
@@ -223,6 +256,7 @@ export default function VideoPlayer({
 
   const playMainVideo = () => {
     if (videoRef.current) {
+      setHasStartedPlaying(true);
       videoRef.current.play().then(() => {
         setIsPlaying(true);
       }).catch((err) => {
@@ -236,6 +270,7 @@ export default function VideoPlayer({
     const syncProgress = async (current: number) => {
       if (!duration || duration <= 0) return;
       try {
+        localStorage.setItem(`progress-${episodeId}`, Math.floor(current).toString());
         await fetch('/api/watch-history', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -289,7 +324,7 @@ export default function VideoPlayer({
       clearTimeout(controlsTimeoutRef.current);
     }
     controlsTimeoutRef.current = setTimeout(() => {
-      if (isPlaying) {
+      if (isPlaying && !showShortcutsModal) {
         setShowControls(false);
         setShowSpeedMenu(false);
       }
@@ -306,13 +341,13 @@ export default function VideoPlayer({
 
   // ─── Play toggle — runs IMA on first press ───────────────────────────────
   const togglePlay = () => {
-    if (adPlaying) return; // Don't interfere while ad is running
+    if (adPlaying) return;
 
     if (!isPlaying) {
-      // First play — run IMA pre-roll if VAST is configured & not yet done
+      setHasStartedPlaying(true);
       if (VAST_TAG_URL && imaReady && !adInitialized) {
         initializeIMA();
-        return; // IMA will call playMainVideo after ad
+        return;
       }
       playMainVideo();
     } else {
@@ -323,9 +358,18 @@ export default function VideoPlayer({
     }
   };
 
+  // Quick relative seek
+  const seekRelative = (delta: number) => {
+    if (videoRef.current) {
+      const newTime = Math.max(0, Math.min(duration || 0, videoRef.current.currentTime + delta));
+      videoRef.current.currentTime = newTime;
+      setCurrentTime(newTime);
+    }
+  };
+
   // Handle container tap/click
   const handleContainerClick = (e: React.MouseEvent) => {
-    if (adPlaying) return; // Let IMA handle clicks during ad
+    if (adPlaying) return;
 
     const target = e.target as HTMLElement;
 
@@ -338,7 +382,10 @@ export default function VideoPlayer({
 
     if (
       target.closest(`.${styles.bottomControls}`) ||
-      target.closest(`.${styles.bigPlayTrigger}`)
+      target.closest(`.${styles.bigPlayTrigger}`) ||
+      target.closest(`.${styles.resumePrompt}`) ||
+      target.closest(`.${styles.autoplayOverlay}`) ||
+      target.closest(`.${styles.shortcutsModal}`)
     ) {
       return;
     }
@@ -357,7 +404,7 @@ export default function VideoPlayer({
         setShowControls(true);
         if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
         controlsTimeoutRef.current = setTimeout(() => {
-          if (isPlaying) {
+          if (isPlaying && !showShortcutsModal) {
             setShowControls(false);
             setShowSpeedMenu(false);
           }
@@ -380,7 +427,22 @@ export default function VideoPlayer({
 
   const handleLoadedMetadata = () => {
     if (videoRef.current) {
-      setDuration(videoRef.current.duration);
+      const dur = videoRef.current.duration;
+      setDuration(dur);
+
+      try {
+        const saved = localStorage.getItem(`progress-${episodeId}`);
+        if (saved) {
+          const parsed = parseFloat(saved);
+          if (parsed > 10 && dur > 30 && parsed < dur * 0.9) {
+            setResumeTime(parsed);
+            setShowResumePrompt(true);
+            setTimeout(() => {
+              setShowResumePrompt(false);
+            }, 9000);
+          }
+        }
+      } catch (_) {}
     }
   };
 
@@ -470,25 +532,31 @@ export default function VideoPlayer({
           e.preventDefault();
           toggleTheater();
           break;
+        case 'KeyC':
+          if (onToggleCinema) {
+            e.preventDefault();
+            onToggleCinema();
+          }
+          break;
         case 'KeyM':
           e.preventDefault();
           toggleMute();
           break;
         case 'ArrowLeft':
           e.preventDefault();
-          if (videoRef.current) {
-            const newTime = Math.max(0, videoRef.current.currentTime - 5);
-            videoRef.current.currentTime = newTime;
-            setCurrentTime(newTime);
-          }
+          seekRelative(-5);
           break;
         case 'ArrowRight':
           e.preventDefault();
-          if (videoRef.current) {
-            const newTime = Math.min(duration || 0, videoRef.current.currentTime + 5);
-            videoRef.current.currentTime = newTime;
-            setCurrentTime(newTime);
-          }
+          seekRelative(5);
+          break;
+        case 'KeyJ':
+          e.preventDefault();
+          seekRelative(-10);
+          break;
+        case 'KeyL':
+          e.preventDefault();
+          seekRelative(10);
           break;
         case 'ArrowUp':
           e.preventDefault();
@@ -508,6 +576,30 @@ export default function VideoPlayer({
             setIsMuted(newVol === 0);
           }
           break;
+        case 'KeyN':
+          if (nextEpisodeUrl) {
+            e.preventDefault();
+            router.push(nextEpisodeUrl);
+          }
+          break;
+        case 'KeyP':
+          if (prevEpisodeUrl) {
+            e.preventDefault();
+            router.push(prevEpisodeUrl);
+          }
+          break;
+        case 'Slash':
+          if (e.shiftKey) { // '?' key
+            e.preventDefault();
+            setShowShortcutsModal(prev => !prev);
+          }
+          break;
+        case 'Escape':
+          if (showShortcutsModal) {
+            e.preventDefault();
+            setShowShortcutsModal(false);
+          }
+          break;
       }
     };
 
@@ -515,14 +607,14 @@ export default function VideoPlayer({
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [duration, isPlaying, isMuted, volume, isFullscreen, isTheater, adPlaying]);
+  }, [duration, isPlaying, isMuted, volume, isFullscreen, isTheater, adPlaying, nextEpisodeUrl, prevEpisodeUrl, showShortcutsModal]);
 
   const handleVideoEnded = () => {
     setIsPlaying(false);
-    if (nextEpisodeUrl) {
-      router.push(nextEpisodeUrl);
-    } else {
-      alert('You have completed this series! Check out other series in our catalog.');
+    if (autoplay && nextEpisodeUrl) {
+      setAutoplayCountdown(5);
+    } else if (nextEpisodeUrl) {
+      setShowControls(true);
     }
   };
 
@@ -542,13 +634,13 @@ export default function VideoPlayer({
       ref={containerRef}
       onClick={handleContainerClick}
       onMouseMove={handleMouseMove}
-      onMouseLeave={() => isPlaying && setShowControls(false)}
+      onMouseLeave={() => isPlaying && !showShortcutsModal && setShowControls(false)}
       className={`${styles.playerContainer} ${isTheater ? styles.theaterMode : ''}`}
     >
       <video
         ref={videoRef}
         src={videoUrl}
-        poster={posterUrl}
+        onPlay={() => setHasStartedPlaying(true)}
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
         onEnded={handleVideoEnded}
@@ -557,7 +649,12 @@ export default function VideoPlayer({
         playsInline
       />
 
-      {/* Google IMA Ad Container — rendered on top of video, hidden when no ad */}
+      {/* Pure Black Screen Backdrop Before Video Plays */}
+      {!hasStartedPlaying && (
+        <div className={styles.blackScreenBackdrop} />
+      )}
+
+      {/* Google IMA Ad Container */}
       <div
         ref={adContainerRef}
         style={{
@@ -571,7 +668,127 @@ export default function VideoPlayer({
         }}
       />
 
-      {/* Premium overlay controls — hidden while ad plays */}
+      {/* Floating Resume Prompt */}
+      {showResumePrompt && resumeTime !== null && !adPlaying && (
+        <div className={styles.resumePrompt} onClick={(e) => e.stopPropagation()}>
+          <Clock size={15} className={styles.resumeIcon} />
+          <span>Resume from <strong>{formatTime(resumeTime)}</strong>?</span>
+          <button
+            type="button"
+            className={styles.resumePlayBtn}
+            onClick={() => {
+              if (videoRef.current) {
+                videoRef.current.currentTime = resumeTime;
+                setCurrentTime(resumeTime);
+                playMainVideo();
+              }
+              setShowResumePrompt(false);
+            }}
+          >
+            Resume
+          </button>
+          <button
+            type="button"
+            className={styles.resumeDismissBtn}
+            onClick={() => setShowResumePrompt(false)}
+            aria-label="Dismiss resume"
+          >
+            <X size={14} />
+          </button>
+        </div>
+      )}
+
+      {/* Autoplay Countdown Overlay */}
+      {autoplayCountdown !== null && nextEpisodeUrl && !adPlaying && (
+        <div className={styles.autoplayOverlay} onClick={(e) => e.stopPropagation()}>
+          <div className={styles.autoplayCard}>
+            <div className={styles.countdownRing}>
+              <span className={styles.countdownNumber}>{autoplayCountdown}</span>
+            </div>
+            <h4>Next Episode Starting Soon</h4>
+            <p>Episode {episodeNumber + 1}</p>
+            <div className={styles.autoplayActions}>
+              <button
+                type="button"
+                className={styles.autoplayCancelBtn}
+                onClick={() => setAutoplayCountdown(null)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className={styles.autoplayPlayBtn}
+                onClick={() => router.push(nextEpisodeUrl)}
+              >
+                Play Now
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Keyboard Shortcuts Modal */}
+      {showShortcutsModal && (
+        <div className={styles.shortcutsModalBackdrop} onClick={(e) => { e.stopPropagation(); setShowShortcutsModal(false); }}>
+          <div className={styles.shortcutsModal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.shortcutsHeader}>
+              <h3><Keyboard size={18} color="#a855f7" /> Keyboard Shortcuts</h3>
+              <button
+                type="button"
+                onClick={() => setShowShortcutsModal(false)}
+                className={styles.resumeDismissBtn}
+                aria-label="Close shortcuts"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div className={styles.shortcutsList}>
+              <div className={styles.shortcutItem}>
+                <span>Play / Pause</span>
+                <span className={styles.shortcutKey}>Space / K</span>
+              </div>
+              <div className={styles.shortcutItem}>
+                <span>Fullscreen</span>
+                <span className={styles.shortcutKey}>F</span>
+              </div>
+              <div className={styles.shortcutItem}>
+                <span>Theater Mode</span>
+                <span className={styles.shortcutKey}>T</span>
+              </div>
+              <div className={styles.shortcutItem}>
+                <span>Cinema Mode</span>
+                <span className={styles.shortcutKey}>C</span>
+              </div>
+              <div className={styles.shortcutItem}>
+                <span>Mute / Unmute</span>
+                <span className={styles.shortcutKey}>M</span>
+              </div>
+              <div className={styles.shortcutItem}>
+                <span>Seek ±5s</span>
+                <span className={styles.shortcutKey}>← / →</span>
+              </div>
+              <div className={styles.shortcutItem}>
+                <span>Seek ±10s</span>
+                <span className={styles.shortcutKey}>J / L</span>
+              </div>
+              <div className={styles.shortcutItem}>
+                <span>Volume ±10%</span>
+                <span className={styles.shortcutKey}>↑ / ↓</span>
+              </div>
+              <div className={styles.shortcutItem}>
+                <span>Next Episode</span>
+                <span className={styles.shortcutKey}>N</span>
+              </div>
+              <div className={styles.shortcutItem}>
+                <span>Prev Episode</span>
+                <span className={styles.shortcutKey}>P</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Premium overlay controls */}
       {!adPlaying && (
         <div className={`${styles.controlsOverlay} ${showControls ? styles.visible : ''}`}>
 
@@ -613,27 +830,38 @@ export default function VideoPlayer({
             </div>
 
             <div className={styles.controlsRow}>
-              {/* Play/Pause & Volume */}
+              {/* Play/Pause, 10s Rewind/Forward & Volume */}
               <div className={styles.leftControls}>
                 <button
                   type="button"
                   onClick={(e) => { e.stopPropagation(); togglePlay(); }}
                   className={styles.controlBtn}
                   aria-label={isPlaying ? 'Pause' : 'Play'}
+                  title="Play / Pause (Space)"
                 >
                   {isPlaying ? <Pause size={18} fill="currentColor" /> : <Play size={18} fill="currentColor" />}
                 </button>
 
-                {nextEpisodeUrl && (
-                  <button
-                    type="button"
-                    onClick={(e) => { e.stopPropagation(); router.push(nextEpisodeUrl); }}
-                    className={styles.controlBtn}
-                    aria-label="Next Episode"
-                  >
-                    <SkipForward size={18} fill="currentColor" />
-                  </button>
-                )}
+                {/* 10s Rewind & Forward Seek */}
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); seekRelative(-10); }}
+                  className={styles.seekStepBtn}
+                  title="Rewind 10 seconds (J)"
+                >
+                  <RotateCcw size={15} />
+                  <span>10s</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); seekRelative(10); }}
+                  className={styles.seekStepBtn}
+                  title="Forward 10 seconds (L)"
+                >
+                  <RotateCw size={15} />
+                  <span>10s</span>
+                </button>
 
                 <div className={styles.volumeGroup}>
                   <button
@@ -641,6 +869,7 @@ export default function VideoPlayer({
                     onClick={(e) => { e.stopPropagation(); toggleMute(); }}
                     className={styles.controlBtn}
                     aria-label={isMuted ? 'Unmute' : 'Mute'}
+                    title="Mute / Unmute (M)"
                   >
                     {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
                   </button>
@@ -665,8 +894,24 @@ export default function VideoPlayer({
                 </div>
               </div>
 
-              {/* Speeds, Theater, Fullscreen */}
+              {/* Speeds, Shortcuts, Theater, Fullscreen */}
               <div className={styles.rightControls}>
+                {/* In-Player Autoplay Switch */}
+                {onToggleAutoplay && (
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); onToggleAutoplay(); }}
+                    className={styles.inPlayerAutoplayBtn}
+                    title={`Autoplay next episode: ${autoplay ? 'ON' : 'OFF'}`}
+                    aria-label="Toggle Autoplay"
+                  >
+                    <span className={styles.inPlayerAutoplayText}>Auto</span>
+                    <div className={`${styles.inPlayerToggleTrack} ${autoplay ? styles.inPlayerToggleTrackActive : ''}`}>
+                      <div className={`${styles.inPlayerToggleThumb} ${autoplay ? styles.inPlayerToggleThumbActive : ''}`} />
+                    </div>
+                  </button>
+                )}
+
                 <div className={styles.speedSelectorContainer}>
                   <button
                     type="button"
@@ -680,7 +925,7 @@ export default function VideoPlayer({
 
                   {showSpeedMenu && (
                     <div className={`${styles.speedDropdown} glass`}>
-                      {[0.5, 1, 1.25, 1.5, 2].map((rate) => (
+                      {[0.5, 0.75, 1, 1.25, 1.5, 2].map((rate) => (
                         <button
                           key={rate}
                           type="button"
@@ -696,9 +941,32 @@ export default function VideoPlayer({
 
                 <button
                   type="button"
+                  onClick={(e) => { e.stopPropagation(); setShowShortcutsModal(true); }}
+                  className={styles.controlBtn}
+                  title="Keyboard Shortcuts (?)"
+                  aria-label="Keyboard Shortcuts"
+                >
+                  <HelpCircle size={18} />
+                </button>
+
+                {/* Cinema Mode (Lights Off) Toggle */}
+                {onToggleCinema && (
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); onToggleCinema(); }}
+                    className={`${styles.controlBtn} ${isLightsOff ? styles.cinemaActiveBtn : ''}`}
+                    title={isLightsOff ? 'Cinema Mode: Turn Lights On (C)' : 'Cinema Mode: Turn Lights Off (C)'}
+                    aria-label="Toggle Cinema Mode"
+                  >
+                    <Lightbulb size={18} color={isLightsOff ? '#fbbf24' : 'currentColor'} />
+                  </button>
+                )}
+
+                <button
+                  type="button"
                   onClick={(e) => { e.stopPropagation(); toggleTheater(); }}
                   className={`${styles.controlBtn} ${styles.theaterBtn}`}
-                  title="Theater Mode"
+                  title="Theater Mode (T)"
                   aria-label="Toggle Theater Mode"
                 >
                   <Layout size={18} />
@@ -708,7 +976,7 @@ export default function VideoPlayer({
                   type="button"
                   onClick={(e) => { e.stopPropagation(); toggleFullscreen(); }}
                   className={styles.controlBtn}
-                  title="Fullscreen"
+                  title="Fullscreen (F)"
                   aria-label="Toggle Fullscreen"
                 >
                   {isFullscreen ? <Minimize size={18} /> : <Maximize size={18} />}

@@ -789,6 +789,9 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.85rem;
   }
+  .episodeGrid .episodeCard:nth-child(n+13) {
+    display: none;
+  }
   .latestSeriesGrid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
