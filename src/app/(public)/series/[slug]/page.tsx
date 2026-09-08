@@ -12,6 +12,7 @@ import SeriesCard from '@/components/SeriesCard/SeriesCard';
 import SeriesEpisodesSection from '@/components/SeriesEpisodesSection/SeriesEpisodesSection';
 import DynamicWatchCTA from '@/components/DynamicWatchCTA/DynamicWatchCTA';
 import SynopsisBox from './SynopsisBox';
+import AboutSectionBox from './AboutSectionBox';
 import JsonLd from '@/components/JsonLd/JsonLd';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -164,33 +165,6 @@ function getFirstEpisodeId(series: any, isDbEmpty: boolean): string | null {
     }
   }
   return null;
-}
-
-function renderAboutSections(aboutData: any, aboutTextLegacy: string, seriesTitle: string) {
-  if (aboutData && typeof aboutData === 'object' && (aboutData.overview || aboutData.production || aboutData.themes || aboutData.recommended)) {
-    const sections = [
-      { key: 'overview', title: 'Overview', content: aboutData.overview },
-      { key: 'production', title: 'Production & Presentation', content: aboutData.production },
-      { key: 'themes', title: 'Themes & Style', content: aboutData.themes },
-      { key: 'recommended', title: 'Recommended For', content: aboutData.recommended }
-    ].filter(s => s.content && s.content.trim());
-
-    if (sections.length === 0) return null;
-
-    return (
-      <div className={styles.aboutSectionsList}>
-        {sections.map((sec) => (
-          <div key={sec.key} className={styles.aboutSectionItem}>
-            <h3 className={styles.aboutSubHeading}>{sec.title}</h3>
-            <p className={styles.aboutTextContent}>{sec.content}</p>
-          </div>
-        ))}
-      </div>
-    );
-  }
-
-  if (!aboutTextLegacy) return null;
-  return <p className={styles.aboutTextContent}>{aboutTextLegacy}</p>;
 }
 
 const getCachedAllPublishedSeries = unstable_cache(
@@ -709,8 +683,8 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
               </div>
             )}
 
-            {/* Badges & Tags Clean Separation */}
-            <div className={styles.headerBadgesContainer}>
+            {/* Header Main Info: Badges, Title, Alt Titles & Ratings */}
+            <div className={styles.headerInfoBlock}>
               {/* Row 1: Status & Type Metadata Badges */}
               <div className={styles.statusBadgesRow}>
                 <span className={styles.categoryBadgePill}>
@@ -731,85 +705,74 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
                 )}
               </div>
 
-              {/* Row 2: Genre & Thematic Discovery Hashtags */}
-              {derivedThemes.length > 0 && (
-                <div className={styles.discoveryTagsRow}>
-                  {derivedThemes.map((tag: string) => (
-                    <Link key={tag} href={`/tag/${tagToSlug(tag)}`} className={styles.discoveryTagChip}>
-                      #{tag}
-                    </Link>
-                  ))}
+              {/* Single Semantic H1 */}
+              <h1 className={styles.seriesTitle}>{activeSeries.title}</h1>
+
+              {/* Alternative Titles Bar */}
+              {(activeSeries.alt_title_english || activeSeries.alt_title_japanese || activeSeries.alt_title_romaji) && (
+                <div className={styles.altTitlesRow}>
+                  {activeSeries.alt_title_english && activeSeries.alt_title_english !== activeSeries.title && (
+                    <span className={styles.altTitleItem}>
+                      <strong>EN:</strong> {activeSeries.alt_title_english}
+                    </span>
+                  )}
+                  {activeSeries.alt_title_japanese && (
+                    <span className={styles.altTitleItem}>
+                      <strong>JP:</strong> {activeSeries.alt_title_japanese}
+                    </span>
+                  )}
                 </div>
               )}
-            </div>
 
-            {/* Single Semantic H1 */}
-            <h1 className={styles.seriesTitle}>{activeSeries.title}</h1>
-
-            {/* Alternative Titles Bar */}
-            {(activeSeries.alt_title_english || activeSeries.alt_title_japanese || activeSeries.alt_title_romaji) && (
-              <div className={styles.altTitlesRow}>
-                {activeSeries.alt_title_english && activeSeries.alt_title_english !== activeSeries.title && (
-                  <span className={styles.altTitleItem}>
-                    <strong>EN:</strong> {activeSeries.alt_title_english}
-                  </span>
-                )}
-                {activeSeries.alt_title_japanese && (
-                  <span className={styles.altTitleItem}>
-                    <strong>JP:</strong> {activeSeries.alt_title_japanese}
-                  </span>
-                )}
-              </div>
-            )}
-
-            {/* Ratings Summary Block with Compact Rate Button (Visual Priority: Watch > Rate) */}
-            <div className={styles.ratingsBlock}>
-              <div className={styles.ratingsCard}>
-                {rating !== null ? (
-                  <>
-                    <span className={styles.ratingScore}>{rating.toFixed(1)}</span>
-                    <span className={styles.ratingMax}>/10</span>
-                    <div className={styles.ratingStars}>
-                      {Array.from({ length: 5 }).map((_, i) => {
-                        const filled = rating / 2 > i;
-                        return (
+              {/* Ratings Summary Block with Compact Rate Button (Visual Priority: Watch > Rate) */}
+              <div className={styles.ratingsBlock}>
+                <div className={styles.ratingsCard}>
+                  {rating !== null ? (
+                    <>
+                      <span className={styles.ratingScore}>{rating.toFixed(1)}</span>
+                      <span className={styles.ratingMax}>/10</span>
+                      <div className={styles.ratingStars}>
+                        {Array.from({ length: 5 }).map((_, i) => {
+                          const filled = rating / 2 > i;
+                          return (
+                            <Star 
+                              key={i} 
+                              size={13} 
+                              fill={filled ? '#eab308' : 'transparent'} 
+                              color={filled ? '#eab308' : 'rgba(255,255,255,0.2)'} 
+                            />
+                          );
+                        })}
+                      </div>
+                      <span className={styles.ratingVotes}>({voteCount.toLocaleString()} {voteCount === 1 ? 'vote' : 'votes'})</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className={`${styles.ratingScore} ${styles.unratedScore}`}>—</span>
+                      <span className={styles.ratingMax}>/10</span>
+                      <div className={styles.ratingStars}>
+                        {Array.from({ length: 5 }).map((_, i) => (
                           <Star 
                             key={i} 
                             size={13} 
-                            fill={filled ? '#eab308' : 'transparent'} 
-                            color={filled ? '#eab308' : 'rgba(255,255,255,0.2)'} 
+                            fill="transparent" 
+                            color="rgba(255,255,255,0.2)" 
                           />
-                        );
-                      })}
-                    </div>
-                    <span className={styles.ratingVotes}>({voteCount.toLocaleString()} {voteCount === 1 ? 'vote' : 'votes'})</span>
-                  </>
-                ) : (
-                  <>
-                    <span className={`${styles.ratingScore} ${styles.unratedScore}`}>—</span>
-                    <span className={styles.ratingMax}>/10</span>
-                    <div className={styles.ratingStars}>
-                      {Array.from({ length: 5 }).map((_, i) => (
-                        <Star 
-                          key={i} 
-                          size={13} 
-                          fill="transparent" 
-                          color="rgba(255,255,255,0.2)" 
-                        />
-                      ))}
-                    </div>
-                    <span className={styles.ratingVotes}>(0 votes)</span>
-                  </>
-                )}
+                        ))}
+                      </div>
+                      <span className={styles.ratingVotes}>(0 votes)</span>
+                    </>
+                  )}
+                </div>
+
+                <span className={styles.viewsCounter}>
+                  <Eye size={14} />
+                  <span>{views.toLocaleString()} views</span>
+                </span>
+
+                {/* Compact Rate Button Placed Inline Next to Ratings */}
+                <RateSeriesButton seriesId={activeSeries.id} seriesTitle={activeSeries.title} variant="compact" />
               </div>
-
-              <span className={styles.viewsCounter}>
-                <Eye size={14} />
-                <span>{views.toLocaleString()} views</span>
-              </span>
-
-              {/* Compact Rate Button Placed Inline Next to Ratings */}
-              <RateSeriesButton seriesId={activeSeries.id} seriesTitle={activeSeries.title} variant="compact" />
             </div>
 
             {/* Primary Dynamic Watch CTA Button (Visual Priority) */}
@@ -818,14 +781,38 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
               seriesSlug={slug}
               defaultEpisodeId={firstEpisode?.id}
               defaultEpisodeNumber={firstEpisode?.episode_number || 1}
+              className={styles.dynamicWatchCtaWrap}
             />
+
+            {/* Row 2: Genre & Thematic Discovery Hashtags */}
+            {derivedThemes.length > 0 && (
+              <div className={styles.discoveryTagsRow}>
+                {derivedThemes.map((tag: string) => (
+                  <Link key={tag} href={`/tag/${tagToSlug(tag)}`} className={styles.discoveryTagChip}>
+                    #{tag}
+                  </Link>
+                ))}
+              </div>
+            )}
 
             {/* Compact Synopsis with Read More Expansion */}
             <SynopsisBox description={activeSeries.description || ''} />
           </div>
         </div>
 
-        {/* Specifications & Details Grid (Placed directly above Episodes) */}
+        {/* Interactive Episodes Section */}
+        <div className={styles.episodesSectionWrap}>
+          <SeriesEpisodesSection
+            seasons={activeSeries.seasons || []}
+            seriesSlug={slug}
+            seriesTitle={activeSeries.title}
+            coverImageKey={activeSeries.cover_image_key || activeSeries.poster_image_key}
+            contentRating={activeSeries.content_rating}
+            seriesRating={rating}
+          />
+        </div>
+
+        {/* Specifications & Details Grid */}
         <section className={styles.specificationsSection}>
           <div className={styles.detailsTable}>
             {studio ? (
@@ -935,25 +922,12 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
           </div>
         </section>
 
-        {/* Interactive Episodes Section */}
-        <SeriesEpisodesSection
-          seasons={activeSeries.seasons || []}
-          seriesSlug={slug}
-          seriesTitle={activeSeries.title}
-          coverImageKey={activeSeries.cover_image_key || activeSeries.poster_image_key}
-          contentRating={activeSeries.content_rating}
-          seriesRating={rating}
-        />
-
         {/* About This Series Section */}
-        {(activeSeries.about_data || activeSeries.about_text) && (
-          <section className={styles.aboutSection}>
-            <div className={`${styles.aboutCard} glass`}>
-              <h2 className={styles.aboutHeading}>About {activeSeries.title}</h2>
-              {renderAboutSections(activeSeries.about_data, activeSeries.about_text || '', activeSeries.title)}
-            </div>
-          </section>
-        )}
+        <AboutSectionBox
+          title={activeSeries.title}
+          aboutData={activeSeries.about_data}
+          aboutTextLegacy={activeSeries.about_text || ''}
+        />
 
         {/* Similar Titles Recommendation Carousel */}
         {similarSeries.length > 0 && (

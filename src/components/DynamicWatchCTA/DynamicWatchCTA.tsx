@@ -24,6 +24,7 @@ interface DynamicWatchCTAProps {
   seriesSlug: string;
   defaultEpisodeId?: string | null;
   defaultEpisodeNumber?: number;
+  className?: string;
 }
 
 export default function DynamicWatchCTA({
@@ -31,6 +32,7 @@ export default function DynamicWatchCTA({
   seriesSlug,
   defaultEpisodeId,
   defaultEpisodeNumber = 1,
+  className,
 }: DynamicWatchCTAProps) {
   // Flatten and sort all episodes sequentially (Season 1 Ep 1 -> Season 2 Ep 1...)
   const allEpisodes = useMemo(() => {
@@ -193,7 +195,7 @@ export default function DynamicWatchCTA({
   );
 
   return (
-    <div className={styles.ctaWrapper}>
+    <div className={`${styles.ctaWrapper} ${className || ''}`}>
       <Link href={targetWatchUrl} className={styles.watchNowCtaBtn}>
         <div className={styles.ctaPlayCircle}>
           {ctaState.type === 'rewatch' ? (

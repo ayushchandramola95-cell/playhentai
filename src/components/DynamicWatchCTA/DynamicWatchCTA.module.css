@@ -100,11 +100,39 @@
 @media (max-width: 640px) {
   .ctaWrapper {
     width: 100%;
+    margin-top: 0.15rem;
+    margin-bottom: 0.15rem;
   }
 
   .watchNowCtaBtn {
     width: 100%;
     justify-content: center;
-    padding: 0.85rem 1.25rem;
+    padding: 0.45rem 0.95rem;
+    min-height: 40px;
+    border-radius: 10px;
+    gap: 0.55rem;
+  }
+
+  .ctaPlayCircle {
+    width: 24px;
+    height: 24px;
+  }
+
+  .ctaPlayCircle svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  .ctaTextGroup {
+    gap: 1px;
+  }
+
+  .ctaMainText {
+    font-size: 0.85rem;
+    font-weight: 800;
+  }
+
+  .ctaSubText {
+    font-size: 0.64rem;
   }
 }

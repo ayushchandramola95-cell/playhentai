@@ -274,3 +274,40 @@
     transform: scale(1);
   }
 }
+
+@media (max-width: 640px) {
+  .compactRateBtn {
+    height: 30px;
+    padding: 0 0.6rem;
+    font-size: 0.72rem;
+    border-radius: 8px;
+    gap: 0.3rem;
+  }
+
+  .compactRateBtn svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  .ratePopover {
+    width: 270px;
+    padding: 1rem 0.85rem;
+    border-radius: 14px;
+    left: -10px;
+    transform: none;
+  }
+
+  .ratePopover::after {
+    left: 30px;
+    transform: none;
+  }
+
+  .starsRow {
+    gap: 0.05rem;
+  }
+
+  .starBtn svg {
+    width: 18px;
+    height: 18px;
+  }
+}
