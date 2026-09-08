@@ -768,43 +768,341 @@
   }
 }
 
-/* Mobile & Responsive */
+/* =========================================================
+   MOBILE SCREEN SPECIFIC POLISH (Max width 768px & below)
+   ========================================================= */
+
 @media (max-width: 768px) {
   .container {
-    padding: 1.25rem 0.85rem 4rem;
+    padding: 0.9rem 0.8rem 3.5rem !important;
+    overflow-x: hidden !important;
   }
 
-  .mainTitle {
-    font-size: 1.6rem;
+  .breadcrumbs {
+    font-size: 0.78rem !important;
+    margin-bottom: 0.75rem !important;
+  }
+
+  .headerSection {
+    margin-bottom: 1.15rem !important;
+  }
+
+  .headerTopMeta {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    margin-bottom: 0.35rem !important;
+    gap: 0.4rem !important;
+    flex-wrap: nowrap !important;
+  }
+
+  .highlightPill {
+    font-size: 0.64rem !important;
+    padding: 0.18rem 0.55rem !important;
+    border-radius: 16px !important;
+  }
+
+  .totalPill {
+    font-size: 0.68rem !important;
+    padding: 0.18rem 0.55rem !important;
+    border-radius: 16px !important;
+    white-space: nowrap !important;
+  }
+
+  .titleRow {
+    gap: 0.5rem !important;
+    margin-bottom: 0.35rem !important;
   }
 
   .titleIconBadge {
-    width: 36px;
-    height: 36px;
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 10px !important;
+  }
+
+  .titleIconBadge svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  .mainTitle {
+    font-size: 1.45rem !important;
+    font-weight: 900 !important;
+    letter-spacing: -0.02em !important;
   }
 
   .subtext {
-    font-size: 0.85rem;
+    font-size: 0.8rem !important;
+    line-height: 1.38 !important;
+    color: #94a3b8 !important;
+    margin: 0 !important;
   }
 
-  .guestFeatureGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .quickExploreGrid {
-    grid-template-columns: 1fr;
+  /* Compact Mobile Control Hub */
+  .controlsSection {
+    padding: 0.75rem 0.85rem !important;
+    border-radius: 16px !important;
+    background: rgba(12, 10, 22, 0.88) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45) !important;
+    margin-bottom: 1.25rem !important;
   }
 
   .searchSortRow {
-    flex-direction: column;
-    align-items: stretch;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.45rem !important;
+    width: 100% !important;
   }
 
   .searchBox {
-    max-width: 100%;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    height: 38px !important;
+  }
+
+  .searchInput {
+    height: 38px !important;
+    font-size: 0.8rem !important;
+    padding: 0 2rem 0 2.2rem !important;
+    border-radius: 12px !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  }
+
+  .searchIcon {
+    left: 0.75rem !important;
+    width: 14px !important;
+    height: 14px !important;
+  }
+
+  .clearSearch {
+    right: 0.65rem !important;
   }
 
   .filterActionsGroup {
-    justify-content: space-between;
+    display: grid !important;
+    grid-template-columns: 1fr auto !important;
+    gap: 0.45rem !important;
+    width: 100% !important;
+  }
+
+  .sortWrapper {
+    width: 100% !important;
+    position: relative !important;
+  }
+
+  .sortSelect {
+    height: 36px !important;
+    width: 100% !important;
+    border-radius: 10px !important;
+    font-size: 0.76rem !important;
+    font-weight: 750 !important;
+    padding: 0 1.6rem 0 1.85rem !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  }
+
+  .sortIcon {
+    left: 0.65rem !important;
+    width: 13px !important;
+    height: 13px !important;
+  }
+
+  .sortArrow {
+    right: 0.65rem !important;
+    width: 13px !important;
+    height: 13px !important;
+  }
+
+  .clearAllBtn {
+    height: 36px !important;
+    padding: 0 0.85rem !important;
+    font-size: 0.76rem !important;
+    border-radius: 10px !important;
+    white-space: nowrap !important;
+    justify-content: center !important;
+  }
+
+  /* 2-Column Responsive Card Grid on Mobile */
+  .seriesGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0.85rem 0.6rem !important;
+  }
+
+  .cardContainer {
+    position: relative !important;
+  }
+
+  .removeBtn {
+    position: absolute !important;
+    top: 6px !important;
+    right: 6px !important;
+    z-index: 10 !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    transform: none !important;
+    padding: 0.22rem 0.5rem !important;
+    font-size: 0.66rem !important;
+    font-weight: 800 !important;
+    border-radius: 8px !important;
+    background: rgba(15, 12, 24, 0.94) !important;
+    border: 1px solid rgba(239, 68, 68, 0.6) !important;
+    color: #fca5a5 !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+  }
+
+  /* Empty Search State */
+  .emptySearchCard {
+    padding: 2.5rem 1.25rem !important;
+    border-radius: 16px !important;
+    margin: 1.5rem auto !important;
+  }
+
+  /* Empty Watchlist State */
+  .emptyWatchlistCard {
+    padding: 2.25rem 1.25rem !important;
+    border-radius: 18px !important;
+    margin: 1.5rem auto !important;
+  }
+
+  .emptyIconBadge {
+    width: 56px !important;
+    height: 56px !important;
+    border-radius: 16px !important;
+    margin-bottom: 0.85rem !important;
+  }
+
+  .emptyHeartIcon {
+    width: 28px !important;
+    height: 28px !important;
+  }
+
+  .emptyWatchlistCard h3 {
+    font-size: 1.3rem !important;
+    margin-bottom: 0.5rem !important;
+  }
+
+  .emptyWatchlistCard p {
+    font-size: 0.82rem !important;
+    line-height: 1.5 !important;
+    margin-bottom: 1.25rem !important;
+  }
+
+  .quickExploreGrid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0.5rem !important;
+  }
+
+  .explorePill {
+    padding: 0.55rem 0.75rem !important;
+    font-size: 0.76rem !important;
+    border-radius: 10px !important;
+  }
+
+  /* Guest View State on Mobile */
+  .guestCard {
+    padding: 2.25rem 1.25rem !important;
+    border-radius: 18px !important;
+    margin: 1.5rem auto !important;
+  }
+
+  .guestIconBadge {
+    width: 56px !important;
+    height: 56px !important;
+    border-radius: 16px !important;
+    margin-bottom: 0.85rem !important;
+  }
+
+  .guestLockIcon {
+    width: 26px !important;
+    height: 26px !important;
+  }
+
+  .guestTitle {
+    font-size: 1.3rem !important;
+    margin-bottom: 0.5rem !important;
+  }
+
+  .guestDesc {
+    font-size: 0.82rem !important;
+    line-height: 1.5 !important;
+    margin-bottom: 1.25rem !important;
+  }
+
+  .guestFeatureGrid {
+    grid-template-columns: 1fr !important;
+    gap: 0.6rem !important;
+    margin-bottom: 1.5rem !important;
+  }
+
+  .guestFeature {
+    padding: 0.75rem 0.85rem !important;
+    border-radius: 12px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.75rem !important;
+  }
+
+  .featureIconWrap {
+    margin-bottom: 0 !important;
+    flex-shrink: 0 !important;
+  }
+
+  .guestActionsRow {
+    flex-direction: column !important;
+    gap: 0.65rem !important;
+    width: 100% !important;
+  }
+
+  .primaryBtn,
+  .secondaryBtn {
+    width: 100% !important;
+    height: 40px !important;
+    font-size: 0.84rem !important;
+    border-radius: 20px !important;
+  }
+
+  /* Clear Confirmation Modal on Mobile */
+  .modalCard {
+    padding: 1.35rem 1.15rem !important;
+    border-radius: 16px !important;
+    max-width: 320px !important;
+  }
+
+  .modalIconWrap {
+    width: 44px !important;
+    height: 44px !important;
+    border-radius: 14px !important;
+    margin-bottom: 0.75rem !important;
+  }
+
+  .modalCard h3 {
+    font-size: 1.15rem !important;
+  }
+
+  .modalCard p {
+    font-size: 0.8rem !important;
+    margin-bottom: 1.25rem !important;
+  }
+
+  .modalActions {
+    gap: 0.5rem !important;
+  }
+
+  .modalCancelBtn,
+  .modalConfirmBtn {
+    height: 38px !important;
+    font-size: 0.8rem !important;
+    border-radius: 10px !important;
   }
 }
+
+@media (max-width: 480px) {
+  .mainTitle {
+    font-size: 1.35rem !important;
+  }
+}
+

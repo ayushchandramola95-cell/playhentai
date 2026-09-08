@@ -169,7 +169,7 @@ export default function RandomizerPortal({ seriesList }: RandomizerPortalProps) 
               <Shuffle size={13} /> RANDOM GENERATOR
             </span>
             <span className={styles.metaPill}>
-              🎲 Showing {randomBatch.length} Random Titles • Shuffle #{shuffleCount}
+              🎲 Showing {randomBatch.length} Titles • Shuffle #{shuffleCount}
             </span>
           </div>
           <div className={styles.titleRow}>
@@ -182,7 +182,8 @@ export default function RandomizerPortal({ seriesList }: RandomizerPortalProps) 
 
         {/* Action Bar: Big Randomize Button, Filters, Surprise Me, View Controls */}
         <div className={styles.controlsSection}>
-          <div className={styles.leftControls}>
+          {/* Action Buttons: Shuffle Library + Surprise Me */}
+          <div className={styles.actionButtonsRow}>
             {/* Primary Randomize Button */}
             <button
               type="button"
@@ -204,10 +205,13 @@ export default function RandomizerPortal({ seriesList }: RandomizerPortalProps) 
               <Zap size={14} className={styles.surpriseIcon} />
               <span>Surprise Me</span>
             </button>
+          </div>
 
+          {/* Filters & View Switcher Row */}
+          <div className={styles.filtersControlsRow}>
             {/* Genre Filter Dropdown */}
             <div className={styles.filterSelectWrapper}>
-              <Filter size={14} className={styles.selectIcon} />
+              <Filter size={13} className={styles.selectIcon} />
               <select
                 value={selectedGenre}
                 onChange={(e) => setSelectedGenre(e.target.value)}
@@ -226,7 +230,7 @@ export default function RandomizerPortal({ seriesList }: RandomizerPortalProps) 
 
             {/* Min Rating Filter Dropdown */}
             <div className={styles.filterSelectWrapper}>
-              <Star size={14} className={styles.selectIcon} />
+              <Star size={13} className={styles.selectIcon} />
               <select
                 value={selectedRating}
                 onChange={(e) => setSelectedRating(e.target.value)}
@@ -235,15 +239,15 @@ export default function RandomizerPortal({ seriesList }: RandomizerPortalProps) 
               >
                 <option value="all">Rating: Any</option>
                 <option value="7">⭐ 7.0+ Rated</option>
-                <option value="8">⭐ 8.0+ Top Rated</option>
-                <option value="8.5">⭐ 8.5+ Masterpieces</option>
+                <option value="8">⭐ 8.0+ Top</option>
+                <option value="8.5">⭐ 8.5+ Peak</option>
               </select>
               <ChevronDown size={13} className={styles.filterArrow} />
             </div>
 
             {/* Status Filter Dropdown */}
             <div className={styles.filterSelectWrapper}>
-              <Activity size={14} className={styles.selectIcon} />
+              <Activity size={13} className={styles.selectIcon} />
               <select
                 value={selectedStatus}
                 onChange={(e) => setSelectedStatus(e.target.value)}
@@ -257,10 +261,8 @@ export default function RandomizerPortal({ seriesList }: RandomizerPortalProps) 
               </select>
               <ChevronDown size={13} className={styles.filterArrow} />
             </div>
-          </div>
 
-          {/* Right Controls: View Mode Switcher (Grid / List) */}
-          <div className={styles.rightControls}>
+            {/* View Mode Switcher */}
             <div className={styles.viewModeToggle} role="group" aria-label="View Mode">
               <button
                 type="button"
@@ -272,8 +274,8 @@ export default function RandomizerPortal({ seriesList }: RandomizerPortalProps) 
                 title="Grid View"
                 aria-label="Grid View"
               >
-                <LayoutGrid size={15} />
-                <span>Grid</span>
+                <LayoutGrid size={14} />
+                <span className={styles.viewModeText}>Grid</span>
               </button>
               <button
                 type="button"
@@ -285,8 +287,8 @@ export default function RandomizerPortal({ seriesList }: RandomizerPortalProps) 
                 title="List View"
                 aria-label="List View"
               >
-                <List size={15} />
-                <span>List</span>
+                <List size={14} />
+                <span className={styles.viewModeText}>List</span>
               </button>
             </div>
           </div>
@@ -303,11 +305,10 @@ export default function RandomizerPortal({ seriesList }: RandomizerPortalProps) 
           ) : (
             <div className={`${styles.catalogList} ${isShuffling ? styles.gridFade : ''}`}>
               {randomBatch.map((item) => {
-                const rating = typeof item.rating === 'number' && item.rating > 0 
-                  ? item.rating 
-                  : (item.rating && !isNaN(Number(item.rating)) && Number(item.rating) > 0 ? Number(item.rating) : null);
-                const views = item.views_count !== undefined ? item.views_count : (item.views !== undefined ? item.views : 0);
-                
+                const year = item.release_year || 2026;
+                const rating = typeof item.rating === 'number' && item.rating > 0 ? item.rating : null;
+                const isOngoing = item.status?.toLowerCase() === 'ongoing' || item.status?.toLowerCase() === 'airing';
+
                 return (
                   <Link
                     key={item.id}
@@ -316,40 +317,30 @@ export default function RandomizerPortal({ seriesList }: RandomizerPortalProps) 
                   >
                     <div className={styles.listItemThumb}>
                       <Image
-                        src={getR2Url(item.poster_image_key, 'poster')}
-                        alt={`${item.title} poster`}
+                        src={getR2Url(item.poster_image_key || item.cover_image_key, 'poster')}
+                        alt={item.title}
                         fill
-                        sizes="100px"
+                        sizes="65px"
                         style={{ objectFit: 'cover' }}
                       />
                     </div>
                     <div className={styles.listItemDetails}>
                       <h3 className={styles.listItemTitle}>{item.title}</h3>
-                      
                       <div className={styles.listItemMeta}>
-                        {rating !== null && rating > 0 && (
+                        <span>{year}</span>
+                        <span>•</span>
+                        <span>{item.studio || item.category || 'Anime'}</span>
+                        {rating !== null && (
                           <>
-                            <span style={{ display: 'inline-flex', alignItems: 'center', color: '#fbbf24' }}>
-                              <Star size={12} fill="currentColor" style={{ marginRight: '4px' }} />
-                              {rating.toFixed(1)}
-                            </span>
                             <span>•</span>
+                            <span style={{ color: '#eab308' }}>⭐ {rating.toFixed(1)}</span>
                           </>
                         )}
-                        <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-                          <Eye size={12} style={{ marginRight: '4px' }} />
-                          {formatViews(views)} Views
+                        <span>•</span>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                          <Eye size={12} /> {formatViews(item.views || item.views_count)}
                         </span>
-                        {item.category && (
-                          <>
-                            <span>•</span>
-                            <span style={{ background: 'rgba(255,255,255,0.06)', padding: '0.15rem 0.4rem', borderRadius: '4px', fontSize: '0.75rem', color: '#c084fc', fontWeight: 700 }}>
-                              {item.category.toUpperCase()}
-                            </span>
-                          </>
-                        )}
                       </div>
-                      
                       <p className={styles.listItemDesc}>{item.description}</p>
                     </div>
                   </Link>
@@ -359,9 +350,8 @@ export default function RandomizerPortal({ seriesList }: RandomizerPortalProps) 
           )
         ) : (
           <div className={styles.emptyState}>
-            <Film size={40} style={{ color: 'var(--foreground-muted)' }} />
-            <h3>No random anime matched your filters</h3>
-            <p>Try resetting the genre, minimum rating, or status filter to shuffle across all series.</p>
+            <h3>No Matching Anime Found</h3>
+            <p>Try clearing or broadening your active filters to find random hentai titles.</p>
             <button
               type="button"
               onClick={() => {
@@ -371,17 +361,17 @@ export default function RandomizerPortal({ seriesList }: RandomizerPortalProps) 
               }}
               className={styles.resetBtn}
             >
-              Reset Filters
+              Reset All Filters
             </button>
           </div>
         )}
 
-        {/* Bottom Shuffle Section (No Pagination!) */}
+        {/* Bottom Shuffler CTA */}
         {filteredList.length > 0 && (
           <div className={styles.bottomShuffleSection}>
-            <span className={styles.bottomCountText}>
-              Showing {randomBatch.length} randomized titles
-            </span>
+            <p className={styles.bottomCountText}>
+              Viewing <strong>{randomBatch.length}</strong> of <strong>{filteredList.length}</strong> matching titles
+            </p>
             <button
               type="button"
               onClick={() => {
@@ -391,8 +381,8 @@ export default function RandomizerPortal({ seriesList }: RandomizerPortalProps) 
               className={styles.bottomShuffleBtn}
               disabled={isShuffling}
             >
-              <Shuffle size={16} className={styles.shuffleIcon} />
-              <span>Shuffle Again</span>
+              <Shuffle size={16} />
+              <span>Shuffle Again &amp; Jump to Top</span>
             </button>
           </div>
         )}
@@ -400,22 +390,22 @@ export default function RandomizerPortal({ seriesList }: RandomizerPortalProps) 
         {/* SEO Information Section (Bottom) */}
         <section className={styles.seoSection}>
           <div className={styles.seoCard}>
-            <h2>Discover New Anime with the Random Hentai Generator</h2>
+            <h2>Discover Anime with the Random Hentai Generator</h2>
             <p>
-              Stuck in decision paralysis? The Play Hentai Random Anime Generator is built to help you discover hidden masterpieces, nostalgic classics, and trending releases with zero effort. Hit shuffle to randomize the entire anime database or narrow down the random pool using mood, genre, and minimum community rating filters.
+              Looking for something new to watch? The Play Hentai Random Generator allows you to instantly discover hidden gems, top-rated masterpieces, and uncensored classics across our entire catalog of high-definition hentai anime series with English subtitles.
             </p>
             <div className={styles.seoGrid}>
               <div className={styles.seoFeature}>
-                <h3>Instant Random Discovery</h3>
-                <p>Reshuffle hundreds of anime titles with true random distribution to find something fresh every time you click.</p>
+                <h3>Instant Discovery</h3>
+                <p>Roll the dice to generate a randomized batch of 24 anime series with synchronized subtitles and full episode lists.</p>
               </div>
               <div className={styles.seoFeature}>
-                <h3>Tailored Mood Filtering</h3>
-                <p>Filter by 100+ genre tags, uncensored releases, 3D CGI animations, or minimum rating thresholds before shuffling.</p>
+                <h3>Genre &amp; Rating Filters</h3>
+                <p>Narrow down your shuffle results by specifying minimum community ratings, airing status, or specific hentai genres.</p>
               </div>
               <div className={styles.seoFeature}>
-                <h3>One-Click Surprise Me</h3>
-                <p>Use the Surprise Me action to jump straight into a surprise anime series with HD streaming and English subtitles.</p>
+                <h3>Surprise Me Feature</h3>
+                <p>Feeling adventurous? Click &apos;Surprise Me&apos; to immediately jump into a random series watch portal in one click.</p>
               </div>
             </div>
           </div>
