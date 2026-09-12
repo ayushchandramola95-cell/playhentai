@@ -214,6 +214,16 @@ body {
   border-color: var(--primary);
 }
 
+.card-hover:active {
+  transform: scale(0.975) translateY(-2px);
+  transition-duration: 0.08s;
+}
+
+button:active:not(:disabled) {
+  transform: scale(0.96);
+  transition: transform 0.08s ease;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, ::before, ::after {
     animation-duration: 0.01ms !important;

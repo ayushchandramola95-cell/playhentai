@@ -182,18 +182,7 @@ const getCachedAllPublishedSeries = unstable_cache(
       const viewsMap = await getSeriesViewsMap();
       const { data: allSeriesData, error } = await publicSupabaseClient
         .from('series')
-        .select(`
-          *,
-          seasons (
-            is_published,
-            season_number,
-            episodes (
-              id,
-              is_published,
-              episode_number
-            )
-          )
-        `)
+        .select('id, title, slug, studio, tags, category, poster_image_key, cover_image_key, banner_image_key, poster_position, rating, release_year, status, description, created_at')
         .eq('is_published', true)
         .order('created_at', { ascending: false });
 
@@ -213,7 +202,7 @@ const getCachedAllPublishedSeries = unstable_cache(
     }
     return [];
   },
-  ['all-published-series-catalog-v7'],
+  ['all-published-series-catalog-v8'],
   { revalidate: 60, tags: ['all_series_catalog'] }
 );
 
@@ -242,27 +231,31 @@ const getCachedSeriesDetails = unstable_cache(
 
         const { data: seasonsData } = await publicSupabaseClient
           .from('seasons')
-          .select('*')
+          .select(`
+            *,
+            episodes (
+              id,
+              episode_number,
+              title,
+              description,
+              duration_seconds,
+              thumbnail_key,
+              release_date,
+              created_at,
+              is_published
+            )
+          `)
           .eq('series_id', seriesData.id)
           .eq('is_published', true)
           .order('season_number');
 
         if (seasonsData) {
-          const seasonsWithEpisodes = await Promise.all(
-            seasonsData.map(async (season) => {
-              const { data: eps } = await publicSupabaseClient
-                .from('episodes')
-                .select('id, episode_number, title, description, duration_seconds, thumbnail_key, release_date, created_at, is_published')
-                .eq('season_id', season.id)
-                .eq('is_published', true)
-                .order('episode_number');
-              return {
-                ...season,
-                episodes: eps || []
-              };
-            })
-          );
-          dbSeasons = seasonsWithEpisodes;
+          dbSeasons = seasonsData.map((season: any) => ({
+            ...season,
+            episodes: (season.episodes || [])
+              .filter((ep: any) => ep.is_published !== false)
+              .sort((a: any, b: any) => (a.episode_number || 0) - (b.episode_number || 0))
+          }));
         }
       }
     } catch (err) {
@@ -271,7 +264,7 @@ const getCachedSeriesDetails = unstable_cache(
 
     return { dbSeries, dbSeasons, isDbEmpty };
   },
-  ['series-details-single-item-v7'],
+  ['series-details-single-item-v8'],
   { revalidate: 60, tags: ['series_details'] }
 );
 

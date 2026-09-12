@@ -1,0 +1,350 @@
+.skeletonWrapper {
+  width: 100%;
+  min-height: calc(100vh - 70px);
+  padding: 1.5rem 2rem 4rem;
+  max-width: 1600px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes pulsePlay {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.08);
+    opacity: 0.9;
+  }
+}
+
+.shimmerBase {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+.shimmerBase::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.08) 50%,
+    transparent 100%
+  );
+  animation: shimmer 1.6s infinite ease-in-out;
+}
+
+/* =======================================
+   SERIES DETAILS SKELETON
+   ======================================= */
+.seriesHeroBanner {
+  width: 100%;
+  height: 380px;
+  border-radius: 16px;
+  margin-bottom: 2rem;
+  composes: shimmerBase;
+}
+
+.seriesTopSection {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 2.5rem;
+  align-items: start;
+  margin-bottom: 3rem;
+}
+
+.seriesPosterSkeleton {
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  border-radius: 14px;
+  composes: shimmerBase;
+}
+
+.seriesPosterButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.seriesActionBtnSkeleton {
+  height: 44px;
+  border-radius: 10px;
+  composes: shimmerBase;
+}
+
+.seriesInfoCol {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.badgeRow {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.badgeSkeleton {
+  width: 90px;
+  height: 28px;
+  border-radius: 20px;
+  composes: shimmerBase;
+}
+
+.titleSkeleton {
+  width: 65%;
+  height: 42px;
+  border-radius: 8px;
+  composes: shimmerBase;
+}
+
+.subtitleSkeleton {
+  width: 40%;
+  height: 24px;
+  border-radius: 6px;
+  composes: shimmerBase;
+}
+
+.ratingRowSkeleton {
+  width: 180px;
+  height: 32px;
+  border-radius: 8px;
+  composes: shimmerBase;
+}
+
+.synopsisSkeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin: 1rem 0;
+}
+
+.textLineLong {
+  width: 100%;
+  height: 16px;
+  border-radius: 4px;
+  composes: shimmerBase;
+}
+
+.textLineMed {
+  width: 85%;
+  height: 16px;
+  border-radius: 4px;
+  composes: shimmerBase;
+}
+
+.textLineShort {
+  width: 55%;
+  height: 16px;
+  border-radius: 4px;
+  composes: shimmerBase;
+}
+
+.tagsRowSkeleton {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.tagPillSkeleton {
+  width: 80px;
+  height: 26px;
+  border-radius: 14px;
+  composes: shimmerBase;
+}
+
+.episodesSectionSkeleton {
+  margin-top: 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.sectionHeaderSkeleton {
+  width: 220px;
+  height: 32px;
+  border-radius: 8px;
+  composes: shimmerBase;
+}
+
+.episodesGridSkeleton {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1.25rem;
+}
+
+.episodeCardSkeleton {
+  aspect-ratio: 16 / 9;
+  border-radius: 10px;
+  composes: shimmerBase;
+}
+
+/* =======================================
+   WATCH PAGE SKELETON
+   ======================================= */
+.watchLayoutGrid {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 2rem;
+  margin-top: 1rem;
+}
+
+.watchPlayerCol {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.videoPlayerSkeleton {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 14px;
+  background: #09090b;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6);
+}
+
+.videoPlayerSkeleton::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.06) 50%,
+    transparent 100%
+  );
+  animation: shimmer 1.8s infinite ease-in-out;
+}
+
+.centerPlayIconGlow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(251, 191, 36, 0.2);
+  border: 2px solid rgba(251, 191, 36, 0.5);
+  box-shadow: 0 0 24px rgba(251, 191, 36, 0.35);
+  animation: pulsePlay 1.8s infinite ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.watchMetaRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.watchTitleGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 250px;
+}
+
+.watchActionButtons {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.watchActionBtn {
+  width: 85px;
+  height: 38px;
+  border-radius: 8px;
+  composes: shimmerBase;
+}
+
+.watchQueueSidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.queueHeaderSkeleton {
+  width: 100%;
+  height: 48px;
+  border-radius: 10px;
+  composes: shimmerBase;
+}
+
+.queueListSkeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.queueItemSkeleton {
+  width: 100%;
+  height: 76px;
+  border-radius: 10px;
+  composes: shimmerBase;
+}
+
+/* =======================================
+   GENERAL CATALOG / HOME SKELETON
+   ======================================= */
+.cardsCatalogGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1.25rem;
+  margin-top: 1.5rem;
+}
+
+.catalogCardSkeleton {
+  aspect-ratio: 2 / 3;
+  border-radius: 12px;
+  composes: shimmerBase;
+}
+
+@media (max-width: 1024px) {
+  .watchLayoutGrid {
+    grid-template-columns: 1fr;
+  }
+  .seriesTopSection {
+    grid-template-columns: 220px 1fr;
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .seriesTopSection {
+    grid-template-columns: 1fr;
+  }
+  .seriesPosterSkeleton {
+    max-width: 240px;
+    margin: 0 auto;
+  }
+  .skeletonWrapper {
+    padding: 1rem 1rem 3rem;
+  }
+}

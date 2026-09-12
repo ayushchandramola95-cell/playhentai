@@ -57,7 +57,7 @@ export default function SeriesCompactCard({ item, className = '' }: SeriesCompac
   const isUncensored = tags.some(t => t.toLowerCase() === 'uncensored') || (item.category || '').toLowerCase() === 'uncensored';
 
   return (
-    <Link href={`/series/${item.slug}`} prefetch={false} className={`${styles.compactCard} ${className}`}>
+    <Link href={`/series/${item.slug}`} className={`${styles.compactCard} ${className}`}>
       {/* Poster Thumbnail */}
       <div className={styles.posterWrapper}>
         <Image

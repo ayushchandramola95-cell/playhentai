@@ -47,35 +47,30 @@ async function resolveEpisode(supabase: any, episodeId: string) {
 
       if (seriesData && seriesData.seasons) {
         let foundEp: any = null;
-        let seasonId: string = '';
         let seasonTitle: string = '';
+        let matchedSeasonEpisodes: any[] = [];
         for (const season of seriesData.seasons) {
-          if (season.episodes) {
+          if (season.episodes && Array.isArray(season.episodes)) {
             const ep = season.episodes.find((e: any) => e.episode_number === parsed.episodeNumber && e.is_published);
             if (ep) {
               foundEp = ep;
-              seasonId = season.id;
               seasonTitle = season.title || '';
+              matchedSeasonEpisodes = [...season.episodes]
+                .filter((e: any) => e.is_published !== false)
+                .sort((a: any, b: any) => (a.episode_number || 0) - (b.episode_number || 0));
               break;
             }
           }
         }
 
         if (foundEp) {
-          const { data: siblingEps } = await supabase
-            .from('episodes')
-            .select('*')
-            .eq('season_id', seasonId)
-            .eq('is_published', true)
-            .order('episode_number');
-
           return {
             activeEpisode: foundEp,
             seriesDetails: seriesData,
             seriesTitle: seriesData.title,
             seriesSlug: seriesData.slug,
             seasonTitle,
-            seasonEpisodes: siblingEps || [foundEp],
+            seasonEpisodes: matchedSeasonEpisodes.length > 0 ? matchedSeasonEpisodes : [foundEp],
             isDbEmpty: false
           };
         }
@@ -351,9 +346,10 @@ export default async function WatchPage({ params }: WatchPageProps) {
   const resolvedParams = await params;
   const episodeId = resolvedParams.episodeId;
 
-  const allSeriesList = await getCachedMinimalSeriesList();
-
-  const resolved = await getCachedResolvedEpisode(episodeId);
+  const [allSeriesList, resolved] = await Promise.all([
+    getCachedMinimalSeriesList(),
+    getCachedResolvedEpisode(episodeId)
+  ]);
 
   if (!resolved || !resolved.activeEpisode) {
     return (

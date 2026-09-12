@@ -113,7 +113,7 @@ export default function SeriesCard({ item, className = '' }: SeriesCardProps) {
       onMouseEnter={handleMouseEnter}
       data-side="right"
     >
-      <Link href={`/series/${item.slug}`} prefetch={false} className={styles.cardImageLink}>
+      <Link href={`/series/${item.slug}`} className={styles.cardImageLink}>
         <div className={styles.seriesImageWrapper}>
           <Image
             src={getR2Url(
@@ -167,7 +167,7 @@ export default function SeriesCard({ item, className = '' }: SeriesCardProps) {
       {/* Title and Meta (Below Card Image) */}
       <div className={styles.cardMetaContent}>
         <h4 className={styles.seriesTitleText} title={item.title}>
-          <Link href={`/series/${item.slug}`} prefetch={false}>{item.title}</Link>
+          <Link href={`/series/${item.slug}`}>{item.title}</Link>
         </h4>
         <div className={styles.seriesBottomMeta}>
           <div className={styles.seriesViewsRow}>

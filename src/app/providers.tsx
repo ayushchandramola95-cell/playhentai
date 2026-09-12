@@ -3,6 +3,7 @@
 import { ThemeProvider } from 'next-themes';
 import React from 'react';
 import { AuthProvider } from '@/contexts/AuthContext';
+import NavigationProgressBar from '@/components/NavigationProgressBar/NavigationProgressBar';
 
 // Suppress the React 19 / Next.js 16+ console warning for inline script tag injections from next-themes FOUC check
 if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
@@ -19,6 +20,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <ThemeProvider attribute="data-theme" defaultTheme="dark" forcedTheme="dark" enableSystem={false}>
       <AuthProvider>
+        <NavigationProgressBar />
         {children}
       </AuthProvider>
     </ThemeProvider>

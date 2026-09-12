@@ -528,7 +528,7 @@ export default async function HomePage() {
             const watchUrl = getEpisodeWatchUrl(ep.id, ep.episode_number, ep.showSlug);
             return (
               <div key={ep.id} className={`${styles.episodeCard} card-hover`}>
-                <Link href={watchUrl} prefetch={false} className={styles.cardImageLink}>
+                <Link href={watchUrl} className={styles.cardImageLink}>
                   <div className={styles.cardImageWrapper}>
                     <Image
                       src={getR2Url(ep.thumbnail, 'thumbnail')}
@@ -560,7 +560,7 @@ export default async function HomePage() {
 
                 <div className={styles.cardContent}>
                   <h3 className={styles.cardTitle}>
-                    <Link href={watchUrl} prefetch={false} title={ep.fullTitle || ep.title}>{ep.title}</Link>
+                    <Link href={watchUrl} title={ep.fullTitle || ep.title}>{ep.title}</Link>
                   </h3>
                   <div className={styles.episodeMetaRow}>
                     <div className={styles.episodeViewsRow}>
