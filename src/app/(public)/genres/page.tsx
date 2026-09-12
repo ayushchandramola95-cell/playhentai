@@ -6,6 +6,8 @@ import JsonLd from '@/components/JsonLd/JsonLd';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
 
+export const revalidate = 300;
+
 export const metadata: Metadata = {
   title: 'Hentai Anime Genres & Categories Directory | Play Hentai',
   description: 'Browse all 100+ hentai anime genres, themes, and tags with high-definition artwork, series counts, ratings, and episode catalogs on Play Hentai.',
@@ -21,7 +23,7 @@ export const metadata: Metadata = {
     type: 'website',
     images: [
       {
-        url: `${SITE_URL}/hero-banner.png`,
+        url: `${SITE_URL}/api/og?title=Genres%20Directory&subtitle=Explore%20100%2B%20anime%20genres%20and%20categories&badge=100%2B%20GENRES`,
         width: 1200,
         height: 630,
         alt: 'Play Hentai Genres Directory',
@@ -32,7 +34,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Hentai Anime Genres & Categories Directory | Play Hentai',
     description: 'Browse all 100+ hentai anime genres, themes, and tags with high-definition artwork, series counts, ratings, and episode catalogs on Play Hentai.',
-    images: [`${SITE_URL}/hero-banner.png`],
+    images: [`${SITE_URL}/api/og?title=Genres%20Directory&subtitle=Explore%20100%2B%20anime%20genres%20and%20categories&badge=100%2B%20GENRES`],
   },
 };
 

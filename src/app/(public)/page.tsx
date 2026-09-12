@@ -38,7 +38,7 @@ export const metadata = {
     title: 'Play Hentai – Watch Hentai Anime Online Free in HD',
     description: 'Watch hentai anime online free in HD on Play Hentai. Stream uncensored hentai series and episodes with English subtitles, discover new releases, and explore popular titles by genre and studio.',
     url: SITE_URL,
-    siteName: 'PlayHentai',
+    siteName: 'Play Hentai',
     locale: 'en_US',
     type: 'website' as const,
   },

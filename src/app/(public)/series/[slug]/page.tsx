@@ -113,9 +113,18 @@ export async function generateMetadata({ params }: SeriesPageProps): Promise<Met
   }
 
   const canonicalUrl = `${SITE_URL}/series/${slug}`;
-  const images = ogImage 
-    ? [{ url: getR2Url(ogImage, 'cover') }] 
-    : [{ url: `${SITE_URL}/hero-banner.png`, width: 1200, height: 630, alt: title }];
+  const posterUrl = ogImage ? getR2Url(ogImage, 'poster') : '';
+  const cleanTitle = title.replace(/\s*\|.*$/, '').replace(/\s*—.*$/, '').trim();
+  const ogApiUrl = `${SITE_URL}/api/og?title=${encodeURIComponent(cleanTitle)}&subtitle=${encodeURIComponent(description.slice(0, 80))}&badge=${encodeURIComponent('ANIME SERIES')}&image=${encodeURIComponent(posterUrl)}`;
+
+  const images = [
+    {
+      url: ogApiUrl,
+      width: 1200,
+      height: 630,
+      alt: title,
+    },
+  ];
 
   return {
     title,

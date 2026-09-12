@@ -198,6 +198,55 @@ export default function WatchPageClient({
     }
   };
 
+  // Primary Share Episode handler (Native Web Share first, fallback to clipboard copy)
+  const handleShareEpisode = async (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
+    const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
+    const shareTitle = `${seriesTitle} - Episode ${activeEpisode.episode_number}`;
+    const shareText = `Watch ${seriesTitle} Episode ${activeEpisode.episode_number} on PlayHentai`;
+
+    // 1. Try native Web Share API on mobile / PC (triggers Windows / macOS / Android / iOS native share popup)
+    if (
+      typeof navigator !== 'undefined' &&
+      typeof navigator.share === 'function' &&
+      (typeof navigator.canShare !== 'function' || navigator.canShare({ url: shareUrl }))
+    ) {
+      try {
+        await navigator.share({
+          title: shareTitle,
+          text: shareText,
+          url: shareUrl,
+        });
+        return;
+      } catch (err: any) {
+        // User closed or dismissed the native OS share popup
+        if (err?.name === 'AbortError') {
+          return;
+        }
+        console.error('Native share failed, using fallback:', err);
+      }
+    }
+
+    // 2. Fallback for browsers without Web Share support (e.g. desktop Firefox)
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard) {
+        await navigator.clipboard.writeText(shareUrl);
+        setShareCopied(true);
+        setShowShareToast(true);
+        setTimeout(() => setShareCopied(false), 2500);
+        setTimeout(() => setShowShareToast(false), 2500);
+        return;
+      }
+    } catch (_) {}
+
+    // 3. Fallback to modal if clipboard is blocked
+    setShowShareModal(true);
+  };
+
   // Social share dispatcher
   const handleSocialShare = (platform: 'whatsapp' | 'telegram' | 'twitter' | 'reddit' | 'facebook' | 'native') => {
     const url = typeof window !== 'undefined' ? window.location.href : '';
@@ -807,15 +856,25 @@ export default function WatchPageClient({
                   <FavoriteToggle seriesId={seriesDetails.id} variant="player" />
                 )}
 
-                {/* Share Episode (Opens Multi-Platform Popup) */}
+                {/* Share Episode (Native OS Share with Fallback) */}
                 <button
                   type="button"
-                  onClick={() => setShowShareModal(true)}
-                  className={`${styles.actionBtn} ${styles.actionBtnShare}`}
-                  title="Share Episode (WhatsApp, Telegram, X, Reddit, etc.)"
+                  onClick={handleShareEpisode}
+                  className={`${styles.actionBtn} ${styles.actionBtnShare} ${shareCopied ? styles.actionBtnCopied : ''}`}
+                  title={shareCopied ? 'Episode link copied!' : 'Share Episode'}
+                  aria-label={shareCopied ? 'Link copied to clipboard' : 'Share Episode'}
                 >
-                  <Share2 size={15} />
-                  <span>Share</span>
+                  {shareCopied ? (
+                    <>
+                      <Check size={15} color="#4ade80" />
+                      <span style={{ color: '#4ade80' }}>Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Share2 size={15} />
+                      <span>Share</span>
+                    </>
+                  )}
                 </button>
 
                 {/* Direct Rating Button */}

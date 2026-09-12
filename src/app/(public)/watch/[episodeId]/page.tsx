@@ -280,9 +280,18 @@ export async function generateMetadata({ params }: WatchPageProps): Promise<Meta
   }
 
   const canonicalUrl = `${SITE_URL}${canonicalPath}`;
-  const images = thumbnail
-    ? [{ url: getR2Url(thumbnail, 'thumbnail') }]
-    : [{ url: `${SITE_URL}/hero-banner.png`, width: 1200, height: 630, alt: title }];
+  const thumbUrl = thumbnail ? getR2Url(thumbnail, 'thumbnail') : '';
+  const cleanTitle = title.replace(/\s*\|.*$/, '').trim();
+  const ogApiUrl = `${SITE_URL}/api/og?title=${encodeURIComponent(cleanTitle)}&subtitle=${encodeURIComponent(description.slice(0, 80))}&badge=${encodeURIComponent('NOW STREAMING')}&image=${encodeURIComponent(thumbUrl)}`;
+
+  const images = [
+    {
+      url: ogApiUrl,
+      width: 1200,
+      height: 630,
+      alt: title,
+    },
+  ];
 
   return {
     title,

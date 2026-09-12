@@ -5,10 +5,11 @@ This file maintains an exact, comprehensive record of all audits, code modificat
 ---
 
 ## Project Technical Profile
-* **Framework**: Next.js 16.2.9 (App Router) + React 19.2.4 + TypeScript 5
+* **Framework**: Next.js 16.2.9 (App Router, Standalone Output) + React 19.2.4 + TypeScript 5
+* **Deployment & Hosting**: Coolify on Amazon AWS (Self-hosted Docker standalone container)
 * **Styling**: Vanilla CSS Modules with custom dark/light theme variables
 * **Database & Auth**: Supabase (PostgreSQL with RLS + SSR Auth)
-* **Object Storage & CDN**: Cloudflare R2 (`media.playhentai.live`)
+* **CDN, DNS & Storage**: Cloudflare (Edge Caching, DDoS Protection) + Cloudflare R2 (`media.playhentai.live`)
 * **Live Domain**: `https://playhentai.live`
 * **Port / Dev Server**: `http://localhost:3004`
 
@@ -234,6 +235,46 @@ This file maintains an exact, comprehensive record of all audits, code modificat
 
 ---
 
+### Phase 8: Dynamic Social Share OG Cards & Edge Catalog Caching
+* **Date**: September 12, 2026
+* **Problem**:
+  * Social shares on Discord, Twitter/X, Telegram, WhatsApp, and Reddit previously fell back to static `hero-banner.png` or awkwardly cropped vertical poster images.
+  * Public catalog directories lacked ISR edge cache revalidation directives.
+* **Fix Applied**:
+  * Created `src/app/api/og/route.tsx` utilizing `@vercel/og` (`ImageResponse`) running on the Edge runtime to generate branded 1200x630 social preview cards in real-time with:
+    * Title & alternative subtitle
+    * Category pill (`ANIME SERIES`, `NOW STREAMING`, `100+ GENRES`)
+    * HD 1080p & English Subtitles badges
+    * Gold star community rating (`★ 9.4 / 10`)
+    * Embedded high-resolution poster artwork preview
+    * Play Hentai brand watermark & URL
+  * Wired `/api/og` dynamic URLs into `generateMetadata` across `src/app/(public)/series/[slug]/page.tsx`, `src/app/(public)/watch/[episodeId]/page.tsx`, and `src/app/(public)/genres/page.tsx`.
+  * Configured ISR edge caching (`revalidate = 60` / `revalidate = 300`) on `/categories` and `/genres`.
+* **Files Created**:
+  * `src/app/api/og/route.tsx`
+* **Files Modified**:
+  * `src/app/(public)/series/[slug]/page.tsx`
+  * `src/app/(public)/watch/[episodeId]/page.tsx`
+  * `src/app/(public)/categories/page.tsx`
+  * `src/app/(public)/genres/page.tsx`
+
+### Phase 9: Unified Native Web Share Across Watch & Series Pages
+* **Date**: September 13, 2026
+* **Problem**:
+  * On the Series details page (`/series/[slug]`), clicking "Share" triggered the native OS/browser Web Share sheet (`navigator.share(...)`), presenting the user with their contacts, apps (WhatsApp, Telegram Desktop, Discord, Messenger, Nearby Sharing, etc.), and link copy tools.
+  * However, on the Episode Watch page (`/watch/[episodeId]`), clicking "Share" previously opened a custom in-app popup modal (`styles.shareModal`) with static platform buttons rather than opening the native OS share sheet.
+* **Fix Applied**:
+  * Implemented `handleShareEpisode` in `src/app/(public)/watch/[episodeId]/WatchPageClient.tsx`:
+    * Calls `navigator.share({ title, text, url })` on supported browsers (Chrome, Edge, Safari, iOS, Android), instantly invoking the native Windows/OS share flyout.
+    * Gracefully handles `AbortError` when users dismiss the native dialog.
+    * Implemented clipboard copy fallback (`navigator.clipboard.writeText`) with "Copied!" button feedback and toast notification for browsers without native share support.
+    * Added `.actionBtnCopied` styling in `src/app/(public)/watch/[episodeId]/watch.module.css` with emerald styling and smooth micro-animations.
+* **Files Modified**:
+  * `src/app/(public)/watch/[episodeId]/WatchPageClient.tsx`
+  * `src/app/(public)/watch/[episodeId]/watch.module.css`
+
+---
+
 ## 2. Live Verification Results
 
 The following live automated tests were executed against the running dev server on `http://localhost:3004`:
@@ -257,6 +298,10 @@ The following live automated tests were executed against the running dev server 
 | **PWA Web Manifest** | `node fetch('/manifest.webmanifest')`| Theme `#080808` + 4 shortcuts | HTTP 200 OK \| Theme `#080808` \| 4 shortcuts | **PASS** |
 | **Custom 404 Page** | `node fetch('/invalid-path')` | Custom 404 with search & chips | HTTP 404 Not Found \| Page or Episode Not Found | **PASS** |
 | **Root Error Boundary** | Build inspection | Recovery action `reset()` | Client error boundary configured at `src/app/error.tsx` | **PASS** |
+| **Dynamic 1200x630 OG Cards** | `node fetch('/api/og')` | 1200x630 PNG card | HTTP 200 OK \| `image/png` \| 200 KB rendered | **PASS** |
+| **Series Dynamic OG** | `node fetch('/series/[slug]')` | Points to `/api/og` endpoint | `property="og:image"` verified live | **PASS** |
+| **Watch Dynamic OG** | `node fetch('/watch/[epId]')` | Points to `/api/og` endpoint | `property="og:image"` verified live | **PASS** |
+| **Unified Web Share** | Browser test `/watch/...` | Native OS Web Share sheet (WhatsApp, Telegram, etc.) | Matches Series page native share behavior | **PASS** |
 | **Type Safety** | `npx tsc --noEmit` | Clean compilation | Exited with code 0 (0 errors across entire repo) | **PASS** |
 
 ---
@@ -272,4 +317,6 @@ The following live automated tests were executed against the running dev server 
 | **Part 5: Video Player & Streaming UX** | **COMPLETED** | Persisted volume and mute in localStorage across sessions, added native Picture-in-Picture (PiP) toggle button with shortcut `I`, preload="metadata". |
 | **Part 6: Technical Reliability & Security** | **COMPLETED** | Custom dark glassmorphism 404 page with search and popular hubs, root client error boundary (`error.tsx`), HTTP security headers (`nosniff`, `SAMEORIGIN`). |
 | **Part 7: Mobile, Accessibility & PWA** | **COMPLETED** | Next.js Viewport API dark theme color, updated PWA manifest with dark theme, accurate icon sizes, and 4 mobile homescreen shortcuts. |
+| **Part 8: Dynamic Social OG & Edge ISR** | **COMPLETED** | Edge-rendered 1200x630 dynamic Open Graph share cards (`/api/og`) for Discord/Twitter/Telegram, and catalog ISR caching (`revalidate`). |
+| **Part 9: Unified Web Share Behavior** | **COMPLETED** | Unified the Episode Watch page Share button with the Series page to directly trigger the native OS Web Share sheet (Windows / Android / iOS / macOS). |
 

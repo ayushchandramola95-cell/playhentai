@@ -60,12 +60,14 @@ We will execute the development of this site in six highly-structured phases:
 
 ---
 
-## 3. Infrastructure & Hosting (Free Tier Stack)
-*   **Web Hosting**: **Vercel** (Free Tier)
-    *   Optimal for Next.js, with free automated SSL, custom domain support, and serverless API functions.
-*   **Video Hosting**: **Cloudflare R2**
-    *   Provides high-capacity object storage with **no bandwidth egress fees**, ensuring video streaming stays completely free.
-*   **Database & Authentication**: **Supabase** (Free Tier PostgreSQL)
+## 3. Infrastructure & Hosting Architecture
+*   **Web Application Hosting**: **Coolify** on **Amazon AWS**
+    *   Runs Next.js as a high-performance standalone Docker container (`output: 'standalone'`). Self-hosted orchestration with automated GitHub deployments and zero vendor lock-in.
+*   **Edge CDN, DNS & Security**: **Cloudflare**
+    *   Global CDN Edge caching with HTTP/3 support, automated SSL, DDoS mitigation, and edge header caching (`s-maxage`).
+*   **Video Hosting & Object Storage**: **Cloudflare R2** (`media.playhentai.live`)
+    *   Provides high-capacity object storage with **no bandwidth egress fees**, ensuring video streaming and media assets deliver without bandwidth bottlenecks.
+*   **Database & Authentication**: **Supabase** (PostgreSQL)
     *   Provides PostgreSQL storage, authentication engines, and built-in REST support, connected securely via serverless environment keys.
 
 ---
