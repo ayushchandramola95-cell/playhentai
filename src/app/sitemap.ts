@@ -120,8 +120,26 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .select('slug, updated_at')
       .eq('is_published', true);
 
-    if (collections) {
+    if (collections && collections.length > 0) {
       dbPlaylists = collections;
+    } else {
+      try {
+        const fs = await import('fs');
+        const path = await import('path');
+        const storePath = path.join(process.cwd(), 'src', 'utils', 'playlists_store.json');
+        if (fs.existsSync(storePath)) {
+          const raw = fs.readFileSync(storePath, 'utf-8');
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) {
+            dbPlaylists = parsed.map((p: any) => ({
+              slug: p.slug,
+              updated_at: new Date().toISOString(),
+            }));
+          }
+        }
+      } catch (storeErr) {
+        console.error('Error reading playlists store fallback for sitemap:', storeErr);
+      }
     }
 
   } catch (err) {

@@ -1,8 +1,8 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Account Settings | PlayHentai',
-  description: 'Manage your PlayHentai account settings, update your password, and control your security preferences.',
+  title: 'Account Settings | Play Hentai',
+  description: 'Manage your Play Hentai account settings, update your password, and control your security preferences.',
   robots: {
     index: false,
     follow: false,

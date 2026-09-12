@@ -8,6 +8,7 @@ import { getR2Url } from '@/utils/r2';
 import { MOCK_SERIES } from '@/utils/mockData';
 import SeriesCard from '@/components/SeriesCard/SeriesCard';
 import RecentFilterBar from '@/components/RecentFilterBar/RecentFilterBar';
+import { getSiteSettings } from '@/utils/siteSettings';
 import styles from '../recent.module.css';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
@@ -68,14 +69,9 @@ export default async function RecentSeriesPage({
   try {
     let siteSortMode = 'latest_episode';
     try {
-      const fs = require('fs');
-      const path = require('path');
-      const filePath = path.join(process.cwd(), 'src', 'utils', 'site_settings.json');
-      if (fs.existsSync(filePath)) {
-        const fileContent = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-        if (fileContent.latest_series_sort_mode) {
-          siteSortMode = fileContent.latest_series_sort_mode;
-        }
+      const fileContent = getSiteSettings();
+      if (fileContent.latest_series_sort_mode) {
+        siteSortMode = fileContent.latest_series_sort_mode;
       }
     } catch (fErr) {}
 

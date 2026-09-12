@@ -3,6 +3,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import fs from 'fs';
 import path from 'path';
+import { getSiteSettings } from '@/utils/siteSettings';
 import { Play, Star, Eye, Calendar, Sparkles, Award, Clock, Flame, ChevronRight } from 'lucide-react';
 import { unstable_cache } from 'next/cache';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
@@ -123,26 +124,14 @@ const getCachedCatalogData = unstable_cache(
   { revalidate: 60, tags: ['homepage_catalog'] }
 );
 
-let cachedSettingsData: Record<string, string> | undefined;
 function getLocalSettings(): Record<string, string> {
-  if (cachedSettingsData) return cachedSettingsData;
   const defaultSettings: Record<string, string> = { 
     latest_series_sort_mode: 'latest_episode',
     hero_banner_source: 'featured_tags',
     hero_banner_slide_count: '8'
   };
-  try {
-    const filePath = path.join(process.cwd(), 'src', 'utils', 'site_settings.json');
-    if (fs.existsSync(filePath)) {
-      const fileData = fs.readFileSync(filePath, 'utf-8');
-      cachedSettingsData = { ...defaultSettings, ...JSON.parse(fileData) };
-    } else {
-      cachedSettingsData = defaultSettings;
-    }
-  } catch (err) {
-    cachedSettingsData = defaultSettings;
-  }
-  return cachedSettingsData || defaultSettings;
+  const settings = getSiteSettings();
+  return { ...defaultSettings, ...(settings as Record<string, string>) };
 }
 
 function getSeriesReleaseTimestamp(s: any): number {

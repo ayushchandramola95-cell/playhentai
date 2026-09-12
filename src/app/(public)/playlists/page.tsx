@@ -14,9 +14,7 @@ interface PageProps {
 export async function generateMetadata({ searchParams }: PageProps) {
   const params = await searchParams;
   const tab = params.tab;
-  const canonicalPath = tab && tab.toLowerCase() !== 'all'
-    ? `/playlists?tab=${encodeURIComponent(tab)}`
-    : '/playlists';
+  const canonicalPath = '/playlists';
 
   const title = 'Curated Hentai Playlists — Anime Collections | Play Hentai';
   const description = 'Explore curated hentai anime playlists organized by theme, genre, and popular series. Discover hand-picked collections on Play Hentai.';

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import {
   Play, Pause, Volume2, VolumeX, Maximize, Minimize,
   Settings, Layout, RotateCcw, RotateCw,
-  HelpCircle, X, Clock, Keyboard, Lightbulb
+  HelpCircle, X, Clock, Keyboard, Lightbulb, PictureInPicture
 } from 'lucide-react';
 import styles from './VideoPlayer.module.css';
 
@@ -64,6 +64,41 @@ export default function VideoPlayer({
   const [playbackRate, setPlaybackRate] = useState(1);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
   const [showShortcutsModal, setShowShortcutsModal] = useState(false);
+  const [isPip, setIsPip] = useState(false);
+
+  // Hydrate persistent volume and mute preferences from localStorage
+  useEffect(() => {
+    try {
+      const savedVol = localStorage.getItem('player-volume');
+      const savedMute = localStorage.getItem('player-muted');
+      if (savedVol !== null) {
+        const v = parseFloat(savedVol);
+        if (!isNaN(v) && v >= 0 && v <= 1) {
+          setVolume(v);
+          if (videoRef.current) videoRef.current.volume = v;
+        }
+      }
+      if (savedMute !== null) {
+        const m = savedMute === 'true';
+        setIsMuted(m);
+        if (videoRef.current) videoRef.current.muted = m;
+      }
+    } catch (_) {}
+  }, []);
+
+  // Sync Picture-in-Picture state with browser window
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    const onEnterPip = () => setIsPip(true);
+    const onLeavePip = () => setIsPip(false);
+    video.addEventListener('enterpictureinpicture', onEnterPip);
+    video.addEventListener('leavepictureinpicture', onLeavePip);
+    return () => {
+      video.removeEventListener('enterpictureinpicture', onEnterPip);
+      video.removeEventListener('leavepictureinpicture', onLeavePip);
+    };
+  }, []);
 
   // Resume prompt state
   const [resumeTime, setResumeTime] = useState<number | null>(null);
@@ -457,10 +492,16 @@ export default function VideoPlayer({
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = parseFloat(e.target.value);
     setVolume(val);
+    const newMute = val === 0;
+    setIsMuted(newMute);
     if (videoRef.current) {
       videoRef.current.volume = val;
-      setIsMuted(val === 0);
+      videoRef.current.muted = newMute;
     }
+    try {
+      localStorage.setItem('player-volume', val.toString());
+      localStorage.setItem('player-muted', newMute.toString());
+    } catch (_) {}
   };
 
   const toggleMute = () => {
@@ -471,8 +512,16 @@ export default function VideoPlayer({
       if (nextMute) {
         videoRef.current.volume = 0;
       } else {
-        videoRef.current.volume = volume || 0.5;
+        const restoreVol = volume > 0 ? volume : 0.8;
+        videoRef.current.volume = restoreVol;
+        setVolume(restoreVol);
       }
+      try {
+        localStorage.setItem('player-muted', nextMute.toString());
+        if (!nextMute && volume > 0) {
+          localStorage.setItem('player-volume', volume.toString());
+        }
+      } catch (_) {}
     }
   };
 
@@ -510,6 +559,21 @@ export default function VideoPlayer({
     }, 100);
   };
 
+  const togglePip = async () => {
+    try {
+      if (!videoRef.current) return;
+      if (document.pictureInPictureElement) {
+        await document.exitPictureInPicture();
+        setIsPip(false);
+      } else if (document.pictureInPictureEnabled && videoRef.current.requestPictureInPicture) {
+        await videoRef.current.requestPictureInPicture();
+        setIsPip(true);
+      }
+    } catch (err) {
+      console.warn('Picture-in-picture failed or blocked:', err);
+    }
+  };
+
   // Keyboard Shortcuts Handler
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -538,6 +602,10 @@ export default function VideoPlayer({
             onToggleCinema();
           }
           break;
+        case 'KeyI':
+          e.preventDefault();
+          togglePip();
+          break;
         case 'KeyM':
           e.preventDefault();
           toggleMute();
@@ -561,19 +629,30 @@ export default function VideoPlayer({
         case 'ArrowUp':
           e.preventDefault();
           if (videoRef.current) {
-            const newVol = Math.min(1, (videoRef.current.volume || 0) + 0.1);
+            const newVol = Math.min(1, Math.round(((videoRef.current.volume || 0) + 0.1) * 100) / 100);
             videoRef.current.volume = newVol;
+            videoRef.current.muted = false;
             setVolume(newVol);
-            setIsMuted(newVol === 0);
+            setIsMuted(false);
+            try {
+              localStorage.setItem('player-volume', newVol.toString());
+              localStorage.setItem('player-muted', 'false');
+            } catch (_) {}
           }
           break;
         case 'ArrowDown':
           e.preventDefault();
           if (videoRef.current) {
-            const newVol = Math.max(0, (videoRef.current.volume || 0) - 0.1);
+            const newVol = Math.max(0, Math.round(((videoRef.current.volume || 0) - 0.1) * 100) / 100);
             videoRef.current.volume = newVol;
+            const newMute = newVol === 0;
+            videoRef.current.muted = newMute;
             setVolume(newVol);
-            setIsMuted(newVol === 0);
+            setIsMuted(newMute);
+            try {
+              localStorage.setItem('player-volume', newVol.toString());
+              localStorage.setItem('player-muted', newMute.toString());
+            } catch (_) {}
           }
           break;
         case 'KeyN':
@@ -607,7 +686,7 @@ export default function VideoPlayer({
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [duration, isPlaying, isMuted, volume, isFullscreen, isTheater, adPlaying, nextEpisodeUrl, prevEpisodeUrl, showShortcutsModal]);
+  }, [duration, isPlaying, isMuted, volume, isFullscreen, isTheater, isPip, adPlaying, nextEpisodeUrl, prevEpisodeUrl, showShortcutsModal]);
 
   const handleVideoEnded = () => {
     setIsPlaying(false);
@@ -758,6 +837,10 @@ export default function VideoPlayer({
               <div className={styles.shortcutItem}>
                 <span>Cinema Mode</span>
                 <span className={styles.shortcutKey}>C</span>
+              </div>
+              <div className={styles.shortcutItem}>
+                <span>Picture-in-Picture</span>
+                <span className={styles.shortcutKey}>I</span>
               </div>
               <div className={styles.shortcutItem}>
                 <span>Mute / Unmute</span>
@@ -961,6 +1044,17 @@ export default function VideoPlayer({
                     <Lightbulb size={18} color={isLightsOff ? '#fbbf24' : 'currentColor'} />
                   </button>
                 )}
+
+                {/* Picture-in-Picture Toggle */}
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); togglePip(); }}
+                  className={`${styles.controlBtn} ${isPip ? styles.pipActiveBtn : ''}`}
+                  title={isPip ? 'Exit Picture-in-Picture (I)' : 'Picture-in-Picture (I)'}
+                  aria-label="Toggle Picture-in-Picture"
+                >
+                  <PictureInPicture size={18} />
+                </button>
 
                 <button
                   type="button"

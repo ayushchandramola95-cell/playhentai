@@ -1,19 +1,26 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import Script from "next/script";
-import fs from 'fs';
-import path from 'path';
+import { getSiteSettings } from "@/utils/siteSettings";
+
+export const viewport: Viewport = {
+  themeColor: '#080808',
+  width: 'device-width',
+  initialScale: 1,
+};
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+  display: "swap",
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  display: "swap",
 });
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -94,23 +101,19 @@ function getAdsSettings(): { settings: Record<string, boolean>; disabledZones: s
   };
   let disabledZones: string[] = [];
   try {
-    const filePath = path.join(process.cwd(), 'src', 'utils', 'site_settings.json');
-    if (fs.existsSync(filePath)) {
-      const fileData = fs.readFileSync(filePath, 'utf-8');
-      const data = JSON.parse(fileData);
-      if (data.ads_block_banners === 'true') settings.block_banners = true;
-      if (data.ads_block_popunder === 'true') settings.block_popunder = true;
-      if (data.ads_block_instant_message === 'true') settings.block_instant_message = true;
-      if (data.ads_block_in_page_push === 'true') settings.block_in_page_push = true;
-      if (data.ads_disabled_zones) {
-        try {
-          const parsed = typeof data.ads_disabled_zones === 'string' ? JSON.parse(data.ads_disabled_zones) : data.ads_disabled_zones;
-          if (Array.isArray(parsed)) disabledZones = parsed;
-        } catch (e) {}
-      }
+    const data = getSiteSettings();
+    if (data.ads_block_banners === 'true') settings.block_banners = true;
+    if (data.ads_block_popunder === 'true') settings.block_popunder = true;
+    if (data.ads_block_instant_message === 'true') settings.block_instant_message = true;
+    if (data.ads_block_in_page_push === 'true') settings.block_in_page_push = true;
+    if (data.ads_disabled_zones) {
+      try {
+        const parsed = typeof data.ads_disabled_zones === 'string' ? JSON.parse(data.ads_disabled_zones) : data.ads_disabled_zones;
+        if (Array.isArray(parsed)) disabledZones = parsed;
+      } catch (e) {}
     }
   } catch (err) {
-    console.error('Error reading local settings for ads layout:', err);
+    console.error('Error reading settings for ads layout:', err);
   }
   return { settings, disabledZones };
 }
@@ -119,14 +122,11 @@ import AnalyticsTracker from "@/components/AnalyticsTracker/AnalyticsTracker";
 
 function getSiteAnalytics(): { ga4Id?: string; cfToken?: string } {
   try {
-    const filePath = path.join(process.cwd(), 'src', 'utils', 'site_settings.json');
-    if (fs.existsSync(filePath)) {
-      const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-      return {
-        ga4Id: data.ga4_measurement_id || undefined,
-        cfToken: data.cloudflare_analytics_token || undefined,
-      };
-    }
+    const data = getSiteSettings();
+    return {
+      ga4Id: data.ga4_measurement_id || undefined,
+      cfToken: data.cloudflare_analytics_token || undefined,
+    };
   } catch (e) {}
   return {};
 }
@@ -143,14 +143,14 @@ export default function RootLayout({
     '@context': 'https://schema.org',
     '@type': 'WebSite',
     '@id': 'https://playhentai.live/#website',
-    name: 'PlayHentai',
+    name: 'Play Hentai',
     alternateName: ['Play Hentai', 'playhentai.live', 'Play-Hentai', 'PlayHentai Live'],
     url: 'https://playhentai.live',
     inLanguage: 'en-US',
-    description: 'Welcome to PlayHentai. Stream high quality uncensored hentai anime series online for free. Watch full HD episodes, trending playlists, and popular adult animation titles.',
+    description: 'Welcome to Play Hentai. Stream high quality uncensored hentai anime series online for free. Watch full HD episodes, trending playlists, and popular adult animation titles.',
     publisher: {
       '@type': 'Organization',
-      name: 'PlayHentai',
+      name: 'Play Hentai',
       url: 'https://playhentai.live',
       logo: {
         '@type': 'ImageObject',
@@ -170,6 +170,10 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`} suppressHydrationWarning>
       <head>
+        <link rel="preconnect" href="https://media.playhentai.live" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://media.playhentai.live" />
+        <link rel="search" type="application/opensearchdescription+xml" href="/opensearch.xml" title="Play Hentai" />
+        <link rel="alternate" type="application/rss+xml" title="Play Hentai — Latest Anime Releases" href="/feed.xml" />
         <meta name="6a97888e-site-verification" content="ae5b610b0f4d1db35865d663bf9fa0ee" />
         <meta name="yandex-verification" content="fe39af37bfe31147" />
         {/* Optional Google Analytics 4 (GA4) Tag */}

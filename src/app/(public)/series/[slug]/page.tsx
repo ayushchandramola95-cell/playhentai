@@ -40,8 +40,8 @@ export async function generateMetadata({ params }: SeriesPageProps): Promise<Met
   const resolvedParams = await params;
   const slug = resolvedParams.slug;
 
-  let title = 'Series Details - PlayHentai';
-  let description = 'View details and watch episodes of this series on PlayHentai.';
+  let title = 'Series Details | Play Hentai';
+  let description = 'View details and watch episodes of this series on Play Hentai.';
   let ogImage = '';
 
   try {
@@ -594,7 +594,7 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
     } : {}),
     'publisher': {
       '@type': 'Organization',
-      'name': 'PlayHentai',
+      'name': 'Play Hentai',
       'url': SITE_URL,
       'logo': {
         '@type': 'ImageObject',
@@ -622,7 +622,7 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
       <div className={styles.bannerContainer}>
         <Image
           src={getR2Url(activeSeries.banner_image_key || activeSeries.cover_image_key || activeSeries.poster_image_key, 'banner')}
-          alt={`Watch ${activeSeries.title} Hentai Anime Online - PlayHentai`}
+          alt={`Watch ${activeSeries.title} Hentai Anime Online - Play Hentai`}
           fill
           priority
           className={styles.bannerImage}

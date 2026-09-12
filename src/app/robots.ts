@@ -12,5 +12,6 @@ export default function robots(): MetadataRoute.Robots {
       `${baseUrl}/sitemap.xml`,
       `${baseUrl}/sitemap-video.xml`,
     ],
+    host: baseUrl,
   };
 }
