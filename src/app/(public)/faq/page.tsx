@@ -3,15 +3,16 @@ import FAQClient from '@/components/FAQClient/FAQClient';
 import JsonLd from '@/components/JsonLd/JsonLd';
 
 export const metadata = {
-  title: 'Frequently Asked Questions (FAQ) - PlayHentai',
-  description: 'Find comprehensive answers about 1080p HD streaming, uncensored releases, account settings, Chromecast casting, and 18+ age verification on PlayHentai.',
+  title: 'Frequently Asked Questions (FAQ) | Play Hentai',
+  description: 'Find comprehensive answers about 1080p HD streaming, uncensored releases, account settings, Chromecast casting, and 18+ age verification on Play Hentai.',
   alternates: {
     canonical: '/faq',
   },
   openGraph: {
-    title: 'Frequently Asked Questions (FAQ) - PlayHentai',
-    description: 'Find comprehensive answers about 1080p HD streaming, uncensored releases, account settings, Chromecast casting, and 18+ age verification on PlayHentai.',
+    title: 'Frequently Asked Questions (FAQ) | Play Hentai',
+    description: 'Find comprehensive answers about 1080p HD streaming, uncensored releases, account settings, Chromecast casting, and 18+ age verification on Play Hentai.',
     url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live'}/faq`,
+    siteName: 'Play Hentai',
     type: 'website' as const,
   },
 };

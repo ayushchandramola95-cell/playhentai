@@ -10,11 +10,35 @@ import { MOCK_EPISODES } from '@/utils/mockData';
 import RecentFilterBar from '@/components/RecentFilterBar/RecentFilterBar';
 import styles from '../recent.module.css';
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
+
 export const metadata = {
-  title: 'Recent Episodes | PlayHentai',
-  description: 'Watch the latest released episodes on PlayHentai, updated daily with high-quality content.',
+  title: 'Recent Episodes | Play Hentai',
+  description: 'Watch the latest released episodes on Play Hentai, updated daily with high-definition streaming, English subtitles, and instant playback.',
   alternates: {
     canonical: '/recent/episodes',
+  },
+  openGraph: {
+    title: 'Recent Episodes | Play Hentai',
+    description: 'Watch the latest released episodes on Play Hentai, updated daily with high-definition streaming, English subtitles, and instant playback.',
+    url: `${SITE_URL}/recent/episodes`,
+    siteName: 'Play Hentai',
+    locale: 'en_US',
+    type: 'website' as const,
+    images: [
+      {
+        url: `${SITE_URL}/hero-banner.png`,
+        width: 1200,
+        height: 630,
+        alt: 'Recent Episodes on Play Hentai',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Recent Episodes | Play Hentai',
+    description: 'Watch the latest released episodes on Play Hentai, updated daily with high-definition streaming, English subtitles, and instant playback.',
+    images: [`${SITE_URL}/hero-banner.png`],
   },
 };
 

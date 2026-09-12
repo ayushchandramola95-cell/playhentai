@@ -3,11 +3,20 @@ import Link from 'next/link';
 import { ShieldCheck, ArrowLeft, Eye, Cookie, UserCheck, Server } from 'lucide-react';
 import styles from './privacy.module.css';
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
+
 export const metadata = {
-  title: 'Privacy Policy | PlayHentai',
-  description: 'Privacy Policy and data security guidelines for PlayHentai users.',
+  title: 'Privacy Policy | Play Hentai',
+  description: 'Privacy Policy and data security guidelines for Play Hentai users.',
   alternates: {
     canonical: '/privacy',
+  },
+  openGraph: {
+    title: 'Privacy Policy | Play Hentai',
+    description: 'Privacy Policy and data security guidelines for Play Hentai users.',
+    url: `${SITE_URL}/privacy`,
+    siteName: 'Play Hentai',
+    type: 'website' as const,
   },
 };
 

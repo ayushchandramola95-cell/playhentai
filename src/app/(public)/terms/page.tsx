@@ -3,11 +3,20 @@ import Link from 'next/link';
 import { FileText, ArrowLeft, ShieldAlert, CheckCircle, Scale, Lock } from 'lucide-react';
 import styles from './terms.module.css';
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
+
 export const metadata = {
-  title: 'Terms of Service | PlayHentai',
-  description: 'Terms of Service and legal conditions for accessing and using PlayHentai.',
+  title: 'Terms of Service | Play Hentai',
+  description: 'Terms of Service and legal conditions for accessing and using Play Hentai.',
   alternates: {
     canonical: '/terms',
+  },
+  openGraph: {
+    title: 'Terms of Service | Play Hentai',
+    description: 'Terms of Service and legal conditions for accessing and using Play Hentai.',
+    url: `${SITE_URL}/terms`,
+    siteName: 'Play Hentai',
+    type: 'website' as const,
   },
 };
 

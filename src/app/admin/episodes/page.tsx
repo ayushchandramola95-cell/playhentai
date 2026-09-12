@@ -835,29 +835,29 @@ export default function AdminEpisodesPage() {
   const formatLocalDateToMidnight = (d?: Date | string | null): string => {
     if (!d) {
       const now = new Date();
-      const year = now.getFullYear();
+      const year = String(now.getFullYear()).padStart(4, '0');
       const month = String(now.getMonth() + 1).padStart(2, '0');
       const day = String(now.getDate()).padStart(2, '0');
       return `${year}-${month}-${day}T00:00`;
     }
     
     if (typeof d === 'string') {
-      const match = d.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      const match = d.match(/^(\d{1,4})-(\d{1,2})-(\d{1,2})/);
       if (match) {
-        return `${match[1]}-${match[2]}-${match[3]}T00:00`;
+        return `${match[1].padStart(4, '0')}-${match[2].padStart(2, '0')}-${match[3].padStart(2, '0')}T00:00`;
       }
       const parsed = new Date(d);
       if (!isNaN(parsed.getTime())) {
-        const year = parsed.getFullYear();
+        const year = String(parsed.getFullYear()).padStart(4, '0');
         const month = String(parsed.getMonth() + 1).padStart(2, '0');
         const day = String(parsed.getDate()).padStart(2, '0');
         return `${year}-${month}-${day}T00:00`;
       }
       const now = new Date();
-      return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}T00:00`;
+      return `${String(now.getFullYear()).padStart(4, '0')}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}T00:00`;
     }
 
-    const year = d.getFullYear();
+    const year = String(d.getFullYear()).padStart(4, '0');
     const month = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}T00:00`;
@@ -921,7 +921,7 @@ export default function AdminEpisodesPage() {
     let month: number;
     let day: number;
 
-    const match = (baseDateStr || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
+    const match = (baseDateStr || '').match(/^(\d{1,4})-(\d{1,2})-(\d{1,2})/);
     if (match) {
       year = parseInt(match[1], 10);
       month = parseInt(match[2], 10) - 1;
@@ -933,7 +933,9 @@ export default function AdminEpisodesPage() {
       day = now.getDate();
     }
 
-    const targetDate = new Date(year, month, day, 0, 0, 0, 0);
+    const targetDate = new Date();
+    targetDate.setFullYear(year, month, day);
+    targetDate.setHours(0, 0, 0, 0);
 
     if (schedulingType === '1day') {
       targetDate.setDate(targetDate.getDate() + index);
@@ -3279,7 +3281,14 @@ export default function AdminEpisodesPage() {
                     required
                     className={styles.inputField}
                     value={releaseDate}
-                    onChange={(e) => setReleaseDate(e.target.value)}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (!val) return;
+                      const match = val.match(/^(\d{1,4})-(\d{1,2})-(\d{1,2})/);
+                      if (!match) return;
+                      const normalized = `${match[1].padStart(4, '0')}-${match[2].padStart(2, '0')}-${match[3].padStart(2, '0')}T00:00`;
+                      setReleaseDate(normalized);
+                    }}
                   />
 
                   {/* Quick Air Date Presets */}
@@ -4661,14 +4670,20 @@ export default function AdminEpisodesPage() {
                       value={activeBaseReleaseDate}
                       onChange={(e) => {
                         const val = e.target.value;
-                        const match = val.match(/^(\d{4})-(\d{2})-(\d{2})/);
-                        const normalized = match ? `${match[1]}-${match[2]}-${match[3]}T00:00` : val;
+                        if (!val) return;
+                        const match = val.match(/^(\d{1,4})-(\d{1,2})-(\d{1,2})/);
+                        if (!match) return;
+                        const year = parseInt(match[1], 10);
+                        const normalized = `${match[1].padStart(4, '0')}-${match[2].padStart(2, '0')}-${match[3].padStart(2, '0')}T00:00`;
+                        const isFullYear = year >= 1000;
                         updateActiveBatch(b => ({
                           baseReleaseDate: normalized,
-                          files: b.files.map((f, idx) => ({
-                            ...f,
-                            releaseDate: calculateItemReleaseDate(normalized, b.schedulingType, idx)
-                          }))
+                          ...(isFullYear ? {
+                            files: b.files.map((f, idx) => ({
+                              ...f,
+                              releaseDate: calculateItemReleaseDate(normalized, b.schedulingType, idx)
+                            }))
+                          } : {})
                         }));
                       }}
                     />
@@ -4942,11 +4957,13 @@ export default function AdminEpisodesPage() {
                                   disabled={isActiveUploading}
                                   className={styles.inputField}
                                   style={{ padding: '0.3rem 0.5rem', fontSize: '0.78rem', width: '100%', background: '#141724' }}
-                                  value={bf.releaseDate || activeBaseReleaseDate}
+                                  value={bf.releaseDate || ''}
                                   onChange={(e) => {
                                     const val = e.target.value;
-                                    const match = val.match(/^(\d{4})-(\d{2})-(\d{2})/);
-                                    const normalized = match ? `${match[1]}-${match[2]}-${match[3]}T00:00` : val;
+                                    if (!val) return;
+                                    const match = val.match(/^(\d{1,4})-(\d{1,2})-(\d{1,2})/);
+                                    if (!match) return;
+                                    const normalized = `${match[1].padStart(4, '0')}-${match[2].padStart(2, '0')}-${match[3].padStart(2, '0')}T00:00`;
                                     updateBatchItemField(bf.id, 'releaseDate', normalized);
                                   }}
                                 />

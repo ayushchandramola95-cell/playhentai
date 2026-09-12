@@ -1,36 +1,86 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
   <defs>
+    <!-- Deep Obsidian Night Background -->
     <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0f172a"/>
-      <stop offset="50%" stop-color="#090d16"/>
-      <stop offset="100%" stop-color="#1e1b4b"/>
+      <stop offset="0%" stop-color="#0f1322"/>
+      <stop offset="50%" stop-color="#070913"/>
+      <stop offset="100%" stop-color="#141029"/>
     </linearGradient>
-    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#fde047"/>
-      <stop offset="50%" stop-color="#eab308"/>
-      <stop offset="100%" stop-color="#ca8a04"/>
+
+    <!-- Outer Brand Rim (Violet to Amber) -->
+    <linearGradient id="outerRim" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="30%" stop-color="#ec4899"/>
+      <stop offset="70%" stop-color="#a855f7"/>
+      <stop offset="100%" stop-color="#3b82f6"/>
     </linearGradient>
-    <linearGradient id="purpleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#a855f7"/>
-      <stop offset="100%" stop-color="#7e22ce"/>
+
+    <!-- TV Frame Bevel (Crisp White to Violet) -->
+    <linearGradient id="tvFrameGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="35%" stop-color="#f1f5f9"/>
+      <stop offset="75%" stop-color="#c084fc"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
     </linearGradient>
-    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="16" result="blur" />
-      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+
+    <!-- TV Glass Screen Gradient -->
+    <linearGradient id="screenGlass" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#141829"/>
+      <stop offset="50%" stop-color="#080a14"/>
+      <stop offset="100%" stop-color="#030408"/>
+    </linearGradient>
+
+    <!-- Top Screen Specular Highlight -->
+    <linearGradient id="screenGloss" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.18"/>
+      <stop offset="50%" stop-color="#ffffff" stop-opacity="0.04"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.4"/>
+    </linearGradient>
+
+    <!-- Vibrant Lustrous Gold Play Triangle -->
+    <linearGradient id="goldPlayGrad" x1="15%" y1="0%" x2="85%" y2="100%">
+      <stop offset="0%" stop-color="#fffbeb"/>
+      <stop offset="18%" stop-color="#fef08a"/>
+      <stop offset="50%" stop-color="#f59e0b"/>
+      <stop offset="85%" stop-color="#d97706"/>
+      <stop offset="100%" stop-color="#92400e"/>
+    </linearGradient>
+
+    <!-- Drop Shadow for Play Button -->
+    <filter id="playShadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="#f59e0b" flood-opacity="0.55"/>
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000000" flood-opacity="0.8"/>
     </filter>
   </defs>
 
-  <!-- Background Rounded Shield -->
-  <rect width="512" height="512" rx="128" fill="url(#bgGrad)"/>
-  <rect x="16" y="16" width="480" height="480" rx="112" fill="none" stroke="url(#purpleGrad)" stroke-width="8" stroke-opacity="0.5"/>
+  <!-- 1. Squircle Canvas Base -->
+  <rect width="512" height="512" rx="124" fill="url(#bgGrad)"/>
+  <rect x="12" y="12" width="488" height="488" rx="114" fill="none" stroke="url(#outerRim)" stroke-width="10" stroke-opacity="0.9"/>
 
-  <!-- Glowing TV Screen Frame -->
-  <rect x="76" y="148" width="360" height="260" rx="44" fill="#090d16" stroke="url(#purpleGrad)" stroke-width="14" filter="url(#glow)"/>
-  <rect x="76" y="148" width="360" height="260" rx="44" fill="none" stroke="#ffffff" stroke-width="6" stroke-opacity="0.9"/>
-  
-  <!-- TV Antenna Lines -->
-  <path d="M340 64 L256 148 L172 64" fill="none" stroke="#ffffff" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- 2. TV Antennae (Bold & High-Contrast for 16px/32px visibility) -->
+  <path d="M 344 64 L 256 142 L 168 64" fill="none" stroke="#ffffff" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Glowing Amber Antenna Node Beads -->
+  <circle cx="168" cy="64" r="15" fill="#f59e0b" stroke="#ffffff" stroke-width="5"/>
+  <circle cx="344" cy="64" r="15" fill="#f59e0b" stroke="#ffffff" stroke-width="5"/>
 
-  <!-- Play Triangle Badge (Golden Yellow) -->
-  <polygon points="216,218 336,278 216,338" fill="url(#goldGrad)" stroke="#fde047" stroke-width="4" stroke-linejoin="round"/>
+  <!-- 3. TV Body Outer Casing -->
+  <rect x="62" y="136" width="388" height="294" rx="56" fill="#04060c" stroke="url(#tvFrameGrad)" stroke-width="18"/>
+
+  <!-- 4. TV Screen Interior -->
+  <rect x="74" y="148" width="364" height="270" rx="44" fill="url(#screenGlass)"/>
+  <rect x="74" y="148" width="364" height="270" rx="44" fill="url(#screenGloss)"/>
+
+  <!-- 5. Bold Golden Play Triangle -->
+  <g filter="url(#playShadow)">
+    <path d="M 226 206 C 226 195 237 189 246 194 L 338 261 C 346 266 346 278 338 283 L 246 350 C 237 355 226 349 226 338 Z"
+          fill="url(#goldPlayGrad)"
+          stroke="#fef08a"
+          stroke-width="4.5"
+          stroke-linejoin="round"/>
+
+    <!-- Specular Highlight Sheen on Upper Half of Triangle -->
+    <path d="M 228 207 C 228 200 236 195 243 200 L 335 264 C 337 266 337 270 334 272 L 244 272 C 235 272 228 264 228 255 Z"
+          fill="#ffffff"
+          fill-opacity="0.32"/>
+  </g>
 </svg>

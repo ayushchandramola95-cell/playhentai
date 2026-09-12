@@ -22,9 +22,20 @@ export async function generateMetadata(): Promise<Metadata> {
     metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live'),
     title: {
       default: "Play Hentai – Watch Hentai Anime Online Free in HD",
-      template: "%s | Play Hentai"
+      template: "%s"
     },
     description: "Watch hentai anime online free in HD on Play Hentai. Stream uncensored hentai series and episodes with English subtitles, discover new releases, and explore popular titles by genre and studio.",
+    keywords: [
+      'playhentai',
+      'play hentai',
+      'hentai',
+      'uncensored hentai',
+      'hentai anime',
+      'watch hentai online free',
+      '3d hentai',
+      'hd hentai episodes',
+      'playhentai live',
+    ],
     authors: [{ name: "Play Hentai Team" }],
     creator: "Play Hentai",
     publisher: "Play Hentai",
@@ -131,15 +142,29 @@ export default function RootLayout({
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    name: 'Play Hentai',
-    alternateName: ['PlayHentai', 'Play-Hentai'],
+    '@id': 'https://playhentai.live/#website',
+    name: 'PlayHentai',
+    alternateName: ['Play Hentai', 'playhentai.live', 'Play-Hentai', 'PlayHentai Live'],
     url: 'https://playhentai.live',
-    description: 'Welcome to Play Hentai. Stream high quality uncensored hentai anime series online for free. Watch full HD episodes, trending playlists, and popular adult animation titles.',
+    inLanguage: 'en-US',
+    description: 'Welcome to PlayHentai. Stream high quality uncensored hentai anime series online for free. Watch full HD episodes, trending playlists, and popular adult animation titles.',
+    publisher: {
+      '@type': 'Organization',
+      name: 'PlayHentai',
+      url: 'https://playhentai.live',
+      logo: {
+        '@type': 'ImageObject',
+        url: 'https://playhentai.live/icon.png',
+      },
+    },
     potentialAction: {
       '@type': 'SearchAction',
-      target: 'https://playhentai.live/search?q={search_term_string}',
-      'query-input': 'required name=search_term_string'
-    }
+      target: {
+        '@type': 'EntryPoint',
+        urlTemplate: 'https://playhentai.live/search?q={search_term_string}',
+      },
+      'query-input': 'required name=search_term_string',
+    },
   };
 
   return (

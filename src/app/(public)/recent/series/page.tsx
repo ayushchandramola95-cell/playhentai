@@ -10,11 +10,35 @@ import SeriesCard from '@/components/SeriesCard/SeriesCard';
 import RecentFilterBar from '@/components/RecentFilterBar/RecentFilterBar';
 import styles from '../recent.module.css';
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
+
 export const metadata = {
-  title: 'Recent Series | PlayHentai',
-  description: 'Browse the latest added series on PlayHentai, updated daily with high-quality content.',
+  title: 'Recent Series | Play Hentai',
+  description: 'Browse the latest added series on Play Hentai, updated daily with high-definition streaming, English subtitles, and complete episode catalogs.',
   alternates: {
     canonical: '/recent/series',
+  },
+  openGraph: {
+    title: 'Recent Series | Play Hentai',
+    description: 'Browse the latest added series on Play Hentai, updated daily with high-definition streaming, English subtitles, and complete episode catalogs.',
+    url: `${SITE_URL}/recent/series`,
+    siteName: 'Play Hentai',
+    locale: 'en_US',
+    type: 'website' as const,
+    images: [
+      {
+        url: `${SITE_URL}/hero-banner.png`,
+        width: 1200,
+        height: 630,
+        alt: 'Recent Series on Play Hentai',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Recent Series | Play Hentai',
+    description: 'Browse the latest added series on Play Hentai, updated daily with high-definition streaming, English subtitles, and complete episode catalogs.',
+    images: [`${SITE_URL}/hero-banner.png`],
   },
 };
 
