@@ -12,7 +12,7 @@ import SeriesCard from '@/components/SeriesCard/SeriesCard';
 import HorizontalScrollRow from '@/components/HorizontalScrollRow/HorizontalScrollRow';
 import RandomRowSection from '@/components/RandomRowSection/RandomRowSection';
 import JsonLd from '@/components/JsonLd/JsonLd';
-import { createClient } from '@/utils/supabase/server';
+import RecommendationsBanner from '@/components/RecommendationsBanner/RecommendationsBanner';
 import styles from './page.module.css';
 import { MOCK_SERIES, MOCK_EPISODES, MOCK_SERIES_DETAILS } from '@/utils/mockData';
 import { getR2Url } from '@/utils/r2';
@@ -20,7 +20,7 @@ import { getEpisodeWatchUrl } from '@/utils/episodeUrl';
 import { getSeriesViewsMap, getEpisodeViewsMap } from '@/utils/views';
 import { tagToSlug } from '@/utils/constants';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60;
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
 
@@ -161,15 +161,10 @@ function getSeriesReleaseTimestamp(s: any): number {
 }
 
 export default async function HomePage() {
-  const supabase = await createClient();
-
-  // 1. Fetch user session
-  const { data: { user } } = await supabase.auth.getUser();
-
-  // 2. Fetch site settings (merging local JSON file + Supabase key-value rows)
+  // 1. Fetch site settings (merging local JSON file + Supabase key-value rows)
   const settingsMap = getLocalSettings();
   try {
-    const { data: rows } = await supabase.from('site_settings').select('key, value');
+    const { data: rows } = await publicSupabaseClient.from('site_settings').select('key, value');
     if (rows && rows.length > 0) {
       rows.forEach((r: { key: string; value: string }) => {
         if (r.key && r.value) settingsMap[r.key] = r.value;
@@ -309,10 +304,21 @@ export default async function HomePage() {
     } catch (e) {}
   }
 
-  // Attach tagline to featured series items
+  // Attach tagline and lightweight clean fields to featured series items
   featuredSeries = featuredSeries.map((s) => ({
-    ...s,
+    id: s.id,
+    title: s.title,
+    slug: s.slug,
+    description: s.description ? s.description.slice(0, 240) : '',
+    poster_image_key: s.poster_image_key || s.cover_image_key,
+    cover_image_key: s.cover_image_key || s.poster_image_key,
+    banner_image_key: s.banner_image_key || s.cover_image_key || s.poster_image_key,
+    tags: (s.tags || []).slice(0, 4),
+    category: s.category || 'Anime',
+    firstEpisodeId: s.firstEpisodeId || null,
     tagline: heroTaglinesMap[s.id] || heroTaglinesMap[s.slug] || undefined,
+    rating: s.rating || null,
+    views: s.views || 0,
   }));
 
 
@@ -506,6 +512,21 @@ export default async function HomePage() {
     'caption': 'Play Hentai — Watch Hentai Anime Online Free in HD'
   };
 
+  // Lightweight minimal series pool for client-side shuffle (eliminates 720KB of unused columns from HTML payload)
+  const lightweightRandomPool = rawPool.slice(0, 30).map((s) => ({
+    id: s.id,
+    title: s.title,
+    slug: s.slug,
+    poster_image_key: s.poster_image_key || s.cover_image_key,
+    cover_image_key: s.cover_image_key || s.poster_image_key,
+    views: s.views || 0,
+    rating: s.rating || null,
+    release_year: s.release_year || null,
+    studio: s.studio || null,
+    description: s.description ? s.description.slice(0, 120) : '',
+    tags: (s.tags || []).slice(0, 3),
+  }));
+
   return (
     <div className={styles.container}>
       <JsonLd data={[itemListJsonLd, brandImageJsonLd]} />
@@ -652,42 +673,11 @@ export default async function HomePage() {
 
       {/* 5. Random Section: Live Shuffle slider of active series */}
       <section className={styles.section}>
-        <RandomRowSection seriesPool={rawPool} />
+        <RandomRowSection seriesPool={lightweightRandomPool} />
       </section>
 
-      {/* Recommendations Banner */}
-      {!user ? (
-        <section className={`${styles.section} ${styles.recommendationBanner} glass`}>
-          <div className={styles.recIconWrapper}>
-            <Award size={36} />
-          </div>
-          <div className={styles.recContent}>
-            <h3>Want personalized recommendations?</h3>
-            <p>Sign in to record views, calculate trending statistics, and keep track of your watch history.</p>
-          </div>
-          <Link href="/login" prefetch={false} className={styles.recBtn}>
-            Sign In Now
-          </Link>
-        </section>
-      ) : (
-        <section className={`${styles.section} ${styles.recommendationBanner} glass`}>
-          <div className={styles.recIconWrapper}>
-            <Award size={36} />
-          </div>
-          <div className={styles.recContent}>
-            <h3>Welcome Back!</h3>
-            <p>Quickly access your saved bookmarks in Watchlist or resume watching from your Watch History.</p>
-          </div>
-          <div style={{ display: 'flex', gap: '0.8rem', flexWrap: 'wrap' }}>
-            <Link href="/watchlist" prefetch={false} className={styles.recBtn}>
-              My Watchlist
-            </Link>
-            <Link href="/history" prefetch={false} className={`${styles.recBtn} ${styles.recBtnOutline}`}>
-              Watch History
-            </Link>
-          </div>
-        </section>
-      )}
+      {/* Recommendations Banner (Client Component with Auth) */}
+      <RecommendationsBanner />
 
       {/* 4. Explore Collections Banner */}
       <section className={styles.section}>
