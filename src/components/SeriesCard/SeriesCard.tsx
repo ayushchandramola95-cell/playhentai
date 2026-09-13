@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Play, Star, Eye } from 'lucide-react';
@@ -50,8 +50,11 @@ interface SeriesCardProps {
 }
 
 export default function SeriesCard({ item, className = '' }: SeriesCardProps) {
+  const [isHovered, setIsHovered] = useState(false);
+
   // Synchronous, zero-lag DOM attribute side calculation (Always vertically centered)
   const handleMouseEnter = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isHovered) setIsHovered(true);
     const card = e.currentTarget;
     const rect = card.getBoundingClientRect();
     const viewportWidth = document.documentElement.clientWidth || window.innerWidth;
@@ -182,55 +185,58 @@ export default function SeriesCard({ item, className = '' }: SeriesCardProps) {
         </div>
       </div>
 
-      {/* Synchronous Vertically Centered Popover */}
-      <div className="popover">
-        <div className={styles.popoverPosterWrapper}>
-          <Image
-            src={getR2Url(item.poster_image_key || item.cover_image_key, 'poster')}
-            alt={`${item.title} poster`}
-            fill
-            sizes="80px"
-            className={styles.popoverPoster}
-            style={{
-              objectFit: item.poster_position === 'squeeze' ? 'fill' : 'cover',
-              objectPosition: item.poster_position === 'squeeze' ? 'center' : (item.poster_position || 'center')
-            }}
-          />
-        </div>
-        <div className={styles.popoverContent}>
-          <h5 className={styles.popoverTitle}>{item.title}</h5>
-          <p className={styles.popoverSynopsis}>
-            <strong>Synopsis:</strong> {item.description}
-          </p>
-          <div className={styles.popoverMeta}>
-            <span><strong>Year:</strong> <span className={styles.metaYear}>{releaseYear}</span></span>
-            {rating !== null && rating > 0 && (
-              <>
-                <span className={styles.metaDivider}>•</span>
-                <span className={styles.metaRating}>
-                  <Star size={10} fill="#eab308" color="#eab308" className={styles.popoverStar} />
-                  <strong>{rating.toFixed(1)}</strong>
-                </span>
-              </>
-            )}
+      {/* Synchronous Vertically Centered Popover - Mounted on-demand when hovered to save 70+ images on initial page load & mobile */}
+      {isHovered && (
+        <div className="popover">
+          <div className={styles.popoverPosterWrapper}>
+            <Image
+              src={getR2Url(item.poster_image_key || item.cover_image_key, 'poster')}
+              alt={`${item.title} poster`}
+              fill
+              sizes="80px"
+              className={styles.popoverPoster}
+              loading="lazy"
+              style={{
+                objectFit: item.poster_position === 'squeeze' ? 'fill' : 'cover',
+                objectPosition: item.poster_position === 'squeeze' ? 'center' : (item.poster_position || 'center')
+              }}
+            />
           </div>
-          <div className={styles.popoverBadges}>
-            <span><strong>Studio:</strong></span>
-            <span className={styles.studioBadge}>{studio}</span>
-          </div>
-          <div className={styles.popoverBadges} style={{ marginTop: '0.4rem' }}>
-            <span><strong>Genres:</strong></span>
-            <div className={styles.popoverTags}>
-              {(item.tags || [item.category || 'Anime'])
-                .filter(t => t.toLowerCase() !== 'featured' && !t.toLowerCase().startsWith('featured:'))
-                .slice(0, 4)
-                .map((t: string) => (
-                  <span key={t} className={styles.genreBadge}>{t}</span>
-                ))}
+          <div className={styles.popoverContent}>
+            <h5 className={styles.popoverTitle}>{item.title}</h5>
+            <p className={styles.popoverSynopsis}>
+              <strong>Synopsis:</strong> {item.description}
+            </p>
+            <div className={styles.popoverMeta}>
+              <span><strong>Year:</strong> <span className={styles.metaYear}>{releaseYear}</span></span>
+              {rating !== null && rating > 0 && (
+                <>
+                  <span className={styles.metaDivider}>•</span>
+                  <span className={styles.metaRating}>
+                    <Star size={10} fill="#eab308" color="#eab308" className={styles.popoverStar} />
+                    <strong>{rating.toFixed(1)}</strong>
+                  </span>
+                </>
+              )}
+            </div>
+            <div className={styles.popoverBadges}>
+              <span><strong>Studio:</strong></span>
+              <span className={styles.studioBadge}>{studio}</span>
+            </div>
+            <div className={styles.popoverBadges} style={{ marginTop: '0.4rem' }}>
+              <span><strong>Genres:</strong></span>
+              <div className={styles.popoverTags}>
+                {(item.tags || [item.category || 'Anime'])
+                  .filter(t => t.toLowerCase() !== 'featured' && !t.toLowerCase().startsWith('featured:'))
+                  .slice(0, 4)
+                  .map((t: string) => (
+                    <span key={t} className={styles.genreBadge}>{t}</span>
+                  ))}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

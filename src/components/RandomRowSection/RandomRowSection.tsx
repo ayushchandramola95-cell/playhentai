@@ -11,7 +11,9 @@ interface RandomRowSectionProps {
 }
 
 export default function RandomRowSection({ seriesPool }: RandomRowSectionProps) {
-  const [items, setItems] = useState<any[]>([]);
+  const [items, setItems] = useState<any[]>(() => {
+    return seriesPool && seriesPool.length > 0 ? seriesPool.slice(0, 15) : [];
+  });
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
@@ -27,12 +29,6 @@ export default function RandomRowSection({ seriesPool }: RandomRowSectionProps) 
     }
     return arr;
   };
-
-  useEffect(() => {
-    if (seriesPool && seriesPool.length > 0) {
-      setItems(shuffleArray(seriesPool).slice(0, 15));
-    }
-  }, [seriesPool]);
 
   const handleShuffle = () => {
     if (seriesPool && seriesPool.length > 0) {

@@ -44,9 +44,24 @@ interface HeroCarouselProps {
 export default function HeroCarousel({ activeSeries, isDbEmpty, autoplaySpeed = 6000 }: HeroCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [loadedSlides, setLoadedSlides] = useState<Set<number>>(() => new Set([0]));
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const totalSlides = activeSeries ? activeSeries.length : 0;
+
+  useEffect(() => {
+    setLoadedSlides((prev) => {
+      if (prev.has(currentIndex) && (totalSlides <= 1 || prev.has((currentIndex + 1) % totalSlides))) {
+        return prev;
+      }
+      const next = new Set(prev);
+      next.add(currentIndex);
+      if (totalSlides > 0) {
+        next.add((currentIndex + 1) % totalSlides);
+      }
+      return next;
+    });
+  }, [currentIndex, totalSlides]);
 
   useEffect(() => {
     if (totalSlides <= 1 || autoplaySpeed <= 0) return;
@@ -132,13 +147,15 @@ export default function HeroCarousel({ activeSeries, isDbEmpty, autoplaySpeed = 
               className={`${styles.slide} ${isActive ? styles.slideActive : ''}`}
             >
               <div className={styles.heroBg}>
-                <Image
-                  src={bannerUrl}
-                  alt={`${series.title || 'Featured'} cover`}
-                  fill
-                  sizes="(max-width: 768px) 1px, 100vw"
-                  className={styles.heroImage}
-                />
+                {loadedSlides.has(index) && (
+                  <Image
+                    src={bannerUrl}
+                    alt={`${series.title || 'Featured'} cover`}
+                    fill
+                    sizes="(max-width: 768px) 1px, 100vw"
+                    className={styles.heroImage}
+                  />
+                )}
                 <div className={styles.heroOverlay} />
               </div>
             </div>
@@ -178,16 +195,18 @@ export default function HeroCarousel({ activeSeries, isDbEmpty, autoplaySpeed = 
               {/* Left Poster Thumbnail Card */}
               <div className={styles.posterCardWrapper}>
                 <Link href={`/series/${series.slug}`} className={styles.posterLink}>
-                  <Image
-                    src={posterUrl}
-                    alt={`${series.title || 'Featured'} poster`}
-                    fill
-                    sizes="(max-width: 768px) 160px, 220px"
-                    className={styles.posterImage}
-                    priority={index === 0}
-                    fetchPriority={index === 0 ? "high" : "auto"}
-                    unoptimized={true}
-                  />
+                  {loadedSlides.has(index) && (
+                    <Image
+                      src={posterUrl}
+                      alt={`${series.title || 'Featured'} poster`}
+                      fill
+                      sizes="(max-width: 768px) 160px, 220px"
+                      className={styles.posterImage}
+                      priority={index === 0}
+                      fetchPriority={index === 0 ? "high" : "auto"}
+                      unoptimized={true}
+                    />
+                  )}
                   <div className={styles.posterHoverOverlay}>
                     <Play size={40} fill="white" />
                   </div>
