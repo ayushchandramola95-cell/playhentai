@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft, Film, Star, Award, Calendar, MapPin } from 'lucide-react';
 import { getStudioDetails } from '@/utils/studiosData';
+import { getR2Url } from '@/utils/r2';
 import SeriesCard from '@/components/SeriesCard/SeriesCard';
 import JsonLd from '@/components/JsonLd/JsonLd';
 import styles from './studios.module.css';
@@ -19,6 +20,9 @@ export async function generateMetadata({ params }: StudioDetailPageProps) {
   const title = studio ? `${studio.name} Hentai Anime Series & Releases | Play Hentai` : 'Studio Not Found | Play Hentai';
   const description = studio?.bio || 'Animation studio production profile, ratings, and series releases catalog on Play Hentai.';
   
+  const topSeriesImg = studio?.series?.[0]?.cover_image_key || studio?.series?.[0]?.poster_image_key;
+  const ogImageUrl = topSeriesImg ? getR2Url(topSeriesImg, 'cover') : `${siteUrl}/og-banner.png`;
+
   return {
     title,
     description,
@@ -32,7 +36,7 @@ export async function generateMetadata({ params }: StudioDetailPageProps) {
       type: 'website',
       images: [
         {
-          url: `${siteUrl}/hero-banner.png`,
+          url: ogImageUrl,
           width: 1200,
           height: 630,
           alt: `${studio?.name || 'Studio'} Releases`,
@@ -43,7 +47,7 @@ export async function generateMetadata({ params }: StudioDetailPageProps) {
       card: 'summary_large_image',
       title,
       description,
-      images: [`${siteUrl}/hero-banner.png`],
+      images: [ogImageUrl],
     },
   };
 }

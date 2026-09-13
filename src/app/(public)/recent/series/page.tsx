@@ -9,6 +9,7 @@ import { MOCK_SERIES } from '@/utils/mockData';
 import SeriesCard from '@/components/SeriesCard/SeriesCard';
 import RecentFilterBar from '@/components/RecentFilterBar/RecentFilterBar';
 import { getSiteSettings } from '@/utils/siteSettings';
+import JsonLd from '@/components/JsonLd/JsonLd';
 import styles from '../recent.module.css';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
@@ -214,8 +215,34 @@ export default async function RecentSeriesPage({
     pageNumbers.push(i);
   }
 
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    'itemListElement': [
+      { '@type': 'ListItem', 'position': 1, 'name': 'Home', 'item': SITE_URL },
+      { '@type': 'ListItem', 'position': 2, 'name': 'Recent Series', 'item': `${SITE_URL}/recent/series` }
+    ]
+  };
+
+  const itemListJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    'name': 'Latest Added Hentai Series on Play Hentai',
+    'url': `${SITE_URL}/recent/series`,
+    'numberOfItems': currentSeries.length,
+    'itemListElement': currentSeries.map((item: any, idx: number) => ({
+      '@type': 'ListItem',
+      'position': startIndex + idx + 1,
+      'name': item.title,
+      'url': `${SITE_URL}/series/${item.slug}`,
+      'image': getR2Url(item.poster_image_key || item.cover_image_key, 'poster'),
+      'description': item.description ? item.description.slice(0, 150) : undefined
+    }))
+  };
+
   return (
     <div className={styles.container}>
+      <JsonLd data={[breadcrumbJsonLd, itemListJsonLd]} />
       {/* Ambient Glows */}
       <div className="ambient-glow" />
       <div className="ambient-glow-2" />

@@ -8,6 +8,7 @@ import { getR2Url } from '@/utils/r2';
 import { getEpisodeWatchUrl } from '@/utils/episodeUrl';
 import { MOCK_EPISODES } from '@/utils/mockData';
 import RecentFilterBar from '@/components/RecentFilterBar/RecentFilterBar';
+import JsonLd from '@/components/JsonLd/JsonLd';
 import styles from '../recent.module.css';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
@@ -210,8 +211,36 @@ export default async function RecentEpisodesPage({
     pageNumbers.push(i);
   }
 
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    'itemListElement': [
+      { '@type': 'ListItem', 'position': 1, 'name': 'Home', 'item': SITE_URL },
+      { '@type': 'ListItem', 'position': 2, 'name': 'Recent Episodes', 'item': `${SITE_URL}/recent/episodes` }
+    ]
+  };
+
+  const itemListJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    'name': 'Latest Released Hentai Episodes on Play Hentai',
+    'url': `${SITE_URL}/recent/episodes`,
+    'numberOfItems': currentEpisodes.length,
+    'itemListElement': currentEpisodes.map((ep: any, idx: number) => {
+      const watchUrl = `${SITE_URL}${getEpisodeWatchUrl(ep.id, ep.episode_number, ep.showSlug)}`;
+      return {
+        '@type': 'ListItem',
+        'position': startIndex + idx + 1,
+        'name': `${ep.title} Episode ${ep.episode_number}`,
+        'url': watchUrl,
+        'image': getR2Url(ep.thumbnail, 'thumbnail')
+      };
+    })
+  };
+
   return (
     <div className={styles.container}>
+      <JsonLd data={[breadcrumbJsonLd, itemListJsonLd]} />
       {/* Ambient Glows */}
       <div className="ambient-glow" />
       <div className="ambient-glow-2" />

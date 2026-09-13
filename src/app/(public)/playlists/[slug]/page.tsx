@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft, Play } from 'lucide-react';
 import { getCollectionWithSeries } from '@/utils/collectionsData';
+import { getR2Url } from '@/utils/r2';
 import SeriesCard from '@/components/SeriesCard/SeriesCard';
 import JsonLd from '@/components/JsonLd/JsonLd';
 import styles from '../../collections/collections.module.css';
@@ -32,6 +33,9 @@ export async function generateMetadata({ params }: PlaylistDetailPageProps) {
     ? `${rawDesc.trim()} Explore this curated hentai anime playlist on Play Hentai and discover the series and episodes included in the collection.`
     : `Explore the ${collection.name} hentai anime playlist on Play Hentai. Browse the curated series and available episodes in this collection.`;
 
+  const firstSeriesThumb = collection?.series?.[0]?.cover_image_key || collection?.series?.[0]?.poster_image_key;
+  const ogImageUrl = firstSeriesThumb ? getR2Url(firstSeriesThumb, 'cover') : `${SITE_URL}/og-banner.png`;
+
   return {
     title,
     description,
@@ -45,11 +49,20 @@ export async function generateMetadata({ params }: PlaylistDetailPageProps) {
       siteName: 'Play Hentai',
       locale: 'en_US',
       type: 'website' as const,
+      images: [
+        {
+          url: ogImageUrl,
+          width: 1200,
+          height: 630,
+          alt: `${collection.name} Curated Playlist`,
+        },
+      ],
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description,
+      images: [ogImageUrl],
     },
   };
 }

@@ -41,11 +41,21 @@ export const metadata = {
     siteName: 'Play Hentai',
     locale: 'en_US',
     type: 'website' as const,
+    images: [
+      {
+        url: `${SITE_URL}/og-banner.png`,
+        width: 1200,
+        height: 630,
+        alt: 'Play Hentai – Watch Hentai Anime Online Free in HD',
+        type: 'image/png',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Play Hentai – Watch Hentai Anime Online Free in HD',
     description: 'Watch hentai anime online free in HD on Play Hentai. Stream uncensored hentai series and episodes with English subtitles, discover new releases, and explore popular titles by genre and studio.',
+    images: [`${SITE_URL}/og-banner.png`],
   },
 };
 
@@ -469,30 +479,36 @@ export default async function HomePage() {
     'Elf': '🏹',
   };
 
-  const trendingSeriesForSchema = activeSeries.slice(0, 10);
+  const trendingSeriesForSchema = activeSeries.slice(0, 12);
   const itemListJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
-    'name': 'Trending Hentai Series on PlayHentai',
+    'name': 'Trending Hentai Series on Play Hentai',
     'url': SITE_URL,
+    'numberOfItems': trendingSeriesForSchema.length,
     'itemListElement': trendingSeriesForSchema.map((s: any, i: number) => ({
       '@type': 'ListItem',
       'position': i + 1,
       'name': s.title,
       'url': `${SITE_URL}/series/${s.slug}`,
+      'image': getR2Url(s.poster_image_key || s.cover_image_key, 'poster'),
+      'description': s.description ? s.description.slice(0, 150) : undefined
     })),
   };
 
-  const websiteJsonLd = {
+  const brandImageJsonLd = {
     '@context': 'https://schema.org',
-    '@type': 'WebSite',
-    'name': 'PlayHentai',
-    'url': `${SITE_URL}/`
+    '@type': 'ImageObject',
+    'name': 'Play Hentai Official Banner',
+    'contentUrl': `${SITE_URL}/og-banner.png`,
+    'thumbnailUrl': `${SITE_URL}/hero-banner.png`,
+    'url': `${SITE_URL}/`,
+    'caption': 'Play Hentai — Watch Hentai Anime Online Free in HD'
   };
 
   return (
     <div className={styles.container}>
-      <JsonLd data={[itemListJsonLd, websiteJsonLd]} />
+      <JsonLd data={[itemListJsonLd, brandImageJsonLd]} />
 
       {/* Ambient Glows */}
       <div className="ambient-glow" />

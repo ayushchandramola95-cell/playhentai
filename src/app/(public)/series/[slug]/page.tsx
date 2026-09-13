@@ -67,7 +67,7 @@ export async function generateMetadata({ params }: SeriesPageProps): Promise<Met
             titleText = combined;
           }
         }
-        title = `${titleText} — Watch & Episodes | Play Hentai`;
+        title = `${titleText} — Watch Episodes | Play Hentai`;
       }
 
       // Description Template (Strict Uncensored Check)
@@ -96,7 +96,7 @@ export async function generateMetadata({ params }: SeriesPageProps): Promise<Met
           titleText = combined;
         }
       }
-      title = `${titleText} — Watch & Episodes | Play Hentai`;
+      title = `${titleText} — Watch Episodes | Play Hentai`;
 
       const isUncensored = 
         mock.content_rating?.toLowerCase() === 'uncensored' ||
@@ -182,7 +182,7 @@ const getCachedAllPublishedSeries = unstable_cache(
       const viewsMap = await getSeriesViewsMap();
       const { data: allSeriesData, error } = await publicSupabaseClient
         .from('series')
-        .select('id, title, slug, studio, tags, category, poster_image_key, cover_image_key, banner_image_key, poster_position, rating, release_year, status, description, created_at')
+        .select('id, title, slug, studio, tags, poster_image_key, cover_image_key, banner_image_key, poster_position, rating, release_year, status, description, created_at')
         .eq('is_published', true)
         .order('created_at', { ascending: false });
 
@@ -558,6 +558,30 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
 
   const seriesCanonicalUrl = `${SITE_URL}/series/${slug}`;
 
+  const posterFullUrl = getR2Url(activeSeries.poster_image_key || activeSeries.cover_image_key, 'poster');
+
+  const tvEpisodesJsonLd: any[] = [];
+  if (Array.isArray(activeSeries.seasons)) {
+    activeSeries.seasons.forEach((season: any) => {
+      if (Array.isArray(season.episodes)) {
+        season.episodes
+          .filter((ep: any) => ep.is_published !== false)
+          .forEach((ep: any) => {
+            const epWatchUrl = `${SITE_URL}${getEpisodeWatchUrl(ep.id, ep.episode_number, slug)}`;
+            tvEpisodesJsonLd.push({
+              '@type': 'TVEpisode',
+              'episodeNumber': ep.episode_number,
+              'name': ep.title || `${activeSeries.title} Episode ${ep.episode_number}`,
+              'url': epWatchUrl,
+              'image': ep.thumbnail_key ? getR2Url(ep.thumbnail_key, 'thumbnail') : posterFullUrl,
+              'datePublished': ep.release_date || ep.created_at || undefined,
+              ...(ep.duration_seconds ? { 'duration': `PT${Math.floor(ep.duration_seconds / 60)}M` } : {})
+            });
+          });
+      }
+    });
+  }
+
   const tvSeriesJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'TVSeries',
@@ -580,6 +604,7 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
     'datePublished': activeSeries.created_at || activeSeries.first_air_date || undefined,
     'inLanguage': 'en',
     'isFamilyFriendly': false,
+    ...(tvEpisodesJsonLd.length > 0 ? { 'episode': tvEpisodesJsonLd } : {}),
     ...(rating !== null && voteCount > 0 ? {
       'aggregateRating': {
         '@type': 'AggregateRating',
@@ -615,10 +640,23 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
     ]
   };
 
+  const imageJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'ImageObject',
+    '@id': `${seriesCanonicalUrl}#poster`,
+    'url': seriesCanonicalUrl,
+    'contentUrl': posterFullUrl,
+    'thumbnailUrl': getR2Url(activeSeries.poster_image_key || activeSeries.cover_image_key, 'thumbnail'),
+    'name': `${activeSeries.title} Official Anime Poster`,
+    'caption': `Watch ${activeSeries.title} full episodes on Play Hentai`,
+    'description': activeSeries.description || `Official high definition poster artwork for ${activeSeries.title} hentai anime series.`,
+    'representativeOfPage': true,
+  };
+
   return (
     <div className={styles.container}>
       {/* Schema.org Structured Data */}
-      <JsonLd data={[tvSeriesJsonLd, breadcrumbJsonLd, faqJsonLd]} />
+      <JsonLd data={[tvSeriesJsonLd, breadcrumbJsonLd, faqJsonLd, imageJsonLd]} />
       
       {/* Ambient Backdrop Banner */}
       <div className={styles.bannerContainer}>
@@ -627,6 +665,7 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
           alt={`Watch ${activeSeries.title} Hentai Anime Online - Play Hentai`}
           fill
           priority
+          fetchPriority="high"
           className={styles.bannerImage}
           style={{ objectPosition: activeSeries.banner_position || 'center 25%' }}
         />

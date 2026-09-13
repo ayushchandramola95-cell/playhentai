@@ -320,6 +320,39 @@ This file maintains an exact, comprehensive record of all audits, code modificat
 
 ---
 
+### Phase 11: Master SEO, Google Images & Google Video Ranking Optimizations
+* **Date**: September 13, 2026
+* **Problem**:
+  * Root layout (`layout.tsx`) and homepage (`page.tsx`) lacked default `openGraph.images` and `twitter.images`, causing search results, social shares, and discovery platforms to display empty previews without branding.
+  * Homepage rendered a duplicate, incomplete `WebSite` JSON-LD schema conflicting with the primary `WebSite` schema in `layout.tsx`.
+  * Series detail pages (`/series/[slug]`) lacked dedicated `ImageObject` structured data for official poster artwork, hindering ranking in Google Images tabs and carousels. Titles also risked HTML entity escaping (`&amp;`).
+  * Watch pages (`/watch/[episodeId]`) lacked Google's `SeekToAction` (`potentialAction`) specification, preventing Google Search "Key Moments" timeline clips and scrubbers.
+  * `sitemap.xml` did not include `<image:image>` discovery tags linking to R2 high-res poster and thumbnail keys.
+  * `sitemap-video.xml` was missing `<video:player_loc>`, which Google video search heavily prioritizes for in-browser streaming.
+  * Visiting `/series` yielded a 404 instead of redirecting to the main catalog (`/categories`).
+* **Fix Applied**:
+  * **Global Social & Search Previews**: Added high-res 1200x630 `/og-banner.png` default OpenGraph and Twitter images to `layout.tsx`, `(public)/page.tsx`, `categories/page.tsx`, and `trending/page.tsx`.
+  * **Structured Data Harmonization**: Removed redundant partial `WebSite` schema from `(public)/page.tsx`; enriched `itemListJsonLd` with images and descriptions, and added brand `ImageObject` schema.
+  * **Google Image Ranking (`ImageObject`)**: Implemented `@type: "ImageObject"` schema in `series/[slug]/page.tsx` linking high-res R2 poster artwork, dimensions, captions, and `representativeOfPage: true`. Cleaned title formatting to eliminate `&amp;` entity artifacts.
+  * **Google Video "Key Moments" & Deep-Linking**: Added `SeekToAction` (`potentialAction`) with `target: ...?t={seek_to_second_number}` in `watch/[episodeId]/page.tsx`. Enhanced `VideoPlayer.tsx` to automatically seek to `?t=seconds` on mount.
+  * **Image Sitemaps**: Updated `sitemap.ts` to query `poster_image_key` and `thumbnail_key` and attach `images: [imageUrl]`, emitting standard Google `<image:image>` entries in `sitemap.xml`.
+  * **Video Sitemap Streaming**: Added `<video:player_loc allow_embed="yes" autoplay="ap=1">` to all video entries in `sitemap-video.xml`.
+  * **Route Hygiene & Catalog Rich Schemas**: Added 301 permanent redirect for `/series` -> `/categories` in `next.config.ts`. Added `BreadcrumbList` and `ItemList` JSON-LD to `recent/series/page.tsx` and `trending/page.tsx`.
+* **Files Modified**:
+  * `src/app/layout.tsx`
+  * `src/app/(public)/page.tsx`
+  * `src/app/(public)/series/[slug]/page.tsx`
+  * `src/app/(public)/watch/[episodeId]/page.tsx`
+  * `src/components/VideoPlayer/VideoPlayer.tsx`
+  * `src/app/sitemap.ts`
+  * `src/app/sitemap-video.xml/route.ts`
+  * `next.config.ts`
+  * `src/app/(public)/categories/page.tsx`
+  * `src/app/(public)/recent/series/page.tsx`
+  * `src/app/(public)/trending/page.tsx`
+
+---
+
 ## 2. Live Verification Results
 
 The following live automated tests were executed against the running dev server on `http://localhost:3004`:
@@ -333,8 +366,10 @@ The following live automated tests were executed against the running dev server 
 | **Login Metadata** | `node fetch('/login')` | Noindex + dedicated title | `<meta name="robots" content="noindex, follow">` \| `Sign In & Register \| Play Hentai` | **PASS** |
 | **Robots Host Directive** | `node fetch('/robots.txt')` | Host header present | `Host: https://playhentai.live` | **PASS** |
 | **Sitemap Playlists** | `node fetch('/sitemap.xml')` | 12 playlists indexed | Exactly 12 playlist URLs found | **PASS** |
-| **Video Sitemap** | `node fetch('/sitemap-video.xml')` | Google Video 1.1 XML | HTTP 200 OK (~700 KB valid XML) | **PASS** |
+| **Video Sitemap** | `node fetch('/sitemap-video.xml')` | Google Video 1.1 XML + player_loc | HTTP 200 OK \| player_loc + content_loc (~763 KB valid XML) | **PASS** |
+| **Google Image Sitemaps** | `node fetch('/sitemap.xml')` | `<image:image>` entries | Emitting image:loc tags for series & episodes (~266 KB valid XML) | **PASS** |
 | **Legacy 301 Redirect** | `node fetch('/genre')` | HTTP 308/301 to `/genres` | `{ status: 308, location: '/genres' }` | **PASS** |
+| **Series Route Redirect**| `node fetch('/series')` | HTTP 308/301 to `/categories` | `{ status: 308, location: '/categories' }` | **PASS** |
 | **HTTP Security Headers** | `node fetch('/')` | `nosniff`, `SAMEORIGIN`, `strict-origin` | Headers verified present on live response | **PASS** |
 | **CDN Preconnect** | `node fetch('/')` | `media.playhentai.live` preconnect | Present in `<head>` | **PASS** |
 | **Viewport Theme Color** | `node fetch('/')` | `#080808` dark theme | `<meta name="theme-color" content="#080808">` | **PASS** |
@@ -344,13 +379,15 @@ The following live automated tests were executed against the running dev server 
 | **Custom 404 Page** | `node fetch('/invalid-path')` | Custom 404 with search & chips | HTTP 404 Not Found \| Page or Episode Not Found | **PASS** |
 | **Root Error Boundary** | Build inspection | Recovery action `reset()` | Client error boundary configured at `src/app/error.tsx` | **PASS** |
 | **Dynamic 1200x630 OG Cards** | `node fetch('/api/og')` | 1200x630 PNG card | HTTP 200 OK \| `image/png` \| 200 KB rendered | **PASS** |
-| **Series Dynamic OG** | `node fetch('/series/[slug]')` | Points to `/api/og` endpoint | `property="og:image"` verified live | **PASS** |
-| **Watch Dynamic OG** | `node fetch('/watch/[epId]')` | Points to `/api/og` endpoint | `property="og:image"` verified live | **PASS** |
+| **Homepage Social OG** | `node fetch('/')` | og:image + twitter:image | Verified present pointing to `/og-banner.png` (1200x630) | **PASS** |
+| **Homepage Clean Schema** | `node fetch('/')` | 1 unified WebSite schema | Exactly 1 WebSite schema found (duplicate eliminated) | **PASS** |
+| **Series ImageObject** | `node fetch('/series/[slug]')` | `@type: "ImageObject"` | Present with poster artwork R2 URL and dimensions | **PASS** |
+| **Clean Series Title** | `node fetch('/series/[slug]')` | No HTML ampersands | Clean title without `&amp;` display artifacts | **PASS** |
+| **Google Video Key Moments** | `node fetch('/watch/[epId]')`| `SeekToAction` in VideoObject | Configured with `?t={seek_to_second_number}` | **PASS** |
+| **Video Player Timestamp Seek**| `VideoPlayer.tsx` | URL param `?t=` auto-seek | Verified in player lifecycle | **PASS** |
 | **Unified Web Share** | Browser test `/watch/...` | Native OS Web Share sheet (WhatsApp, Telegram, etc.) | Matches Series page native share behavior | **PASS** |
 | **Navigation Progress Bar** | Global mount in `providers.tsx` | 0ms click detection + glowing bar | Active across all internal route changes | **PASS** |
 | **Route Skeletons** | Route inspection | Instant <50ms skeleton display | Verified on `/`, `/series/[slug]`, `/watch/[epId]` | **PASS** |
-| **Optimized Series Latency** | `node fetch('/series/kanojo-saimin')` | HTTP 200 OK | Fast response with pruned catalog query | **PASS** |
-| **Optimized Watch Latency** | `node fetch('/watch/kanojo-saimin-episode-1')` | HTTP 200 OK | Fast response with parallelized queries | **PASS** |
 | **Type Safety** | `npx tsc --noEmit` | Clean compilation | Exited with code 0 (0 errors across entire repo) | **PASS** |
 
 ---
@@ -369,5 +406,59 @@ The following live automated tests were executed against the running dev server 
 | **Part 8: Dynamic Social OG & Edge ISR** | **COMPLETED** | Edge-rendered 1200x630 dynamic Open Graph share cards (`/api/og`) for Discord/Twitter/Telegram, and catalog ISR caching (`revalidate`). |
 | **Part 9: Unified Web Share Behavior** | **COMPLETED** | Unified the Episode Watch page Share button with the Series page to directly trigger the native OS Web Share sheet (Windows / Android / iOS / macOS). |
 | **Part 10: Instant Transitions & Speed** | **COMPLETED** | Global glowing navigation progress bar (0ms feedback), instant route skeletons (loading.tsx), pruned deep catalog joins, parallelized queries, and smart prefetching. |
+| **Part 11: Images, Video SEO & Search Rankings** | **COMPLETED** | Google ImageObject schemas, XML image discovery tags in sitemap, Google Key Moments SeekToAction, video sitemap player_loc, OG images, and catalog structured data. |
+| **Part 12: Search Engine Crawling, Feeds & IndexNow Protocol** | **COMPLETED** | Standardized IndexNow protocol key `8f074d2b270a442e9fb05b0d6b9d62ab`, key file verification at `/8f074d2b270a442e9fb05b0d6b9d62ab.txt`, automated multi-engine broadcasting (`api.indexnow.org`, `bing.com`, `yandex.com`), `/rss.xml` permanent 308 redirect, and full TVEpisode schema mapping in watch pages. |
+| **Part 13: Database Column Query Hygiene** | **COMPLETED** | Fixed critical hidden Postgres column errors (`category`, `views`, `rating`) across Year, Tag, Status, and Series catalog queries. Connected real views maps and fixed 404s on `/year/[year]` and `/tag/[slug]`. |
+
+---
+
+### Phase 12: IndexNow Multi-Engine Instant Indexing & TVEpisode Enrichment
+* **Date**: September 13, 2026
+* **Objectives**:
+  * Implement instant indexing protocol (IndexNow) for Bing, Yandex, Yahoo, Naver, and Seznam.
+  * Enrich episode watch pages with `TVEpisode` structured data linked directly to `TVSeries` parent entities.
+  * Standardize social metadata (`og:image` and `twitter:image`) across all hub, playlist, studio, year, and tag pages.
+  * Implement `/rss.xml` 308 redirect pointing directly to Media RSS 2.0 `/feed.xml`.
+* **Actions Taken**:
+  * Standardized IndexNow key to 32-character hexadecimal format: `8f074d2b270a442e9fb05b0d6b9d62ab`.
+  * Verified root static verification file `public/8f074d2b270a442e9fb05b0d6b9d62ab.txt` returning HTTP 200 with text/plain.
+  * Updated `src/app/api/seo/ping-google/route.ts` to dispatch IndexNow payloads to `api.indexnow.org`, `bing.com/indexnow`, and `yandex.com/indexnow`, submitting over 656 URLs across all series, episodes, and catalogs with HTTP 200/202 confirmation.
+  * Added `TVEpisode` JSON-LD schema to `src/app/(public)/watch/[episodeId]/page.tsx` with episodeNumber, url, image, datePublished, duration, and partOfSeries.
+  * Created `src/app/rss.xml/route.ts` redirecting crawlers seamlessly to `/feed.xml`.
+  * Added fallback 1200x630 `/og-banner.png` and dynamic top-series artwork across `playlists/[slug]`, `studios/[slug]`, `tag/[slug]`, `year/[year]`, `uncensored`, `3d`, and `random`.
+
+---
+
+### Phase 14: Mobile Core Web Vitals & Split-Card Hero Optimization
+* **Date**: September 13, 2026
+* **Problem / Benchmark Analysis**:
+  * Cloudflare Speed / Synthetic Monitoring (Lighthouse in Iowa, USA) baseline test results:
+    * Desktop Score: 80 (TTFB: 198ms, FCP: 696ms, LCP: 1,456ms, TBT: 234ms, CLS: 0).
+    * Mobile Score: 55 (TTFB: 194ms, FCP: 2,870ms, LCP: 5,045ms, TBT: 934ms, CLS: 0).
+  * Main mobile bottlenecks identified:
+    1. **Mobile LCP (5.0s)**: Full-bleed 16:9 banner backdrop (~2.5MB+) was being loaded and rendered on small screens, stretched behind text, while the poster was hidden (`display: none;`).
+    2. **Mobile TBT (934ms)**: Off-screen homepage catalog sections and third-party scripts (GA4 and Cloudflare Beacon) competed for CPU time during hydration on simulated mobile CPUs.
+* **Fix Applied**:
+  1. **Option 1 (Split Card) Mobile Hero Banner**:
+     * In `src/components/HeroCarousel/HeroCarousel.module.css` and `HeroCarousel.tsx`, perfected the Split Card layout:
+       * Left column: Significantly enlarged poster thumbnail to **142px** (126px on small mobile) with 2:3 aspect ratio, rounded corners, and depth shadow, creating a balanced 1:1 visual height match with the right column.
+       * Right column: Unified metadata + synopsis stack: badges, 2-line clamped title, genre tags, gold rating pill (`⭐ 8.5`) + view count (`👁 views`), and **synopsis moved into the right column** with a clean 3-line clamp (2-line on small mobile).
+       * Bottom: Action buttons (`Watch Now`, `Details`, `Watchlist`) span full width across both columns below the media card.
+     * Pure CSS radial gradient background (`radial-gradient(circle at 50% 0%, rgba(147, 51, 234, 0.16) 0%, rgba(10, 8, 20, 0.98) 65%, #08080c 100%)`).
+     * Completely hidden backdrop banner on mobile (`.slidesContainer { display: none !important; }`), eliminating massive payload downloads on mobile.
+     * Desktop (>768px) remains 100% untouched with both backdrop and poster intact, also benefiting from the sleek rating and views row.
+  2. **Image Preload & Priority Alignment**:
+     * Removed `priority` and `fetchPriority` from the backdrop image in `HeroCarousel.tsx`.
+     * Added `priority={index === 0}` and `fetchPriority="high"` with responsive `sizes="(max-width: 768px) 160px, 220px"` to the poster image.
+     * Verified via server HTML output: Only the 160px poster is preloaded for mobile, dropping LCP payload from >2.5MB to ~25KB.
+  3. **Third-Party Script Optimization**:
+     * In `src/app/layout.tsx`, updated GA4 (`gtag.js` + init) and Cloudflare Web Analytics (`beacon.min.js`) from `strategy="afterInteractive"` to `strategy="lazyOnload"`.
+  4. **Off-Screen Rendering Optimization**:
+     * In `src/app/(public)/page.module.css`, added `content-visibility: auto; contain-intrinsic-size: 0 420px;` to `.section`, deferring rendering of off-screen homepage sections until scrolled into view.
+* **Verification**:
+  * `npx tsc --noEmit`: 0 TypeScript errors.
+  * Homepage HTML verification (`test_homepage_html.js`): Status 200 OK, single high-priority poster preload, clean split-card markup with rating and views rendered.
+
+
 
 

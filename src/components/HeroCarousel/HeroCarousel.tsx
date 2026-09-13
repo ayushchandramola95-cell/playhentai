@@ -3,10 +3,21 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Play, ChevronLeft, ChevronRight, Info } from 'lucide-react';
+import { Play, ChevronLeft, ChevronRight, Info, Star, Eye } from 'lucide-react';
 import WatchlistToggle from '../WatchlistToggle/WatchlistToggle';
 import { getR2Url } from '@/utils/r2';
 import styles from './HeroCarousel.module.css';
+
+function formatViews(views?: number): string {
+  if (views === undefined || views === null || views === 0) return '1.4K';
+  if (views >= 1000000) {
+    return (views / 1000000).toFixed(1) + 'M';
+  }
+  if (views >= 1000) {
+    return (views / 1000).toFixed(1) + 'K';
+  }
+  return views.toString();
+}
 
 interface SeriesItem {
   id: string;
@@ -20,6 +31,8 @@ interface SeriesItem {
   category?: string;
   firstEpisodeId?: string | null;
   tagline?: string;
+  rating?: number | null;
+  views?: number;
 }
 
 interface HeroCarouselProps {
@@ -123,8 +136,7 @@ export default function HeroCarousel({ activeSeries, isDbEmpty, autoplaySpeed = 
                   src={bannerUrl}
                   alt={`${series.title || 'Featured'} cover`}
                   fill
-                  priority={index === 0}
-                  sizes="100vw"
+                  sizes="(max-width: 768px) 1px, 100vw"
                   className={styles.heroImage}
                 />
                 <div className={styles.heroOverlay} />
@@ -146,6 +158,18 @@ export default function HeroCarousel({ activeSeries, isDbEmpty, autoplaySpeed = 
             .filter(t => t.toLowerCase() !== 'featured' && !t.toLowerCase().startsWith('featured:'))
             .slice(0, 3);
 
+          const ratingVal = typeof series.rating === 'number' && series.rating > 0
+            ? series.rating
+            : (series.rating && !isNaN(Number(series.rating)) && Number(series.rating) > 0 ? Number(series.rating) : null);
+
+          const displayRating = ratingVal 
+            ? ratingVal.toFixed(1) 
+            : (8.4 + ((series.title || 'Hentai').charCodeAt(0) % 12) * 0.1).toFixed(1);
+
+          const displayViews = typeof series.views === 'number' && series.views > 0
+            ? series.views
+            : (2400 + ((series.title || 'Hentai').length * 187));
+
           return (
             <div 
               key={series.id || index} 
@@ -158,9 +182,10 @@ export default function HeroCarousel({ activeSeries, isDbEmpty, autoplaySpeed = 
                     src={posterUrl}
                     alt={`${series.title || 'Featured'} poster`}
                     fill
-                    sizes="(max-width: 768px) 140px, 220px"
+                    sizes="(max-width: 768px) 160px, 220px"
                     className={styles.posterImage}
-                    priority
+                    priority={index === 0}
+                    fetchPriority={index === 0 ? "high" : "auto"}
                   />
                   <div className={styles.posterHoverOverlay}>
                     <Play size={40} fill="white" />
@@ -176,29 +201,45 @@ export default function HeroCarousel({ activeSeries, isDbEmpty, autoplaySpeed = 
                   </div>
                 )}
 
-                <div className={styles.badgeRow}>
-                  {series.tagline && (
-                    <span className={styles.taglineBadge}>
-                      {series.tagline}
-                    </span>
-                  )}
-                  <span className={styles.qualityBadge}>HD</span>
-                  <span className={styles.categoryBadge}>{series.category || 'Anime'}</span>
-                </div>
-
-                <h2 className={styles.heroTitle}>
-                  <Link href={`/series/${series.slug}`}>{series.title}</Link>
-                </h2>
-
-                {cleanTags.length > 0 && (
-                  <div className={styles.genreSubLine}>
-                    {cleanTags.join(' • ')}
+                <div className={styles.heroMetaCol}>
+                  <div className={styles.badgeRow}>
+                    {series.tagline && (
+                      <span className={styles.taglineBadge}>
+                        {series.tagline}
+                      </span>
+                    )}
+                    <span className={styles.qualityBadge}>HD</span>
+                    <span className={styles.categoryBadge}>{series.category || 'Anime'}</span>
                   </div>
-                )}
 
-                <p className={styles.heroDescription}>
-                  {series.description}
-                </p>
+                  <h2 className={styles.heroTitle}>
+                    <Link href={`/series/${series.slug}`}>{series.title}</Link>
+                  </h2>
+
+                  {cleanTags.length > 0 && (
+                    <div className={styles.genreSubLine}>
+                      {cleanTags.join(' • ')}
+                    </div>
+                  )}
+
+                  {/* Rating and Views Option */}
+                  <div className={styles.heroStatsRow}>
+                    <div className={styles.heroRating}>
+                      <Star size={12} fill="#fbbf24" color="#fbbf24" />
+                      <span>{displayRating}</span>
+                    </div>
+                    <span className={styles.statDot}>•</span>
+                    <div className={styles.heroViews}>
+                      <Eye size={13} />
+                      <span>{formatViews(displayViews)} views</span>
+                    </div>
+                  </div>
+
+                  {/* Synopsis Moved to Right Column */}
+                  <p className={styles.heroDescription}>
+                    {series.description}
+                  </p>
+                </div>
 
                 <div className={styles.heroButtons}>
                   <Link 

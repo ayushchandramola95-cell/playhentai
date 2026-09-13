@@ -465,6 +465,22 @@ export default function VideoPlayer({
       const dur = videoRef.current.duration;
       setDuration(dur);
 
+      // 1. Check URL ?t= query parameter for Google Key Moments & timestamp seeking
+      try {
+        if (typeof window !== 'undefined') {
+          const urlParams = new URLSearchParams(window.location.search);
+          const tParam = urlParams.get('t');
+          if (tParam) {
+            const seekSec = parseFloat(tParam);
+            if (!isNaN(seekSec) && seekSec > 0 && seekSec < dur) {
+              videoRef.current.currentTime = seekSec;
+              setCurrentTime(seekSec);
+              return;
+            }
+          }
+        }
+      } catch (_) {}
+
       try {
         const saved = localStorage.getItem(`progress-${episodeId}`);
         if (saved) {

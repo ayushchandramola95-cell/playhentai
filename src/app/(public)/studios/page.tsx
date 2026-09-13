@@ -21,7 +21,7 @@ export async function generateMetadata() {
       type: 'website' as const,
       images: [
         {
-          url: `${SITE_URL}/hero-banner.png`,
+          url: `${SITE_URL}/og-banner.png`,
           width: 1200,
           height: 630,
           alt: 'Play Hentai Hentai Production Studios Directory',
@@ -32,7 +32,7 @@ export async function generateMetadata() {
       card: 'summary_large_image',
       title: 'Hentai Production Studios Directory — 118+ Studios | Play Hentai',
       description: 'Browse 118+ hentai animation production studios, releases, stats, ratings, and series catalogs on Play Hentai.',
-      images: [`${SITE_URL}/hero-banner.png`],
+      images: [`${SITE_URL}/og-banner.png`],
     },
   };
 }

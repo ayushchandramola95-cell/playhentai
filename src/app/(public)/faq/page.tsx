@@ -13,7 +13,23 @@ export const metadata = {
     description: 'Find comprehensive answers about 1080p HD streaming, uncensored releases, account settings, Chromecast casting, and 18+ age verification on Play Hentai.',
     url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live'}/faq`,
     siteName: 'Play Hentai',
+    locale: 'en_US',
     type: 'website' as const,
+    images: [
+      {
+        url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live'}/og-banner.png`,
+        width: 1200,
+        height: 630,
+        alt: 'Play Hentai FAQ',
+        type: 'image/png',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Frequently Asked Questions (FAQ) | Play Hentai',
+    description: 'Find comprehensive answers about 1080p HD streaming, uncensored releases, account settings, Chromecast casting, and 18+ age verification on Play Hentai.',
+    images: [`${process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live'}/og-banner.png`],
   },
 };
 

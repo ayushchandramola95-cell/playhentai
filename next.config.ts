@@ -102,6 +102,11 @@ const nextConfig: NextConfig = {
         destination: '/categories/:path*',
         permanent: true,
       },
+      {
+        source: '/series',
+        destination: '/categories',
+        permanent: true,
+      },
     ];
   },
 };

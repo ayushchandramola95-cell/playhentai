@@ -3,6 +3,7 @@ import { unstable_cache } from 'next/cache';
 import { createClient } from '@supabase/supabase-js';
 import { STUDIOS_METADATA } from '@/utils/studiosData';
 import { tagToSlug } from '@/utils/constants';
+import { getR2Url } from '@/utils/r2';
 
 export const revalidate = 3600;
 
@@ -59,7 +60,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Fetch published series
     const { data: series } = await supabase
       .from('series')
-      .select('slug, created_at, release_year, status')
+      .select('slug, created_at, release_year, status, poster_image_key, cover_image_key')
       .eq('is_published', true);
 
     if (series) {
@@ -73,10 +74,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       dbDistinctYears = Array.from(yearSet);
     }
 
-    // Fetch published episodes with joined series slug for clean URLs
+    // Fetch published episodes with joined series slug and thumbnails for clean URLs and images
     const { data: episodes } = await supabase
       .from('episodes')
-      .select('id, episode_number, created_at, seasons(series(slug, is_published))')
+      .select('id, episode_number, created_at, thumbnail_key, seasons(series(slug, is_published, cover_image_key, poster_image_key))')
       .eq('is_published', true);
 
     if (episodes && episodes.length > 0) {
@@ -91,9 +92,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           const seriesObj = season ? (Array.isArray(season.series) ? season.series[0] : season.series) : null;
           const seriesSlug = seriesObj?.slug;
           const watchSlug = seriesSlug && ep.episode_number ? `${seriesSlug}-episode-${ep.episode_number}` : ep.id;
+          const thumbKey = ep.thumbnail_key || seriesObj?.cover_image_key || seriesObj?.poster_image_key;
           return {
             id: watchSlug,
-            created_at: ep.created_at
+            created_at: ep.created_at,
+            image_key: thumbKey
           };
         });
     }
@@ -160,20 +163,30 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   // 3. Dynamic Series Pages
-  const seriesPages = activeSeries.map(s => ({
-    url: `${baseUrl}/series/${s.slug}`,
-    lastModified: s.created_at ? new Date(s.created_at) : new Date(),
-    changeFrequency: 'weekly' as const,
-    priority: 0.9,
-  }));
+  const seriesPages = activeSeries.map((s: any) => {
+    const posterKey = s.poster_image_key || s.cover_image_key;
+    const imageUrl = posterKey ? getR2Url(posterKey, 'poster') : undefined;
+    return {
+      url: `${baseUrl}/series/${s.slug}`,
+      lastModified: s.created_at ? new Date(s.created_at) : new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.9,
+      ...(imageUrl ? { images: [imageUrl] } : {})
+    };
+  });
 
   // 4. Dynamic Episode Pages
-  const episodePages = activeEpisodes.map(ep => ({
-    url: `${baseUrl}/watch/${ep.id}`,
-    lastModified: ep.created_at ? new Date(ep.created_at) : new Date(),
-    changeFrequency: 'weekly' as const,
-    priority: 0.8,
-  }));
+  const episodePages = activeEpisodes.map((ep: any) => {
+    const thumbKey = ep.image_key;
+    const imageUrl = thumbKey ? getR2Url(thumbKey, 'thumbnail') : undefined;
+    return {
+      url: `${baseUrl}/watch/${ep.id}`,
+      lastModified: ep.created_at ? new Date(ep.created_at) : new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.8,
+      ...(imageUrl ? { images: [imageUrl] } : {})
+    };
+  });
 
   // 5. Studio Pages (from STUDIOS_METADATA)
   const studioDetailPages = STUDIOS_METADATA.map(studio => ({

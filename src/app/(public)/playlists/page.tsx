@@ -34,7 +34,7 @@ export async function generateMetadata({ searchParams }: PageProps) {
       type: 'website' as const,
       images: [
         {
-          url: `${SITE_URL}/hero-banner.png`,
+          url: `${SITE_URL}/og-banner.png`,
           width: 1200,
           height: 630,
           alt: 'Play Hentai Curated Hentai Playlists',
@@ -45,7 +45,7 @@ export async function generateMetadata({ searchParams }: PageProps) {
       card: 'summary_large_image',
       title,
       description,
-      images: [`${SITE_URL}/hero-banner.png`],
+      images: [`${SITE_URL}/og-banner.png`],
     },
   };
 }

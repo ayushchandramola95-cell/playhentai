@@ -6,8 +6,8 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
   const host = 'playhentai.live';
   const baseUrl = `https://${host}`;
-  const key = 'playhentai2026indexnowkey123';
-  const keyLocation = `${baseUrl}/playhentai-indexnow-key.txt`;
+  const key = '8f074d2b270a442e9fb05b0d6b9d62ab';
+  const keyLocation = `${baseUrl}/8f074d2b270a442e9fb05b0d6b9d62ab.txt`;
   const sitemapUrl = `${baseUrl}/sitemap.xml`;
 
   const results: Record<string, any> = {};
@@ -15,7 +15,12 @@ export async function GET() {
     baseUrl,
     `${baseUrl}/categories`,
     `${baseUrl}/studios`,
-    `${baseUrl}/sitemap.xml`
+    `${baseUrl}/genres`,
+    `${baseUrl}/trending`,
+    `${baseUrl}/recent/episodes`,
+    `${baseUrl}/recent/series`,
+    `${baseUrl}/sitemap.xml`,
+    `${baseUrl}/sitemap-video.xml`
   ];
 
   try {
@@ -96,13 +101,38 @@ export async function GET() {
     results.bingIndexNow = 'ERROR: ' + err.message;
   }
 
+  // 3. Direct Yandex IndexNow Endpoint
+  try {
+    const yandexPayload = {
+      host,
+      key,
+      keyLocation,
+      urlList
+    };
+
+    const yandexRes = await fetch('https://yandex.com/indexnow', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8'
+      },
+      body: JSON.stringify(yandexPayload)
+    });
+
+    results.yandexIndexNow = yandexRes.status === 200 || yandexRes.status === 202
+      ? 'SUCCESS: Yandex IndexNow submitted (HTTP ' + yandexRes.status + ')'
+      : 'STATUS: ' + yandexRes.status;
+  } catch (err: any) {
+    results.yandexIndexNow = 'ERROR: ' + err.message;
+  }
+
   return NextResponse.json({
     success: true,
     timestamp: new Date().toISOString(),
     sitemap: sitemapUrl,
     indexNowKey: keyLocation,
+    urlsSubmitted: urlList.length,
     results,
-    note: 'Search engine IndexNow protocol submitted. For Google, sitemap.xml auto-syncs via Google Search Console.'
+    note: 'Search engine IndexNow protocol submitted to IndexNow.org, Bing, and Yandex. For Google, sitemap.xml auto-syncs via Google Search Console.'
   });
 }
 

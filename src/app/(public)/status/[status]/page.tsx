@@ -6,6 +6,7 @@ import { CheckCircle2, ChevronLeft, ChevronRight, Activity, Calendar } from 'luc
 import { createClient } from '@supabase/supabase-js';
 import SeriesCard from '@/components/SeriesCard/SeriesCard';
 import JsonLd from '@/components/JsonLd/JsonLd';
+import { getSeriesViewsMap } from '@/utils/views';
 import styles from './status.module.css';
 
 export const dynamic = 'force-dynamic';
@@ -20,8 +21,8 @@ const PAGE_SIZE = 24;
 const VALID_STATUSES = ['completed', 'ongoing', 'upcoming'];
 
 /**
- * Fetch series by status value.
- * Sorted by actual release date (first_air_date) descending, falling back to created_at descending.
+ * Fetch series by status (completed, ongoing, upcoming).
+ * Sorted by first_air_date DESC (nulls last) -> created_at DESC
  */
 import { MOCK_SERIES } from '@/utils/mockData';
 
@@ -31,12 +32,13 @@ async function getSeriesByStatus(status: string): Promise<any[]> {
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     );
+    const viewsMap = await getSeriesViewsMap();
 
     const { data } = await supabase
       .from('series')
       .select(`
         id, title, slug, description, poster_image_key, cover_image_key,
-        banner_image_key, tags, category, views, status, rating,
+        banner_image_key, tags, status,
         release_year, studio, episode_count_override, poster_position,
         first_air_date, created_at,
         seasons (
@@ -53,7 +55,12 @@ async function getSeriesByStatus(status: string): Promise<any[]> {
       .ilike('status', status);
 
     if (data && data.length > 0) {
-      return data.sort((a: any, b: any) => {
+      const mapped = data.map((s: any) => ({
+        ...s,
+        views: viewsMap[s.id] || 0,
+        rating: null
+      }));
+      return mapped.sort((a: any, b: any) => {
         const aTime = a.first_air_date ? new Date(a.first_air_date).getTime() : 0;
         const bTime = b.first_air_date ? new Date(b.first_air_date).getTime() : 0;
 

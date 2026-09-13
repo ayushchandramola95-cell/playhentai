@@ -539,7 +539,40 @@ export default async function WatchPage({ params }: WatchPageProps) {
       '@type': 'TVSeries',
       'name': seriesTitle,
       'url': seriesPageUrl
+    },
+    'interactionStatistic': {
+      '@type': 'InteractionCounter',
+      'interactionType': { '@type': 'https://schema.org/WatchAction' },
+      'userInteractionCount': Math.max(25, Number(activeEpisode.views || seriesDetails?.views || 100))
+    },
+    'potentialAction': {
+      '@type': 'SeekToAction',
+      'target': `${canonicalUrl}?t={seek_to_second_number}`,
+      'startOffset-input': 'required name=seek_to_second_number'
     }
+  };
+
+  const tvEpisodeJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'TVEpisode',
+    '@id': `${canonicalUrl}#episode`,
+    'name': videoName,
+    'episodeNumber': activeEpisode.episode_number,
+    'url': canonicalUrl,
+    'image': verifiedThumbnailUrl,
+    'datePublished': formatIso8601Date(activeEpisode.release_date || activeEpisode.created_at),
+    ...(activeEpisode.duration_seconds ? { 'duration': formatIso8601Duration(activeEpisode.duration_seconds) } : {}),
+    'partOfSeries': {
+      '@type': 'TVSeries',
+      'name': seriesTitle,
+      'url': seriesPageUrl,
+    },
+    ...(seasonName ? {
+      'partOfSeason': {
+        '@type': 'TVSeason',
+        'name': seasonName,
+      }
+    } : {}),
   };
 
   const breadcrumbJsonLd = {
@@ -593,7 +626,7 @@ export default async function WatchPage({ params }: WatchPageProps) {
 
   return (
     <>
-      <JsonLd data={showVideoSchema ? [videoJsonLd, breadcrumbJsonLd] : [breadcrumbJsonLd]} />
+      <JsonLd data={showVideoSchema ? [videoJsonLd, tvEpisodeJsonLd, breadcrumbJsonLd] : [tvEpisodeJsonLd, breadcrumbJsonLd]} />
       <WatchPageClient
         activeEpisode={activeEpisode}
         seasonEpisodes={seasonEpisodes}

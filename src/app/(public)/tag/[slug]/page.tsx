@@ -7,6 +7,8 @@ import { createClient } from '@supabase/supabase-js';
 import SeriesCard from '@/components/SeriesCard/SeriesCard';
 import JsonLd from '@/components/JsonLd/JsonLd';
 import { tagToSlug } from '@/utils/constants';
+import { getR2Url } from '@/utils/r2';
+import { getSeriesViewsMap } from '@/utils/views';
 import styles from './tag.module.css';
 
 interface TagPageProps {
@@ -54,12 +56,14 @@ async function getSeriesByTag(exactTag: string): Promise<any[]> {
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     );
+    const viewsMap = await getSeriesViewsMap();
+
     // Supabase supports array contains via @> operator — filter series whose tags array contains exactTag
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('series')
       .select(`
         id, title, slug, description, poster_image_key, cover_image_key,
-        banner_image_key, tags, category, views, status, rating,
+        banner_image_key, tags, status,
         release_year, studio, episode_count_override, poster_position,
         seasons (
           is_published,
@@ -73,9 +77,17 @@ async function getSeriesByTag(exactTag: string): Promise<any[]> {
       `)
       .eq('is_published', true)
       .contains('tags', [exactTag])
-      .order('views', { ascending: false, nullsFirst: false });
+      .order('created_at', { ascending: false });
 
-    return data || [];
+    if (error || !data) return [];
+
+    const mapped = data.map((s: any) => ({
+      ...s,
+      views: viewsMap[s.id] || 0,
+      rating: null
+    }));
+
+    return mapped.sort((a: any, b: any) => (b.views || 0) - (a.views || 0));
   } catch {
     return [];
   }
@@ -98,6 +110,9 @@ export async function generateMetadata({ params }: TagPageProps): Promise<Metada
   const title = `${exactTag} Hentai Anime | Play Hentai`;
   const description = `Browse ${count} ${exactTag.toLowerCase()} hentai anime series with English subtitles in HD. Find completed and ongoing ${exactTag.toLowerCase()} titles on Play Hentai.`;
 
+  const topImgKey = seriesList[0]?.cover_image_key || seriesList[0]?.poster_image_key;
+  const ogImageUrl = topImgKey ? getR2Url(topImgKey, 'cover') : `${SITE_URL}/og-banner.png`;
+
   return {
     title,
     description,
@@ -109,11 +124,20 @@ export async function generateMetadata({ params }: TagPageProps): Promise<Metada
       description,
       url: canonicalUrl,
       type: 'website',
+      images: [
+        {
+          url: ogImageUrl,
+          width: 1200,
+          height: 630,
+          alt: `${exactTag} Hentai Anime`,
+        },
+      ],
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description,
+      images: [ogImageUrl],
     },
   };
 }

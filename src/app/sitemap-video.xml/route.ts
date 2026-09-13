@@ -130,6 +130,7 @@ export async function GET() {
       <video:thumbnail_loc>${escapeXml(thumbnailUrl)}</video:thumbnail_loc>
       <video:title>${escapeXml(videoTitle)}</video:title>
       <video:description>${escapeXml(videoDescription)}</video:description>
+      <video:player_loc allow_embed="yes" autoplay="ap=1">${escapeXml(watchPageUrl)}</video:player_loc>
       ${videoContentUrl ? `<video:content_loc>${escapeXml(videoContentUrl)}</video:content_loc>` : ''}
       <video:duration>${durationSeconds}</video:duration>
       <video:publication_date>${formattedDate}</video:publication_date>

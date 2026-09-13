@@ -73,6 +73,18 @@ export async function generateMetadata({ searchParams }: PageProps) {
     canonicalPath += `${querySymbol}page=${page}`;
   }
 
+  const cleanTitle = title.replace(/\s*\|.*$/, '').trim();
+  const ogApiUrl = `${SITE_URL}/api/og?title=${encodeURIComponent(cleanTitle)}&subtitle=${encodeURIComponent(description.slice(0, 80))}&badge=${encodeURIComponent('BROWSE CATALOG')}&image=${encodeURIComponent(`${SITE_URL}/hero-banner.png`)}`;
+
+  const images = [
+    {
+      url: ogApiUrl,
+      width: 1200,
+      height: 630,
+      alt: title,
+    },
+  ];
+
   return {
     title,
     description,
@@ -86,11 +98,13 @@ export async function generateMetadata({ searchParams }: PageProps) {
       siteName: 'Play Hentai',
       locale: 'en_US',
       type: 'website' as const,
+      images,
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description,
+      images: [ogApiUrl],
     },
   };
 }

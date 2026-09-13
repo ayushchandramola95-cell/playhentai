@@ -53,11 +53,21 @@ export async function generateMetadata(): Promise<Metadata> {
       siteName: "Play Hentai",
       locale: "en_US",
       type: "website",
+      images: [
+        {
+          url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live'}/og-banner.png`,
+          width: 1200,
+          height: 630,
+          alt: "Play Hentai – Watch Hentai Anime Online Free in HD",
+          type: "image/png",
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
       title: "Play Hentai – Watch Hentai Anime Online Free in HD",
       description: "Watch hentai anime online free in HD on Play Hentai. Stream uncensored hentai series and episodes with English subtitles, discover new releases, and explore popular titles by genre and studio.",
+      images: [`${process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live'}/og-banner.png`],
     },
     alternates: {
       canonical: 'https://playhentai.live',
@@ -181,9 +191,9 @@ export default function RootLayout({
           <>
             <Script
               src={`https://www.googletagmanager.com/gtag/js?id=${analytics.ga4Id}`}
-              strategy="afterInteractive"
+              strategy="lazyOnload"
             />
-            <Script id="google-analytics-init" strategy="afterInteractive">
+            <Script id="google-analytics-init" strategy="lazyOnload">
               {`
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){dataLayer.push(arguments);}
@@ -208,7 +218,7 @@ export default function RootLayout({
           <Script
             src="https://static.cloudflareinsights.com/beacon.min.js"
             data-cf-beacon={`{"token": "${analytics.cfToken}"}`}
-            strategy="afterInteractive"
+            strategy="lazyOnload"
           />
         )}
       </body>

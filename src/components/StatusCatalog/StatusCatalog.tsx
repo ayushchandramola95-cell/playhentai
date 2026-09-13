@@ -90,12 +90,23 @@ export function buildStatusMetadata(status: string, count: number): Metadata {
       title,
       description,
       url: `${SITE_URL}${routePath}`,
+      siteName: 'Play Hentai',
       type: 'website',
+      images: [
+        {
+          url: `${SITE_URL}/og-banner.png`,
+          width: 1200,
+          height: 630,
+          alt: title,
+          type: 'image/png',
+        },
+      ],
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description,
+      images: [`${SITE_URL}/og-banner.png`],
     },
   };
 }

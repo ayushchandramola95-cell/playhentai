@@ -9,6 +9,10 @@ import styles from './trending.module.css';
 import { MOCK_SERIES, MOCK_SERIES_DETAILS } from '@/utils/mockData';
 import { GENRES } from '@/utils/constants';
 import { getSeriesViewsMap } from '@/utils/views';
+import { getR2Url } from '@/utils/r2';
+import JsonLd from '@/components/JsonLd/JsonLd';
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
 
 export const metadata = {
   title: 'Trending Hentai Anime Series | Play Hentai',
@@ -19,8 +23,25 @@ export const metadata = {
   openGraph: {
     title: 'Trending Hentai Anime Series | Play Hentai',
     description: 'Discover the most popular and trending uncensored hentai anime series right now on Play Hentai.',
-    url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live'}/trending`,
+    url: `${SITE_URL}/trending`,
+    siteName: 'Play Hentai',
+    locale: 'en_US',
     type: 'website' as const,
+    images: [
+      {
+        url: `${SITE_URL}/og-banner.png`,
+        width: 1200,
+        height: 630,
+        alt: 'Trending Hentai Anime Series on Play Hentai',
+        type: 'image/png',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Trending Hentai Anime Series | Play Hentai',
+    description: 'Discover the most popular and trending uncensored hentai anime series right now on Play Hentai.',
+    images: [`${SITE_URL}/og-banner.png`],
   },
 };
 
@@ -149,8 +170,34 @@ export default async function TrendingPage({
   const startIndex = (page - 1) * pageSize;
   const paginatedItems = processedList.slice(startIndex, startIndex + pageSize);
 
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    'itemListElement': [
+      { '@type': 'ListItem', 'position': 1, 'name': 'Home', 'item': SITE_URL },
+      { '@type': 'ListItem', 'position': 2, 'name': 'Trending Series', 'item': `${SITE_URL}/trending` }
+    ]
+  };
+
+  const itemListJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    'name': 'Trending Hentai Anime Series on Play Hentai',
+    'url': `${SITE_URL}/trending`,
+    'numberOfItems': paginatedItems.length,
+    'itemListElement': paginatedItems.map((item: any, idx: number) => ({
+      '@type': 'ListItem',
+      'position': startIndex + idx + 1,
+      'name': item.title,
+      'url': `${SITE_URL}/series/${item.slug}`,
+      'image': getR2Url(item.poster_image_key || item.cover_image_key, 'poster'),
+      'description': item.description ? item.description.slice(0, 150) : undefined
+    }))
+  };
+
   return (
     <div className={styles.container}>
+      <JsonLd data={[breadcrumbJsonLd, itemListJsonLd]} />
       <div className="ambient-glow" />
 
       {/* Header Banner */}

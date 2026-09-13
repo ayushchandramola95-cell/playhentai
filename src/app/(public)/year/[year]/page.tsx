@@ -6,6 +6,8 @@ import { Calendar, ChevronLeft, ChevronRight, ListOrdered } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
 import SeriesCard from '@/components/SeriesCard/SeriesCard';
 import JsonLd from '@/components/JsonLd/JsonLd';
+import { getR2Url } from '@/utils/r2';
+import { getSeriesViewsMap } from '@/utils/views';
 import styles from './year.module.css';
 
 interface YearPageProps {
@@ -26,12 +28,13 @@ async function getSeriesByYear(yearNum: number): Promise<any[]> {
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     );
+    const viewsMap = await getSeriesViewsMap();
 
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('series')
       .select(`
         id, title, slug, description, poster_image_key, cover_image_key,
-        banner_image_key, tags, category, views, status, rating,
+        banner_image_key, tags, status,
         release_year, studio, episode_count_override, poster_position,
         first_air_date, created_at,
         seasons (
@@ -47,10 +50,16 @@ async function getSeriesByYear(yearNum: number): Promise<any[]> {
       .eq('is_published', true)
       .eq('release_year', yearNum);
 
-    if (!data) return [];
+    if (error || !data) return [];
+
+    const mapped = data.map((s: any) => ({
+      ...s,
+      views: viewsMap[s.id] || 0,
+      rating: null
+    }));
 
     // Custom sorting: first_air_date DESC (nulls last) -> created_at DESC
-    return data.sort((a: any, b: any) => {
+    return mapped.sort((a: any, b: any) => {
       const aTime = a.first_air_date ? new Date(a.first_air_date).getTime() : 0;
       const bTime = b.first_air_date ? new Date(b.first_air_date).getTime() : 0;
 
@@ -86,6 +95,9 @@ export async function generateMetadata({ params }: YearPageProps): Promise<Metad
   const title = `${year} Hentai Anime | Play Hentai`;
   const description = `Browse ${count} hentai anime series released in ${year} on Play Hentai. Find completed and ongoing releases from ${year}.`;
 
+  const topImgKey = seriesList[0]?.cover_image_key || seriesList[0]?.poster_image_key;
+  const ogImageUrl = topImgKey ? getR2Url(topImgKey, 'cover') : `${SITE_URL}/og-banner.png`;
+
   return {
     title,
     description,
@@ -97,11 +109,20 @@ export async function generateMetadata({ params }: YearPageProps): Promise<Metad
       description,
       url: canonicalUrl,
       type: 'website',
+      images: [
+        {
+          url: ogImageUrl,
+          width: 1200,
+          height: 630,
+          alt: `${year} Hentai Anime`,
+        },
+      ],
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description,
+      images: [ogImageUrl],
     },
   };
 }
