@@ -186,6 +186,7 @@ export default function HeroCarousel({ activeSeries, isDbEmpty, autoplaySpeed = 
                     className={styles.posterImage}
                     priority={index === 0}
                     fetchPriority={index === 0 ? "high" : "auto"}
+                    unoptimized={true}
                   />
                   <div className={styles.posterHoverOverlay}>
                     <Play size={40} fill="white" />

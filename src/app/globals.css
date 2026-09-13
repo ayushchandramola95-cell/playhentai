@@ -177,6 +177,13 @@ body {
   animation: pulse-glow-reverse 8s infinite alternate;
 }
 
+@media (max-width: 768px) {
+  .ambient-glow,
+  .ambient-glow-2 {
+    display: none !important;
+  }
+}
+
 /* Premium Animations */
 @keyframes pulse-glow {
   0% {
