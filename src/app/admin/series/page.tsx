@@ -43,6 +43,7 @@ import { createClient } from '@/utils/supabase/client';
 import FileUploader from '@/components/FileUploader/FileUploader';
 import { GENRES, STUDIOS, RELEASE_YEARS } from '@/utils/constants';
 import { getR2Url } from '@/utils/r2';
+import BulkSeriesModal from '@/components/BulkSeriesModal/BulkSeriesModal';
 import styles from '../admin.module.css';
 
 interface Series {
@@ -134,6 +135,7 @@ export default function AdminSeriesPage() {
 
   // Modal form states
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [modalTab, setModalTab] = useState<'general' | 'genres' | 'specs' | 'about_faq' | 'seo' | 'tsv'>('general');
   const [showTsvDrawer, setShowTsvDrawer] = useState(false);
@@ -1717,10 +1719,34 @@ export default function AdminSeriesPage() {
             Add, update or publish show titles and meta details.
           </p>
         </div>
-        <button onClick={handleOpenCreate} className={styles.createBtn}>
-          <Plus size={16} />
-          <span>Add Series</span>
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+          <button
+            type="button"
+            onClick={() => setIsBulkModalOpen(true)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.45rem',
+              padding: '0.6rem 1.1rem',
+              background: 'rgba(168, 85, 247, 0.12)',
+              border: '1px solid rgba(168, 85, 247, 0.35)',
+              borderRadius: '8px',
+              color: '#d8b4fe',
+              fontWeight: 700,
+              fontSize: '0.85rem',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              boxShadow: '0 2px 8px rgba(168, 85, 247, 0.15)'
+            }}
+          >
+            <Layers size={16} />
+            <span>Bulk Quick Add</span>
+          </button>
+          <button onClick={handleOpenCreate} className={styles.createBtn}>
+            <Plus size={16} />
+            <span>Add Series</span>
+          </button>
+        </div>
       </div>
 
       {hasDraft && (
@@ -4404,6 +4430,15 @@ export default function AdminSeriesPage() {
           </div>
         </div>
       )}
+
+      {/* Bulk Quick Add Modal */}
+      <BulkSeriesModal
+        isOpen={isBulkModalOpen}
+        onClose={() => setIsBulkModalOpen(false)}
+        onSuccess={() => {
+          fetchSeries();
+        }}
+      />
 
     </div>
   );
