@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getR2Url } from '@/utils/r2';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
 
 function escapeXml(unsafe: string | null | undefined): string {
   if (!unsafe) return '';

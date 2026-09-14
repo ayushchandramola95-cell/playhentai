@@ -1,10 +1,11 @@
 import { createAdminClient } from '@/utils/supabase/admin';
+import { unstable_cache } from 'next/cache';
 
 /**
  * Dynamically queries all episode view logs and aggregates them by series_id.
  * Returns a map of series_id -> total view count.
  */
-export async function getSeriesViewsMap(timeframe: '7d' | '30d' | 'all' = 'all'): Promise<Record<string, number>> {
+async function fetchSeriesViewsMap(timeframe: '7d' | '30d' | 'all' = 'all'): Promise<Record<string, number>> {
   const viewsMap: Record<string, number> = {};
   try {
     const adminSupabase = createAdminClient();
@@ -60,7 +61,7 @@ export async function getSeriesViewsMap(timeframe: '7d' | '30d' | 'all' = 'all')
  * Dynamically queries all episode view logs and aggregates them by episode_id.
  * Returns a map of episode_id -> view count.
  */
-export async function getEpisodeViewsMap(): Promise<Record<string, number>> {
+async function fetchEpisodeViewsMap(): Promise<Record<string, number>> {
   const viewsMap: Record<string, number> = {};
   try {
     const adminSupabase = createAdminClient();
@@ -84,3 +85,21 @@ export async function getEpisodeViewsMap(): Promise<Record<string, number>> {
   }
   return viewsMap;
 }
+
+// 5-minute memory cache to prevent burning database bandwidth on every request
+export const getSeriesViewsMap = (timeframe: '7d' | '30d' | 'all' = 'all') => {
+  return unstable_cache(
+    () => fetchSeriesViewsMap(timeframe),
+    [`series-views-map-cache-${timeframe}`],
+    { revalidate: 300, tags: ['views_cache'] }
+  )();
+};
+
+export const getEpisodeViewsMap = () => {
+  return unstable_cache(
+    () => fetchEpisodeViewsMap(),
+    ['episode-views-map-cache-all'],
+    { revalidate: 300, tags: ['views_cache'] }
+  )();
+};
+
