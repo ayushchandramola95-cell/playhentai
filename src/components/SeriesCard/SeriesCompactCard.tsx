@@ -27,15 +27,15 @@ export default function SeriesCompactCard({ item, className = '' }: SeriesCompac
   const releaseYear = item.release_year || item.releaseYear || 2026;
   const studio = item.studio || (item as any).studios?.name || '';
 
-  // Calculate actual episodes from seasons
-  let epCount = 0;
-  if (item.seasons && Array.isArray(item.seasons)) {
+  // Calculate actual episodes from precomputed count or seasons
+  let epCount = typeof item.episode_count === 'number' ? item.episode_count : 0;
+  if (!epCount && item.seasons && Array.isArray(item.seasons)) {
     item.seasons.forEach((s: any) => {
       if (s.is_published !== false && s.episodes && Array.isArray(s.episodes)) {
         epCount += s.episodes.filter((e: any) => e.is_published !== false).length;
       }
     });
-  } else if (item.slug) {
+  } else if (!epCount && item.slug) {
     const mockCounts: Record<string, number> = {
       'cyberpunk-odyssey': 3,
       'fantasy-chronicles-runes': 3,
@@ -69,6 +69,7 @@ export default function SeriesCompactCard({ item, className = '' }: SeriesCompac
           fill
           sizes="90px"
           className={styles.posterImage}
+          unoptimized={true}
           style={{
             objectFit: item.poster_position === 'squeeze' ? 'fill' : 'cover',
             objectPosition: item.poster_position === 'squeeze' ? 'center' : (item.poster_position || 'center')

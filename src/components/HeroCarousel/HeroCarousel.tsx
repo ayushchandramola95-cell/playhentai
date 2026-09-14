@@ -154,6 +154,9 @@ export default function HeroCarousel({ activeSeries, isDbEmpty, autoplaySpeed = 
                     fill
                     sizes="(max-width: 768px) 1px, 100vw"
                     className={styles.heroImage}
+                    priority={index === 0}
+                    fetchPriority={index === 0 ? "high" : "auto"}
+                    unoptimized={true}
                   />
                 )}
                 <div className={styles.heroOverlay} />

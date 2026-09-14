@@ -22,8 +22,8 @@ export interface SeriesItem {
   id: string;
   title: string;
   slug: string;
-  description: string;
-  poster_image_key: string;
+  description?: string;
+  poster_image_key?: string;
   cover_image_key?: string;
   banner_image_key?: string;
   tags?: string[];
@@ -31,10 +31,11 @@ export interface SeriesItem {
   views?: number;
   poster_position?: string;
   status?: string;
-  rating?: number;
-  release_year?: number;
-  releaseYear?: number;
-  studio?: string;
+  rating?: number | null;
+  release_year?: number | null;
+  releaseYear?: number | null;
+  studio?: string | null;
+  episode_count?: number;
   episode_count_override?: number | null;
   seasons?: {
     is_published: boolean;
@@ -84,15 +85,15 @@ export default function SeriesCard({ item, className = '' }: SeriesCardProps) {
   const releaseYear = item.release_year || item.releaseYear || 2026;
   const studio = item.studio || (item as any).studios?.name || '';
 
-  // Calculate actual episodes from seasons
-  let epCount = 0;
-  if (item.seasons && Array.isArray(item.seasons)) {
+  // Calculate actual episodes from precomputed count or seasons
+  let epCount = typeof item.episode_count === 'number' ? item.episode_count : 0;
+  if (!epCount && item.seasons && Array.isArray(item.seasons)) {
     item.seasons.forEach((s: any) => {
       if (s.is_published !== false && s.episodes && Array.isArray(s.episodes)) {
         epCount += s.episodes.filter((e: any) => e.is_published !== false).length;
       }
     });
-  } else if (item.slug) {
+  } else if (!epCount && item.slug) {
     const mockCounts: Record<string, number> = {
       'cyberpunk-odyssey': 3,
       'fantasy-chronicles-runes': 3,
@@ -125,8 +126,9 @@ export default function SeriesCard({ item, className = '' }: SeriesCardProps) {
             )}
             alt={`${item.title} poster`}
             fill
-            sizes="(max-width: 480px) 100vw, (max-width: 768px) 50vw, (max-width: 1200px) 25vw, 20vw"
+            sizes="(max-width: 480px) 50vw, (max-width: 768px) 33vw, (max-width: 1200px) 25vw, 220px"
             className={styles.cardImage}
+            unoptimized={true}
             style={{
               objectFit: item.poster_position === 'squeeze' ? 'fill' : 'cover',
               objectPosition: item.poster_position === 'squeeze' ? 'center' : (item.poster_position || 'center')
@@ -196,6 +198,7 @@ export default function SeriesCard({ item, className = '' }: SeriesCardProps) {
               sizes="80px"
               className={styles.popoverPoster}
               loading="lazy"
+              unoptimized={true}
               style={{
                 objectFit: item.poster_position === 'squeeze' ? 'fill' : 'cover',
                 objectPosition: item.poster_position === 'squeeze' ? 'center' : (item.poster_position || 'center')

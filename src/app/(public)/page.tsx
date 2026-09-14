@@ -8,7 +8,7 @@ import { Play, Star, Eye, Calendar, Sparkles, Award, Clock, Flame, ChevronRight 
 import { unstable_cache } from 'next/cache';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import HeroCarousel from '@/components/HeroCarousel/HeroCarousel';
-import SeriesCard from '@/components/SeriesCard/SeriesCard';
+import SeriesCard, { SeriesItem } from '@/components/SeriesCard/SeriesCard';
 import HorizontalScrollRow from '@/components/HorizontalScrollRow/HorizontalScrollRow';
 import RandomRowSection from '@/components/RandomRowSection/RandomRowSection';
 import JsonLd from '@/components/JsonLd/JsonLd';
@@ -158,6 +158,47 @@ function getSeriesReleaseTimestamp(s: any): number {
     if (!isNaN(t) && t > 0) return t;
   }
   return 0;
+}
+
+/**
+ * Strips heavy database payloads (synopsis, long descriptions, deep nested season/episode trees)
+ * before passing series objects to 'use client' SeriesCard components.
+ * This slashes hundreds of kilobytes of redundant Next.js RSC Flight payload from initial HTML.
+ */
+function toCleanSeriesCard(s: any): SeriesItem {
+  let epCount = 0;
+  if (s.seasons && Array.isArray(s.seasons)) {
+    s.seasons.forEach((sea: any) => {
+      if (sea.is_published !== false && sea.episodes && Array.isArray(sea.episodes)) {
+        epCount += sea.episodes.filter((e: any) => e.is_published !== false).length;
+      }
+    });
+  } else if (typeof s.episode_count === 'number') {
+    epCount = s.episode_count;
+  }
+
+  const cleanTags = (s.tags || [s.category || 'Anime'])
+    .filter((t: string) => typeof t === 'string' && t.toLowerCase() !== 'featured' && !t.toLowerCase().startsWith('featured:'))
+    .slice(0, 4);
+
+  return {
+    id: s.id,
+    title: s.title,
+    slug: s.slug,
+    poster_image_key: s.poster_image_key || s.cover_image_key,
+    cover_image_key: s.cover_image_key || s.poster_image_key,
+    banner_image_key: s.banner_image_key || s.cover_image_key || s.poster_image_key,
+    poster_position: s.poster_position,
+    rating: typeof s.rating === 'number' && s.rating > 0 ? s.rating : null,
+    release_year: s.release_year || s.releaseYear || null,
+    status: s.status || null,
+    episode_count: epCount,
+    views: s.views || 0,
+    studio: s.studio || s.studios?.name || null,
+    description: s.description ? s.description.slice(0, 140) : '',
+    tags: cleanTags,
+    category: s.category || 'Anime',
+  };
 }
 
 export default async function HomePage() {
@@ -512,20 +553,15 @@ export default async function HomePage() {
     'caption': 'Play Hentai — Watch Hentai Anime Online Free in HD'
   };
 
-  // Lightweight minimal series pool for client-side shuffle (eliminates 720KB of unused columns from HTML payload)
-  const lightweightRandomPool = rawPool.slice(0, 30).map((s) => ({
-    id: s.id,
-    title: s.title,
-    slug: s.slug,
-    poster_image_key: s.poster_image_key || s.cover_image_key,
-    cover_image_key: s.cover_image_key || s.poster_image_key,
-    views: s.views || 0,
-    rating: s.rating || null,
-    release_year: s.release_year || null,
-    studio: s.studio || null,
-    description: s.description ? s.description.slice(0, 120) : '',
-    tags: (s.tags || []).slice(0, 3),
-  }));
+  // Lightweight sanitized series lists for SeriesCard components
+  // Eliminates hundreds of kilobytes of unneeded description & nested episode columns from RSC Flight payload
+  const cleanLatestSeries = sortedLatestSeries.slice(0, 18).map(toCleanSeriesCard);
+  const cleanTrendingSeries = [...activeSeries]
+    .sort((a, b) => (b.views || 0) - (a.views || 0))
+    .slice(0, 18)
+    .map(toCleanSeriesCard);
+  const cleanUpcomingSeries = (upcomingSeries || []).slice(0, 18).map(toCleanSeriesCard);
+  const lightweightRandomPool = rawPool.slice(0, 24).map(toCleanSeriesCard);
 
   return (
     <div className={styles.container}>
@@ -571,8 +607,9 @@ export default async function HomePage() {
                       src={getR2Url(ep.thumbnail, 'thumbnail')}
                       alt={ep.fullTitle || ep.title}
                       fill
-                      sizes="(max-width: 480px) 100vw, (max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+                      sizes="(max-width: 480px) 50vw, (max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
                       className={styles.cardImage}
+                      unoptimized={true}
                     />
                     <div className={styles.cardImageOverlay}>
                       <Play size={36} fill="white" className={styles.cardPlayIcon} />
@@ -633,7 +670,7 @@ export default async function HomePage() {
           subtitle="UPDATED DAILY"
           viewAllHref="/recent/series"
         >
-          {sortedLatestSeries.slice(0, 18).map((item) => (
+          {cleanLatestSeries.map((item) => (
             <SeriesCard key={item.id} item={item} />
           ))}
         </HorizontalScrollRow>
@@ -647,24 +684,21 @@ export default async function HomePage() {
           subtitleColor="#ec4899"
           viewAllHref="/trending"
         >
-          {[...activeSeries]
-            .sort((a, b) => (b.views || 0) - (a.views || 0))
-            .slice(0, 18)
-            .map((item) => (
-              <SeriesCard key={item.id} item={item} />
-            ))}
+          {cleanTrendingSeries.map((item) => (
+            <SeriesCard key={item.id} item={item} />
+          ))}
         </HorizontalScrollRow>
       </section>
 
       {/* 4. Upcoming Anime Section: Horizontal scroll slider up to 18 items */}
-      {upcomingSeries && upcomingSeries.length > 0 && (
+      {cleanUpcomingSeries && cleanUpcomingSeries.length > 0 && (
         <section className={styles.section}>
           <HorizontalScrollRow
             title="Upcoming Hentai Anime"
             subtitle="COMING SOON"
             viewAllHref="/upcoming"
           >
-            {upcomingSeries.slice(0, 18).map((item) => (
+            {cleanUpcomingSeries.map((item) => (
               <SeriesCard key={item.id} item={item} />
             ))}
           </HorizontalScrollRow>
