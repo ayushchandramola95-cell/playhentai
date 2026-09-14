@@ -522,7 +522,6 @@ export default async function WatchPage({ params }: WatchPageProps) {
     'uploadDate': formatIso8601Date(activeEpisode.release_date || activeEpisode.created_at),
     'duration': formatIso8601Duration(activeEpisode.duration_seconds),
     'contentUrl': videoContentUrl,
-    'embedUrl': canonicalUrl,
     'url': canonicalUrl,
     'isFamilyFriendly': false,
     'inLanguage': 'en',
