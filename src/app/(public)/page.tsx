@@ -563,8 +563,21 @@ export default async function HomePage() {
   const cleanUpcomingSeries = (upcomingSeries || []).slice(0, 18).map(toCleanSeriesCard);
   const lightweightRandomPool = rawPool.slice(0, 24).map(toCleanSeriesCard);
 
+  // Preload first hero image for instant mobile & desktop Largest Contentful Paint (LCP)
+  const firstFeatured = featuredSeries && featuredSeries.length > 0 ? featuredSeries[0] : null;
+  const firstPosterKey = firstFeatured?.poster_image_key || firstFeatured?.cover_image_key;
+  const firstPosterUrl = firstPosterKey ? getR2Url(firstPosterKey, 'poster') : null;
+  const firstBannerKey = firstFeatured?.banner_image_key || firstFeatured?.cover_image_key || firstFeatured?.poster_image_key;
+  const firstBannerUrl = firstBannerKey ? getR2Url(firstBannerKey, 'banner') : null;
+
   return (
     <div className={styles.container}>
+      {firstPosterUrl && (
+        <link rel="preload" as="image" href={firstPosterUrl} fetchPriority="high" />
+      )}
+      {firstBannerUrl && (
+        <link rel="preload" as="image" href={firstBannerUrl} fetchPriority="high" media="(min-width: 769px)" />
+      )}
       <JsonLd data={[itemListJsonLd, brandImageJsonLd]} />
 
       {/* Ambient Glows */}
