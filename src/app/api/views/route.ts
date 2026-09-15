@@ -9,15 +9,24 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const range = searchParams.get('range') || '7d';
 
+    const todayStart = new Date();
+    todayStart.setUTCHours(0, 0, 0, 0);
+    const todayStartMs = todayStart.getTime();
+
     // Determine timestamp threshold based on range
     let daysCount = 7;
-    if (range === '30d') daysCount = 30;
-    else if (range === '90d') daysCount = 90;
-    else if (range === 'all') daysCount = 365;
-
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - daysCount);
-    const startTime = startDate.getTime();
+    let startTime = todayStartMs;
+    if (range === 'today') {
+      daysCount = 1;
+      startTime = todayStartMs;
+    } else {
+      if (range === '30d') daysCount = 30;
+      else if (range === '90d') daysCount = 90;
+      else if (range === 'all') daysCount = 365;
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - daysCount);
+      startTime = startDate.getTime();
+    }
 
     // 1. Fetch tables in parallel safely without fragile joins or column-name assumptions
     const [
@@ -75,14 +84,20 @@ export async function GET(request: Request) {
     const episodeViewCounts: Record<string, number> = {};
     const seriesViewCounts: Record<string, number> = {};
     const dailyViewsMap: Record<string, number> = {};
-
-    // Initialize daily map for trajectory chart
-    const daysToShow = Math.min(daysCount, 30);
-    for (let i = daysToShow - 1; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      const key = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-      dailyViewsMap[key] = 0;
+    // Initialize trajectory chart map
+    if (range === 'today') {
+      for (let h = 0; h < 24; h += 2) {
+        const label = h === 0 ? '12 AM' : h < 12 ? `${h} AM` : h === 12 ? '12 PM' : `${h - 12} PM`;
+        dailyViewsMap[label] = 0;
+      }
+    } else {
+      const daysToShow = Math.min(daysCount, 30);
+      for (let i = daysToShow - 1; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const key = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        dailyViewsMap[key] = 0;
+      }
     }
 
     viewLogs.forEach((log: any) => {
@@ -98,9 +113,18 @@ export async function GET(request: Request) {
       const logTimestamp = log.viewed_at || log.created_at || log.timestamp;
       if (logTimestamp) {
         const vDate = new Date(logTimestamp);
-        const dateKey = vDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-        if (dailyViewsMap[dateKey] !== undefined) {
-          dailyViewsMap[dateKey] += 1;
+        if (range === 'today') {
+          const hour = vDate.getUTCHours();
+          const bucketHour = Math.floor(hour / 2) * 2;
+          const label = bucketHour === 0 ? '12 AM' : bucketHour < 12 ? `${bucketHour} AM` : bucketHour === 12 ? '12 PM' : `${bucketHour - 12} PM`;
+          if (dailyViewsMap[label] !== undefined) {
+            dailyViewsMap[label] += 1;
+          }
+        } else {
+          const dateKey = vDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          if (dailyViewsMap[dateKey] !== undefined) {
+            dailyViewsMap[dateKey] += 1;
+          }
         }
       }
     });
@@ -208,6 +232,148 @@ export async function GET(request: Request) {
 
     const totalWatchHours = Math.round((totalViewsCalculated * 24) / 60);
 
+    // ==========================================
+    // TODAY & REAL-TIME STREAMING INTELLIGENCE
+    // ==========================================
+    const yesterdayStartMs = todayStartMs - 24 * 60 * 60 * 1000;
+
+    const todayLogs = allViewLogs.filter((log: any) => {
+      const ts = log.viewed_at || log.created_at || log.timestamp;
+      if (!ts) return false;
+      const t = new Date(ts).getTime();
+      return t >= todayStartMs;
+    });
+
+    const yesterdayLogs = allViewLogs.filter((log: any) => {
+      const ts = log.viewed_at || log.created_at || log.timestamp;
+      if (!ts) return false;
+      const t = new Date(ts).getTime();
+      return t >= yesterdayStartMs && t < todayStartMs;
+    });
+
+    const todayViewsCount = todayLogs.length;
+    const yesterdayViewsCount = yesterdayLogs.length;
+    const todayGrowthPct = yesterdayViewsCount > 0
+      ? Math.round(((todayViewsCount - yesterdayViewsCount) / yesterdayViewsCount) * 100)
+      : (todayViewsCount > 0 ? 100 : 0);
+
+    const todayWatchHours = Math.round((todayViewsCount * 24) / 60);
+
+    // Today's Episode and Series Frequency
+    const todayEpisodeCounts: Record<string, number> = {};
+    const todaySeriesCounts: Record<string, number> = {};
+
+    todayLogs.forEach((log: any) => {
+      if (log.episode_id) {
+        todayEpisodeCounts[log.episode_id] = (todayEpisodeCounts[log.episode_id] || 0) + 1;
+        const epData = episodeMap.get(log.episode_id);
+        const sId = epData?.series?.id;
+        if (sId) {
+          todaySeriesCounts[sId] = (todaySeriesCounts[sId] || 0) + 1;
+        }
+      }
+    });
+
+    const todayUniqueSeriesCount = Object.keys(todaySeriesCounts).length;
+
+    // Today Top Series
+    const todayTopSeries = Object.entries(todaySeriesCounts)
+      .map(([sId, count]) => {
+        const s = seriesMap.get(sId);
+        return {
+          id: sId,
+          title: s?.title || 'Unknown Series',
+          slug: s?.slug || '',
+          poster_image_key: s?.poster_image_key || null,
+          studio: s?.studio || 'Independent',
+          viewsCount: count,
+          watchHours: Math.round((count * (s?.runtime || 24)) / 60)
+        };
+      })
+      .sort((a, b) => b.viewsCount - a.viewsCount)
+      .slice(0, 10);
+
+    // Today Top Episodes
+    const todayTopEpisodes = Object.entries(todayEpisodeCounts)
+      .map(([eId, count]) => {
+        const epData = episodeMap.get(eId);
+        const series = epData?.series;
+        return {
+          id: eId,
+          title: epData?.title || (epData?.episode_number ? `Episode ${epData.episode_number}` : 'Episode 1'),
+          episode_number: epData?.episode_number || 1,
+          thumbnail_image_key: epData?.thumbnail_key || null,
+          series_id: series?.id || null,
+          series_title: series?.title || 'Catalog Series',
+          series_slug: series?.slug || null,
+          viewsCount: count
+        };
+      })
+      .sort((a, b) => b.viewsCount - a.viewsCount)
+      .slice(0, 10);
+
+    // Today's Chronological Live Playback Feed (Latest 30 plays)
+    const sortedTodayLogs = [...todayLogs].sort((a: any, b: any) => {
+      const timeA = new Date(a.viewed_at || a.created_at || a.timestamp || 0).getTime();
+      const timeB = new Date(b.viewed_at || b.created_at || b.timestamp || 0).getTime();
+      return timeB - timeA;
+    });
+
+    const nowTime = Date.now();
+    const todayRecentPlays = sortedTodayLogs.slice(0, 30).map((log: any) => {
+      const ts = log.viewed_at || log.created_at || log.timestamp;
+      const logTime = ts ? new Date(ts).getTime() : nowTime;
+      const diffMinutes = Math.max(Math.floor((nowTime - logTime) / (60 * 1000)), 0);
+      let timeAgo = `${diffMinutes}m ago`;
+      if (diffMinutes < 1) timeAgo = 'Just now';
+      else if (diffMinutes >= 60) {
+        const hours = Math.floor(diffMinutes / 60);
+        const mins = diffMinutes % 60;
+        timeAgo = mins > 0 ? `${hours}h ${mins}m ago` : `${hours}h ago`;
+      }
+
+      const epData = episodeMap.get(log.episode_id);
+      const series = epData?.series;
+
+      return {
+        id: log.id || Math.random().toString(),
+        viewed_at: ts,
+        timeAgo,
+        episode_id: log.episode_id,
+        episode_title: epData?.title || (epData?.episode_number ? `Episode ${epData.episode_number}` : 'Episode 1'),
+        episode_number: epData?.episode_number || 1,
+        thumbnail_image_key: epData?.thumbnail_key || null,
+        series_id: series?.id || null,
+        series_title: series?.title || 'Catalog Anime',
+        series_slug: series?.slug || null,
+        poster_image_key: series?.poster_image_key || null,
+        studio: series?.studio || 'Animation Studio'
+      };
+    });
+
+    // Hourly Distribution for Today (00:00 to 23:00 UTC)
+    const hourlyBuckets: Record<string, number> = {};
+    for (let h = 0; h < 24; h += 2) {
+      const label = h === 0 ? '12 AM' : h < 12 ? `${h} AM` : h === 12 ? '12 PM' : `${h - 12} PM`;
+      hourlyBuckets[label] = 0;
+    }
+    todayLogs.forEach((log: any) => {
+      const ts = log.viewed_at || log.created_at || log.timestamp;
+      if (ts) {
+        const hour = new Date(ts).getUTCHours();
+        const bucketHour = Math.floor(hour / 2) * 2;
+        const label = bucketHour === 0 ? '12 AM' : bucketHour < 12 ? `${bucketHour} AM` : bucketHour === 12 ? '12 PM' : `${bucketHour - 12} PM`;
+        if (hourlyBuckets[label] !== undefined) {
+          hourlyBuckets[label]++;
+        }
+      }
+    });
+
+    const todayHourlyDistribution = Object.entries(hourlyBuckets).map(([hourLabel, count]) => ({
+      hourLabel,
+      count
+    }));
+
     return NextResponse.json({
       totalViews: totalViewsCalculated,
       realViewsCount: realViewsCount || 0,
@@ -221,7 +387,19 @@ export async function GET(request: Request) {
       allSeriesAnalytics: formattedSeries,
       allEpisodesAnalytics: formattedEpisodes,
       totalSeriesCount: dbSeries.length,
-      totalEpisodesCount: dbEpisodes.length
+      totalEpisodesCount: dbEpisodes.length,
+      // Today & Live Streaming Intelligence
+      todayStats: {
+        viewsCount: todayViewsCount,
+        yesterdayViewsCount,
+        growthPct: todayGrowthPct,
+        watchHours: todayWatchHours,
+        uniqueSeriesCount: todayUniqueSeriesCount,
+        topSeries: todayTopSeries,
+        topEpisodes: todayTopEpisodes,
+        recentPlays: todayRecentPlays,
+        hourlyDistribution: todayHourlyDistribution
+      }
     });
   } catch (err: any) {
     console.error('Error fetching view metrics:', err);

@@ -211,8 +211,78 @@ export async function GET(request: Request) {
       .sort((a, b) => b.count - a.count)
       .slice(0, 8);
 
+    // 9. TODAY-SPECIFIC VISITOR ANALYTICS (Since 00:00:00 UTC)
+    const todayStart = new Date();
+    todayStart.setUTCHours(0, 0, 0, 0);
+    const todayStartMs = todayStart.getTime();
+
+    const todaySessions = allSessions.filter(
+      (s) => (s.lastSeen >= todayStartMs) || (s.firstSeen >= todayStartMs)
+    );
+
+    let todayDurationSum = 0;
+    let todayDurationCounted = 0;
+    let todayPageViews = 0;
+    let todayWatchedCount = 0;
+    const todayDevices = { desktop: 0, mobile: 0, tablet: 0 };
+    let todayAdBlockCount = 0;
+
+    todaySessions.forEach((s) => {
+      todayPageViews += Math.max(s.pageViews || 1, 1);
+      if (s.durationSeconds > 0) {
+        todayDurationSum += s.durationSeconds;
+        todayDurationCounted++;
+      }
+      if (s.hasWatchedVideo) {
+        todayWatchedCount++;
+      }
+      if (s.hasAdBlocker) {
+        todayAdBlockCount++;
+      }
+      if (s.device === 'mobile') todayDevices.mobile++;
+      else if (s.device === 'tablet') todayDevices.tablet++;
+      else todayDevices.desktop++;
+    });
+
+    const todayUniqueVisitors = todaySessions.length;
+    const todayAvgDurationSeconds = todayDurationCounted > 0
+      ? Math.round(todayDurationSum / todayDurationCounted)
+      : (avgDurationSeconds || 0);
+
+    const todayAvgMinutes = Math.floor(todayAvgDurationSeconds / 60);
+    const todayAvgSecs = todayAvgDurationSeconds % 60;
+    const todayAvgDurationFormatted = todayDurationCounted > 0
+      ? (todayAvgMinutes > 0 ? `${todayAvgMinutes}m ${todayAvgSecs}s` : `${todayAvgSecs}s`)
+      : (avgDurationFormatted || '0s');
+
+    const todayAvgPagesPerSession = todaySessions.length > 0
+      ? (todayPageViews / todaySessions.length).toFixed(1)
+      : (avgPagesPerSession || '1.0');
+
+    const todayWatchConversionRate = todaySessions.length > 0
+      ? Math.round((todayWatchedCount / todaySessions.length) * 100)
+      : (watchConversionRate || 0);
+
+    const todayTotalDeviceCount = todayDevices.desktop + todayDevices.mobile + todayDevices.tablet;
+    const todayDeviceBreakdown = {
+      desktop: todayTotalDeviceCount > 0 ? Math.round((todayDevices.desktop / todayTotalDeviceCount) * 100) : desktopPercent,
+      mobile: todayTotalDeviceCount > 0 ? Math.round((todayDevices.mobile / todayTotalDeviceCount) * 100) : mobilePercent,
+      tablet: todayTotalDeviceCount > 0 ? Math.max(100 - Math.round((todayDevices.desktop / todayTotalDeviceCount) * 100) - Math.round((todayDevices.mobile / todayTotalDeviceCount) * 100), 0) : tabletPercent,
+    };
+
+    const todayAdBlockRate = todaySessions.length > 0
+      ? Math.round((todayAdBlockCount / todaySessions.length) * 100)
+      : adBlockPercent;
+
+    // Total Site Visits (Sum of all pageviews or route visits across all sessions)
+    const totalSiteVisits = Math.max(
+      totalPagesCount,
+      Object.values(store.routeVisits).reduce((a, b) => a + b, 0)
+    );
+
     return NextResponse.json({
       totalSessionsCount: allSessions.length,
+      totalSiteVisits,
       activeVisitorsCount,
       avgDurationSeconds,
       avgDurationFormatted,
@@ -227,6 +297,17 @@ export async function GET(request: Request) {
       watchConversionRate,
       totalWatchEvents: store.totalWatchEvents,
       topRoutes,
+      // Today's Live Visitor Metrics
+      today: {
+        uniqueVisitors: todayUniqueVisitors,
+        totalVisits: todayPageViews,
+        avgDurationSeconds: todayAvgDurationSeconds,
+        avgDurationFormatted: todayAvgDurationFormatted,
+        avgPagesPerSession: todayAvgPagesPerSession,
+        watchConversionRate: todayWatchConversionRate,
+        deviceBreakdown: todayDeviceBreakdown,
+        adBlockRate: todayAdBlockRate,
+      }
     });
   } catch (err) {
     console.error('Error fetching telemetry data:', err);

@@ -588,3 +588,242 @@
   transition: width 0.4s ease;
 }
 
+/* Header Refresh Button */
+.refreshBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: #121624;
+  border: 1px solid #23283b;
+  color: #94a3b8;
+  padding: 0.4rem 0.9rem;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.refreshBtn:hover:not(:disabled) {
+  background: #1f2538;
+  color: #f8fafc;
+  border-color: #38bdf8;
+}
+
+.refreshBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Growth Badge */
+.growthBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.15rem 0.45rem;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+.growthBadgePositive {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.growthBadgeNeutral {
+  background: rgba(148, 163, 184, 0.15);
+  color: #cbd5e1;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+/* Today's Live Playback Feed */
+.streamFeedList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  max-height: 520px;
+  overflow-y: auto;
+  padding-right: 0.4rem;
+}
+
+.streamFeedList::-webkit-scrollbar {
+  width: 5px;
+}
+
+.streamFeedList::-webkit-scrollbar-track {
+  background: #0d101b;
+}
+
+.streamFeedList::-webkit-scrollbar-thumb {
+  background: #23283b;
+  border-radius: 4px;
+}
+
+.streamFeedItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.85rem;
+  padding: 0.75rem 0.95rem;
+  background: #0a0d16;
+  border: 1px solid #1c2234;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+}
+
+.streamFeedItem:hover {
+  background: #111522;
+  border-color: #7c3aed;
+  transform: translateX(2px);
+}
+
+.streamFeedLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.streamThumb {
+  width: 44px;
+  height: 60px;
+  border-radius: 6px;
+  object-fit: cover;
+  background: #181d2e;
+  border: 1px solid #283048;
+  flex-shrink: 0;
+}
+
+.streamInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.streamSeriesTitle {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: #f8fafc;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.streamSeriesTitle:hover {
+  color: #c084fc;
+}
+
+.streamEpisodeLabel {
+  font-size: 0.74rem;
+  color: #38bdf8;
+  font-weight: 600;
+}
+
+.streamStudioLabel {
+  font-size: 0.68rem;
+  color: #94a3b8;
+}
+
+.timeAgoPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.55rem;
+  background: #141828;
+  border: 1px solid #23283b;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #cbd5e1;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.liveFeedDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 6px #22c55e;
+}
+
+/* Today Leaderboard Mini Cards */
+.todayRankCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.65rem 0.85rem;
+  background: #0a0d16;
+  border: 1px solid #1c2234;
+  border-radius: 8px;
+  transition: all 0.15s ease;
+}
+
+.todayRankCard:hover {
+  border-color: #38bdf8;
+  background: #111522;
+}
+
+.rankBadge {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: #181d2e;
+  color: #94a3b8;
+  font-size: 0.72rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.rankBadgeGold {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #ffffff;
+}
+
+.rankBadgeSilver {
+  background: linear-gradient(135deg, #94a3b8, #64748b);
+  color: #ffffff;
+}
+
+.rankBadgeBronze {
+  background: linear-gradient(135deg, #b45309, #78350f);
+  color: #ffffff;
+}
+
+.viewCountPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: #a855f7;
+  background: rgba(168, 85, 247, 0.12);
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+
