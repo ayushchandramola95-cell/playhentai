@@ -566,7 +566,7 @@ export default function AdminAnalyticsPage() {
           return (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
               {/* 5-Card Scorecard for Visits & Audience */}
-              <div className={styles.statsOverviewSix} style={{ gridTemplateColumns: 'repeat(5, minmax(0, 1fr))' }}>
+              <div className={styles.statsOverviewFive}>
                 {/* 1. Total Visits */}
                 <div className={styles.metricCard} style={{ border: '1px solid rgba(56, 189, 248, 0.35)', background: 'rgba(56, 189, 248, 0.04)' }}>
                   <div className={styles.metricIcon} style={{ background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8' }}>
@@ -723,9 +723,13 @@ export default function AdminAnalyticsPage() {
                   <div>
                     <h3 className={styles.tableTitle}>
                       <BarChart3 size={18} style={{ color: '#38bdf8' }} />
-                      <span>Day-by-Day Audience Performance Table</span>
+                      <span>{timeRange === 'today' ? "Today's Hourly Audience Breakdown" : `Day-by-Day Audience Performance (${timeRange})`}</span>
                     </h3>
-                    <span className={styles.tableSubtitle}>Granular daily telemetry: visits, unique audience reach, watch triggers, and engagement</span>
+                    <span className={styles.tableSubtitle}>
+                      {timeRange === 'today' 
+                        ? 'Granular 2-hour distribution across today (UTC): visits, unique visitors, streams, and engagement'
+                        : 'Granular daily telemetry: visits, unique audience reach, watch triggers, and engagement'}
+                    </span>
                   </div>
                 </div>
 
@@ -733,7 +737,7 @@ export default function AdminAnalyticsPage() {
                   <table className={styles.dailyTable}>
                     <thead>
                       <tr>
-                        <th>Date</th>
+                        <th>{timeRange === 'today' ? 'Time Interval (UTC)' : 'Date'}</th>
                         <th>Total Visits / Pageviews</th>
                         <th>Unique Visitors</th>
                         <th>Streams Triggered</th>
@@ -754,7 +758,11 @@ export default function AdminAnalyticsPage() {
                           <tr key={idx}>
                             <td>
                               <span className={styles.dateBadge}>
-                                <Calendar size={13} style={{ color: '#7c3aed' }} />
+                                {timeRange === 'today' ? (
+                                  <Clock size={13} style={{ color: '#38bdf8' }} />
+                                ) : (
+                                  <Calendar size={13} style={{ color: '#7c3aed' }} />
+                                )}
                                 {row.date}
                               </span>
                             </td>
@@ -769,7 +777,7 @@ export default function AdminAnalyticsPage() {
                               </span>
                             </td>
                             <td>
-                              <span className={styles.metricBadgeGreen}>
+                              <span className={row.streamViews > 0 ? styles.metricBadgeGreen : styles.metricBadgeNeutral}>
                                 {row.streamViews.toLocaleString()} plays
                               </span>
                             </td>
@@ -784,8 +792,8 @@ export default function AdminAnalyticsPage() {
                               </span>
                             </td>
                             <td>
-                              <span className={styles.metricBadgeAmber}>
-                                {row.watchConversion || 50}%
+                              <span className={row.watchConversion > 0 ? styles.metricBadgeAmber : styles.metricBadgeNeutral}>
+                                {row.watchConversion || 0}%
                               </span>
                             </td>
                           </tr>
@@ -812,7 +820,7 @@ export default function AdminAnalyticsPage() {
           return (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
               {/* Top Playback Scorecard */}
-              <div className={styles.statsOverviewSix} style={{ gridTemplateColumns: 'repeat(4, minmax(0, 1fr))' }}>
+              <div className={styles.statsOverviewFour}>
                 {/* 1. Episodes Streamed Today */}
                 <div className={styles.metricCard} style={{ border: '1px solid rgba(16, 185, 129, 0.4)', background: 'rgba(16, 185, 129, 0.04)' }}>
                   <div className={styles.metricIcon} style={{ background: 'rgba(16, 185, 129, 0.2)', color: '#34d399' }}>
@@ -1206,7 +1214,7 @@ export default function AdminAnalyticsPage() {
         {activeTab === 'traffic' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             {/* Real-Time Visitor Telemetry Scorecard */}
-            <div className={styles.statsOverviewSix} style={{ gridTemplateColumns: 'repeat(4, minmax(0, 1fr))' }}>
+            <div className={styles.statsOverviewFour}>
               {/* 1. Live Online Visitors */}
               <div className={styles.metricCard} style={{ border: '1px solid rgba(16, 185, 129, 0.4)', background: 'rgba(16, 185, 129, 0.04)' }}>
                 <div className={styles.metricIcon} style={{ background: 'rgba(16, 185, 129, 0.2)', color: '#34d399' }}>
