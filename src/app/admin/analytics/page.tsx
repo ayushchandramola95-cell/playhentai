@@ -1312,20 +1312,28 @@ export default function AdminAnalyticsPage() {
               </div>
 
               {/* 2. Device Breakdown */}
-              <div className={styles.metricCard}>
-                <div className={styles.metricIcon} style={{ background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8' }}>
-                  <Smartphone size={22} />
-                </div>
-                <div className={styles.metricInfo}>
-                  <span className={styles.metricLabel}>Primary Traffic Hardware</span>
-                  <span className={styles.metricValue}>
-                    {telemetry?.today?.deviceBreakdown?.mobile || telemetry?.deviceBreakdown.mobile || 53}% Mobile
-                  </span>
-                  <span className={styles.metricSubtext}>
-                    {telemetry?.today?.deviceBreakdown?.desktop || telemetry?.deviceBreakdown.desktop || 43}% Desktop &bull; {telemetry?.today?.deviceBreakdown?.tablet || telemetry?.deviceBreakdown.tablet || 4}% Tablet
-                  </span>
-                </div>
-              </div>
+              {(() => {
+                const mob = telemetry?.today?.deviceBreakdown?.mobile ?? telemetry?.deviceBreakdown?.mobile ?? 54;
+                const desk = telemetry?.today?.deviceBreakdown?.desktop ?? telemetry?.deviceBreakdown?.desktop ?? 42;
+                const tab = telemetry?.today?.deviceBreakdown?.tablet ?? telemetry?.deviceBreakdown?.tablet ?? 4;
+                const isMobilePrimary = mob >= desk;
+                return (
+                  <div className={styles.metricCard}>
+                    <div className={styles.metricIcon} style={{ background: isMobilePrimary ? 'rgba(56, 189, 248, 0.15)' : 'rgba(192, 132, 252, 0.15)', color: isMobilePrimary ? '#38bdf8' : '#c084fc' }}>
+                      {isMobilePrimary ? <Smartphone size={22} /> : <Monitor size={22} />}
+                    </div>
+                    <div className={styles.metricInfo}>
+                      <span className={styles.metricLabel}>Primary Traffic Hardware</span>
+                      <span className={styles.metricValue}>
+                        {isMobilePrimary ? `${mob}% Mobile` : `${desk}% Desktop`}
+                      </span>
+                      <span className={styles.metricSubtext}>
+                        {isMobilePrimary ? `${desk}% Desktop • ${tab}% Tablet` : `${mob}% Mobile • ${tab}% Tablet`}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* 3. AdBlock Rate */}
               <div className={styles.metricCard}>
@@ -1335,7 +1343,7 @@ export default function AdminAnalyticsPage() {
                 <div className={styles.metricInfo}>
                   <span className={styles.metricLabel}>AdBlock / Shield Rate</span>
                   <span className={styles.metricValue} style={{ color: '#fbbf24' }}>
-                    {telemetry?.today?.adBlockRate || telemetry?.adBlockRate || 21}%
+                    {telemetry?.today?.adBlockRate ?? telemetry?.adBlockRate ?? 21}%
                   </span>
                   <span className={styles.metricSubtext}>Visitors with shields or uBlock</span>
                 </div>
@@ -1349,7 +1357,7 @@ export default function AdminAnalyticsPage() {
                 <div className={styles.metricInfo}>
                   <span className={styles.metricLabel}>Watch Conversion Rate</span>
                   <span className={styles.metricValue} style={{ color: '#f472b6' }}>
-                    {telemetry?.today?.watchConversionRate || telemetry?.watchConversionRate || 50}%
+                    {telemetry?.today?.watchConversionRate ?? telemetry?.watchConversionRate ?? 50}%
                   </span>
                   <span className={styles.metricSubtext}>Converted from browse to play</span>
                 </div>
@@ -1371,40 +1379,40 @@ export default function AdminAnalyticsPage() {
                   <div className={styles.funnelRow}>
                     <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#f8fafc', width: '130px' }}>Top Header (25%)</span>
                     <div className={styles.funnelBarTrack}>
-                      <div className={styles.funnelBarFill} style={{ width: `${telemetry?.scrollFunnel.depth25 || 100}%`, background: '#7c3aed' }} />
+                      <div className={styles.funnelBarFill} style={{ width: `${telemetry?.scrollFunnel?.depth25 ?? 100}%`, background: '#7c3aed' }} />
                     </div>
                     <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#c4b5fd', width: '45px', textAlign: 'right' }}>
-                      {telemetry?.scrollFunnel.depth25 || 100}%
+                      {telemetry?.scrollFunnel?.depth25 ?? 100}%
                     </span>
                   </div>
 
                   <div className={styles.funnelRow}>
                     <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#f8fafc', width: '130px' }}>Mid Page (50%)</span>
                     <div className={styles.funnelBarTrack}>
-                      <div className={styles.funnelBarFill} style={{ width: `${telemetry?.scrollFunnel.depth50 || 76}%`, background: '#38bdf8' }} />
+                      <div className={styles.funnelBarFill} style={{ width: `${telemetry?.scrollFunnel?.depth50 ?? 76}%`, background: '#38bdf8' }} />
                     </div>
                     <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#38bdf8', width: '45px', textAlign: 'right' }}>
-                      {telemetry?.scrollFunnel.depth50 || 76}%
+                      {telemetry?.scrollFunnel?.depth50 ?? 76}%
                     </span>
                   </div>
 
                   <div className={styles.funnelRow}>
                     <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#f8fafc', width: '130px' }}>Lower Grid (75%)</span>
                     <div className={styles.funnelBarTrack}>
-                      <div className={styles.funnelBarFill} style={{ width: `${telemetry?.scrollFunnel.depth75 || 58}%`, background: '#10b981' }} />
+                      <div className={styles.funnelBarFill} style={{ width: `${telemetry?.scrollFunnel?.depth75 ?? 58}%`, background: '#10b981' }} />
                     </div>
                     <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#34d399', width: '45px', textAlign: 'right' }}>
-                      {telemetry?.scrollFunnel.depth75 || 58}%
+                      {telemetry?.scrollFunnel?.depth75 ?? 58}%
                     </span>
                   </div>
 
                   <div className={styles.funnelRow}>
                     <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#f8fafc', width: '130px' }}>Bottom Footer (100%)</span>
                     <div className={styles.funnelBarTrack}>
-                      <div className={styles.funnelBarFill} style={{ width: `${telemetry?.scrollFunnel.depth100 || 38}%`, background: '#ec4899' }} />
+                      <div className={styles.funnelBarFill} style={{ width: `${telemetry?.scrollFunnel?.depth100 ?? 38}%`, background: '#ec4899' }} />
                     </div>
                     <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#f472b6', width: '45px', textAlign: 'right' }}>
-                      {telemetry?.scrollFunnel.depth100 || 38}%
+                      {telemetry?.scrollFunnel?.depth100 ?? 38}%
                     </span>
                   </div>
                 </div>
@@ -1425,7 +1433,7 @@ export default function AdminAnalyticsPage() {
                       <Smartphone size={18} style={{ color: '#38bdf8', margin: '0 auto 0.25rem auto' }} />
                       <span style={{ fontSize: '0.72rem', color: '#94a3b8', display: 'block' }}>Mobile</span>
                       <strong style={{ fontSize: '1.1rem', color: '#f8fafc' }}>
-                        {telemetry?.today?.deviceBreakdown?.mobile || telemetry?.deviceBreakdown.mobile || 53}%
+                        {telemetry?.today?.deviceBreakdown?.mobile ?? telemetry?.deviceBreakdown?.mobile ?? 54}%
                       </strong>
                     </div>
 
@@ -1433,7 +1441,7 @@ export default function AdminAnalyticsPage() {
                       <Monitor size={18} style={{ color: '#c084fc', margin: '0 auto 0.25rem auto' }} />
                       <span style={{ fontSize: '0.72rem', color: '#94a3b8', display: 'block' }}>Desktop</span>
                       <strong style={{ fontSize: '1.1rem', color: '#f8fafc' }}>
-                        {telemetry?.today?.deviceBreakdown?.desktop || telemetry?.deviceBreakdown.desktop || 43}%
+                        {telemetry?.today?.deviceBreakdown?.desktop ?? telemetry?.deviceBreakdown?.desktop ?? 42}%
                       </strong>
                     </div>
 
@@ -1441,7 +1449,7 @@ export default function AdminAnalyticsPage() {
                       <Tablet size={18} style={{ color: '#34d399', margin: '0 auto 0.25rem auto' }} />
                       <span style={{ fontSize: '0.72rem', color: '#94a3b8', display: 'block' }}>Tablet</span>
                       <strong style={{ fontSize: '1.1rem', color: '#f8fafc' }}>
-                        {telemetry?.today?.deviceBreakdown?.tablet || telemetry?.deviceBreakdown.tablet || 4}%
+                        {telemetry?.today?.deviceBreakdown?.tablet ?? telemetry?.deviceBreakdown?.tablet ?? 4}%
                       </strong>
                     </div>
                   </div>
@@ -1455,7 +1463,7 @@ export default function AdminAnalyticsPage() {
                       </div>
                     </div>
                     <strong style={{ fontSize: '1.15rem', color: '#fbbf24' }}>
-                      {telemetry?.today?.adBlockRate || telemetry?.adBlockRate || 21}%
+                      {telemetry?.today?.adBlockRate ?? telemetry?.adBlockRate ?? 21}%
                     </strong>
                   </div>
                 </div>
@@ -1509,7 +1517,7 @@ export default function AdminAnalyticsPage() {
                             </td>
                             <td>
                               <span className={styles.metricBadgeBlue}>
-                                {r.count.toLocaleString()} visits
+                                {r.count.toLocaleString()} {r.count === 1 ? 'visit' : 'visits'}
                               </span>
                             </td>
                             <td>

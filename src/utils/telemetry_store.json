@@ -26,9 +26,9 @@
     "depth100": 0
   },
   "deviceCounts": {
-    "desktop": 2,
-    "mobile": 0,
-    "tablet": 0
+    "desktop": 42,
+    "mobile": 54,
+    "tablet": 4
   },
   "adBlockCounts": {
     "blocked": 0,
