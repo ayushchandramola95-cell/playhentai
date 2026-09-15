@@ -169,7 +169,7 @@ export const getAllStudiosWithStats = unstable_cache(
     try {
       const { data } = await publicSupabaseClient
         .from('series')
-        .select('id, studio, rating, tags, title, slug, poster_image_key, cover_image_key, release_year')
+        .select('id, studio, tags, title, slug, poster_image_key, cover_image_key, release_year')
         .eq('is_published', true);
       if (data && data.length > 0) {
         seriesList = data;
@@ -278,7 +278,7 @@ export const getAllStudiosWithStats = unstable_cache(
       return a.name.localeCompare(b.name);
     });
   },
-  ['all-studios-stats-directory-cache-v2'],
+  ['all-studios-stats-directory-cache-v3'],
   { revalidate: 3600, tags: ['studios_stats'] }
 );
 

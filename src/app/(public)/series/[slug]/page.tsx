@@ -70,7 +70,7 @@ const getCachedAllPublishedSeries = unstable_cache(
       const viewsMap = await getSeriesViewsMap();
       const { data: allSeriesData, error } = await publicSupabaseClient
         .from('series')
-        .select('id, title, slug, studio, tags, poster_image_key, cover_image_key, banner_image_key, poster_position, rating, release_year, status, description, created_at')
+        .select('id, title, slug, studio, tags, poster_image_key, cover_image_key, banner_image_key, poster_position, release_year, status, description, created_at')
         .eq('is_published', true)
         .order('created_at', { ascending: false });
 
@@ -90,7 +90,7 @@ const getCachedAllPublishedSeries = unstable_cache(
     }
     return [];
   },
-  ['all-published-series-catalog-v9'],
+  ['all-published-series-catalog-v10'],
   { revalidate: 1800, tags: ['all_series_catalog'] }
 );
 
@@ -420,7 +420,7 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
   );
 
   // Compute similar series (up to 12 items) using real catalog and weighted scoring algorithm
-  const sourceList = (allPublishedSeries && allPublishedSeries.length > 0) ? allPublishedSeries : MOCK_SERIES;
+  const sourceList = (allPublishedSeries && allPublishedSeries.length > 0) ? allPublishedSeries : (isDbEmpty ? MOCK_SERIES : []);
 
   const currentStudios = isValidStudio
     ? studio.split(',').map((st: string) => st.trim().toLowerCase()).filter(Boolean)
