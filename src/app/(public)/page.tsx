@@ -20,7 +20,7 @@ import { getEpisodeWatchUrl } from '@/utils/episodeUrl';
 import { getSeriesViewsMap, getEpisodeViewsMap } from '@/utils/views';
 import { tagToSlug } from '@/utils/constants';
 
-export const revalidate = 60;
+export const revalidate = 1800;
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
 
@@ -131,7 +131,7 @@ const getCachedCatalogData = unstable_cache(
     return { dbSeries, dbEpisodes, isDbEmpty };
   },
   ['homepage-catalog-cache-v1'],
-  { revalidate: 60, tags: ['homepage_catalog'] }
+  { revalidate: 1800, tags: ['homepage_catalog'] }
 );
 
 function getLocalSettings(): Record<string, string> {

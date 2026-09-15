@@ -5,7 +5,120 @@ import { STUDIOS_METADATA } from '@/utils/studiosData';
 import { tagToSlug } from '@/utils/constants';
 import { getR2Url } from '@/utils/r2';
 
-export const revalidate = 3600;
+export const revalidate = 7200;
+
+const getCachedSitemapData = unstable_cache(
+  async () => {
+    let dbSeries: any[] = [];
+    let dbEpisodes: any[] = [];
+    let dbPlaylists: any[] = [];
+    let dbDistinctTags: string[] = [];
+    let dbDistinctYears: number[] = [];
+
+    try {
+      // Cookie-free Supabase client for static sitemap generation
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      );
+
+      // Fetch published series
+      const { data: series } = await supabase
+        .from('series')
+        .select('slug, created_at, release_year, status, poster_image_key, cover_image_key')
+        .eq('is_published', true);
+
+      if (series) {
+        dbSeries = series;
+        const yearSet = new Set<number>();
+        series.forEach((s: any) => {
+          if (s.release_year && typeof s.release_year === 'number') {
+            yearSet.add(s.release_year);
+          }
+        });
+        dbDistinctYears = Array.from(yearSet);
+      }
+
+      // Fetch published episodes with joined series slug and thumbnails for clean URLs and images
+      const { data: episodes } = await supabase
+        .from('episodes')
+        .select('id, episode_number, created_at, thumbnail_key, seasons(series(slug, is_published, cover_image_key, poster_image_key))')
+        .eq('is_published', true);
+
+      if (episodes && episodes.length > 0) {
+        dbEpisodes = episodes
+          .filter((ep: any) => {
+            const season = Array.isArray(ep.seasons) ? ep.seasons[0] : ep.seasons;
+            const seriesObj = season ? (Array.isArray(season.series) ? season.series[0] : season.series) : null;
+            return seriesObj?.is_published === true;
+          })
+          .map((ep: any) => {
+            const season = Array.isArray(ep.seasons) ? ep.seasons[0] : ep.seasons;
+            const seriesObj = season ? (Array.isArray(season.series) ? season.series[0] : season.series) : null;
+            const seriesSlug = seriesObj?.slug;
+            const watchSlug = seriesSlug && ep.episode_number ? `${seriesSlug}-episode-${ep.episode_number}` : ep.id;
+            const thumbKey = ep.thumbnail_key || seriesObj?.cover_image_key || seriesObj?.poster_image_key;
+            return {
+              id: watchSlug,
+              created_at: ep.created_at,
+              image_key: thumbKey
+            };
+          });
+      }
+
+      // Fetch all distinct tags from published series for tag pages
+      const { data: seriesWithTags } = await supabase
+        .from('series')
+        .select('tags')
+        .eq('is_published', true);
+
+      if (seriesWithTags) {
+        const tagSet = new Set<string>();
+        seriesWithTags.forEach((row: any) => {
+          (row.tags || []).forEach((t: string) => {
+            if (t && t.trim()) tagSet.add(t.trim());
+          });
+        });
+        dbDistinctTags = Array.from(tagSet);
+      }
+
+      // Fetch playlists / collections
+      const { data: collections } = await supabase
+        .from('collections')
+        .select('slug, updated_at')
+        .eq('is_published', true);
+
+      if (collections && collections.length > 0) {
+        dbPlaylists = collections;
+      } else {
+        try {
+          const fs = await import('fs');
+          const path = await import('path');
+          const storePath = path.join(process.cwd(), 'src', 'utils', 'playlists_store.json');
+          if (fs.existsSync(storePath)) {
+            const raw = fs.readFileSync(storePath, 'utf-8');
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed)) {
+              dbPlaylists = parsed.map((p: any) => ({
+                slug: p.slug,
+                updated_at: new Date().toISOString(),
+              }));
+            }
+          }
+        } catch (storeErr) {
+          console.error('Error reading playlists store fallback for sitemap:', storeErr);
+        }
+      }
+
+    } catch (err) {
+      console.error('Error gathering dynamic sitemap URLs from DB:', err);
+    }
+
+    return { dbSeries, dbEpisodes, dbPlaylists, dbDistinctTags, dbDistinctYears };
+  },
+  ['sitemap-data-cache-v2'],
+  { revalidate: 7200, tags: ['sitemap_data', 'series_catalog', 'episodes_catalog'] }
+);
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
@@ -44,110 +157,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  let dbSeries: any[] = [];
-  let dbEpisodes: any[] = [];
-  let dbPlaylists: any[] = [];
-  let dbDistinctTags: string[] = [];
-  let dbDistinctYears: number[] = [];
-
-  try {
-    // Cookie-free Supabase client for static sitemap generation
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
-
-    // Fetch published series
-    const { data: series } = await supabase
-      .from('series')
-      .select('slug, created_at, release_year, status, poster_image_key, cover_image_key')
-      .eq('is_published', true);
-
-    if (series) {
-      dbSeries = series;
-      const yearSet = new Set<number>();
-      series.forEach((s: any) => {
-        if (s.release_year && typeof s.release_year === 'number') {
-          yearSet.add(s.release_year);
-        }
-      });
-      dbDistinctYears = Array.from(yearSet);
-    }
-
-    // Fetch published episodes with joined series slug and thumbnails for clean URLs and images
-    const { data: episodes } = await supabase
-      .from('episodes')
-      .select('id, episode_number, created_at, thumbnail_key, seasons(series(slug, is_published, cover_image_key, poster_image_key))')
-      .eq('is_published', true);
-
-    if (episodes && episodes.length > 0) {
-      dbEpisodes = episodes
-        .filter((ep: any) => {
-          const season = Array.isArray(ep.seasons) ? ep.seasons[0] : ep.seasons;
-          const seriesObj = season ? (Array.isArray(season.series) ? season.series[0] : season.series) : null;
-          return seriesObj?.is_published === true;
-        })
-        .map((ep: any) => {
-          const season = Array.isArray(ep.seasons) ? ep.seasons[0] : ep.seasons;
-          const seriesObj = season ? (Array.isArray(season.series) ? season.series[0] : season.series) : null;
-          const seriesSlug = seriesObj?.slug;
-          const watchSlug = seriesSlug && ep.episode_number ? `${seriesSlug}-episode-${ep.episode_number}` : ep.id;
-          const thumbKey = ep.thumbnail_key || seriesObj?.cover_image_key || seriesObj?.poster_image_key;
-          return {
-            id: watchSlug,
-            created_at: ep.created_at,
-            image_key: thumbKey
-          };
-        });
-    }
-
-    // Fetch all distinct tags from published series for tag pages
-    const { data: seriesWithTags } = await supabase
-      .from('series')
-      .select('tags')
-      .eq('is_published', true);
-
-    if (seriesWithTags) {
-      const tagSet = new Set<string>();
-      seriesWithTags.forEach((row: any) => {
-        (row.tags || []).forEach((t: string) => {
-          if (t && t.trim()) tagSet.add(t.trim());
-        });
-      });
-      dbDistinctTags = Array.from(tagSet);
-    }
-
-    // Fetch playlists / collections
-    const { data: collections } = await supabase
-      .from('collections')
-      .select('slug, updated_at')
-      .eq('is_published', true);
-
-    if (collections && collections.length > 0) {
-      dbPlaylists = collections;
-    } else {
-      try {
-        const fs = await import('fs');
-        const path = await import('path');
-        const storePath = path.join(process.cwd(), 'src', 'utils', 'playlists_store.json');
-        if (fs.existsSync(storePath)) {
-          const raw = fs.readFileSync(storePath, 'utf-8');
-          const parsed = JSON.parse(raw);
-          if (Array.isArray(parsed)) {
-            dbPlaylists = parsed.map((p: any) => ({
-              slug: p.slug,
-              updated_at: new Date().toISOString(),
-            }));
-          }
-        }
-      } catch (storeErr) {
-        console.error('Error reading playlists store fallback for sitemap:', storeErr);
-      }
-    }
-
-  } catch (err) {
-    console.error('Error gathering dynamic sitemap URLs from DB:', err);
-  }
+  const { dbSeries, dbEpisodes, dbPlaylists, dbDistinctTags, dbDistinctYears } = await getCachedSitemapData();
 
   // Fallbacks if database catalog is empty
   const activeSeries = dbSeries.length > 0 ? dbSeries : [

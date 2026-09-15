@@ -14,7 +14,7 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ybtbdtgtryr
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_HLX-SCL51o2H254WH-gN0Q_HPpNwKo5';
 const publicSupabaseClient = createSupabaseClient(supabaseUrl, supabaseAnonKey);
 
-export const revalidate = 60;
+export const revalidate = 1800;
 
 interface PageProps {
   searchParams: Promise<{
@@ -145,8 +145,8 @@ const getCachedCategoriesSeries = unstable_cache(
 
     return { dbSeries, isDbEmpty };
   },
-  ['categories-series-catalog-cache-v1'],
-  { revalidate: 60, tags: ['categories_catalog'] }
+  ['categories-series-catalog-cache-v2'],
+  { revalidate: 1800, tags: ['categories_catalog', 'all_series_catalog'] }
 );
 
 // Rich Mock Data with assigned Genres, Studios, and Release Years matching images

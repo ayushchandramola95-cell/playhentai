@@ -36,6 +36,126 @@ interface SeriesPageProps {
   params: Promise<{ slug: string }>;
 }
 
+function getFirstEpisodeId(series: any, isDbEmpty: boolean): string | null {
+  if (isDbEmpty) {
+    const details = MOCK_SERIES_DETAILS[series.slug];
+    if (details && details.seasons?.[0]?.episodes?.[0]) {
+      return details.seasons[0].episodes[0].id;
+    }
+    const ep = MOCK_EPISODES.find(e => e.showSlug === series.slug);
+    return ep ? ep.id : null;
+  } else {
+    if (series.seasons) {
+      const activeSeasons = [...series.seasons]
+        .filter((sea: any) => sea.is_published !== false)
+        .sort((a: any, b: any) => a.season_number - b.season_number);
+      for (const season of activeSeasons) {
+        if (season.episodes && season.episodes.length > 0) {
+          const activeEps = [...season.episodes]
+            .filter((ep: any) => ep.is_published !== false)
+            .sort((a: any, b: any) => a.episode_number - b.episode_number);
+          if (activeEps.length > 0) {
+            return activeEps[0].id;
+          }
+        }
+      }
+    }
+  }
+  return null;
+}
+
+const getCachedAllPublishedSeries = unstable_cache(
+  async () => {
+    try {
+      const viewsMap = await getSeriesViewsMap();
+      const { data: allSeriesData, error } = await publicSupabaseClient
+        .from('series')
+        .select('id, title, slug, studio, tags, poster_image_key, cover_image_key, banner_image_key, poster_position, rating, release_year, status, description, created_at')
+        .eq('is_published', true)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching all published series for catalog:', error);
+        return [];
+      }
+
+      if (allSeriesData && allSeriesData.length > 0) {
+        return allSeriesData.map((s: any) => ({
+          ...s,
+          views: viewsMap[s.id] || 0
+        }));
+      }
+    } catch (err) {
+      console.error('Error in getCachedAllPublishedSeries:', err);
+    }
+    return [];
+  },
+  ['all-published-series-catalog-v9'],
+  { revalidate: 1800, tags: ['all_series_catalog'] }
+);
+
+const getCachedSeriesDetails = unstable_cache(
+  async (slug: string) => {
+    let dbSeries: any = null;
+    let dbSeasons: any[] = [];
+    let isDbEmpty = true;
+
+    try {
+      const viewsMap = await getSeriesViewsMap();
+
+      const { data: seriesData, error } = await publicSupabaseClient
+        .from('series')
+        .select('*')
+        .eq('slug', slug)
+        .eq('is_published', true)
+        .single();
+
+      if (seriesData) {
+        dbSeries = {
+          ...seriesData,
+          views: viewsMap[seriesData.id] || 0
+        };
+        isDbEmpty = false;
+
+        const { data: seasonsData } = await publicSupabaseClient
+          .from('seasons')
+          .select(`
+            *,
+            episodes (
+              id,
+              episode_number,
+              title,
+              description,
+              duration_seconds,
+              thumbnail_key,
+              release_date,
+              created_at,
+              is_published
+            )
+          `)
+          .eq('series_id', seriesData.id)
+          .eq('is_published', true)
+          .order('season_number');
+
+        if (seasonsData) {
+          dbSeasons = seasonsData.map((season: any) => ({
+            ...season,
+            episodes: (season.episodes || [])
+              .filter((ep: any) => ep.is_published !== false)
+              .sort((a: any, b: any) => (a.episode_number || 0) - (b.episode_number || 0))
+          }));
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching series details for slug:', slug, err);
+    }
+
+    return { dbSeries, dbSeasons, isDbEmpty };
+  },
+  ['series-details-single-item-v9'],
+  { revalidate: 1800, tags: ['series_details'] }
+);
+
 export async function generateMetadata({ params }: SeriesPageProps): Promise<Metadata> {
   const resolvedParams = await params;
   const slug = resolvedParams.slug;
@@ -45,12 +165,8 @@ export async function generateMetadata({ params }: SeriesPageProps): Promise<Met
   let ogImage = '';
 
   try {
-    const { data } = await publicSupabaseClient
-      .from('series')
-      .select('*')
-      .eq('slug', slug)
-      .eq('is_published', true)
-      .single();
+    const { dbSeries } = await getCachedSeriesDetails(slug);
+    const data = dbSeries;
 
     if (data) {
       ogImage = data.cover_image_key || data.poster_image_key || '';
@@ -147,126 +263,6 @@ export async function generateMetadata({ params }: SeriesPageProps): Promise<Met
     },
   };
 }
-
-function getFirstEpisodeId(series: any, isDbEmpty: boolean): string | null {
-  if (isDbEmpty) {
-    const details = MOCK_SERIES_DETAILS[series.slug];
-    if (details && details.seasons?.[0]?.episodes?.[0]) {
-      return details.seasons[0].episodes[0].id;
-    }
-    const ep = MOCK_EPISODES.find(e => e.showSlug === series.slug);
-    return ep ? ep.id : null;
-  } else {
-    if (series.seasons) {
-      const activeSeasons = [...series.seasons]
-        .filter((sea: any) => sea.is_published !== false)
-        .sort((a: any, b: any) => a.season_number - b.season_number);
-      for (const season of activeSeasons) {
-        if (season.episodes && season.episodes.length > 0) {
-          const activeEps = [...season.episodes]
-            .filter((ep: any) => ep.is_published !== false)
-            .sort((a: any, b: any) => a.episode_number - b.episode_number);
-          if (activeEps.length > 0) {
-            return activeEps[0].id;
-          }
-        }
-      }
-    }
-  }
-  return null;
-}
-
-const getCachedAllPublishedSeries = unstable_cache(
-  async () => {
-    try {
-      const viewsMap = await getSeriesViewsMap();
-      const { data: allSeriesData, error } = await publicSupabaseClient
-        .from('series')
-        .select('id, title, slug, studio, tags, poster_image_key, cover_image_key, banner_image_key, poster_position, rating, release_year, status, description, created_at')
-        .eq('is_published', true)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching all published series for catalog:', error);
-        return [];
-      }
-
-      if (allSeriesData && allSeriesData.length > 0) {
-        return allSeriesData.map((s: any) => ({
-          ...s,
-          views: viewsMap[s.id] || 0
-        }));
-      }
-    } catch (err) {
-      console.error('Error in getCachedAllPublishedSeries:', err);
-    }
-    return [];
-  },
-  ['all-published-series-catalog-v8'],
-  { revalidate: 60, tags: ['all_series_catalog'] }
-);
-
-const getCachedSeriesDetails = unstable_cache(
-  async (slug: string) => {
-    let dbSeries: any = null;
-    let dbSeasons: any[] = [];
-    let isDbEmpty = true;
-
-    try {
-      const viewsMap = await getSeriesViewsMap();
-
-      const { data: seriesData, error } = await publicSupabaseClient
-        .from('series')
-        .select('*')
-        .eq('slug', slug)
-        .eq('is_published', true)
-        .single();
-
-      if (seriesData) {
-        dbSeries = {
-          ...seriesData,
-          views: viewsMap[seriesData.id] || 0
-        };
-        isDbEmpty = false;
-
-        const { data: seasonsData } = await publicSupabaseClient
-          .from('seasons')
-          .select(`
-            *,
-            episodes (
-              id,
-              episode_number,
-              title,
-              description,
-              duration_seconds,
-              thumbnail_key,
-              release_date,
-              created_at,
-              is_published
-            )
-          `)
-          .eq('series_id', seriesData.id)
-          .eq('is_published', true)
-          .order('season_number');
-
-        if (seasonsData) {
-          dbSeasons = seasonsData.map((season: any) => ({
-            ...season,
-            episodes: (season.episodes || [])
-              .filter((ep: any) => ep.is_published !== false)
-              .sort((a: any, b: any) => (a.episode_number || 0) - (b.episode_number || 0))
-          }));
-        }
-      }
-    } catch (err) {
-      console.error('Error fetching series details for slug:', slug, err);
-    }
-
-    return { dbSeries, dbSeasons, isDbEmpty };
-  },
-  ['series-details-single-item-v8'],
-  { revalidate: 60, tags: ['series_details'] }
-);
 
 export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
   const resolvedParams = await params;

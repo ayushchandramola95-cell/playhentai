@@ -134,12 +134,12 @@ export default function AnalyticsTracker() {
   useEffect(() => {
     if (typeof window === 'undefined' || isDeveloperSession) return;
 
-    // Heartbeat every 30 seconds while tab is active
+    // Heartbeat every 3 minutes while tab is active
     const heartbeatInterval = setInterval(() => {
       if (document.visibilityState === 'visible') {
         sendBeacon('heartbeat');
       }
-    }, 30000);
+    }, 180000);
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden') {

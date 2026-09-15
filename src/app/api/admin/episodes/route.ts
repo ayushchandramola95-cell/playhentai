@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { verifyAdmin, createAdminClient } from '@/utils/supabase/admin';
+import { revalidateAllCatalogTags } from '@/utils/revalidateCatalog';
 
 export async function GET(request: Request) {
   try {
@@ -122,6 +123,7 @@ export async function POST(request: Request) {
 
     // Auto-sync series average runtime (rounded up to nearest minute)
     await syncSeriesAverageRuntime(payload.season_id, adminSupabase);
+    revalidateAllCatalogTags();
 
     return NextResponse.json({ success: true, episode: data });
   } catch (err: any) {
@@ -167,6 +169,7 @@ export async function PUT(request: Request) {
     if (targetSeasonId) {
       await syncSeriesAverageRuntime(targetSeasonId, adminSupabase);
     }
+    revalidateAllCatalogTags();
 
     return NextResponse.json({ success: true, episode: data });
   } catch (err: any) {
@@ -211,6 +214,7 @@ export async function DELETE(request: Request) {
     if (epData?.season_id) {
       await syncSeriesAverageRuntime(epData.season_id, adminSupabase);
     }
+    revalidateAllCatalogTags();
 
     return NextResponse.json({ success: true });
   } catch (err: any) {

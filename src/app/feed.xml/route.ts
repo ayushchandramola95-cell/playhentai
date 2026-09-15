@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
+import { unstable_cache } from 'next/cache';
 import { createClient } from '@supabase/supabase-js';
 import { getR2Url } from '@/utils/r2';
 import { getEpisodeWatchUrl } from '@/utils/episodeUrl';
 import { MOCK_SERIES, MOCK_EPISODES } from '@/utils/mockData';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
 
 function escapeXml(unsafe: string | null | undefined): string {
   if (!unsafe) return '';
@@ -31,6 +32,32 @@ function formatRfc822Date(dateStr?: string | null): string {
   return new Date().toUTCString();
 }
 
+const getCachedFeedEpisodes = unstable_cache(
+  async () => {
+    try {
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ybtbdtgtryrxrhuchlkw.supabase.co',
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_HLX-SCL51o2H254WH-gN0Q_HPpNwKo5'
+      );
+
+      // Fetch up to 50 latest published episodes with joined series data (pruned columns)
+      const { data: episodes } = await supabase
+        .from('episodes')
+        .select('id, episode_number, title, description, release_date, created_at, thumbnail_key, seasons(series(title, slug, poster_image_key, cover_image_key, is_published, tags))')
+        .eq('is_published', true)
+        .order('release_date', { ascending: false })
+        .limit(50);
+
+      return episodes || [];
+    } catch (err) {
+      console.error('Error in getCachedFeedEpisodes:', err);
+      return [];
+    }
+  },
+  ['rss-feed-episodes-cache-v2'],
+  { revalidate: 3600, tags: ['rss_feed', 'episodes_catalog'] }
+);
+
 export async function GET() {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
   const nowUtc = new Date().toUTCString();
@@ -38,18 +65,7 @@ export async function GET() {
   let itemsXml = '';
 
   try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ybtbdtgtryrxrhuchlkw.supabase.co',
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_HLX-SCL51o2H254WH-gN0Q_HPpNwKo5'
-    );
-
-    // Fetch up to 50 latest published episodes with joined series data
-    const { data: episodes } = await supabase
-      .from('episodes')
-      .select('id, episode_number, title, description, duration_seconds, release_date, created_at, thumbnail_key, video_key, seasons(series(title, slug, poster_image_key, cover_image_key, is_published, tags))')
-      .eq('is_published', true)
-      .order('release_date', { ascending: false })
-      .limit(50);
+    const episodes = await getCachedFeedEpisodes();
 
     if (episodes && episodes.length > 0) {
       const published = episodes.filter((ep: any) => {

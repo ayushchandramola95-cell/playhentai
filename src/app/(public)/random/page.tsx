@@ -95,8 +95,8 @@ const getCachedRandomizerSeries = unstable_cache(
 
     return { dbSeries, isDbEmpty };
   },
-  ['random-series-catalog-cache-v2'],
-  { revalidate: 60, tags: ['randomizer_catalog', 'series_catalog'] }
+  ['random-series-catalog-cache-v3'],
+  { revalidate: 1800, tags: ['randomizer_catalog', 'series_catalog', 'all_series_catalog'] }
 );
 
 export default async function RandomPage() {

@@ -96,8 +96,8 @@ const getCached3DSeries = unstable_cache(
 
     return { dbSeries, isDbEmpty };
   },
-  ['threed-series-catalog-cache-v1'],
-  { revalidate: 60, tags: ['3d_catalog'] }
+  ['threed-series-catalog-cache-v2'],
+  { revalidate: 1800, tags: ['3d_catalog', 'all_series_catalog'] }
 );
 
 export default async function ThreeDPage({ searchParams }: PageProps) {

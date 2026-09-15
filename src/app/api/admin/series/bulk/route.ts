@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { verifyAdmin, createAdminClient } from '@/utils/supabase/admin';
+import { revalidateAllCatalogTags } from '@/utils/revalidateCatalog';
 
 function generateSlug(title: string): string {
   return title
@@ -90,6 +91,10 @@ export async function POST(request: Request) {
       } catch (err: any) {
         errors.push({ title: rawTitle, error: err.message });
       }
+    }
+
+    if (results.length > 0) {
+      revalidateAllCatalogTags();
     }
 
     return NextResponse.json({

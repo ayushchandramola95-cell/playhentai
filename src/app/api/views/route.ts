@@ -278,9 +278,6 @@ export async function POST(request: Request) {
           profile_id: user?.id || null,
           viewed_at: new Date().toISOString()
         });
-
-      // Purge the homepage cache so users see updated view numbers
-      revalidateTag('homepage_catalog', {});
     } catch (insertErr) {
       console.warn('Episode view log fallback:', insertErr);
     }

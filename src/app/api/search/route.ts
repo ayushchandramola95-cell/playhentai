@@ -24,13 +24,9 @@ export async function GET(request: Request) {
         .or(`title.ilike.%${query}%,description.ilike.%${query}%`)
         .limit(10);
 
-      if (!error && data) {
-        results = data;
-      }
-
-      const { count } = await supabase.from('series').select('*', { count: 'exact', head: true });
-      if (count && count > 0) {
+      if (!error) {
         isDbEmpty = false;
+        if (data) results = data;
       }
     } catch (err) {
       console.error('Database search error:', err);

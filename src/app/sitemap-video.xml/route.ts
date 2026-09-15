@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
+import { unstable_cache } from 'next/cache';
 import { createClient } from '@supabase/supabase-js';
 import { getR2Url } from '@/utils/r2';
 
-export const revalidate = 3600;
+export const revalidate = 7200;
 
 function escapeXml(unsafe: string | null | undefined): string {
   if (!unsafe) return '';
@@ -21,6 +22,30 @@ function escapeXml(unsafe: string | null | undefined): string {
     });
 }
 
+const getCachedVideoSitemapEpisodes = unstable_cache(
+  async () => {
+    try {
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ybtbdtgtryrxrhuchlkw.supabase.co',
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_HLX-SCL51o2H254WH-gN0Q_HPpNwKo5'
+      );
+
+      // Fetch published episodes with joined series details
+      const { data: episodes } = await supabase
+        .from('episodes')
+        .select('id, episode_number, title, description, duration_seconds, release_date, created_at, thumbnail_key, video_key, seasons(series(title, slug, poster_image_key, cover_image_key, is_published, tags))')
+        .eq('is_published', true);
+
+      return episodes || [];
+    } catch (err) {
+      console.error('Error in getCachedVideoSitemapEpisodes:', err);
+      return [];
+    }
+  },
+  ['video-sitemap-episodes-cache-v2'],
+  { revalidate: 7200, tags: ['video_sitemap', 'episodes_catalog'] }
+);
+
 export async function GET() {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
   
@@ -29,16 +54,7 @@ export async function GET() {
         xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">`;
 
   try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ybtbdtgtryrxrhuchlkw.supabase.co',
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_HLX-SCL51o2H254WH-gN0Q_HPpNwKo5'
-    );
-
-    // Fetch published episodes with joined series details
-    const { data: episodes } = await supabase
-      .from('episodes')
-      .select('id, episode_number, title, description, duration_seconds, release_date, created_at, thumbnail_key, video_key, seasons(series(title, slug, poster_image_key, cover_image_key, is_published, tags))')
-      .eq('is_published', true);
+    const episodes = await getCachedVideoSitemapEpisodes();
 
     if (episodes && episodes.length > 0) {
       // Filter out episodes whose parent series is not published and must have video_key

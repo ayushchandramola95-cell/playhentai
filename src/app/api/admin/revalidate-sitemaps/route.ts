@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { verifyAdmin } from '@/utils/supabase/admin';
+import { revalidateAllCatalogTags } from '@/utils/revalidateCatalog';
 
 export async function POST() {
   try {
@@ -10,6 +11,8 @@ export async function POST() {
     // 2. Clear Next.js cache for dynamic sitemap pages/routes right away
     revalidatePath('/sitemap.xml');
     revalidatePath('/sitemap-video.xml');
+    revalidatePath('/feed.xml');
+    revalidateAllCatalogTags();
 
     return NextResponse.json({
       success: true,

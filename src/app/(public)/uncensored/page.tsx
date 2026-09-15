@@ -96,8 +96,8 @@ const getCachedUncensoredSeries = unstable_cache(
 
     return { dbSeries, isDbEmpty };
   },
-  ['uncensored-series-catalog-cache-v1'],
-  { revalidate: 60, tags: ['uncensored_catalog'] }
+  ['uncensored-series-catalog-cache-v2'],
+  { revalidate: 1800, tags: ['uncensored_catalog', 'all_series_catalog'] }
 );
 
 export default async function UncensoredPage({ searchParams }: PageProps) {
