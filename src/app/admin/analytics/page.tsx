@@ -1554,9 +1554,10 @@ export default function AdminAnalyticsPage() {
         {/* SECONDARY TAB: COMMENT MODERATION                                         */}
         {/* ========================================================================= */}
         {activeTab === 'moderation' && (
-          <div className={styles.moderationPanel}>
+          <div className={styles.moderationPanel} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             {/* Moderation Metrics 4-Card Grid */}
-            <div className={styles.metricsGrid}>
+            <div className={styles.statsOverviewFour} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
+              {/* 1. Total Discussions */}
               <div className={styles.metricCard}>
                 <div className={styles.metricIcon} style={{ background: 'rgba(124, 58, 237, 0.15)', color: '#a855f7' }}>
                   <MessageSquare size={22} />
@@ -1568,7 +1569,8 @@ export default function AdminAnalyticsPage() {
                 </div>
               </div>
 
-              <div className={styles.metricCard}>
+              {/* 2. Pending Moderation */}
+              <div className={styles.metricCard} style={{ border: '1px solid rgba(245, 158, 11, 0.4)', background: 'rgba(245, 158, 11, 0.04)' }}>
                 <div className={styles.metricIcon} style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#fbbf24' }}>
                   <Clock size={22} />
                 </div>
@@ -1581,6 +1583,7 @@ export default function AdminAnalyticsPage() {
                 </div>
               </div>
 
+              {/* 3. Approved Comments */}
               <div className={styles.metricCard}>
                 <div className={styles.metricIcon} style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#34d399' }}>
                   <CheckCircle2 size={22} />
@@ -1594,6 +1597,7 @@ export default function AdminAnalyticsPage() {
                 </div>
               </div>
 
+              {/* 4. Active Discussers */}
               <div className={styles.metricCard}>
                 <div className={styles.metricIcon} style={{ background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8' }}>
                   <Award size={22} />
@@ -1609,14 +1613,24 @@ export default function AdminAnalyticsPage() {
             </div>
 
             {/* Moderation Controls Toolbar */}
-            <div className={styles.moderationControls}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexWrap: 'wrap' }}>
+            <div className={styles.moderationControls} style={{ background: '#0d101b', border: '1px solid #1f2538', borderRadius: '14px', padding: '1rem 1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
                 {/* Filter Pills */}
-                <div style={{ display: 'flex', background: '#070a13', border: '1px solid #1f2538', padding: '0.2rem', borderRadius: '8px', gap: '0.2rem' }}>
+                <div className={styles.filterPillsGroup} style={{ display: 'flex', alignItems: 'center', background: '#070a13', border: '1px solid #1f2538', padding: '0.25rem', borderRadius: '8px', gap: '0.25rem' }}>
                   <button
                     type="button"
                     onClick={() => setCommentFilter('all')}
                     className={`${styles.filterPill} ${commentFilter === 'all' ? styles.filterPillActive : ''}`}
+                    style={{
+                      background: commentFilter === 'all' ? '#7c3aed' : 'transparent',
+                      color: commentFilter === 'all' ? '#ffffff' : '#94a3b8',
+                      border: 'none',
+                      padding: '0.4rem 0.85rem',
+                      borderRadius: '6px',
+                      fontSize: '0.78rem',
+                      fontWeight: 700,
+                      cursor: 'pointer'
+                    }}
                   >
                     All ({comments.length})
                   </button>
@@ -1624,6 +1638,16 @@ export default function AdminAnalyticsPage() {
                     type="button"
                     onClick={() => setCommentFilter('pending')}
                     className={`${styles.filterPill} ${commentFilter === 'pending' ? styles.filterPillActive : ''}`}
+                    style={{
+                      background: commentFilter === 'pending' ? '#7c3aed' : 'transparent',
+                      color: commentFilter === 'pending' ? '#ffffff' : '#94a3b8',
+                      border: 'none',
+                      padding: '0.4rem 0.85rem',
+                      borderRadius: '6px',
+                      fontSize: '0.78rem',
+                      fontWeight: 700,
+                      cursor: 'pointer'
+                    }}
                   >
                     Pending ({comments.filter(c => c.status !== 'approved').length})
                   </button>
@@ -1631,6 +1655,16 @@ export default function AdminAnalyticsPage() {
                     type="button"
                     onClick={() => setCommentFilter('approved')}
                     className={`${styles.filterPill} ${commentFilter === 'approved' ? styles.filterPillActive : ''}`}
+                    style={{
+                      background: commentFilter === 'approved' ? '#7c3aed' : 'transparent',
+                      color: commentFilter === 'approved' ? '#ffffff' : '#94a3b8',
+                      border: 'none',
+                      padding: '0.4rem 0.85rem',
+                      borderRadius: '6px',
+                      fontSize: '0.78rem',
+                      fontWeight: 700,
+                      cursor: 'pointer'
+                    }}
                   >
                     Approved ({comments.filter(c => c.status === 'approved').length})
                   </button>
@@ -1640,6 +1674,19 @@ export default function AdminAnalyticsPage() {
                   type="button"
                   onClick={handleSelectAllComments}
                   className={styles.actionBtn}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.45rem',
+                    background: '#121727',
+                    border: '1px solid #232a40',
+                    color: '#cbd5e1',
+                    padding: '0.45rem 0.95rem',
+                    borderRadius: '8px',
+                    fontSize: '0.78rem',
+                    fontWeight: 700,
+                    cursor: 'pointer'
+                  }}
                 >
                   {selectedCommentIds.length === filteredComments.length && filteredComments.length > 0 ? (
                     <CheckSquare size={16} />
@@ -1654,6 +1701,19 @@ export default function AdminAnalyticsPage() {
                     type="button"
                     onClick={handleBulkDelete}
                     className={styles.bulkDeleteBtn}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.45rem',
+                      background: 'rgba(239, 68, 68, 0.15)',
+                      border: '1px solid rgba(239, 68, 68, 0.4)',
+                      color: '#f87171',
+                      padding: '0.45rem 0.95rem',
+                      borderRadius: '8px',
+                      fontSize: '0.78rem',
+                      fontWeight: 700,
+                      cursor: 'pointer'
+                    }}
                   >
                     <Trash2 size={16} />
                     <span>Delete Selected ({selectedCommentIds.length})</span>
@@ -1661,20 +1721,21 @@ export default function AdminAnalyticsPage() {
                 )}
               </div>
 
-              <div className={styles.searchBox}>
-                <Search size={16} style={{ color: '#64748b' }} />
+              <div className={styles.searchBox} style={{ display: 'flex', alignItems: 'center', background: '#070a13', border: '1px solid #1f2538', borderRadius: '10px', padding: '0.45rem 0.85rem', gap: '0.6rem', minWidth: '260px' }}>
+                <Search size={16} style={{ color: '#64748b', flexShrink: 0 }} />
                 <input
                   type="text"
                   placeholder="Search comments by text, user, or anime..."
                   value={commentSearch}
                   onChange={(e) => setCommentSearch(e.target.value)}
                   className={styles.searchInput}
+                  style={{ background: 'transparent', border: 'none', color: '#f8fafc', fontSize: '0.82rem', outline: 'none', width: '100%' }}
                 />
               </div>
             </div>
 
             {/* Comments List */}
-            <div className={styles.commentsList}>
+            <div className={styles.commentsList} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
               {loadingComments ? (
                 <div className={styles.loadingState}>
                   <RefreshCw size={24} className={styles.spin} />
@@ -1694,17 +1755,31 @@ export default function AdminAnalyticsPage() {
                     <div
                       key={comment.id}
                       className={`${styles.commentItem} ${isSelected ? styles.commentItemSelected : ''}`}
+                      style={{
+                        background: '#0d101b',
+                        border: isSelected ? '1px solid #8b5cf6' : '1px solid #1f2538',
+                        borderRadius: '14px',
+                        padding: '1.15rem 1.35rem',
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        gap: '1.15rem',
+                        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.2)'
+                      }}
                     >
                       <input
                         type="checkbox"
                         checked={isSelected}
                         onChange={() => toggleSelectComment(comment.id)}
                         className={styles.commentCheckbox}
+                        style={{ marginTop: '0.35rem', width: '18px', height: '18px', accentColor: '#7c3aed', cursor: 'pointer', flexShrink: 0 }}
                       />
 
                       {/* Series Poster Thumbnail */}
                       {comment.posterKey && (
-                        <div style={{ width: '40px', height: '54px', borderRadius: '6px', overflow: 'hidden', flexShrink: 0, background: '#1c2234' }}>
+                        <div
+                          className={styles.commentPoster}
+                          style={{ width: '44px', height: '58px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0, background: '#1c2234', border: '1px solid #28304a' }}
+                        >
                           <img
                             src={getR2Url(comment.posterKey)}
                             alt={comment.seriesTitle || 'Poster'}
@@ -1714,9 +1789,9 @@ export default function AdminAnalyticsPage() {
                         </div>
                       )}
 
-                      <div className={styles.commentDetails}>
-                        <div className={styles.commentMeta}>
-                          <span className={styles.commentUser}>
+                      <div className={styles.commentDetails} style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
+                        <div className={styles.commentMeta} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap', fontSize: '0.82rem' }}>
+                          <span className={styles.commentUser} style={{ fontWeight: 800, color: '#f8fafc', fontSize: '0.88rem' }}>
                             {comment.profiles?.username || 'Anonymous User'}
                           </span>
 
@@ -1725,37 +1800,46 @@ export default function AdminAnalyticsPage() {
                           )}
 
                           {isApproved ? (
-                            <span className={styles.statusPillApproved}>
+                            <span
+                              className={styles.statusPillApproved}
+                              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.2rem 0.6rem', background: 'rgba(16, 185, 129, 0.15)', border: '1px solid rgba(16, 185, 129, 0.4)', color: '#34d399', borderRadius: '6px', fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase' }}
+                            >
                               <CheckCircle2 size={11} /> Approved
                             </span>
                           ) : (
-                            <span className={styles.statusPillPending}>
+                            <span
+                              className={styles.statusPillPending}
+                              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.2rem 0.6rem', background: 'rgba(245, 158, 11, 0.15)', border: '1px solid rgba(245, 158, 11, 0.4)', color: '#fbbf24', borderRadius: '6px', fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase' }}
+                            >
                               <Clock size={11} /> Pending Review
                             </span>
                           )}
 
                           {comment.seriesTitle && (
-                            <span className={styles.commentTarget}>
-                              on <Link href={`/series/${comment.seriesSlug || ''}`} target="_blank" className={styles.seriesLink}>{comment.seriesTitle}</Link>
+                            <span className={styles.commentTarget} style={{ color: '#94a3b8', fontSize: '0.8rem' }}>
+                              on <Link href={`/series/${comment.seriesSlug || ''}`} target="_blank" className={styles.seriesLink} style={{ color: '#38bdf8', textDecoration: 'none', fontWeight: 700 }}>{comment.seriesTitle}</Link>
                               {comment.episodeTitle ? ` • ${comment.episodeTitle}` : ''}
                             </span>
                           )}
 
-                          <span className={styles.commentDate}>
+                          <span className={styles.commentDate} style={{ color: '#64748b', fontSize: '0.74rem', marginLeft: 'auto' }}>
                             {new Date(comment.created_at).toLocaleString()}
                           </span>
                         </div>
 
-                        <p className={styles.commentBody}>{comment.content}</p>
+                        <p className={styles.commentBody} style={{ color: '#e2e8f0', fontSize: '0.9rem', lineHeight: 1.55, margin: 0, background: '#080a12', border: '1px solid #1a2033', padding: '0.65rem 0.95rem', borderRadius: '8px', wordBreak: 'break-word' }}>
+                          {comment.content}
+                        </p>
                       </div>
 
-                      <div className={styles.commentActions}>
+                      <div className={styles.commentActions} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0, marginLeft: '0.5rem' }}>
                         {!isApproved && (
                           <button
                             type="button"
                             onClick={() => handleApproveComment(comment.id)}
                             className={styles.approveBtn}
                             title="Verify & Approve Comment"
+                            style={{ background: 'rgba(16, 185, 129, 0.15)', border: '1px solid rgba(16, 185, 129, 0.4)', color: '#34d399', padding: '0.45rem 0.9rem', borderRadius: '8px', fontSize: '0.76rem', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer' }}
                           >
                             <CheckCircle2 size={15} />
                             <span>Approve</span>
@@ -1767,6 +1851,7 @@ export default function AdminAnalyticsPage() {
                           onClick={() => handleDeleteComment(comment.id)}
                           className={styles.deleteBtn}
                           title="Permanently Delete Comment"
+                          style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#f87171', padding: '0.45rem 0.9rem', borderRadius: '8px', fontSize: '0.76rem', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer' }}
                         >
                           <Trash2 size={15} />
                           <span>Delete</span>
