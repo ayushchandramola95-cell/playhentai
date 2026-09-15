@@ -754,7 +754,7 @@ export default function AdminAnalyticsPage() {
                           </td>
                         </tr>
                       ) : (
-                        visitPointsData.map((row, idx) => (
+                        [...visitPointsData].reverse().map((row, idx) => (
                           <tr key={idx}>
                             <td>
                               <span className={styles.dateBadge}>
@@ -763,7 +763,20 @@ export default function AdminAnalyticsPage() {
                                 ) : (
                                   <Calendar size={13} style={{ color: '#7c3aed' }} />
                                 )}
-                                {row.date}
+                                <span>{row.date}</span>
+                                {timeRange !== 'today' && idx === 0 && (
+                                  <span style={{ 
+                                    fontSize: '0.65rem', 
+                                    padding: '0.1rem 0.4rem', 
+                                    borderRadius: '4px', 
+                                    background: 'rgba(124, 58, 237, 0.25)', 
+                                    color: '#c4b5fd', 
+                                    fontWeight: 800,
+                                    marginLeft: '0.25rem' 
+                                  }}>
+                                    Today
+                                  </span>
+                                )}
                               </span>
                             </td>
                             <td>
