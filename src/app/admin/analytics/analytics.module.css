@@ -131,6 +131,31 @@
   margin-bottom: 1.5rem;
 }
 
+.statsOverviewSix {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.85rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (max-width: 1440px) {
+  .statsOverviewSix {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .statsOverviewSix {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 550px) {
+  .statsOverviewSix {
+    grid-template-columns: 1fr;
+  }
+}
+
 .metricCard {
   background: #121624;
   border: 1px solid #23283b;
