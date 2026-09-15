@@ -190,6 +190,7 @@ export default function AdminAnalyticsPage() {
   const [comments, setComments] = useState<Comment[]>([]);
   const [loadingComments, setLoadingComments] = useState(true);
   const [commentSearch, setCommentSearch] = useState('');
+  const [commentFilter, setCommentFilter] = useState<'all' | 'pending' | 'approved'>('all');
   const [selectedCommentIds, setSelectedCommentIds] = useState<string[]>([]);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
 
@@ -340,13 +341,17 @@ export default function AdminAnalyticsPage() {
 
   const filteredComments = useMemo(() => {
     return comments.filter(c => {
-      const q = commentSearch.toLowerCase();
+      if (commentFilter === 'pending' && c.status === 'approved') return false;
+      if (commentFilter === 'approved' && c.status !== 'approved') return false;
+
+      const q = commentSearch.toLowerCase().trim();
+      if (!q) return true;
       const content = c.content.toLowerCase();
       const user = (c.profiles?.username || '').toLowerCase();
       const series = (c.seriesTitle || '').toLowerCase();
       return content.includes(q) || user.includes(q) || series.includes(q);
     });
-  }, [comments, commentSearch]);
+  }, [comments, commentSearch, commentFilter]);
 
   const filteredLeaderboardSeries = useMemo(() => {
     const list = allSeriesAnalytics.filter(s => 
@@ -542,7 +547,13 @@ export default function AdminAnalyticsPage() {
           >
             <ShieldAlert size={16} />
             <span>Comment Moderation</span>
-            <span className={styles.tabCountBadge}>{comments.length}</span>
+            {comments.filter(c => c.status !== 'approved').length > 0 ? (
+              <span className={styles.tabCountBadge} style={{ background: '#f59e0b', color: '#0f172a', fontWeight: 800 }}>
+                {comments.filter(c => c.status !== 'approved').length} pending
+              </span>
+            ) : (
+              <span className={styles.tabCountBadge}>{comments.length}</span>
+            )}
           </button>
         </div>
 
@@ -1544,9 +1555,87 @@ export default function AdminAnalyticsPage() {
         {/* ========================================================================= */}
         {activeTab === 'moderation' && (
           <div className={styles.moderationPanel}>
-            {/* Moderation Controls */}
+            {/* Moderation Metrics 4-Card Grid */}
+            <div className={styles.metricsGrid}>
+              <div className={styles.metricCard}>
+                <div className={styles.metricIcon} style={{ background: 'rgba(124, 58, 237, 0.15)', color: '#a855f7' }}>
+                  <MessageSquare size={22} />
+                </div>
+                <div className={styles.metricInfo}>
+                  <span className={styles.metricLabel}>Total Discussions</span>
+                  <span className={styles.metricValue}>{comments.length}</span>
+                  <span className={styles.metricSubtext}>Across all anime episodes</span>
+                </div>
+              </div>
+
+              <div className={styles.metricCard}>
+                <div className={styles.metricIcon} style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#fbbf24' }}>
+                  <Clock size={22} />
+                </div>
+                <div className={styles.metricInfo}>
+                  <span className={styles.metricLabel}>Pending Moderation</span>
+                  <span className={styles.metricValue} style={{ color: '#fbbf24' }}>
+                    {comments.filter(c => c.status !== 'approved').length}
+                  </span>
+                  <span className={styles.metricSubtext}>Awaiting administrator review</span>
+                </div>
+              </div>
+
+              <div className={styles.metricCard}>
+                <div className={styles.metricIcon} style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#34d399' }}>
+                  <CheckCircle2 size={22} />
+                </div>
+                <div className={styles.metricInfo}>
+                  <span className={styles.metricLabel}>Approved Comments</span>
+                  <span className={styles.metricValue} style={{ color: '#34d399' }}>
+                    {comments.filter(c => c.status === 'approved').length}
+                  </span>
+                  <span className={styles.metricSubtext}>Visible on public watch stream</span>
+                </div>
+              </div>
+
+              <div className={styles.metricCard}>
+                <div className={styles.metricIcon} style={{ background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8' }}>
+                  <Award size={22} />
+                </div>
+                <div className={styles.metricInfo}>
+                  <span className={styles.metricLabel}>Active Discussers</span>
+                  <span className={styles.metricValue} style={{ color: '#38bdf8' }}>
+                    {new Set(comments.map(c => c.profiles?.username || c.profile_id)).size}
+                  </span>
+                  <span className={styles.metricSubtext}>Unique participating viewers</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Moderation Controls Toolbar */}
             <div className={styles.moderationControls}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap', flex: 1 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexWrap: 'wrap' }}>
+                {/* Filter Pills */}
+                <div style={{ display: 'flex', background: '#070a13', border: '1px solid #1f2538', padding: '0.2rem', borderRadius: '8px', gap: '0.2rem' }}>
+                  <button
+                    type="button"
+                    onClick={() => setCommentFilter('all')}
+                    className={`${styles.filterPill} ${commentFilter === 'all' ? styles.filterPillActive : ''}`}
+                  >
+                    All ({comments.length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCommentFilter('pending')}
+                    className={`${styles.filterPill} ${commentFilter === 'pending' ? styles.filterPillActive : ''}`}
+                  >
+                    Pending ({comments.filter(c => c.status !== 'approved').length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCommentFilter('approved')}
+                    className={`${styles.filterPill} ${commentFilter === 'approved' ? styles.filterPillActive : ''}`}
+                  >
+                    Approved ({comments.filter(c => c.status === 'approved').length})
+                  </button>
+                </div>
+
                 <button
                   type="button"
                   onClick={handleSelectAllComments}
@@ -1594,12 +1683,13 @@ export default function AdminAnalyticsPage() {
               ) : filteredComments.length === 0 ? (
                 <div className={styles.emptyComments}>
                   <MessageSquare size={36} style={{ color: '#475569', marginBottom: '0.5rem' }} />
-                  <strong>No comments match your search criteria</strong>
-                  <p>All comments are approved or none have been submitted yet.</p>
+                  <strong>No comments match your filter criteria</strong>
+                  <p>Try switching filters or clearing your search keywords.</p>
                 </div>
               ) : (
                 filteredComments.map((comment) => {
                   const isSelected = selectedCommentIds.includes(comment.id);
+                  const isApproved = comment.status === 'approved';
                   return (
                     <div
                       key={comment.id}
@@ -1612,6 +1702,18 @@ export default function AdminAnalyticsPage() {
                         className={styles.commentCheckbox}
                       />
 
+                      {/* Series Poster Thumbnail */}
+                      {comment.posterKey && (
+                        <div style={{ width: '40px', height: '54px', borderRadius: '6px', overflow: 'hidden', flexShrink: 0, background: '#1c2234' }}>
+                          <img
+                            src={getR2Url(comment.posterKey)}
+                            alt={comment.seriesTitle || 'Poster'}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                          />
+                        </div>
+                      )}
+
                       <div className={styles.commentDetails}>
                         <div className={styles.commentMeta}>
                           <span className={styles.commentUser}>
@@ -1622,10 +1724,20 @@ export default function AdminAnalyticsPage() {
                             <span className={styles.adminBadge}>Admin</span>
                           )}
 
+                          {isApproved ? (
+                            <span className={styles.statusPillApproved}>
+                              <CheckCircle2 size={11} /> Approved
+                            </span>
+                          ) : (
+                            <span className={styles.statusPillPending}>
+                              <Clock size={11} /> Pending Review
+                            </span>
+                          )}
+
                           {comment.seriesTitle && (
                             <span className={styles.commentTarget}>
-                              on <Link href={`/series/${comment.seriesSlug || ''}`} className={styles.seriesLink}>{comment.seriesTitle}</Link>
-                              {comment.episodeTitle ? ` &bull; ${comment.episodeTitle}` : ''}
+                              on <Link href={`/series/${comment.seriesSlug || ''}`} target="_blank" className={styles.seriesLink}>{comment.seriesTitle}</Link>
+                              {comment.episodeTitle ? ` • ${comment.episodeTitle}` : ''}
                             </span>
                           )}
 
@@ -1638,14 +1750,14 @@ export default function AdminAnalyticsPage() {
                       </div>
 
                       <div className={styles.commentActions}>
-                        {comment.status !== 'approved' && (
+                        {!isApproved && (
                           <button
                             type="button"
                             onClick={() => handleApproveComment(comment.id)}
                             className={styles.approveBtn}
                             title="Verify & Approve Comment"
                           >
-                            <CheckCircle2 size={16} />
+                            <CheckCircle2 size={15} />
                             <span>Approve</span>
                           </button>
                         )}
@@ -1656,7 +1768,7 @@ export default function AdminAnalyticsPage() {
                           className={styles.deleteBtn}
                           title="Permanently Delete Comment"
                         >
-                          <Trash2 size={16} />
+                          <Trash2 size={15} />
                           <span>Delete</span>
                         </button>
                       </div>

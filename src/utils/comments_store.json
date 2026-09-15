@@ -1,0 +1,100 @@
+{
+  "comments": [
+    {
+      "id": "cmt-1789498101-001",
+      "episode_id": "dd86ce3a-a71a-4689-b1e7-d935c500e5da",
+      "profile_id": "98f2a6cc-f20d-4a0b-a52a-1d8c4e8ba64b",
+      "content": "The animation quality on this episode exceeded my expectations! Mary Jane never disappoints.",
+      "created_at": "2026-09-15T18:15:20.000Z",
+      "status": "approved",
+      "profiles": {
+        "username": "Otaku",
+        "role": "user"
+      },
+      "seriesTitle": "Kemonomokko Tsushin The Animation",
+      "seriesSlug": "kemonokko-tsuushin-the-animation",
+      "episodeTitle": "Ep 1: Episode 1",
+      "posterKey": "uploads/1788542380138-images.jpg"
+    },
+    {
+      "id": "cmt-1789498101-002",
+      "episode_id": "a497a999-a94f-4fb2-b2c4-7006fd710bd9",
+      "profile_id": "66abdbfa-e142-48cf-9704-349c4d394d02",
+      "content": "Top-tier comedy and slice-of-life scenes. Episode 2 next please!",
+      "created_at": "2026-09-15T16:30:10.000Z",
+      "status": "approved",
+      "profiles": {
+        "username": "Ayush_1234",
+        "role": "user"
+      },
+      "seriesTitle": "Imaizumin-chi wa Douyara Gal no Tamariba ni Natteru Rashii",
+      "seriesSlug": "imaizumin-chi-wa-douyara-gal-no-tamariba-ni-natteru-rashii",
+      "episodeTitle": "Ep 1: Episode 1",
+      "posterKey": "uploads/1787117752896-6554537.webp"
+    },
+    {
+      "id": "cmt-1789498101-003",
+      "episode_id": "c391d91a-a08f-4efd-af19-04db1ec8e35e",
+      "profile_id": "6ae13a0f-f375-4057-be1f-07a78d2f31ae",
+      "content": "Anyone else love the sound design in this series? Pink Pineapple did great work.",
+      "created_at": "2026-09-15T14:45:00.000Z",
+      "status": "approved",
+      "profiles": {
+        "username": "Gà con",
+        "role": "user"
+      },
+      "seriesTitle": "Immoral Game Master The Animation",
+      "seriesSlug": "immoral-game-master-the-animation",
+      "episodeTitle": "Ep 1: Episode 1",
+      "posterKey": "uploads/1785255071234-7202278.jpg.webp"
+    },
+    {
+      "id": "cmt-1789498101-004",
+      "episode_id": "86635b17-797b-4c51-a7bb-c833c69e543d",
+      "profile_id": "user-guest-9912",
+      "content": "Great release, thanks for uploading in 1080p full HD!",
+      "created_at": "2026-09-15T19:05:00.000Z",
+      "status": "approved",
+      "profiles": {
+        "username": "AnimeFan_99",
+        "role": "user"
+      },
+      "seriesTitle": "Kanojo Saimin",
+      "seriesSlug": "kanojo-saimin",
+      "episodeTitle": "Ep 1: Episode 1",
+      "posterKey": "uploads/1784266780682-8894423.jpg.webp"
+    },
+    {
+      "id": "cmt-1789498101-005",
+      "episode_id": "8c1cdfa7-914e-4324-9b67-23b0c9ba0369",
+      "profile_id": "user-guest-4412",
+      "content": "Classic fantasy anime vibes. Can we get the uncensored version if available?",
+      "created_at": "2026-09-15T18:40:00.000Z",
+      "status": "pending",
+      "profiles": {
+        "username": "NightRider",
+        "role": "user"
+      },
+      "seriesTitle": "Kohakuiro no Hunter The Animation",
+      "seriesSlug": "kohakuiro-no-hunter",
+      "episodeTitle": "Ep 1: Episode 1",
+      "posterKey": "uploads/1788292927972-5169914.jpg.webp"
+    },
+    {
+      "id": "cmt-1789498101-006",
+      "episode_id": "048cabd1-4ad1-4590-9844-cb7b4f706643",
+      "profile_id": "user-guest-7721",
+      "content": "Episode 2 is even wilder than episode 1 haha. 10/10 adaptation!",
+      "created_at": "2026-09-15T12:20:00.000Z",
+      "status": "approved",
+      "profiles": {
+        "username": "Vortex_User",
+        "role": "user"
+      },
+      "seriesTitle": "Kemonomokko Tsushin The Animation",
+      "seriesSlug": "kemonokko-tsuushin-the-animation",
+      "episodeTitle": "Ep 2: Episode 2",
+      "posterKey": "uploads/1788542380138-images.jpg"
+    }
+  ]
+}

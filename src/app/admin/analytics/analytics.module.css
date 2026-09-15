@@ -1039,6 +1039,224 @@
   font-size: 0.75rem;
 }
 
+/* ========================================================================= */
+/* COMMENT MODERATION PANEL & CARDS                                          */
+/* ========================================================================= */
+.moderationPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.moderationControls {
+  background: #0d101b;
+  border: 1px solid #1f2538;
+  border-radius: 12px;
+  padding: 0.85rem 1.25rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.filterPill {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.filterPill:hover {
+  color: #f8fafc;
+}
+
+.filterPillActive {
+  background: #7c3aed;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.35);
+}
+
+.commentsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.commentItem {
+  background: #0d101b;
+  border: 1px solid #1f2538;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  transition: all 0.2s ease;
+}
+
+.commentItem:hover {
+  border-color: #3b4261;
+  background: #111524;
+}
+
+.commentItemSelected {
+  border-color: #8b5cf6;
+  background: rgba(139, 92, 246, 0.05);
+}
+
+.commentCheckbox {
+  margin-top: 0.35rem;
+  width: 17px;
+  height: 17px;
+  accent-color: #8b5cf6;
+  cursor: pointer;
+}
+
+.commentDetails {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.commentMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  font-size: 0.8rem;
+}
+
+.commentUser {
+  font-weight: 800;
+  color: #f8fafc;
+}
+
+.commentTarget {
+  color: #94a3b8;
+  font-size: 0.78rem;
+}
+
+.seriesLink {
+  color: #38bdf8;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.seriesLink:hover {
+  text-decoration: underline;
+}
+
+.commentDate {
+  color: #64748b;
+  font-size: 0.72rem;
+  margin-left: auto;
+}
+
+.commentBody {
+  color: #cbd5e1;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  margin: 0;
+  word-break: break-word;
+}
+
+.commentActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.approveBtn {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #34d399;
+  padding: 0.4rem 0.85rem;
+  border-radius: 8px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.approveBtn:hover {
+  background: #10b981;
+  color: #ffffff;
+}
+
+.bulkDeleteBtn {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #f87171;
+  padding: 0.45rem 0.9rem;
+  border-radius: 8px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.bulkDeleteBtn:hover {
+  background: #ef4444;
+  color: #ffffff;
+}
+
+.emptyComments {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: #0d101b;
+  border: 1px solid #1f2538;
+  border-radius: 12px;
+  color: #94a3b8;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.statusPillPending {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.15rem 0.5rem;
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  color: #fbbf24;
+  border-radius: 6px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.statusPillApproved {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.15rem 0.5rem;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: #34d399;
+  border-radius: 6px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
 
 
 

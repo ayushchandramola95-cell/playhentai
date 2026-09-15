@@ -1,200 +1,229 @@
 import { NextResponse } from 'next/server';
+import fs from 'fs';
+import path from 'path';
 import { createClient } from '@/utils/supabase/server';
 import { createAdminClient } from '@/utils/supabase/admin';
 
+export const dynamic = 'force-dynamic';
+
+export interface StoredComment {
+  id: string;
+  episode_id: string;
+  profile_id: string;
+  content: string;
+  created_at: string;
+  status: 'approved' | 'pending';
+  profiles?: {
+    username: string | null;
+    role: string;
+  };
+  seriesTitle?: string;
+  seriesSlug?: string | null;
+  episodeTitle?: string;
+  posterKey?: string | null;
+  likes?: number;
+  gif_url?: string | null;
+}
+
+interface CommentsStore {
+  comments: StoredComment[];
+}
+
+const STORE_PATH = path.join(process.cwd(), 'src', 'utils', 'comments_store.json');
+let memoryStore: CommentsStore | null = null;
+
+function getStore(): CommentsStore {
+  if (memoryStore) return memoryStore;
+
+  try {
+    if (fs.existsSync(STORE_PATH)) {
+      const raw = fs.readFileSync(STORE_PATH, 'utf-8');
+      const parsed = JSON.parse(raw);
+      if (parsed && Array.isArray(parsed.comments)) {
+        memoryStore = parsed;
+        return parsed;
+      }
+    }
+  } catch (err) {
+    console.error('Error reading comments store:', err);
+  }
+
+  const fallback: CommentsStore = { comments: [] };
+  memoryStore = fallback;
+  return fallback;
+}
+
+function saveStore(store: CommentsStore) {
+  memoryStore = store;
+  try {
+    const dir = path.dirname(STORE_PATH);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(STORE_PATH, JSON.stringify(store, null, 2), 'utf-8');
+  } catch (err) {
+    console.error('Error saving comments store:', err);
+  }
+}
+
+// GET: Returns comments for a specific episode or global list for Admin Moderation
 export async function GET(request: Request) {
   try {
-    const supabase = await createClient();
-    const adminSupabase = createAdminClient();
     const { searchParams } = new URL(request.url);
     const episodeId = searchParams.get('episode_id');
+    const store = getStore();
 
-    // Admin / Global comments retrieval
-    if (!episodeId) {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        return NextResponse.json({ error: 'Missing episode_id' }, { status: 400 });
-      }
-
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single();
-
-      if (profile?.role !== 'admin') {
-        return NextResponse.json({ error: 'Missing episode_id' }, { status: 400 });
-      }
-
-      const { data, error } = await adminSupabase
-        .from('comments')
-        .select(`
-          *,
-          profiles (
-            username,
-            role
-          ),
-          episodes (
-            id,
-            title,
-            episode_number,
-            seasons (
-              id,
-              title,
-              season_number,
-              series (
-                id,
-                title,
-                slug,
-                poster_image_key
-              )
-            )
-          )
-        `)
-        .order('created_at', { ascending: false })
-        .limit(150);
-
-      if (error) {
-        console.warn('Comments table not available, returning empty list:', error.message);
-        return NextResponse.json({ comments: [] });
-      }
-
-      // Format comments with flattened series and episode metadata
-      const formattedComments = (data || []).map((c: any) => {
-        const ep = c.episodes;
-        const season = ep?.seasons;
-        const series = season?.series;
-
-        return {
-          id: c.id,
-          content: c.content,
-          created_at: c.created_at,
-          profile_id: c.profile_id,
-          episode_id: c.episode_id,
-          status: c.status || 'approved',
-          profiles: c.profiles || { username: 'Anonymous', role: 'user' },
-          episodeTitle: ep?.title ? `Ep ${ep.episode_number}: ${ep.title}` : ep?.episode_number ? `Episode ${ep.episode_number}` : (c.episode_id ? `Episode ID: ${c.episode_id.substring(0, 8)}...` : 'General Discussion'),
-          seriesTitle: series?.title || (season?.title ? season.title : 'Global Discussion'),
-          seriesSlug: series?.slug || null,
-          posterKey: series?.poster_image_key || null
-        };
-      });
-
-      return NextResponse.json({ comments: formattedComments });
+    // 1. Episode-Specific Comments (for Public Video Watch Pages)
+    if (episodeId) {
+      const episodeComments = store.comments.filter(c => c.episode_id === episodeId);
+      return NextResponse.json({ comments: episodeComments });
     }
 
-    // Public per-episode comments
-    const { data, error } = await supabase
-      .from('comments')
-      .select(`
-        *,
-        profiles (
-          username,
-          role
-        )
-      `)
-      .eq('episode_id', episodeId)
-      .order('created_at', { ascending: false });
+    // 2. Global Moderation Comments (for Admin Intelligence Analytics)
+    // Sort latest comments first
+    const sortedComments = [...store.comments].sort(
+      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
 
-    if (error) {
-      console.warn('Comments table not available for episode, returning empty list:', error.message);
-      return NextResponse.json({ comments: [] });
-    }
-
-    return NextResponse.json({ comments: data || [] });
+    return NextResponse.json({ comments: sortedComments });
   } catch (err: any) {
-    console.error('Error fetching comments:', err);
+    console.error('Error in GET /api/comments:', err);
     return NextResponse.json({ comments: [] });
   }
 }
 
+// POST: Add new comment from Watch Page
 export async function POST(request: Request) {
   try {
     const supabase = await createClient();
+    const payload = await request.json().catch(() => null);
 
-    // 1. Get authenticated user
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized. Please sign in to post comments.' }, { status: 401 });
-    }
-
-    // 2. Parse payload
-    const { episode_id, content } = await request.json();
-    if (!episode_id || !content?.trim()) {
+    if (!payload || !payload.episode_id || (!payload.content?.trim() && !payload.gif_url)) {
       return NextResponse.json({ error: 'Missing episode_id or comment content' }, { status: 400 });
     }
 
-    // 3. Query user profile username & role
-    let username = user.email?.split('@')[0] || 'User';
+    const { episode_id, content, gif_url } = payload;
+
+    // Detect user session if authenticated
+    let username = 'Anonymous Visitor';
     let role = 'user';
-    try {
-      const { data: pData } = await supabase
-        .from('profiles')
-        .select('username, role')
-        .eq('id', user.id)
-        .single();
-      if (pData) {
-        if (pData.username) username = pData.username;
-        if (pData.role) role = pData.role;
-      }
-    } catch (pErr) {}
+    let profileId = `guest-${Date.now()}`;
 
-    // 4. Try insert into DB
     try {
-      const { data, error: insertError } = await supabase
-        .from('comments')
-        .insert({
-          episode_id,
-          profile_id: user.id,
-          content: content.trim(),
-          created_at: new Date().toISOString()
-        })
-        .select(`
-          *,
-          profiles (
-            username,
-            role
-          )
-        `)
-        .single();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        profileId = user.id;
+        username = user.email?.split('@')[0] || 'User';
 
-      if (!insertError && data) {
-        return NextResponse.json({ success: true, comment: data });
+        const { data: pData } = await supabase
+          .from('profiles')
+          .select('username, role')
+          .eq('id', user.id)
+          .single();
+
+        if (pData?.username) username = pData.username;
+        if (pData?.role) role = pData.role;
       }
-    } catch (dbErr) {
-      console.warn('Database insert failed, using memory comment fallback:', dbErr);
+    } catch (authErr) {
+      // Guest comment allowed
     }
 
-    // Fallback response if comments table does not exist in schema cache
-    const fallbackComment = {
-      id: `comment-${Date.now()}`,
+    // Look up parent episode and series details for rich metadata
+    let seriesTitle = 'General Discussion';
+    let seriesSlug: string | null = null;
+    let episodeTitle = 'Episode 1';
+    let posterKey: string | null = null;
+
+    try {
+      const adminSupabase = createAdminClient();
+      const { data: epData } = await adminSupabase
+        .from('episodes')
+        .select(`
+          id,
+          title,
+          episode_number,
+          seasons (
+            id,
+            title,
+            series (
+              id,
+              title,
+              slug,
+              poster_image_key
+            )
+          )
+        `)
+        .eq('id', episode_id)
+        .single();
+
+      if (epData) {
+        episodeTitle = epData.title ? `Ep ${epData.episode_number}: ${epData.title}` : `Episode ${epData.episode_number}`;
+        const s = (epData.seasons as any)?.series;
+        if (s) {
+          seriesTitle = s.title;
+          seriesSlug = s.slug;
+          posterKey = s.poster_image_key;
+        }
+      }
+    } catch (metaErr) {
+      console.warn('Metadata lookup fallback for comment:', metaErr);
+    }
+
+    const newComment: StoredComment = {
+      id: `cmt-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
       episode_id,
-      profile_id: user.id,
-      content: content.trim(),
+      profile_id: profileId,
+      content: (content || '').trim() || (gif_url ? 'Sent a GIF' : ''),
       created_at: new Date().toISOString(),
+      status: role === 'admin' ? 'approved' : 'pending',
       profiles: {
         username,
         role
-      }
+      },
+      seriesTitle,
+      seriesSlug,
+      episodeTitle,
+      posterKey,
+      gif_url: gif_url || null,
+      likes: 0
     };
 
-    return NextResponse.json({ success: true, comment: fallbackComment });
+    const store = getStore();
+    store.comments.unshift(newComment);
+    saveStore(store);
+
+    return NextResponse.json({ success: true, comment: newComment });
   } catch (err: any) {
     console.error('Error posting comment:', err);
-    return NextResponse.json({ error: err.message || 'Server Error' }, { status: 500 });
+    return NextResponse.json({ error: err.message || 'Failed to submit comment' }, { status: 500 });
   }
 }
 
-export async function DELETE(request: Request) {
+// PATCH: Approve or update comment moderation status
+export async function PATCH(request: Request) {
   try {
-    const supabase = await createClient();
-    const adminSupabase = createAdminClient();
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const { id, status } = await request.json().catch(() => ({}));
+    if (!id || !status) {
+      return NextResponse.json({ error: 'Missing comment ID or status' }, { status: 400 });
     }
 
+    const store = getStore();
+    const commentIndex = store.comments.findIndex(c => c.id === id);
+    if (commentIndex === -1) {
+      return NextResponse.json({ error: 'Comment not found' }, { status: 404 });
+    }
+
+    store.comments[commentIndex].status = status;
+    saveStore(store);
+
+    return NextResponse.json({ success: true, comment: store.comments[commentIndex] });
+  } catch (err: any) {
+    console.error('Error updating comment:', err);
+    return NextResponse.json({ error: 'Failed to update comment' }, { status: 500 });
+  }
+}
+
+// DELETE: Delete single or bulk comments
+export async function DELETE(request: Request) {
+  try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
     const ids = searchParams.get('ids');
@@ -203,28 +232,19 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: 'Missing comment ID or IDs' }, { status: 400 });
     }
 
-    try {
-      if (ids) {
-        const idList = ids.split(',').map(s => s.trim()).filter(Boolean);
-        const { error: deleteError } = await adminSupabase
-          .from('comments')
-          .delete()
-          .in('id', idList);
-        if (deleteError) {
-          console.warn('Supabase bulk delete comments failed:', deleteError.message);
-        }
-        return NextResponse.json({ success: true, count: idList.length });
-      }
+    const store = getStore();
+    if (ids) {
+      const idList = ids.split(',').map(s => s.trim()).filter(Boolean);
+      store.comments = store.comments.filter(c => !idList.includes(c.id));
+      saveStore(store);
+      return NextResponse.json({ success: true, count: idList.length });
+    }
 
-      const { error: deleteError } = await adminSupabase
-        .from('comments')
-        .delete()
-        .eq('id', id);
-
-      if (deleteError) {
-        console.warn('Supabase delete comment failed:', deleteError.message);
-      }
-    } catch (err) {}
+    if (id) {
+      store.comments = store.comments.filter(c => c.id !== id);
+      saveStore(store);
+      return NextResponse.json({ success: true });
+    }
 
     return NextResponse.json({ success: true });
   } catch (err: any) {
