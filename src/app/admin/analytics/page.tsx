@@ -170,6 +170,7 @@ export default function AdminAnalyticsPage() {
   const [allSeriesAnalytics, setAllSeriesAnalytics] = useState<ViewedSeries[]>([]);
   const [allEpisodesAnalytics, setAllEpisodesAnalytics] = useState<ViewedEpisode[]>([]);
   const [todayStats, setTodayStats] = useState<TodayStats | null>(null);
+  const [todayTopContentTab, setTodayTopContentTab] = useState<'series' | 'episodes'>('series');
   const [loadingMetrics, setLoadingMetrics] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -1046,54 +1047,116 @@ export default function AdminAnalyticsPage() {
                   </div>
                 </div>
 
-                {/* Column 2: 🏆 Most Watched Series Today */}
+                {/* Column 2: 🏆 Most Watched Content Today (Series & Episodes Toggle) */}
                 <div className={styles.chartCard} style={{ gridColumn: 'span 1' }}>
                   <div className={styles.chartHeader}>
-                    <div>
-                      <h3 className={styles.chartTitle} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <Award size={18} style={{ color: '#f59e0b' }} />
-                        <span>🏆 Most Watched Series Today</span>
-                      </h3>
-                      <span className={styles.chartSubtitle}>Top ranked anime titles watched specifically today</span>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', flexWrap: 'wrap', gap: '0.5rem' }}>
+                      <div>
+                        <h3 className={styles.chartTitle} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <Award size={18} style={{ color: '#f59e0b' }} />
+                          <span>🏆 Most Watched {todayTopContentTab === 'series' ? 'Series' : 'Episodes'} Today</span>
+                        </h3>
+                        <span className={styles.chartSubtitle}>
+                          Top ranked {todayTopContentTab === 'series' ? 'anime series' : 'specific episodes'} watched today
+                        </span>
+                      </div>
+
+                      <div className={styles.timeRangePill}>
+                        <button
+                          type="button"
+                          onClick={() => setTodayTopContentTab('series')}
+                          className={`${styles.timeRangeBtn} ${todayTopContentTab === 'series' ? styles.timeRangeBtnActive : ''}`}
+                        >
+                          Series
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setTodayTopContentTab('episodes')}
+                          className={`${styles.timeRangeBtn} ${todayTopContentTab === 'episodes' ? styles.timeRangeBtnActive : ''}`}
+                        >
+                          Episodes
+                        </button>
+                      </div>
                     </div>
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', maxHeight: '520px', overflowY: 'auto' }}>
                     {loadingMetrics ? (
                       <div style={{ padding: '2rem', textAlign: 'center', color: '#94a3b8' }}>Calculating today's rankings...</div>
-                    ) : !todayStats?.topSeries || todayStats.topSeries.length === 0 ? (
-                      <div style={{ padding: '2rem', textAlign: 'center', color: '#94a3b8' }}>No series rankings available for today.</div>
-                    ) : (
-                      todayStats.topSeries.map((s, idx) => (
-                        <div key={s.id} className={styles.todayRankCard}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0, flex: 1 }}>
-                            <span className={`${styles.rankBadge} ${idx === 0 ? styles.rankBadgeGold : idx === 1 ? styles.rankBadgeSilver : idx === 2 ? styles.rankBadgeBronze : ''}`}>
-                              #{idx + 1}
-                            </span>
-                            {s.poster_image_key ? (
-                              <img
-                                src={getR2Url(s.poster_image_key, 'poster')}
-                                alt={s.title}
-                                style={{ width: '32px', height: '44px', borderRadius: '4px', objectFit: 'cover' }}
-                                onError={(e) => { (e.target as any).style.display = 'none'; }}
-                              />
-                            ) : null}
-                            <div style={{ minWidth: 0 }}>
-                              <Link href={`/series/${s.slug}`} className={styles.streamSeriesTitle} style={{ fontSize: '0.82rem' }}>
-                                {s.title}
-                              </Link>
-                              <span style={{ fontSize: '0.7rem', color: '#94a3b8', display: 'block' }}>
-                                {s.studio || 'Anime Studio'}
+                    ) : todayTopContentTab === 'series' ? (
+                      !todayStats?.topSeries || todayStats.topSeries.length === 0 ? (
+                        <div style={{ padding: '2rem', textAlign: 'center', color: '#94a3b8' }}>No series rankings available for today.</div>
+                      ) : (
+                        todayStats.topSeries.map((s, idx) => (
+                          <div key={s.id} className={styles.todayRankCard}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0, flex: 1 }}>
+                              <span className={`${styles.rankBadge} ${idx === 0 ? styles.rankBadgeGold : idx === 1 ? styles.rankBadgeSilver : idx === 2 ? styles.rankBadgeBronze : ''}`}>
+                                #{idx + 1}
                               </span>
+                              {s.poster_image_key ? (
+                                <img
+                                  src={getR2Url(s.poster_image_key, 'poster')}
+                                  alt={s.title}
+                                  style={{ width: '32px', height: '44px', borderRadius: '4px', objectFit: 'cover' }}
+                                  onError={(e) => { (e.target as any).style.display = 'none'; }}
+                                />
+                              ) : null}
+                              <div style={{ minWidth: 0 }}>
+                                <Link href={`/series/${s.slug}`} className={styles.streamSeriesTitle} style={{ fontSize: '0.82rem' }}>
+                                  {s.title}
+                                </Link>
+                                <span style={{ fontSize: '0.7rem', color: '#94a3b8', display: 'block' }}>
+                                  {s.studio || 'Anime Studio'}
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className={styles.viewCountPill}>
+                              <PlayCircle size={12} />
+                              <span>{s.viewsCount} {s.viewsCount === 1 ? 'play' : 'plays'}</span>
                             </div>
                           </div>
+                        ))
+                      )
+                    ) : (
+                      !todayStats?.topEpisodes || todayStats.topEpisodes.length === 0 ? (
+                        <div style={{ padding: '2rem', textAlign: 'center', color: '#94a3b8' }}>No episode rankings available for today.</div>
+                      ) : (
+                        todayStats.topEpisodes.map((ep, idx) => (
+                          <div key={ep.id} className={styles.todayRankCard}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0, flex: 1 }}>
+                              <span className={`${styles.rankBadge} ${idx === 0 ? styles.rankBadgeGold : idx === 1 ? styles.rankBadgeSilver : idx === 2 ? styles.rankBadgeBronze : ''}`}>
+                                #{idx + 1}
+                              </span>
+                              {ep.thumbnail_image_key ? (
+                                <img
+                                  src={getR2Url(ep.thumbnail_image_key, 'thumbnail')}
+                                  alt={ep.title}
+                                  style={{ width: '48px', height: '32px', borderRadius: '4px', objectFit: 'cover' }}
+                                  onError={(e) => { (e.target as any).style.display = 'none'; }}
+                                />
+                              ) : (
+                                <div style={{ width: '48px', height: '32px', borderRadius: '4px', background: '#1c2234', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                  <Film size={14} style={{ color: '#64748b' }} />
+                                </div>
+                              )}
+                              <div style={{ minWidth: 0 }}>
+                                <Link href={`/series/${ep.series_slug || ''}`} className={styles.streamSeriesTitle} style={{ fontSize: '0.82rem' }}>
+                                  {ep.title}
+                                </Link>
+                                <span style={{ fontSize: '0.7rem', color: '#94a3b8', display: 'block' }}>
+                                  {ep.series_title}
+                                </span>
+                              </div>
+                            </div>
 
-                          <div className={styles.viewCountPill}>
-                            <PlayCircle size={12} />
-                            <span>{s.viewsCount} {s.viewsCount === 1 ? 'play' : 'plays'}</span>
+                            <div className={styles.viewCountPill}>
+                              <PlayCircle size={12} />
+                              <span>{ep.viewsCount} {ep.viewsCount === 1 ? 'play' : 'plays'}</span>
+                            </div>
                           </div>
-                        </div>
-                      ))
+                        ))
+                      )
                     )}
                   </div>
                 </div>
