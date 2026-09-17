@@ -5,6 +5,8 @@ import JsonLd from '@/components/JsonLd/JsonLd';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
 
+export const revalidate = 120;
+
 export async function generateMetadata() {
   return {
     title: 'Hentai Production Studios Directory — 118+ Studios | Play Hentai',

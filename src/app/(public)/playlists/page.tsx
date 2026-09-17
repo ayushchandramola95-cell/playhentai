@@ -11,6 +11,8 @@ interface PageProps {
   }>;
 }
 
+export const revalidate = 120;
+
 export async function generateMetadata({ searchParams }: PageProps) {
   const params = await searchParams;
   const tab = params.tab;

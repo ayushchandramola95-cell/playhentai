@@ -131,7 +131,7 @@ const getCachedCatalogData = unstable_cache(
     return { dbSeries, dbEpisodes, isDbEmpty };
   },
   ['homepage-catalog-cache-v1'],
-  { revalidate: 1800, tags: ['homepage_catalog'] }
+  { revalidate: 120, tags: ['homepage_catalog'] }
 );
 
 function getLocalSettings(): Record<string, string> {

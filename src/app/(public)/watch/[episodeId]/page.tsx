@@ -181,12 +181,14 @@ async function resolveEpisode(supabase: any, episodeId: string) {
   return null;
 }
 
+export const revalidate = 120;
+
 const getCachedResolvedEpisode = unstable_cache(
   async (episodeId: string) => {
     return await resolveEpisode(publicSupabaseClient, episodeId);
   },
   ['watch-episode-resolved-cache-v2'],
-  { revalidate: 1800, tags: ['watch_episode', 'episodes_catalog'] }
+  { revalidate: 120, tags: ['watch_episode', 'episodes_catalog'] }
 );
 
 function formatIso8601Duration(seconds?: number): string {
@@ -339,7 +341,7 @@ const getCachedMinimalSeriesList = unstable_cache(
     }
   },
   ['minimal-series-list-watch-cache-v8'],
-  { revalidate: 1800, tags: ['series_list', 'all_series_catalog'] }
+  { revalidate: 120, tags: ['series_list', 'all_series_catalog'] }
 );
 
 export default async function WatchPage({ params }: WatchPageProps) {

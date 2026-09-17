@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { Calendar, ChevronLeft, ChevronRight, ListOrdered } from 'lucide-react';
+import { unstable_cache } from 'next/cache';
 import { createClient } from '@supabase/supabase-js';
 import SeriesCard from '@/components/SeriesCard/SeriesCard';
 import JsonLd from '@/components/JsonLd/JsonLd';
@@ -18,62 +19,97 @@ interface YearPageProps {
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
 const PAGE_SIZE = 24;
 
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ybtbdtgtryrxrhuchlkw.supabase.co';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_HLX-SCL51o2H254WH-gN0Q_HPpNwKo5';
+const publicSupabaseClient = createClient(supabaseUrl, supabaseAnonKey);
+
+export const revalidate = 120;
+
 /**
- * Fetch series released in the given year.
- * Sorted by actual release date (first_air_date) descending, falling back to created_at descending.
+ * Fetch series released in the given year with 120s caching and trimmed payloads.
  */
-async function getSeriesByYear(yearNum: number): Promise<any[]> {
-  try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
-    const viewsMap = await getSeriesViewsMap();
+const getCachedSeriesByYear = unstable_cache(
+  async (yearNum: number): Promise<any[]> => {
+    try {
+      const viewsMap = await getSeriesViewsMap();
 
-    const { data, error } = await supabase
-      .from('series')
-      .select(`
-        id, title, slug, description, poster_image_key, cover_image_key,
-        banner_image_key, tags, status,
-        release_year, studio, episode_count_override, poster_position,
-        first_air_date, created_at,
-        seasons (
-          is_published,
-          season_number,
-          episodes (
-            id,
+      const { data, error } = await publicSupabaseClient
+        .from('series')
+        .select(`
+          id, title, slug, description, poster_image_key, cover_image_key,
+          banner_image_key, tags, category, status,
+          release_year, studio, episode_count_override, poster_position,
+          first_air_date, created_at, rating,
+          seasons (
             is_published,
-            episode_number
+            season_number,
+            episodes (
+              id,
+              is_published,
+              episode_number
+            )
           )
-        )
-      `)
-      .eq('is_published', true)
-      .eq('release_year', yearNum);
+        `)
+        .eq('is_published', true)
+        .eq('release_year', yearNum);
 
-    if (error || !data) return [];
+      if (error || !data) return [];
 
-    const mapped = data.map((s: any) => ({
-      ...s,
-      views: viewsMap[s.id] || 0,
-      rating: null
-    }));
+      const mapped = data.map((s: any) => {
+        let epCount = 0;
+        if (s.seasons && Array.isArray(s.seasons)) {
+          s.seasons.forEach((sea: any) => {
+            if (sea.is_published && sea.episodes && Array.isArray(sea.episodes)) {
+              epCount += sea.episodes.filter((e: any) => e.is_published).length;
+            }
+          });
+        }
+        return {
+          id: s.id,
+          title: s.title,
+          slug: s.slug,
+          description: s.description,
+          poster_image_key: s.poster_image_key,
+          cover_image_key: s.cover_image_key,
+          banner_image_key: s.banner_image_key,
+          tags: s.tags,
+          category: s.category,
+          status: s.status,
+          release_year: s.release_year,
+          studio: s.studio,
+          episode_count_override: s.episode_count_override,
+          episode_count: epCount,
+          poster_position: s.poster_position,
+          first_air_date: s.first_air_date,
+          created_at: s.created_at,
+          rating: s.rating,
+          views: viewsMap[s.id] || 0,
+        };
+      });
 
-    // Custom sorting: first_air_date DESC (nulls last) -> created_at DESC
-    return mapped.sort((a: any, b: any) => {
-      const aTime = a.first_air_date ? new Date(a.first_air_date).getTime() : 0;
-      const bTime = b.first_air_date ? new Date(b.first_air_date).getTime() : 0;
+      // Custom sorting: first_air_date DESC (nulls last) -> created_at DESC
+      return mapped.sort((a: any, b: any) => {
+        const aTime = a.first_air_date ? new Date(a.first_air_date).getTime() : 0;
+        const bTime = b.first_air_date ? new Date(b.first_air_date).getTime() : 0;
 
-      if (aTime !== bTime) {
-        return bTime - aTime;
-      }
-      
-      const aCreated = a.created_at ? new Date(a.created_at).getTime() : 0;
-      const bCreated = b.created_at ? new Date(b.created_at).getTime() : 0;
-      return bCreated - aCreated;
-    });
-  } catch {
-    return [];
-  }
+        if (aTime !== bTime) {
+          return bTime - aTime;
+        }
+        
+        const aCreated = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const bCreated = b.created_at ? new Date(b.created_at).getTime() : 0;
+        return bCreated - aCreated;
+      });
+    } catch {
+      return [];
+    }
+  },
+  ['year-series-catalog-cache-v2'],
+  { revalidate: 120, tags: ['year_catalog', 'all_series_catalog'] }
+);
+
+async function getSeriesByYear(yearNum: number): Promise<any[]> {
+  return await getCachedSeriesByYear(yearNum);
 }
 
 export async function generateMetadata({ params }: YearPageProps): Promise<Metadata> {

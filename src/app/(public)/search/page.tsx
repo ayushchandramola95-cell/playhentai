@@ -20,18 +20,45 @@ interface SearchPageProps {
   searchParams: Promise<{ q?: string }>;
 }
 
+export const revalidate = 60;
+
+const getCachedIsDbEmpty = unstable_cache(
+  async () => {
+    try {
+      const { count } = await publicSupabaseClient.from('series').select('id', { count: 'exact', head: true });
+      return !count || count === 0;
+    } catch {
+      return false;
+    }
+  },
+  ['db-empty-check-v1'],
+  { revalidate: 3600, tags: ['db_status'] }
+);
+
 const getCachedSearchResults = unstable_cache(
   async (query: string) => {
     const cleanQuery = query.replace(/[,().%\\"]/g, '').trim();
     if (!cleanQuery) return { results: [], isDbEmpty: true };
     let results: any[] = [];
-    let isDbEmpty = true;
+    let isDbEmpty = false;
 
     try {
       const { data, error } = await publicSupabaseClient
         .from('series')
         .select(`
-          *,
+          id,
+          title,
+          slug,
+          description,
+          poster_image_key,
+          cover_image_key,
+          tags,
+          category,
+          studio,
+          status,
+          rating,
+          release_year,
+          created_at,
           seasons (
             is_published,
             episodes (
@@ -43,12 +70,25 @@ const getCachedSearchResults = unstable_cache(
         .or(`title.ilike.%${cleanQuery}%,description.ilike.%${cleanQuery}%`);
 
       if (!error && data) {
-        results = data;
+        results = data.map((item: any) => {
+          let epCount = 0;
+          if (item.seasons && Array.isArray(item.seasons)) {
+            item.seasons.forEach((s: any) => {
+              if (s.is_published !== false && s.episodes && Array.isArray(s.episodes)) {
+                epCount += s.episodes.filter((e: any) => e.is_published !== false).length;
+              }
+            });
+          }
+          const { seasons, ...rest } = item;
+          return {
+            ...rest,
+            episode_count: epCount
+          };
+        });
       }
 
-      const { count } = await publicSupabaseClient.from('series').select('*', { count: 'exact', head: true });
-      if (count && count > 0) {
-        isDbEmpty = false;
+      if (results.length === 0) {
+        isDbEmpty = await getCachedIsDbEmpty();
       }
     } catch (err) {
       console.error('Error fetching search results:', err);
@@ -56,7 +96,7 @@ const getCachedSearchResults = unstable_cache(
 
     return { results, isDbEmpty };
   },
-  ['search-results-cache-v1'],
+  ['search-results-cache-v2'],
   { revalidate: 60, tags: ['search_results'] }
 );
 

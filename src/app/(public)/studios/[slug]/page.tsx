@@ -12,6 +12,8 @@ interface StudioDetailPageProps {
   params: Promise<{ slug: string }>;
 }
 
+export const revalidate = 120;
+
 export async function generateMetadata({ params }: StudioDetailPageProps) {
   const { slug } = await params;
   const studio = await getStudioDetails(slug);

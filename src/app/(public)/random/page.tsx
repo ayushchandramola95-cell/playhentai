@@ -60,6 +60,8 @@ export async function generateMetadata({ searchParams }: PageProps) {
   };
 }
 
+export const revalidate = 120;
+
 const getCachedRandomizerSeries = unstable_cache(
   async () => {
     let dbSeries: any[] = [];
@@ -71,13 +73,21 @@ const getCachedRandomizerSeries = unstable_cache(
       const { data: seriesData, error } = await publicSupabaseClient
         .from('series')
         .select(`
-          *,
-          seasons (
-            is_published,
-            episodes (
-              is_published
-            )
-          )
+          id,
+          title,
+          slug,
+          description,
+          poster_image_key,
+          cover_image_key,
+          poster_position,
+          content_rating,
+          tags,
+          category,
+          status,
+          release_year,
+          studio,
+          rating,
+          created_at
         `)
         .eq('is_published', true)
         .order('created_at', { ascending: false });
@@ -95,8 +105,8 @@ const getCachedRandomizerSeries = unstable_cache(
 
     return { dbSeries, isDbEmpty };
   },
-  ['random-series-catalog-cache-v3'],
-  { revalidate: 1800, tags: ['randomizer_catalog', 'series_catalog', 'all_series_catalog'] }
+  ['random-series-catalog-cache-v4'],
+  { revalidate: 120, tags: ['randomizer_catalog', 'series_catalog', 'all_series_catalog'] }
 );
 
 export default async function RandomPage() {

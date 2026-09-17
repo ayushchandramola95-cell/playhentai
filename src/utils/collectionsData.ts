@@ -142,62 +142,66 @@ export const COLLECTIONS: Collection[] = [
   }
 ];
 
-export async function getCollectionWithSeries(slug: string) {
-  const localList = getLocalPlaylists();
-  const collection = localList.find(c => c.slug === slug);
-  if (!collection) return null;
+export const getCollectionWithSeries = unstable_cache(
+  async (slug: string) => {
+    const localList = getLocalPlaylists();
+    const collection = localList.find(c => c.slug === slug);
+    if (!collection) return null;
 
-  let seriesList: any[] = [];
-  try {
-    const { data } = await publicSupabaseClient
-      .from('series')
-      .select('*')
-      .eq('is_published', true);
-    
-    if (data && data.length > 0) {
-      seriesList = data;
+    let seriesList: any[] = [];
+    try {
+      const { data } = await publicSupabaseClient
+        .from('series')
+        .select('id, title, slug, description, poster_image_key, cover_image_key, tags, category, studio, status, rating, release_year, created_at')
+        .eq('is_published', true);
+      
+      if (data && data.length > 0) {
+        seriesList = data;
+      }
+    } catch (err) {
+      console.error('Error fetching series for collection details:', err);
     }
-  } catch (err) {
-    console.error('Error fetching series for collection details:', err);
-  }
 
-  if (seriesList.length === 0) {
-    seriesList = MOCK_SERIES;
-  }
+    if (seriesList.length === 0) {
+      seriesList = MOCK_SERIES;
+    }
 
-  let matchedSeries = seriesList.filter(s => {
-    if (collection.seriesSlugs.includes(s.slug)) return true;
+    let matchedSeries = seriesList.filter(s => {
+      if (collection.seriesSlugs.includes(s.slug)) return true;
 
-    const titleLower = (s.title || '').toLowerCase();
-    const descLower = (s.description || '').toLowerCase();
-    const tagsLower = (s.tags || []).map((t: string) => t.toLowerCase());
-    const catLower = (s.category || '').toLowerCase();
+      const titleLower = (s.title || '').toLowerCase();
+      const descLower = (s.description || '').toLowerCase();
+      const tagsLower = (s.tags || []).map((t: string) => t.toLowerCase());
+      const catLower = (s.category || '').toLowerCase();
 
-    if (collection.slug === 'uncensored-legends') return tagsLower.includes('uncensored') || descLower.includes('uncensored');
-    if (collection.slug === 'scifi-cyberpunk') return catLower === 'sci-fi' || tagsLower.includes('sci-fi') || tagsLower.includes('cyberpunk') || titleLower.includes('cyberpunk') || tagsLower.includes('mecha');
-    if (collection.slug === 'fantasy-magic') return catLower === 'fantasy' || tagsLower.includes('magic') || tagsLower.includes('fantasy') || descLower.includes('spell');
-    if (collection.slug === 'action-martial-arts') return catLower === 'action' || tagsLower.includes('action') || titleLower.includes('ninja') || tagsLower.includes('thriller');
-    if (collection.slug === 'harem-romance') return catLower === 'harem' || tagsLower.includes('harem') || tagsLower.includes('romance') || catLower === 'romance' || tagsLower.includes('school');
-    if (collection.slug === 'supernatural-demons') return tagsLower.includes('supernatural') || tagsLower.includes('demons') || catLower === 'supernatural' || descLower.includes('demon');
-    if (collection.slug === 'top-rated-classics') return true;
-    if (collection.slug === 'comedy-slice-of-life') return catLower === 'comedy' || tagsLower.includes('comedy') || tagsLower.includes('slice of life');
-    if (collection.slug === 'mystery-thriller') return catLower === 'mystery' || tagsLower.includes('mystery') || tagsLower.includes('thriller');
-    if (collection.slug === 'historical-feudal') return catLower === 'historical' || tagsLower.includes('historical') || titleLower.includes('ninja');
-    if (collection.slug === 'super-power') return tagsLower.includes('super power') || catLower === 'action' || tagsLower.includes('fantasy');
-    if (collection.slug === 'ecchi-fanservice') return catLower === 'ecchi' || tagsLower.includes('ecchi') || tagsLower.includes('harem');
+      if (collection.slug === 'uncensored-legends') return tagsLower.includes('uncensored') || descLower.includes('uncensored');
+      if (collection.slug === 'scifi-cyberpunk') return catLower === 'sci-fi' || tagsLower.includes('sci-fi') || tagsLower.includes('cyberpunk') || titleLower.includes('cyberpunk') || tagsLower.includes('mecha');
+      if (collection.slug === 'fantasy-magic') return catLower === 'fantasy' || tagsLower.includes('magic') || tagsLower.includes('fantasy') || descLower.includes('spell');
+      if (collection.slug === 'action-martial-arts') return catLower === 'action' || tagsLower.includes('action') || titleLower.includes('ninja') || tagsLower.includes('thriller');
+      if (collection.slug === 'harem-romance') return catLower === 'harem' || tagsLower.includes('harem') || tagsLower.includes('romance') || catLower === 'romance' || tagsLower.includes('school');
+      if (collection.slug === 'supernatural-demons') return tagsLower.includes('supernatural') || tagsLower.includes('demons') || catLower === 'supernatural' || descLower.includes('demon');
+      if (collection.slug === 'top-rated-classics') return true;
+      if (collection.slug === 'comedy-slice-of-life') return catLower === 'comedy' || tagsLower.includes('comedy') || tagsLower.includes('slice of life');
+      if (collection.slug === 'mystery-thriller') return catLower === 'mystery' || tagsLower.includes('mystery') || tagsLower.includes('thriller');
+      if (collection.slug === 'historical-feudal') return catLower === 'historical' || tagsLower.includes('historical') || titleLower.includes('ninja');
+      if (collection.slug === 'super-power') return tagsLower.includes('super power') || catLower === 'action' || tagsLower.includes('fantasy');
+      if (collection.slug === 'ecchi-fanservice') return catLower === 'ecchi' || tagsLower.includes('ecchi') || tagsLower.includes('harem');
 
-    return false;
-  });
+      return false;
+    });
 
-  if (matchedSeries.length === 0) {
-    matchedSeries = seriesList.slice(0, 6);
-  }
+    if (matchedSeries.length === 0) {
+      matchedSeries = seriesList.slice(0, 6);
+    }
 
-  return {
-    ...collection,
-    series: matchedSeries
-  };
-}
+    return {
+      ...collection,
+      series: matchedSeries
+    };
+  },
+  ['collection-details-cache-v2'],
+  { revalidate: 120, tags: ['collection_details', 'collections_previews'] }
+);
 
 export const getAllCollectionsWithPreviews = unstable_cache(
   async () => {

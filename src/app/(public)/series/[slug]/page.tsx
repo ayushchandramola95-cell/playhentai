@@ -64,6 +64,8 @@ function getFirstEpisodeId(series: any, isDbEmpty: boolean): string | null {
   return null;
 }
 
+export const revalidate = 120;
+
 const getCachedAllPublishedSeries = unstable_cache(
   async () => {
     try {
@@ -91,7 +93,7 @@ const getCachedAllPublishedSeries = unstable_cache(
     return [];
   },
   ['all-published-series-catalog-v10'],
-  { revalidate: 1800, tags: ['all_series_catalog'] }
+  { revalidate: 120, tags: ['all_series_catalog'] }
 );
 
 const getCachedSeriesDetails = unstable_cache(
@@ -153,7 +155,7 @@ const getCachedSeriesDetails = unstable_cache(
     return { dbSeries, dbSeasons, isDbEmpty };
   },
   ['series-details-single-item-v9'],
-  { revalidate: 1800, tags: ['series_details'] }
+  { revalidate: 120, tags: ['series_details'] }
 );
 
 export async function generateMetadata({ params }: SeriesPageProps): Promise<Metadata> {

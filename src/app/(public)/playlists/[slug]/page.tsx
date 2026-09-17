@@ -14,6 +14,8 @@ interface PlaylistDetailPageProps {
   params: Promise<{ slug: string }>;
 }
 
+export const revalidate = 120;
+
 export async function generateMetadata({ params }: PlaylistDetailPageProps) {
   const { slug } = await params;
   const collection = await getCollectionWithSeries(slug);

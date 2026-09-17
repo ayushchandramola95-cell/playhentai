@@ -282,86 +282,90 @@ export const getAllStudiosWithStats = unstable_cache(
   { revalidate: 3600, tags: ['studios_stats'] }
 );
 
-export async function getStudioDetails(slug: string) {
-  const allStudios = await getAllStudiosWithStats();
-  let currentStudio = allStudios.find((s) => s.slug === slug);
+export const getStudioDetails = unstable_cache(
+  async (slug: string) => {
+    const allStudios = await getAllStudiosWithStats();
+    let currentStudio = allStudios.find((s) => s.slug === slug);
 
-  // Fallback if slug slightly differed
-  if (!currentStudio) {
-    const matched = STUDIOS.find((st) => convertStudioNameToSlug(st) === slug);
-    if (matched) {
-      currentStudio = {
-        id: `st-${slug}`,
-        name: matched,
-        slug: slug,
-        bio: `${matched} is an animation production studio known for anime releases and series catalog on Play Hentai.`,
-        founded: 2012,
-        country: 'Japan',
-        logoChar: getStudioLogoChar(matched),
-        gradient: getStudioGradient(matched),
-        stats: { totalSeries: 0, averageRating: 'N/A' },
-        tags: [],
-      };
+    // Fallback if slug slightly differed
+    if (!currentStudio) {
+      const matched = STUDIOS.find((st) => convertStudioNameToSlug(st) === slug);
+      if (matched) {
+        currentStudio = {
+          id: `st-${slug}`,
+          name: matched,
+          slug: slug,
+          bio: `${matched} is an animation production studio known for anime releases and series catalog on Play Hentai.`,
+          founded: 2012,
+          country: 'Japan',
+          logoChar: getStudioLogoChar(matched),
+          gradient: getStudioGradient(matched),
+          stats: { totalSeries: 0, averageRating: 'N/A' },
+          tags: [],
+        };
+      }
     }
-  }
 
-  if (!currentStudio) return null;
+    if (!currentStudio) return null;
 
-  // Fetch full series matching this studio
-  let seriesList: any[] = [];
-  try {
-    const { data } = await publicSupabaseClient
-      .from('series')
-      .select('*')
-      .eq('is_published', true);
-    if (data && data.length > 0) {
-      seriesList = data;
+    // Fetch full series matching this studio
+    let seriesList: any[] = [];
+    try {
+      const { data } = await publicSupabaseClient
+        .from('series')
+        .select('id, title, slug, description, poster_image_key, cover_image_key, tags, category, studio, status, rating, release_year, created_at')
+        .eq('is_published', true);
+      if (data && data.length > 0) {
+        seriesList = data;
+      }
+    } catch (err) {
+      console.error('Error fetching series for studio details:', err);
     }
-  } catch (err) {
-    console.error('Error fetching series for studio details:', err);
-  }
 
-  if (seriesList.length === 0) {
-    seriesList = MOCK_SERIES;
-  }
+    if (seriesList.length === 0) {
+      seriesList = MOCK_SERIES;
+    }
 
-  const studioSeries = seriesList.filter((s) => {
-    const sStudio = (s.studio || '').trim();
-    if (!sStudio) return false;
-    const rawNames = sStudio.split(',').map((st: string) => st.trim());
-    return rawNames.some((r: string) => {
-      const sSlug = convertStudioNameToSlug(r);
-      return sSlug === slug || r.toLowerCase() === currentStudio!.name.toLowerCase();
+    const studioSeries = seriesList.filter((s) => {
+      const sStudio = (s.studio || '').trim();
+      if (!sStudio) return false;
+      const rawNames = sStudio.split(',').map((st: string) => st.trim());
+      return rawNames.some((r: string) => {
+        const sSlug = convertStudioNameToSlug(r);
+        return sSlug === slug || r.toLowerCase() === currentStudio!.name.toLowerCase();
+      });
     });
-  });
 
-  // Calculate related studios (studios with overlapping tags or active studios)
-  const currentTags = currentStudio.tags || [];
-  const otherStudios = allStudios.filter((s) => s.slug !== slug);
+    // Calculate related studios (studios with overlapping tags or active studios)
+    const currentTags = currentStudio.tags || [];
+    const otherStudios = allStudios.filter((s) => s.slug !== slug);
 
-  const relatedStudios = otherStudios
-    .map((s) => {
-      const otherTags = s.tags || [];
-      const intersection = currentTags.filter((t) => otherTags.includes(t)).length;
-      return {
-        name: s.name,
-        slug: s.slug,
-        logoChar: s.logoChar,
-        gradient: s.gradient,
-        totalSeries: s.stats.totalSeries,
-        averageRating: s.stats.averageRating,
-        intersection,
-      };
-    })
-    .sort((a, b) => b.intersection - a.intersection || b.totalSeries - a.totalSeries)
-    .slice(0, 3);
+    const relatedStudios = otherStudios
+      .map((s) => {
+        const otherTags = s.tags || [];
+        const intersection = currentTags.filter((t) => otherTags.includes(t)).length;
+        return {
+          name: s.name,
+          slug: s.slug,
+          logoChar: s.logoChar,
+          gradient: s.gradient,
+          totalSeries: s.stats.totalSeries,
+          averageRating: s.stats.averageRating,
+          intersection,
+        };
+      })
+      .sort((a, b) => b.intersection - a.intersection || b.totalSeries - a.totalSeries)
+      .slice(0, 3);
 
-  return {
-    ...currentStudio,
-    series: studioSeries,
-    relatedStudios,
-  };
-}
+    return {
+      ...currentStudio,
+      series: studioSeries,
+      relatedStudios,
+    };
+  },
+  ['studio-details-item-cache-v2'],
+  { revalidate: 3600, tags: ['studio_details', 'studios_stats'] }
+);
 
 export function convertStudioNameToSlug(name: string): string {
   if (!name) return '';
