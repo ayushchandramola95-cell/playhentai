@@ -62,7 +62,7 @@ export default function AnalyticsTracker() {
     sessionId.current = storedSessionId;
 
     // 2. Dual-Layer AdBlock Detection (DOM Bait Element + Network Reachability)
-    const detectAdBlock = async () => {
+    const detectAdBlock = () => {
       let isBlocked = false;
 
       // Layer A: DOM Bait Element Test
@@ -92,7 +92,18 @@ export default function AnalyticsTracker() {
       sendBeacon('pageview');
     };
 
-    detectAdBlock();
+    // Defer adblock check & initial pageview beacon so it NEVER blocks initial hydration or first paint
+    if ('requestIdleCallback' in window) {
+      const idleId = (window as any).requestIdleCallback(detectAdBlock, { timeout: 3500 });
+      return () => {
+        if ('cancelIdleCallback' in window) {
+          (window as any).cancelIdleCallback(idleId);
+        }
+      };
+    } else {
+      const timer = setTimeout(detectAdBlock, 2500);
+      return () => clearTimeout(timer);
+    }
   }, [pathname, isDeveloperSession]);
 
   // Track Scroll Depth Milestones (25%, 50%, 75%, 100%)

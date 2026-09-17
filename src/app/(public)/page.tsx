@@ -572,9 +572,6 @@ export default async function HomePage() {
 
   return (
     <div className={styles.container}>
-      {firstPosterUrl && (
-        <link rel="preload" as="image" href={firstPosterUrl} fetchPriority="high" />
-      )}
       {firstBannerUrl && (
         <link rel="preload" as="image" href={firstBannerUrl} fetchPriority="high" media="(min-width: 769px)" />
       )}
@@ -610,19 +607,22 @@ export default async function HomePage() {
         </div>
         
         <div className={styles.episodeGrid}>
-          {processedEpisodes.slice(0, 20).map((ep) => {
+          {processedEpisodes.slice(0, 20).map((ep, epIdx) => {
             const watchUrl = getEpisodeWatchUrl(ep.id, ep.episode_number, ep.showSlug);
+            const thumbUrl = getR2Url(ep.thumbnail, 'thumbnail');
             return (
               <div key={ep.id} className={`${styles.episodeCard} card-hover`}>
                 <Link href={watchUrl} className={styles.cardImageLink}>
                   <div className={styles.cardImageWrapper}>
                     <Image
-                      src={getR2Url(ep.thumbnail, 'thumbnail')}
+                      src={thumbUrl}
                       alt={ep.fullTitle || ep.title}
                       fill
                       sizes="(max-width: 480px) 50vw, (max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
                       className={styles.cardImage}
-                      unoptimized={true}
+                      loading={epIdx < 2 ? "eager" : "lazy"}
+                      decoding="async"
+                      unoptimized={typeof thumbUrl === 'string' && thumbUrl.startsWith('data:')}
                     />
                     <div className={styles.cardImageOverlay}>
                       <Play size={36} fill="white" className={styles.cardPlayIcon} />

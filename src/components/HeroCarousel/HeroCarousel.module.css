@@ -77,8 +77,14 @@
   pointer-events: auto;
 }
 
+.heroCardInitial {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+
 .heroCardActive {
-  animation: slide-up-fade 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: slide-up-fade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .heroCardInactive {

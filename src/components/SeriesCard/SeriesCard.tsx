@@ -55,6 +55,7 @@ export default function SeriesCard({ item, className = '' }: SeriesCardProps) {
 
   // Synchronous, zero-lag DOM attribute side calculation (Always vertically centered)
   const handleMouseEnter = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (typeof window !== 'undefined' && window.matchMedia('(hover: none)').matches) return;
     if (!isHovered) setIsHovered(true);
     const card = e.currentTarget;
     const rect = card.getBoundingClientRect();
@@ -111,6 +112,11 @@ export default function SeriesCard({ item, className = '' }: SeriesCardProps) {
     epCount = Number(item.episode_count_override);
   }
 
+  const posterSrc = getR2Url(
+    item.poster_image_key || item.cover_image_key || item.banner_image_key || (Array.isArray((item as any).image_library) && (item as any).image_library[0]),
+    'poster'
+  );
+
   return (
     <div
       className={`${styles.seriesCard} ${className} card-hover`}
@@ -120,15 +126,14 @@ export default function SeriesCard({ item, className = '' }: SeriesCardProps) {
       <Link href={`/series/${item.slug}`} className={styles.cardImageLink}>
         <div className={styles.seriesImageWrapper}>
           <Image
-            src={getR2Url(
-              item.poster_image_key || item.cover_image_key || item.banner_image_key || (Array.isArray((item as any).image_library) && (item as any).image_library[0]),
-              'poster'
-            )}
+            src={posterSrc}
             alt={`${item.title} poster`}
             fill
             sizes="(max-width: 480px) 50vw, (max-width: 768px) 33vw, (max-width: 1200px) 25vw, 220px"
             className={styles.cardImage}
-            unoptimized={true}
+            loading="lazy"
+            decoding="async"
+            unoptimized={typeof posterSrc === 'string' && posterSrc.startsWith('data:')}
             style={{
               objectFit: item.poster_position === 'squeeze' ? 'fill' : 'cover',
               objectPosition: item.poster_position === 'squeeze' ? 'center' : (item.poster_position || 'center')
@@ -198,7 +203,7 @@ export default function SeriesCard({ item, className = '' }: SeriesCardProps) {
               sizes="80px"
               className={styles.popoverPoster}
               loading="lazy"
-              unoptimized={true}
+              unoptimized={typeof posterSrc === 'string' && posterSrc.startsWith('data:')}
               style={{
                 objectFit: item.poster_position === 'squeeze' ? 'fill' : 'cover',
                 objectPosition: item.poster_position === 'squeeze' ? 'center' : (item.poster_position || 'center')

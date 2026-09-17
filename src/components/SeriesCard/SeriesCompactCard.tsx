@@ -56,20 +56,24 @@ export default function SeriesCompactCard({ item, className = '' }: SeriesCompac
   const tags = (item.tags || []).map(t => (typeof t === 'string' ? t : ''));
   const isUncensored = tags.some(t => t.toLowerCase() === 'uncensored') || (item.category || '').toLowerCase() === 'uncensored';
 
+  const posterSrc = getR2Url(
+    item.poster_image_key || item.cover_image_key || item.banner_image_key || (Array.isArray((item as any).image_library) && (item as any).image_library[0]),
+    'poster'
+  );
+
   return (
     <Link href={`/series/${item.slug}`} className={`${styles.compactCard} ${className}`}>
       {/* Poster Thumbnail */}
       <div className={styles.posterWrapper}>
         <Image
-          src={getR2Url(
-            item.poster_image_key || item.cover_image_key || item.banner_image_key || (Array.isArray((item as any).image_library) && (item as any).image_library[0]),
-            'poster'
-          )}
+          src={posterSrc}
           alt={`${item.title} poster`}
           fill
           sizes="90px"
           className={styles.posterImage}
-          unoptimized={true}
+          loading="lazy"
+          decoding="async"
+          unoptimized={typeof posterSrc === 'string' && posterSrc.startsWith('data:')}
           style={{
             objectFit: item.poster_position === 'squeeze' ? 'fill' : 'cover',
             objectPosition: item.poster_position === 'squeeze' ? 'center' : (item.poster_position || 'center')

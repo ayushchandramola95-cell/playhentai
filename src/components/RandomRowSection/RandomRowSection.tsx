@@ -55,9 +55,15 @@ export default function RandomRowSection({ seriesPool }: RandomRowSectionProps) 
   };
 
   useEffect(() => {
-    checkScroll();
-    window.addEventListener('resize', checkScroll);
-    return () => window.removeEventListener('resize', checkScroll);
+    let animId: number;
+    if (typeof window !== 'undefined') {
+      animId = requestAnimationFrame(checkScroll);
+    }
+    window.addEventListener('resize', checkScroll, { passive: true });
+    return () => {
+      if (animId) cancelAnimationFrame(animId);
+      window.removeEventListener('resize', checkScroll);
+    };
   }, [items]);
 
   const handleScroll = (direction: 'left' | 'right') => {

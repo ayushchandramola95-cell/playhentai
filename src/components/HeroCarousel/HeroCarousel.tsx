@@ -44,10 +44,17 @@ interface HeroCarouselProps {
 export default function HeroCarousel({ activeSeries, isDbEmpty, autoplaySpeed = 6000 }: HeroCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [hasInteracted, setHasInteracted] = useState(false);
   const [loadedSlides, setLoadedSlides] = useState<Set<number>>(() => new Set([0]));
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const totalSlides = activeSeries ? activeSeries.length : 0;
+
+  useEffect(() => {
+    if (currentIndex !== 0) {
+      setHasInteracted(true);
+    }
+  }, [currentIndex]);
 
   useEffect(() => {
     setLoadedSlides((prev) => {
@@ -154,9 +161,9 @@ export default function HeroCarousel({ activeSeries, isDbEmpty, autoplaySpeed = 
                     fill
                     sizes="(max-width: 768px) 1px, 100vw"
                     className={styles.heroImage}
-                    priority={index === 0}
-                    fetchPriority={index === 0 ? "high" : "auto"}
-                    unoptimized={true}
+                    priority={false}
+                    loading={index === 0 ? "eager" : "lazy"}
+                    unoptimized={typeof bannerUrl === 'string' && bannerUrl.startsWith('data:')}
                   />
                 )}
                 <div className={styles.heroOverlay} />
@@ -170,6 +177,7 @@ export default function HeroCarousel({ activeSeries, isDbEmpty, autoplaySpeed = 
       <div className={styles.heroContentWrapper}>
         {activeSeries.map((series, index) => {
           const isActive = index === currentIndex;
+          const isInitial = !hasInteracted && index === 0;
 
           const posterKey = series.poster_image_key || series.cover_image_key;
           const posterUrl = getR2Url(posterKey, 'poster');
@@ -193,7 +201,11 @@ export default function HeroCarousel({ activeSeries, isDbEmpty, autoplaySpeed = 
           return (
             <div 
               key={series.id || index} 
-              className={`${styles.heroCardContainer} ${isActive ? styles.heroCardActive : styles.heroCardInactive}`}
+              className={`${styles.heroCardContainer} ${
+                isActive
+                  ? (isInitial ? styles.heroCardInitial : styles.heroCardActive)
+                  : styles.heroCardInactive
+              }`}
             >
               {/* Left Poster Thumbnail Card */}
               <div className={styles.posterCardWrapper}>
@@ -203,11 +215,11 @@ export default function HeroCarousel({ activeSeries, isDbEmpty, autoplaySpeed = 
                       src={posterUrl}
                       alt={`${series.title || 'Featured'} poster`}
                       fill
-                      sizes="(max-width: 768px) 160px, 220px"
+                      sizes="(max-width: 768px) 142px, 220px"
                       className={styles.posterImage}
                       priority={index === 0}
                       fetchPriority={index === 0 ? "high" : "auto"}
-                      unoptimized={true}
+                      unoptimized={typeof posterUrl === 'string' && posterUrl.startsWith('data:')}
                     />
                   )}
                   <div className={styles.posterHoverOverlay}>
