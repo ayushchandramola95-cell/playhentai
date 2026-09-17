@@ -126,12 +126,11 @@ The new PlayHentai footer will be structured into **4 cohesive, responsive verti
 * `Surprise Me / Random` (`/random`)
 
 #### Column 3: Browse Library
+* `Browse Hentai` (`/categories`)
 * `Genres Directory` (`/genres`)
-* `Studios Directory` (`/studios`)
-* `Categories Hub` (`/categories`)
-* `Curated Collections` (`/collections`)
-* `Browse by Year` (`/year`)
-* `Upcoming Releases` (`/upcoming`)
+* `Animation Studios` (`/studios`)
+* `Curated Playlists` (`/playlists`)
+* `Upcoming Titles` (`/upcoming`)
 
 #### Column 4: User Portal
 * `My Watchlist` (`/watchlist`)

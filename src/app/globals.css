@@ -106,18 +106,18 @@ html, body {
 }
 
 html {
-  height: 100%;
+  min-height: 100%;
   width: 100%;
   max-width: 100%;
   scroll-behavior: smooth;
-  overflow-x: hidden !important;
+  overflow-x: clip;
 }
 
 body {
   min-height: 100%;
   width: 100%;
   max-width: 100%;
-  overflow-x: hidden !important;
+  overflow-x: clip;
   position: relative;
   display: flex;
   flex-direction: column;

@@ -61,7 +61,7 @@ export default async function RecentSeriesPage({
   const sortModeOverride = params?.sort || '';
   const selectedGenre = (params?.genre || '').toLowerCase().trim();
 
-  const ITEMS_PER_PAGE = 20; // 4 rows of 5 cards
+  const ITEMS_PER_PAGE = 24; // 4 rows of 6 cards (6-column layout)
 
   const supabase = await createClient();
   let dbSeries: any[] = [];

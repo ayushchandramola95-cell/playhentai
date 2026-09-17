@@ -152,86 +152,17 @@
   color: #fb7185;
 }
 
-/* Warning Callout Box */
-.warningBox {
-  background: rgba(244, 63, 94, 0.06);
-  border: 1px solid rgba(244, 63, 94, 0.25);
-  border-radius: 12px;
-  padding: 1.25rem 1.5rem;
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-  color: #e2e8f0;
-  font-size: 0.92rem;
-  line-height: 1.65;
-}
-
-.warningIcon {
-  color: #f43f5e;
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-
-.warningBox strong {
-  color: #f43f5e;
-}
-
-/* Custom Bullet List */
-.bulletList {
-  list-style: none;
-  padding: 0;
-  margin: 0.25rem 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.85rem;
-}
-
-.bulletItem {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.85rem;
-  font-size: 0.95rem;
-  line-height: 1.65;
-  color: #cbd5e1;
-}
-
-.bulletDot {
-  color: #f43f5e;
-  font-size: 0.75rem;
-  margin-top: 5px;
-  flex-shrink: 0;
-}
-
-/* Sub-card / Note card */
-.infoCard {
-  background: #11141f;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
-  padding: 1.25rem 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  font-size: 0.92rem;
-  color: #94a3b8;
-  line-height: 1.6;
-}
-
-.infoCard strong {
-  color: #ffffff;
-}
-
-/* Compliance Contacts Grid */
-.contactGrid {
+/* Support Channel Cards (2x2 Grid) */
+.channelsGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1.25rem;
-  margin-top: 0.5rem;
 }
 
-.contactCard {
+.channelCard {
   background: #11141f;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
+  border-radius: 14px;
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
@@ -239,12 +170,18 @@
   transition: border-color 0.2s ease, transform 0.2s ease;
 }
 
-.contactCard:hover {
+.channelCard:hover {
   border-color: rgba(244, 63, 94, 0.35);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
 }
 
-.contactRole {
+.channelTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.channelRole {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -255,27 +192,276 @@
   text-transform: uppercase;
 }
 
-.roleIcon {
+.channelIcon {
   color: #f43f5e;
 }
 
-.contactEmail {
+.channelBadge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
+}
+
+.channelTitle {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0;
+}
+
+.channelDesc {
+  font-size: 0.88rem;
+  color: #94a3b8;
+  line-height: 1.55;
+  margin: 0;
+  flex-grow: 1;
+}
+
+.channelEmail {
   color: #f43f5e;
   font-weight: 700;
-  font-size: 1.05rem;
+  font-size: 0.95rem;
   text-decoration: none;
   word-break: break-all;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.25rem;
 }
 
-.contactEmail:hover {
+.channelEmail:hover {
   text-decoration: underline;
 }
 
-.contactDesc {
+/* SLA Response Cards */
+.slaGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.slaCard {
+  background: rgba(17, 20, 31, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.slaLabel {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #64748b;
+}
+
+.slaTime {
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: #ffffff;
+}
+
+.slaDesc {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  margin: 0;
+}
+
+/* ============================================================ */
+/* CONTACT FORM                                                 */
+/* ============================================================ */
+.formCard {
+  background: #11141f;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.formLabel {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #e2e8f0;
+}
+
+.formInput,
+.formSelect,
+.formTextarea {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+  color: #ffffff;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  font-family: inherit;
+}
+
+.formInput:focus,
+.formSelect:focus,
+.formTextarea:focus {
+  border-color: #f43f5e;
+  box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.15);
+}
+
+.formSelect option {
+  background: #11141f;
+  color: #ffffff;
+}
+
+.submitBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  background: linear-gradient(135deg, #f43f5e, #e11d48);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.95rem;
+  padding: 0.9rem 1.75rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  width: fit-content;
+}
+
+.submitBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px -4px rgba(244, 63, 94, 0.4);
+}
+
+.successBox {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  color: #a7f3d0;
+  font-size: 0.95rem;
+}
+
+.successIcon {
+  color: #10b981;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* Quick FAQ Accordion / Cards */
+.faqList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.faqItem {
+  background: #11141f;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.faqQuestion {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.faqDot {
+  color: #f43f5e;
+}
+
+.faqAnswer {
+  font-size: 0.92rem;
+  color: #94a3b8;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Community Cards */
+.communityGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+.communityCard {
+  background: #11141f;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  text-decoration: none;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.communityCard:hover {
+  border-color: rgba(244, 63, 94, 0.4);
+  transform: translateY(-2px);
+}
+
+.communityIconWrap {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: rgba(244, 63, 94, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #f43f5e;
+  flex-shrink: 0;
+}
+
+.communityInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.communityName {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0;
+}
+
+.communityDesc {
   font-size: 0.85rem;
   color: #94a3b8;
   margin: 0;
-  line-height: 1.5;
 }
 
 /* ============================================================ */
@@ -429,12 +615,15 @@
   .pageTitle {
     font-size: 2rem;
   }
+  .channelsGrid,
+  .formGrid,
+  .communityGrid,
+  .slaGrid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 640px) {
-  .contactGrid {
-    grid-template-columns: 1fr;
-  }
   .sectionTitle {
     font-size: 1.35rem;
   }
@@ -445,6 +634,7 @@
   .sidebar,
   .backWrapper,
   .printBtn,
+  .formCard,
   :global(.ambient-glow),
   :global(.ambient-glow-2) {
     display: none !important;
@@ -462,13 +652,12 @@
   .pageTitle,
   .sectionContent,
   .sectionContent p,
-  .sectionContent strong,
-  .bulletItem {
+  .sectionContent strong {
     color: #000000 !important;
   }
-  .warningBox,
-  .contactCard,
-  .infoCard {
+  .channelCard,
+  .faqItem,
+  .communityCard {
     border: 1px solid #ccc !important;
     background: #f9f9f9 !important;
     color: #000000 !important;

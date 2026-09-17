@@ -1,13 +1,9 @@
 .container {
   min-height: 100vh;
-  padding: 3rem 1.5rem 6rem;
-  max-width: 900px;
+  padding: 2.5rem 1.5rem 6rem;
+  max-width: 1280px;
   margin: 0 auto;
-}
-
-.section {
   position: relative;
-  z-index: 1;
 }
 
 .backWrapper {
@@ -20,83 +16,472 @@
   gap: 0.5rem;
   font-size: 0.9rem;
   font-weight: 600;
-  color: var(--foreground-muted);
+  color: #94a3b8;
   text-decoration: none;
   transition: color 0.2s ease;
 }
 
 .backBtn:hover {
-  color: var(--primary);
+  color: #f43f5e;
 }
 
-.header {
-  text-align: center;
-  margin-bottom: 3.5rem;
+/* Page Layout: Main Content (left) + Sticky Sidebar (right) */
+.pageLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 3.5rem;
+  align-items: start;
 }
 
-.headerIcon {
-  color: var(--primary);
-  margin-bottom: 1rem;
-}
-
-.header h1 {
-  font-size: 2.5rem;
-  font-weight: 900;
-  color: var(--foreground-primary);
-  margin-bottom: 0.75rem;
-  letter-spacing: -0.02em;
-}
-
-.subtitle {
-  font-size: 1.05rem;
-  color: var(--foreground-secondary);
-  max-width: 550px;
-  margin: 0 auto;
-  line-height: 1.6;
-}
-
-.contentCard {
-  padding: 2.5rem;
-  border-radius: 16px;
-  border: 1px solid var(--border);
+.mainContent {
   display: flex;
   flex-direction: column;
-  gap: 2.5rem;
+  gap: 3.5rem;
 }
 
-.termBlock {
+/* Page Hero Header */
+.pageHeader {
   display: flex;
   flex-direction: column;
+  gap: 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 2rem;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
   gap: 1rem;
 }
 
-.blockTitle {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.blockIcon {
-  color: var(--primary);
+.headerIcon {
+  color: #f43f5e;
   flex-shrink: 0;
 }
 
-.blockTitle h2 {
-  font-size: 1.35rem;
+.pageTitle {
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: -0.03em;
+  margin: 0;
+}
+
+.pageSubtitle {
+  font-size: 1.05rem;
+  color: #94a3b8;
+  line-height: 1.6;
+  margin: 0;
+  max-width: 780px;
+}
+
+.lastModifiedBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #f43f5e;
+  background: rgba(244, 63, 94, 0.08);
+  border: 1px solid rgba(244, 63, 94, 0.2);
+  padding: 0.35rem 0.85rem;
+  border-radius: 9999px;
+  width: fit-content;
+  margin-top: 0.5rem;
+}
+
+/* Section Container */
+.sectionBlock {
+  scroll-margin-top: 100px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 0.75rem;
+}
+
+.sectionNum {
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: #f43f5e;
+  font-family: monospace;
+}
+
+.sectionTitle {
+  font-size: 1.65rem;
   font-weight: 800;
-  color: var(--foreground-primary);
+  color: #ffffff;
+  letter-spacing: -0.02em;
+  margin: 0;
 }
 
-.termBlock p {
-  color: var(--foreground-secondary);
-  line-height: 1.7;
+.sectionContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
   font-size: 0.98rem;
+  line-height: 1.75;
+  color: #cbd5e1;
 }
 
-.lastUpdated {
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  padding-top: 1.5rem;
+.sectionContent p {
+  margin: 0;
+}
+
+.sectionContent strong {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+/* Sub-category Header inside sections */
+.subCategoryTitle {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0.5rem 0 0.15rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Inline Cross Links */
+.crossLink {
+  color: #f43f5e;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.crossLink:hover {
+  color: #fb7185;
+}
+
+/* Warning / Alert Callout Box */
+.warningBox {
+  background: rgba(244, 63, 94, 0.06);
+  border: 1px solid rgba(244, 63, 94, 0.25);
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  color: #e2e8f0;
+  font-size: 0.92rem;
+  line-height: 1.65;
+}
+
+.warningIcon {
+  color: #f43f5e;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.warningBox strong {
+  color: #f43f5e;
+}
+
+/* Info / Note Card */
+.infoCard {
+  background: #11141f;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 0.92rem;
+  color: #cbd5e1;
+  line-height: 1.65;
+}
+
+.infoCard strong {
+  color: #ffffff;
+}
+
+/* Custom Bullet List */
+.bulletList {
+  list-style: none;
+  padding: 0;
+  margin: 0.25rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.bulletItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  font-size: 0.95rem;
+  line-height: 1.65;
+  color: #cbd5e1;
+}
+
+.bulletDot {
+  color: #f43f5e;
+  font-size: 0.75rem;
+  margin-top: 5px;
+  flex-shrink: 0;
+}
+
+/* Compliance Contacts Grid */
+.contactGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  margin-top: 0.5rem;
+}
+
+.contactCard {
+  background: #11141f;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.contactCard:hover {
+  border-color: rgba(244, 63, 94, 0.35);
+  transform: translateY(-1px);
+}
+
+.contactRole {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #94a3b8;
+  text-transform: uppercase;
+}
+
+.roleIcon {
+  color: #f43f5e;
+}
+
+.contactEmail {
+  color: #f43f5e;
+  font-weight: 700;
+  font-size: 1.05rem;
+  text-decoration: none;
+  word-break: break-all;
+}
+
+.contactEmail:hover {
+  text-decoration: underline;
+}
+
+.contactDesc {
   font-size: 0.85rem;
-  color: var(--foreground-muted);
-  text-align: right;
+  color: #94a3b8;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ============================================================ */
+/* STICKY "ON THIS PAGE" SIDEBAR                                */
+/* ============================================================ */
+.sidebar {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 96px;
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  background: rgba(17, 20, 31, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 1.5rem 1.25rem;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(244, 63, 94, 0.2) transparent;
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+  z-index: 10;
+}
+
+.sidebarTitle {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: #94a3b8;
+  text-transform: uppercase;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sidebarTitle::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #f43f5e;
+  box-shadow: 0 0 8px #f43f5e;
+}
+
+.tocNav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 1.25rem;
+}
+
+.tocLink {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.86rem;
+  font-weight: 500;
+  color: #94a3b8;
+  text-decoration: none;
+  border-radius: 8px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+
+.tocNum {
+  font-size: 0.72rem;
+  font-weight: 800;
+  font-family: monospace;
+  color: #64748b;
+  min-width: 1.3rem;
+  transition: color 0.2s ease;
+}
+
+.tocTitle {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tocLink:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.05);
+  transform: translateX(3px);
+}
+
+.tocLink:hover .tocNum {
+  color: #f43f5e;
+}
+
+.tocLinkActive {
+  background: rgba(244, 63, 94, 0.12);
+  color: #ffffff;
+  font-weight: 700;
+  border-left: 3px solid #f43f5e;
+  padding-left: calc(0.75rem - 3px);
+}
+
+.tocLinkActive .tocNum {
+  color: #f43f5e;
+  font-weight: 900;
+}
+
+.printBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #cbd5e1;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.6rem 0.9rem;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  width: 100%;
+  justify-content: center;
+}
+
+.printBtn:hover {
+  color: #ffffff;
+  background: rgba(244, 63, 94, 0.12);
+  border-color: rgba(244, 63, 94, 0.3);
+  transform: translateY(-1px);
+}
+
+/* ============================================================ */
+/* RESPONSIVE BREAKPOINTS                                       */
+/* ============================================================ */
+@media (max-width: 960px) {
+  .pageLayout {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+  .sidebar {
+    position: static;
+    order: -1;
+    background: #11141f;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 1.25rem;
+  }
+  .pageTitle {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .contactGrid {
+    grid-template-columns: 1fr;
+  }
+  .sectionTitle {
+    font-size: 1.35rem;
+  }
+}
+
+/* Print Stylesheet */
+@media print {
+  .sidebar,
+  .backWrapper,
+  .printBtn,
+  :global(.ambient-glow),
+  :global(.ambient-glow-2) {
+    display: none !important;
+  }
+  .pageLayout {
+    grid-template-columns: 1fr !important;
+  }
+  .container {
+    padding: 0 !important;
+    max-width: 100% !important;
+    color: #000000 !important;
+    background: #ffffff !important;
+  }
+  .sectionTitle,
+  .pageTitle,
+  .sectionContent,
+  .sectionContent p,
+  .sectionContent strong,
+  .bulletItem {
+    color: #000000 !important;
+  }
+  .warningBox,
+  .contactCard,
+  .infoCard {
+    border: 1px solid #ccc !important;
+    background: #f9f9f9 !important;
+    color: #000000 !important;
+  }
 }

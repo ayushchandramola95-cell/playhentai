@@ -5,7 +5,7 @@
 
 .section {
   max-width: 1720px;
-  margin: 3.5rem auto 0;
+  margin: 1.75rem auto 0;
   padding: 0 2rem;
   width: 100%;
 }
@@ -49,28 +49,50 @@
   letter-spacing: 0.05em;
 }
 
-/* Series Grid: 5 columns on desktop */
+/* Series Grid: 6 columns on desktop (Unified with BrowseHub & Trending) */
 .seriesGrid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 1.5rem;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 1.35rem 1rem;
+  align-items: start;
 }
 
-.seriesGrid > div:nth-child(5n) :global(.popover)::before,
-.seriesGrid > div:nth-child(5n-1) :global(.popover)::before {
+.seriesGrid > div:nth-child(6n) :global(.popover)::before,
+.seriesGrid > div:nth-child(6n-1) :global(.popover)::before {
   left: auto;
   right: -15px;
 }
 
-@media (min-width: 1201px) {
-  .seriesGrid > div:nth-child(5n) :global(.popover),
-  .seriesGrid > div:nth-child(5n-1) :global(.popover) {
+@media (min-width: 1441px) {
+  .seriesGrid > div:nth-child(6n) :global(.popover),
+  .seriesGrid > div:nth-child(6n-1) :global(.popover) {
     left: auto;
     right: 105%;
   }
 }
 
-@media (max-width: 1200px) and (min-width: 993px) {
+@media (max-width: 1440px) and (min-width: 1121px) {
+  .seriesGrid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 1.25rem 0.95rem;
+  }
+  .seriesGrid > div:nth-child(5n) :global(.popover),
+  .seriesGrid > div:nth-child(5n-1) :global(.popover) {
+    left: auto;
+    right: 105%;
+  }
+  .seriesGrid > div:nth-child(5n) :global(.popover)::before,
+  .seriesGrid > div:nth-child(5n-1) :global(.popover)::before {
+    left: auto;
+    right: -15px;
+  }
+}
+
+@media (max-width: 1120px) and (min-width: 841px) {
+  .seriesGrid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1.15rem 0.85rem;
+  }
   .seriesGrid > div:nth-child(4n) :global(.popover),
   .seriesGrid > div:nth-child(4n-1) :global(.popover) {
     left: auto;
@@ -83,7 +105,11 @@
   }
 }
 
-@media (max-width: 992px) and (min-width: 769px) {
+@media (max-width: 840px) and (min-width: 541px) {
+  .seriesGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 1rem 0.75rem !important;
+  }
   .seriesGrid > div:nth-child(3n) :global(.popover),
   .seriesGrid > div:nth-child(3n-1) :global(.popover) {
     left: auto;
@@ -96,23 +122,16 @@
   }
 }
 
-@media (max-width: 768px) and (min-width: 481px) {
+@media (max-width: 540px) {
+  .seriesGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0.85rem 0.6rem !important;
+  }
   .seriesGrid > div:nth-child(2n) :global(.popover) {
     left: auto;
     right: 105%;
   }
   .seriesGrid > div:nth-child(2n) :global(.popover)::before {
-    left: auto;
-    right: -15px;
-  }
-}
-
-@media (max-width: 480px) {
-  .seriesGrid > div:nth-child(1n) :global(.popover) {
-    left: auto;
-    right: 105%;
-  }
-  .seriesGrid > div:nth-child(1n) :global(.popover)::before {
     left: auto;
     right: -15px;
   }
@@ -225,20 +244,14 @@
   font-weight: 500;
 }
 
-/* Responsive Breakpoints */
+/* Responsive Breakpoints for Episode Grid */
 @media (max-width: 1200px) {
-  .seriesGrid {
-    grid-template-columns: repeat(5, 1fr);
-  }
   .episodeGrid {
     grid-template-columns: repeat(4, 1fr);
   }
 }
 
 @media (max-width: 992px) {
-  .seriesGrid {
-    grid-template-columns: repeat(3, 1fr);
-  }
   .episodeGrid {
     grid-template-columns: repeat(3, 1fr);
   }
@@ -254,9 +267,6 @@
 }
 
 @media (max-width: 640px) {
-  .seriesGrid {
-    grid-template-columns: repeat(2, 1fr);
-  }
   .episodeGrid {
     grid-template-columns: repeat(2, 1fr);
     gap: 0.85rem;
@@ -264,9 +274,6 @@
 }
 
 @media (max-width: 480px) {
-  .seriesGrid {
-    grid-template-columns: repeat(2, 1fr);
-  }
   .episodeGrid {
     grid-template-columns: repeat(2, 1fr);
     gap: 0.75rem;

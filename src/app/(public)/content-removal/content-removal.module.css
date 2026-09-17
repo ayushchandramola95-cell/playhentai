@@ -152,7 +152,7 @@
   color: #fb7185;
 }
 
-/* Warning Callout Box */
+/* Warning / Alert Callout Box */
 .warningBox {
   background: rgba(244, 63, 94, 0.06);
   border: 1px solid rgba(244, 63, 94, 0.25);
@@ -174,6 +174,24 @@
 
 .warningBox strong {
   color: #f43f5e;
+}
+
+/* Info / Note Card */
+.infoCard {
+  background: #11141f;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 0.92rem;
+  color: #cbd5e1;
+  line-height: 1.65;
+}
+
+.infoCard strong {
+  color: #ffffff;
 }
 
 /* Custom Bullet List */
@@ -202,22 +220,123 @@
   flex-shrink: 0;
 }
 
-/* Sub-card / Note card */
-.infoCard {
+/* ============================================================ */
+/* FAST-TRACK SUBMISSION FORM STYLING                           */
+/* ============================================================ */
+.formCard {
   background: #11141f;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
-  padding: 1.25rem 1.5rem;
+  border-radius: 16px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+.formGroup {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  font-size: 0.92rem;
-  color: #94a3b8;
-  line-height: 1.6;
 }
 
-.infoCard strong {
+.formLabel {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #e2e8f0;
+}
+
+.formInput,
+.formSelect,
+.formTextarea {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
   color: #ffffff;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  font-family: inherit;
+}
+
+.formInput:focus,
+.formSelect:focus,
+.formTextarea:focus {
+  border-color: #f43f5e;
+  box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.15);
+}
+
+.formSelect option {
+  background: #11141f;
+  color: #ffffff;
+}
+
+.formCheckboxWrapper {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.formCheckbox {
+  margin-top: 3px;
+  accent-color: #f43f5e;
+  width: 17px;
+  height: 17px;
+  cursor: pointer;
+}
+
+.checkboxLabel {
+  font-size: 0.88rem;
+  color: #cbd5e1;
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+.submitBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  background: linear-gradient(135deg, #f43f5e, #e11d48);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.95rem;
+  padding: 0.9rem 1.75rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  width: fit-content;
+}
+
+.submitBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px -4px rgba(244, 63, 94, 0.4);
+}
+
+.successBox {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  color: #a7f3d0;
+  font-size: 0.95rem;
+}
+
+.successIcon {
+  color: #10b981;
+  flex-shrink: 0;
+  margin-top: 2px;
 }
 
 /* Compliance Contacts Grid */
@@ -429,6 +548,9 @@
   .pageTitle {
     font-size: 2rem;
   }
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 640px) {
@@ -445,6 +567,7 @@
   .sidebar,
   .backWrapper,
   .printBtn,
+  .formCard,
   :global(.ambient-glow),
   :global(.ambient-glow-2) {
     display: none !important;

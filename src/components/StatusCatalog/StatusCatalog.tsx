@@ -173,41 +173,32 @@ export default async function StatusCatalog({ status, searchParams }: StatusCata
   return (
     <div className={styles.container}>
       <JsonLd data={[itemListJsonLd, breadcrumbJsonLd]} />
+      <div className="ambient-glow" />
 
-      {/* Hero Header */}
-      <div className={styles.hero}>
-        <div className={styles.heroGlow} />
+      {/* Breadcrumb */}
+      <nav className={styles.breadcrumb} aria-label="Breadcrumb">
+        <Link href="/">Home</Link>
+        <span className={styles.breadcrumbSep}>/</span>
+        <span className={styles.breadcrumbCurrent}>{capStatus}</span>
+      </nav>
 
-        {/* Breadcrumb */}
-        <nav className={styles.breadcrumb} aria-label="Breadcrumb">
-          <Link href="/">Home</Link>
-          <span className={styles.breadcrumbSep}>/</span>
-          <span className={styles.breadcrumbCurrent}>{capStatus}</span>
-        </nav>
-
-        <div className={styles.titleRow}>
-          <StatusIcon size={28} className={styles.statusIcon} />
-          <h1 className={styles.pageTitle}>{capStatus} Hentai Titles</h1>
-          <span className={styles.countBadge}>
-            {totalCount} {totalCount === 1 ? 'Series' : 'Series'}
+      {/* Dynamic Header Section */}
+      <div className={styles.headerSection}>
+        <div className={styles.headerTopMeta}>
+          <span className={`${styles.statusPill} ${styles[`statusPill_${normalizedStatus}`] || ''}`}>
+            <StatusIcon size={13} className={styles.statusIconPill} />
+            <span>{capStatus.toUpperCase()} CATALOG</span>
+          </span>
+          <span className={styles.totalCountText}>
+            {totalCount} Total Series
           </span>
         </div>
-      </div>
-
-      {/* SEO Intro */}
-      <div className={styles.seoIntro}>
-        <h2 className={styles.seoIntroTitle}>{capStatus} Anime Releases</h2>
-        <p className={styles.seoIntroText}>
+        <div className={styles.titleRow}>
+          <h1 className={styles.mainTitle}>{capStatus} Hentai Anime</h1>
+        </div>
+        <p className={styles.subtext}>
           {introText} All titles are streamable in 1080p HD with fast cloud playback.
         </p>
-      </div>
-
-      {/* Series Grid Header */}
-      <div className={styles.sectionHeader}>
-        <h3 className={styles.sectionTitle}>
-          <StatusIcon size={16} />
-          All {capStatus} Series
-        </h3>
       </div>
 
       {/* Series Grid */}
