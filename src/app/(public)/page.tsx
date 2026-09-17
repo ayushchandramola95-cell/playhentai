@@ -20,7 +20,7 @@ import { getEpisodeWatchUrl } from '@/utils/episodeUrl';
 import { getSeriesViewsMap, getEpisodeViewsMap } from '@/utils/views';
 import { tagToSlug } from '@/utils/constants';
 
-export const revalidate = 1800;
+export const revalidate = 120;
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
 
