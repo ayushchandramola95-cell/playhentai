@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Tv, Mail, Lock, User, AlertCircle, ArrowRight } from 'lucide-react';
+import { Tv, Mail, Lock, User, AlertCircle, CheckCircle2, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import styles from './login.module.css';
 
@@ -15,7 +15,9 @@ function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const redirectTo = searchParams.get('redirectTo') || '/';
@@ -30,31 +32,50 @@ function LoginForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSuccessMessage(null);
+
+    const cleanEmail = email.trim();
+    if (!cleanEmail) {
+      setError('Please enter your email address.');
+      return;
+    }
+
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters long.');
+      return;
+    }
+
     setLoading(true);
 
     try {
       if (isLogin) {
-        const res = await signIn(email, password);
+        const res = await signIn(cleanEmail, password);
         if (res.error) {
           setError(res.error);
         } else {
           router.push(redirectTo);
         }
       } else {
-        if (!username.trim()) {
+        const cleanUsername = username.trim();
+        if (!cleanUsername) {
           setError('Username is required.');
           setLoading(false);
           return;
         }
-        const res = await signUp(email, password, username.trim());
+        if (cleanUsername.length < 3) {
+          setError('Username must be at least 3 characters.');
+          setLoading(false);
+          return;
+        }
+
+        const res = await signUp(cleanEmail, password, cleanUsername);
         if (res.error) {
           setError(res.error);
         } else {
-          // Supabase signup might require email confirmation, but with default settings
-          // it logs in immediately or sends verification email.
           setError(null);
-          alert('Registration successful! Please check your email for verification link if enabled, or sign in.');
+          setSuccessMessage('Registration successful! You can now sign in with your credentials.');
           setIsLogin(true);
+          setPassword('');
         }
       }
     } catch (err: any) {
@@ -83,6 +104,7 @@ function LoginForm() {
           onClick={() => {
             setIsLogin(true);
             setError(null);
+            setSuccessMessage(null);
           }}
         >
           Sign In
@@ -93,6 +115,7 @@ function LoginForm() {
           onClick={() => {
             setIsLogin(false);
             setError(null);
+            setSuccessMessage(null);
           }}
         >
           Register
@@ -101,6 +124,14 @@ function LoginForm() {
 
       {/* Form */}
       <form onSubmit={handleSubmit} className={styles.form}>
+        {/* Success Alert Banner */}
+        {successMessage && (
+          <div className={styles.successAlert}>
+            <CheckCircle2 size={16} />
+            <span>{successMessage}</span>
+          </div>
+        )}
+
         {/* Email input */}
         <div className={styles.inputGroup}>
           <label className={styles.label}>Email Address</label>
@@ -141,13 +172,21 @@ function LoginForm() {
           <div className={styles.inputWrapper}>
             <Lock size={16} className={styles.inputIcon} />
             <input
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               required
               className={styles.input}
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
+            <button
+              type="button"
+              className={styles.passwordToggle}
+              onClick={() => setShowPassword(!showPassword)}
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+            >
+              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
           </div>
         </div>
 
