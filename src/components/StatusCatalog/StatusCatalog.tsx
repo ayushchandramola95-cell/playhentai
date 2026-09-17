@@ -2,6 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import { Metadata } from 'next';
 import { CheckCircle2, ChevronLeft, ChevronRight, Activity, Calendar } from 'lucide-react';
+import { unstable_cache } from 'next/cache';
 import { createClient } from '@supabase/supabase-js';
 import SeriesCard from '@/components/SeriesCard/SeriesCard';
 import JsonLd from '@/components/JsonLd/JsonLd';
@@ -11,60 +12,140 @@ import styles from './StatusCatalog.module.css';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
 const PAGE_SIZE = 24;
 
-export async function fetchSeriesByStatus(status: string): Promise<any[]> {
-  try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ybtbdtgtryrxrhuchlkw.supabase.co';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_HLX-SCL51o2H254WH-gN0Q_HPpNwKo5';
+const publicSupabaseClient = createClient(supabaseUrl, supabaseAnonKey);
 
-    const { data } = await supabase
-      .from('series')
-      .select(`
-        *,
-        seasons (
-          is_published,
-          season_number,
-          episodes (
-            id,
+export const fetchSeriesByStatus = unstable_cache(
+  async (status: string): Promise<any[]> => {
+    try {
+      const { data } = await publicSupabaseClient
+        .from('series')
+        .select(`
+          id,
+          title,
+          slug,
+          description,
+          poster_image_key,
+          cover_image_key,
+          tags,
+          category,
+          studio,
+          status,
+          rating,
+          created_at,
+          release_year,
+          first_air_date,
+          seasons (
             is_published,
-            episode_number
+            season_number,
+            episodes (
+              id,
+              is_published,
+              episode_number
+            )
           )
-        )
-      `)
-      .eq('is_published', true)
-      .ilike('status', status);
+        `)
+        .eq('is_published', true)
+        .ilike('status', status);
 
-    if (data && data.length > 0) {
-      return data.sort((a: any, b: any) => {
-        const aTime = a.first_air_date ? new Date(a.first_air_date).getTime() : 0;
-        const bTime = b.first_air_date ? new Date(b.first_air_date).getTime() : 0;
+      let rawList: any[] = [];
+      if (data && data.length > 0) {
+        rawList = data;
+      } else {
+        // Fallback: If no exact status match, check all published series
+        const { data: fallbackData } = await publicSupabaseClient
+          .from('series')
+          .select(`
+            id,
+            title,
+            slug,
+            description,
+            poster_image_key,
+            cover_image_key,
+            tags,
+            category,
+            studio,
+            status,
+            rating,
+            created_at,
+            release_year,
+            first_air_date,
+            seasons (
+              is_published,
+              season_number,
+              episodes (
+                id,
+                is_published,
+                episode_number
+              )
+            )
+          `)
+          .eq('is_published', true);
 
-        if (aTime !== bTime) {
-          return bTime - aTime;
+        if (fallbackData && fallbackData.length > 0) {
+          rawList = fallbackData.filter((s: any) => (s.status || '').toLowerCase() === status.toLowerCase());
+          if (rawList.length === 0) {
+            rawList = fallbackData;
+          }
         }
-        
-        const aCreated = a.created_at ? new Date(a.created_at).getTime() : 0;
-        const bCreated = b.created_at ? new Date(b.created_at).getTime() : 0;
-        return bCreated - aCreated;
-      });
+      }
+
+      if (rawList && rawList.length > 0) {
+        const sorted = rawList.sort((a: any, b: any) => {
+          const aTime = a.first_air_date ? new Date(a.first_air_date).getTime() : 0;
+          const bTime = b.first_air_date ? new Date(b.first_air_date).getTime() : 0;
+
+          if (aTime !== bTime) {
+            return bTime - aTime;
+          }
+          
+          const aCreated = a.created_at ? new Date(a.created_at).getTime() : 0;
+          const bCreated = b.created_at ? new Date(b.created_at).getTime() : 0;
+          return bCreated - aCreated;
+        });
+
+        // Strip deep seasons/episodes tree and precalculate episode_count
+        return sorted.map((s: any) => {
+          let epCount = 0;
+          if (s.seasons && Array.isArray(s.seasons)) {
+            s.seasons.forEach((sea: any) => {
+              if (sea.is_published && sea.episodes && Array.isArray(sea.episodes)) {
+                epCount += sea.episodes.filter((e: any) => e.is_published).length;
+              }
+            });
+          }
+          return {
+            id: s.id,
+            title: s.title,
+            slug: s.slug,
+            description: s.description,
+            poster_image_key: s.poster_image_key,
+            cover_image_key: s.cover_image_key,
+            tags: s.tags,
+            category: s.category,
+            studio: s.studio,
+            status: s.status,
+            rating: s.rating,
+            created_at: s.created_at,
+            release_year: s.release_year,
+            first_air_date: s.first_air_date,
+            episode_count: epCount,
+          };
+        });
+      }
+    } catch {
+      // fallback
     }
 
-    // Fallback: If no exact status match, return all published series
-    const { data: fallbackData } = await supabase
-      .from('series')
-      .select(`*`)
-      .eq('is_published', true);
-
-    if (fallbackData && fallbackData.length > 0) {
-      return fallbackData;
-    }
-  } catch {
-    // fallback
-  }
-
-  return MOCK_SERIES;
-}
+    return MOCK_SERIES.map((s: any) => ({
+      ...s,
+      episode_count: s.episode_count || 3,
+    }));
+  },
+  ['status-series-catalog-cache-v2'],
+  { revalidate: 120, tags: ['status_catalog', 'all_series_catalog'] }
+);
 
 export function buildStatusMetadata(status: string, count: number): Metadata {
   const capStatus = status === 'ongoing' ? 'Ongoing' : status === 'completed' ? 'Completed' : 'Upcoming';

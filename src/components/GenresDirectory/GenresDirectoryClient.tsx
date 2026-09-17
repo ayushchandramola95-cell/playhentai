@@ -247,6 +247,9 @@ export default function GenresDirectoryClient({ genres }: GenresDirectoryClientP
                       fill
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
                       className={styles.cardBgImage}
+                      loading="lazy"
+                      decoding="async"
+                      unoptimized={typeof posterUrl === 'string' && posterUrl.startsWith('data:')}
                     />
                   ) : (
                     <div

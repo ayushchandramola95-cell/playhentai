@@ -15,6 +15,8 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ybtbdtgtryr
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_HLX-SCL51o2H254WH-gN0Q_HPpNwKo5';
 const publicSupabaseClient = createSupabaseClient(supabaseUrl, supabaseAnonKey);
 
+export const revalidate = 120;
+
 interface PageProps {
   searchParams: Promise<{
     page?: string;
@@ -30,14 +32,14 @@ export async function generateMetadata({ searchParams }: PageProps) {
     : '/3d';
 
   return {
-    title: '3D Hentai Anime — Watch CGI Animations in HD | Play Hentai',
-    description: 'Watch 3D hentai anime and CGI animation series online in HD with English subtitles. Browse complete series, available episodes, new releases, and popular 3D titles on Play Hentai.',
+    title: '3D Hentai & CGI Animations — Watch Online in HD | Play Hentai',
+    description: 'Watch 3D hentai anime and high-fidelity CGI animation series in HD with English subtitles. Browse complete 3D series and episodes on Play Hentai.',
     alternates: {
       canonical: canonicalPath,
     },
     openGraph: {
-      title: '3D Hentai Anime — Watch CGI Animations in HD | Play Hentai',
-      description: 'Watch 3D hentai anime and CGI animation series online in HD with English subtitles. Browse complete series, available episodes, new releases, and popular 3D titles on Play Hentai.',
+      title: '3D Hentai & CGI Animations — Watch Online in HD | Play Hentai',
+      description: 'Watch 3D hentai anime and high-fidelity CGI animation series in HD with English subtitles. Browse complete 3D series and episodes on Play Hentai.',
       url: `${SITE_URL}${canonicalPath}`,
       siteName: 'Play Hentai',
       locale: 'en_US',
@@ -53,14 +55,14 @@ export async function generateMetadata({ searchParams }: PageProps) {
     },
     twitter: {
       card: 'summary_large_image',
-      title: '3D Hentai Anime — Watch CGI Animations in HD | Play Hentai',
-      description: 'Watch 3D hentai anime and CGI animation series online in HD with English subtitles. Browse complete series, available episodes, new releases, and popular 3D titles on Play Hentai.',
+      title: '3D Hentai & CGI Animations — Watch Online in HD | Play Hentai',
+      description: 'Watch 3D hentai anime and high-fidelity CGI animation series in HD with English subtitles. Browse complete 3D series and episodes on Play Hentai.',
       images: [`${SITE_URL}/og-banner.png`],
     },
   };
 }
 
-// 60-Second TTL Cached 3D Query
+// 120-Second TTL Cached 3D Query
 const getCached3DSeries = unstable_cache(
   async () => {
     let dbSeries: any[] = [];
@@ -72,7 +74,24 @@ const getCached3DSeries = unstable_cache(
       const { data: seriesData, error } = await publicSupabaseClient
         .from('series')
         .select(`
-          *,
+          id,
+          title,
+          slug,
+          description,
+          poster_image_key,
+          cover_image_key,
+          tags,
+          category,
+          studio,
+          status,
+          rating,
+          created_at,
+          release_year,
+          first_air_date,
+          content_rating,
+          alt_title_japanese,
+          alt_title_romaji,
+          alt_title_english,
           seasons (
             is_published,
             episodes (
@@ -84,10 +103,38 @@ const getCached3DSeries = unstable_cache(
         .order('created_at', { ascending: false });
 
       if (!error && seriesData && seriesData.length > 0) {
-        dbSeries = seriesData.map((s: any) => ({
-          ...s,
-          views: viewsMap[s.id] || 0
-        }));
+        dbSeries = seriesData.map((s: any) => {
+          let epCount = 0;
+          if (s.seasons && Array.isArray(s.seasons)) {
+            s.seasons.forEach((sea: any) => {
+              if (sea.is_published && sea.episodes && Array.isArray(sea.episodes)) {
+                epCount += sea.episodes.filter((e: any) => e.is_published).length;
+              }
+            });
+          }
+          return {
+            id: s.id,
+            title: s.title,
+            slug: s.slug,
+            description: s.description,
+            poster_image_key: s.poster_image_key,
+            cover_image_key: s.cover_image_key,
+            tags: s.tags,
+            category: s.category,
+            studio: s.studio,
+            status: s.status,
+            rating: s.rating,
+            created_at: s.created_at,
+            release_year: s.release_year,
+            first_air_date: s.first_air_date,
+            content_rating: s.content_rating,
+            alt_title_japanese: s.alt_title_japanese,
+            alt_title_romaji: s.alt_title_romaji,
+            alt_title_english: s.alt_title_english,
+            episode_count: epCount,
+            views: viewsMap[s.id] || 0,
+          };
+        });
         isDbEmpty = false;
       }
     } catch (err) {
@@ -96,8 +143,8 @@ const getCached3DSeries = unstable_cache(
 
     return { dbSeries, isDbEmpty };
   },
-  ['threed-series-catalog-cache-v2'],
-  { revalidate: 1800, tags: ['3d_catalog', 'all_series_catalog'] }
+  ['threed-series-catalog-cache-v3'],
+  { revalidate: 120, tags: ['3d_catalog', 'all_series_catalog'] }
 );
 
 export default async function ThreeDPage({ searchParams }: PageProps) {

@@ -14,7 +14,7 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ybtbdtgtryr
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_HLX-SCL51o2H254WH-gN0Q_HPpNwKo5';
 const publicSupabaseClient = createSupabaseClient(supabaseUrl, supabaseAnonKey);
 
-export const revalidate = 1800;
+export const revalidate = 120;
 
 interface PageProps {
   searchParams: Promise<{
@@ -109,7 +109,7 @@ export async function generateMetadata({ searchParams }: PageProps) {
   };
 }
 
-// 60-Second TTL Cached Categories Series Query
+// 120-Second TTL Cached Categories Series Query
 const getCachedCategoriesSeries = unstable_cache(
   async () => {
     let dbSeries: any[] = [];
@@ -121,7 +121,24 @@ const getCachedCategoriesSeries = unstable_cache(
       const { data: seriesData } = await publicSupabaseClient
         .from('series')
         .select(`
-          *,
+          id,
+          title,
+          slug,
+          description,
+          poster_image_key,
+          cover_image_key,
+          tags,
+          category,
+          studio,
+          status,
+          rating,
+          created_at,
+          release_year,
+          first_air_date,
+          content_rating,
+          alt_title_japanese,
+          alt_title_romaji,
+          alt_title_english,
           seasons (
             is_published,
             episodes (
@@ -133,10 +150,38 @@ const getCachedCategoriesSeries = unstable_cache(
         .order('created_at', { ascending: false });
 
       if (seriesData && seriesData.length > 0) {
-        dbSeries = seriesData.map((s: any) => ({
-          ...s,
-          views: viewsMap[s.id] || 0
-        }));
+        dbSeries = seriesData.map((s: any) => {
+          let epCount = 0;
+          if (s.seasons && Array.isArray(s.seasons)) {
+            s.seasons.forEach((sea: any) => {
+              if (sea.is_published && sea.episodes && Array.isArray(sea.episodes)) {
+                epCount += sea.episodes.filter((e: any) => e.is_published).length;
+              }
+            });
+          }
+          return {
+            id: s.id,
+            title: s.title,
+            slug: s.slug,
+            description: s.description,
+            poster_image_key: s.poster_image_key,
+            cover_image_key: s.cover_image_key,
+            tags: s.tags,
+            category: s.category,
+            studio: s.studio,
+            status: s.status,
+            rating: s.rating,
+            created_at: s.created_at,
+            release_year: s.release_year,
+            first_air_date: s.first_air_date,
+            content_rating: s.content_rating,
+            alt_title_japanese: s.alt_title_japanese,
+            alt_title_romaji: s.alt_title_romaji,
+            alt_title_english: s.alt_title_english,
+            episode_count: epCount,
+            views: viewsMap[s.id] || 0,
+          };
+        });
         isDbEmpty = false;
       }
     } catch (err) {
@@ -145,8 +190,8 @@ const getCachedCategoriesSeries = unstable_cache(
 
     return { dbSeries, isDbEmpty };
   },
-  ['categories-series-catalog-cache-v2'],
-  { revalidate: 1800, tags: ['categories_catalog', 'all_series_catalog'] }
+  ['categories-series-catalog-cache-v3'],
+  { revalidate: 120, tags: ['categories_catalog', 'all_series_catalog'] }
 );
 
 // Rich Mock Data with assigned Genres, Studios, and Release Years matching images
