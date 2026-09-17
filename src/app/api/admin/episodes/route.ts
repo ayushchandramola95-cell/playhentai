@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { verifyAdmin, createAdminClient } from '@/utils/supabase/admin';
 import { revalidateAllCatalogTags } from '@/utils/revalidateCatalog';
+import { upsertLocalEpisode, deleteLocalEpisode } from '@/utils/localCatalogStore';
 
 export async function GET(request: Request) {
   try {
@@ -123,6 +124,11 @@ export async function POST(request: Request) {
 
     // Auto-sync series average runtime (rounded up to nearest minute)
     await syncSeriesAverageRuntime(payload.season_id, adminSupabase);
+    try {
+      await upsertLocalEpisode(data);
+    } catch (localErr) {
+      console.warn('Local store episode upsert fallback:', localErr);
+    }
     revalidateAllCatalogTags();
 
     return NextResponse.json({ success: true, episode: data });
@@ -169,6 +175,11 @@ export async function PUT(request: Request) {
     if (targetSeasonId) {
       await syncSeriesAverageRuntime(targetSeasonId, adminSupabase);
     }
+    try {
+      await upsertLocalEpisode(data);
+    } catch (localErr) {
+      console.warn('Local store episode update fallback:', localErr);
+    }
     revalidateAllCatalogTags();
 
     return NextResponse.json({ success: true, episode: data });
@@ -213,6 +224,11 @@ export async function DELETE(request: Request) {
     // Auto-sync series average runtime after deletion
     if (epData?.season_id) {
       await syncSeriesAverageRuntime(epData.season_id, adminSupabase);
+    }
+    try {
+      await deleteLocalEpisode(id);
+    } catch (localErr) {
+      console.warn('Local store episode delete fallback:', localErr);
     }
     revalidateAllCatalogTags();
 

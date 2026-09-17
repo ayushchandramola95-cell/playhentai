@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { verifyAdmin, createAdminClient } from '@/utils/supabase/admin';
+import { revalidateAllCatalogTags } from '@/utils/revalidateCatalog';
+import { upsertLocalSeason, deleteLocalSeason } from '@/utils/localCatalogStore';
 
 export async function GET(request: Request) {
   try {
@@ -54,6 +56,12 @@ export async function POST(request: Request) {
       .single();
 
     if (error) throw error;
+    try {
+      await upsertLocalSeason(data);
+    } catch (localErr) {
+      console.warn('Local store season upsert fallback:', localErr);
+    }
+    revalidateAllCatalogTags();
     return NextResponse.json({ success: true, season: data });
   } catch (err: any) {
     console.error('Error creating season:', err);
@@ -86,6 +94,12 @@ export async function PUT(request: Request) {
       .single();
 
     if (error) throw error;
+    try {
+      await upsertLocalSeason(data);
+    } catch (localErr) {
+      console.warn('Local store season update fallback:', localErr);
+    }
+    revalidateAllCatalogTags();
     
     const mapped = {
       ...data,
@@ -136,6 +150,12 @@ export async function DELETE(request: Request) {
       .eq('id', id);
 
     if (error) throw error;
+    try {
+      await deleteLocalSeason(id);
+    } catch (localErr) {
+      console.warn('Local store season delete fallback:', localErr);
+    }
+    revalidateAllCatalogTags();
     return NextResponse.json({ success: true });
   } catch (err: any) {
     console.error('Error deleting season:', err);

@@ -2,9 +2,7 @@ import React, { Suspense } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Clock, Play, ArrowLeft, Star, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
-import { unstable_cache } from 'next/cache';
-import { createClient as createSupabaseClient } from '@supabase/supabase-js';
-
+import { getLocalRecentEpisodes } from '@/utils/localCatalogStore';
 import { getR2Url } from '@/utils/r2';
 import { getEpisodeWatchUrl } from '@/utils/episodeUrl';
 import { MOCK_EPISODES } from '@/utils/mockData';
@@ -13,10 +11,6 @@ import JsonLd from '@/components/JsonLd/JsonLd';
 import styles from '../recent.module.css';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ybtbdtgtryrxrhuchlkw.supabase.co';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_HLX-SCL51o2H254WH-gN0Q_HPpNwKo5';
-const publicSupabaseClient = createSupabaseClient(supabaseUrl, supabaseAnonKey);
 
 export const revalidate = 120;
 
@@ -50,78 +44,27 @@ export const metadata = {
   },
 };
 
-const getCachedRecentEpisodesData = unstable_cache(
-  async () => {
-    let dbEpisodes: any[] = [];
-    let isDbEmpty = true;
+const getCachedRecentEpisodesData = async () => {
+  try {
+    const rawEpisodes = await getLocalRecentEpisodes(200);
 
-    try {
-      const { data: episodesData } = await publicSupabaseClient
-        .from('episodes')
-        .select(`
-          id,
-          episode_number,
-          title,
-          thumbnail_key,
-          is_published,
-          release_date,
-          created_at,
-          seasons (
-            series (
-              title,
-              slug,
-              status,
-              tags
-            )
-          )
-        `)
-        .eq('is_published', true)
-        .order('release_date', { ascending: false, nullsFirst: false })
-        .order('created_at', { ascending: false });
+    const dbEpisodes = rawEpisodes.filter((ep: any) => {
+      const titleLower = (ep.rawTitle || '').toLowerCase();
+      const isPreviewOrTrailer = 
+        titleLower.includes('preview') || 
+        titleLower.includes('[preview]') ||
+        titleLower.includes('trailer') || 
+        titleLower.includes('[pv]');
+      return (ep.seriesStatus || '').toLowerCase() !== 'upcoming' && !isPreviewOrTrailer;
+    });
 
-      if (episodesData && episodesData.length > 0) {
-        dbEpisodes = episodesData
-          .map((ep: any) => {
-            const season = Array.isArray(ep.seasons) ? ep.seasons[0] : ep.seasons;
-            const series = season ? (Array.isArray(season.series) ? season.series[0] : season.series) : null;
-            return {
-              id: ep.id,
-              episode_number: ep.episode_number,
-              title: series?.title ? `${series.title} - ${ep.title || `Episode ${ep.episode_number}`}` : ep.title,
-              rawTitle: ep.title || '',
-              showSlug: series?.slug || '',
-              tags: series?.tags || [],
-              isNew: false,
-              isUncensored: ep.title?.toLowerCase().includes('uncensored') || (series?.tags && series.tags.some((t: string) => t.toLowerCase() === 'uncensored')) || false,
-              thumbnail: ep.thumbnail_key,
-              release_date: ep.release_date,
-              created_at: ep.created_at,
-              seriesStatus: series?.status || '',
-            };
-          })
-          .filter((ep: any) => {
-            const titleLower = (ep.rawTitle || '').toLowerCase();
-            const isPreviewOrTrailer = 
-              titleLower.includes('preview') || 
-              titleLower.includes('[preview]') ||
-              titleLower.includes('trailer') || 
-              titleLower.includes('[pv]');
-            return ep.seriesStatus !== 'upcoming' && !isPreviewOrTrailer;
-          });
+    return { dbEpisodes, isDbEmpty: dbEpisodes.length === 0 };
+  } catch (err) {
+    console.error('Error fetching local recent episodes:', err);
+  }
 
-        if (dbEpisodes.length > 0) {
-          isDbEmpty = false;
-        }
-      }
-    } catch (err) {
-      console.error('Error fetching episodes from DB for recent episodes page:', err);
-    }
-
-    return { dbEpisodes, isDbEmpty };
-  },
-  ['recent-episodes-catalog-cache-v2'],
-  { revalidate: 120, tags: ['recent_episodes_catalog'] }
-);
+  return { dbEpisodes: [], isDbEmpty: true };
+};
 
 export default async function RecentEpisodesPage({
   searchParams,

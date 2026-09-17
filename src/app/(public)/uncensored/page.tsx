@@ -1,19 +1,13 @@
 import React, { Suspense } from 'react';
 import { ShieldCheck } from 'lucide-react';
-import { unstable_cache } from 'next/cache';
-import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import { getLocalAllPublishedSeries } from '@/utils/localCatalogStore';
 import BrowseHub from '@/components/BrowseHub/BrowseHub';
 import JsonLd from '@/components/JsonLd/JsonLd';
 import { isUncensoredSeries } from '@/utils/constants';
-import { getSeriesViewsMap } from '@/utils/views';
 import styles from './uncensored.module.css';
 import { MOCK_SERIES } from '@/utils/mockData';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ybtbdtgtryrxrhuchlkw.supabase.co';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_HLX-SCL51o2H254WH-gN0Q_HPpNwKo5';
-const publicSupabaseClient = createSupabaseClient(supabaseUrl, supabaseAnonKey);
 
 export const revalidate = 120;
 
@@ -62,90 +56,17 @@ export async function generateMetadata({ searchParams }: PageProps) {
   };
 }
 
-// 120-Second TTL Cached Uncensored Query
-const getCachedUncensoredSeries = unstable_cache(
-  async () => {
-    let dbSeries: any[] = [];
-    let isDbEmpty = true;
+// Zero-Egress Local Uncensored Query
+const getCachedUncensoredSeries = async () => {
+  try {
+    const dbSeries = await getLocalAllPublishedSeries();
+    return { dbSeries, isDbEmpty: dbSeries.length === 0 };
+  } catch (err) {
+    console.error('Error fetching series for uncensored page:', err);
+  }
 
-    try {
-      const viewsMap = await getSeriesViewsMap();
-
-      const { data: seriesData } = await publicSupabaseClient
-        .from('series')
-        .select(`
-          id,
-          title,
-          slug,
-          description,
-          poster_image_key,
-          cover_image_key,
-          tags,
-          category,
-          studio,
-          status,
-          rating,
-          created_at,
-          release_year,
-          first_air_date,
-          content_rating,
-          alt_title_japanese,
-          alt_title_romaji,
-          alt_title_english,
-          seasons (
-            is_published,
-            episodes (
-              is_published
-            )
-          )
-        `)
-        .eq('is_published', true)
-        .order('created_at', { ascending: false });
-
-      if (seriesData && seriesData.length > 0) {
-        dbSeries = seriesData.map((s: any) => {
-          let epCount = 0;
-          if (s.seasons && Array.isArray(s.seasons)) {
-            s.seasons.forEach((sea: any) => {
-              if (sea.is_published && sea.episodes && Array.isArray(sea.episodes)) {
-                epCount += sea.episodes.filter((e: any) => e.is_published).length;
-              }
-            });
-          }
-          return {
-            id: s.id,
-            title: s.title,
-            slug: s.slug,
-            description: s.description,
-            poster_image_key: s.poster_image_key,
-            cover_image_key: s.cover_image_key,
-            tags: s.tags,
-            category: s.category,
-            studio: s.studio,
-            status: s.status,
-            rating: s.rating,
-            created_at: s.created_at,
-            release_year: s.release_year,
-            first_air_date: s.first_air_date,
-            content_rating: s.content_rating,
-            alt_title_japanese: s.alt_title_japanese,
-            alt_title_romaji: s.alt_title_romaji,
-            alt_title_english: s.alt_title_english,
-            episode_count: epCount,
-            views: viewsMap[s.id] || 0,
-          };
-        });
-        isDbEmpty = false;
-      }
-    } catch (err) {
-      console.error('Error fetching series from DB for uncensored page:', err);
-    }
-
-    return { dbSeries, isDbEmpty };
-  },
-  ['uncensored-series-catalog-cache-v3'],
-  { revalidate: 120, tags: ['uncensored_catalog', 'all_series_catalog'] }
-);
+  return { dbSeries: [], isDbEmpty: true };
+};
 
 export default async function UncensoredPage({ searchParams }: PageProps) {
   const params = await searchParams;

@@ -1,6 +1,6 @@
 import { MetadataRoute } from 'next';
 import { unstable_cache } from 'next/cache';
-import { createClient } from '@supabase/supabase-js';
+import { getLocalCatalog } from '@/utils/localCatalogStore';
 import { STUDIOS_METADATA } from '@/utils/studiosData';
 import { tagToSlug } from '@/utils/constants';
 import { getR2Url } from '@/utils/r2';
@@ -16,80 +16,53 @@ const getCachedSitemapData = unstable_cache(
     let dbDistinctYears: number[] = [];
 
     try {
-      // Cookie-free Supabase client for static sitemap generation
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      );
+      const catalog = await getLocalCatalog();
+      const publishedSeries = catalog.series.filter((s: any) => s.is_published !== false);
+      dbSeries = publishedSeries;
 
-      // Fetch published series
-      const { data: series } = await supabase
-        .from('series')
-        .select('slug, created_at, release_year, status, poster_image_key, cover_image_key')
-        .eq('is_published', true);
+      const yearSet = new Set<number>();
+      publishedSeries.forEach((s: any) => {
+        if (s.release_year && typeof s.release_year === 'number') {
+          yearSet.add(s.release_year);
+        }
+      });
+      dbDistinctYears = Array.from(yearSet);
 
-      if (series) {
-        dbSeries = series;
-        const yearSet = new Set<number>();
-        series.forEach((s: any) => {
-          if (s.release_year && typeof s.release_year === 'number') {
-            yearSet.add(s.release_year);
-          }
+      const seriesMap = new Map<string, any>();
+      publishedSeries.forEach((s: any) => seriesMap.set(s.id, s));
+
+      const seasonMap = new Map<string, any>();
+      catalog.seasons.forEach((sn: any) => {
+        if (sn.is_published !== false && seriesMap.has(sn.series_id)) {
+          seasonMap.set(sn.id, seriesMap.get(sn.series_id));
+        }
+      });
+
+      dbEpisodes = catalog.episodes
+        .filter((ep: any) => ep.is_published !== false && seasonMap.has(ep.season_id))
+        .map((ep: any) => {
+          const seriesObj = seasonMap.get(ep.season_id);
+          const seriesSlug = seriesObj?.slug;
+          const watchSlug = seriesSlug && ep.episode_number ? `${seriesSlug}-episode-${ep.episode_number}` : ep.id;
+          const thumbKey = ep.thumbnail_key || seriesObj?.cover_image_key || seriesObj?.poster_image_key;
+          return {
+            id: watchSlug,
+            created_at: ep.created_at,
+            image_key: thumbKey
+          };
         });
-        dbDistinctYears = Array.from(yearSet);
-      }
 
-      // Fetch published episodes with joined series slug and thumbnails for clean URLs and images
-      const { data: episodes } = await supabase
-        .from('episodes')
-        .select('id, episode_number, created_at, thumbnail_key, seasons(series(slug, is_published, cover_image_key, poster_image_key))')
-        .eq('is_published', true);
-
-      if (episodes && episodes.length > 0) {
-        dbEpisodes = episodes
-          .filter((ep: any) => {
-            const season = Array.isArray(ep.seasons) ? ep.seasons[0] : ep.seasons;
-            const seriesObj = season ? (Array.isArray(season.series) ? season.series[0] : season.series) : null;
-            return seriesObj?.is_published === true;
-          })
-          .map((ep: any) => {
-            const season = Array.isArray(ep.seasons) ? ep.seasons[0] : ep.seasons;
-            const seriesObj = season ? (Array.isArray(season.series) ? season.series[0] : season.series) : null;
-            const seriesSlug = seriesObj?.slug;
-            const watchSlug = seriesSlug && ep.episode_number ? `${seriesSlug}-episode-${ep.episode_number}` : ep.id;
-            const thumbKey = ep.thumbnail_key || seriesObj?.cover_image_key || seriesObj?.poster_image_key;
-            return {
-              id: watchSlug,
-              created_at: ep.created_at,
-              image_key: thumbKey
-            };
-          });
-      }
-
-      // Fetch all distinct tags from published series for tag pages
-      const { data: seriesWithTags } = await supabase
-        .from('series')
-        .select('tags')
-        .eq('is_published', true);
-
-      if (seriesWithTags) {
-        const tagSet = new Set<string>();
-        seriesWithTags.forEach((row: any) => {
-          (row.tags || []).forEach((t: string) => {
-            if (t && t.trim()) tagSet.add(t.trim());
-          });
+      const tagSet = new Set<string>();
+      publishedSeries.forEach((s: any) => {
+        (s.tags || []).forEach((t: string) => {
+          if (t && t.trim()) tagSet.add(t.trim());
         });
-        dbDistinctTags = Array.from(tagSet);
-      }
+      });
+      dbDistinctTags = Array.from(tagSet);
 
-      // Fetch playlists / collections
-      const { data: collections } = await supabase
-        .from('collections')
-        .select('slug, updated_at')
-        .eq('is_published', true);
-
-      if (collections && collections.length > 0) {
-        dbPlaylists = collections;
+      const validCollections = (catalog.collections || []).filter((c: any) => c.is_published !== false);
+      if (validCollections.length > 0) {
+        dbPlaylists = validCollections;
       } else {
         try {
           const fs = await import('fs');

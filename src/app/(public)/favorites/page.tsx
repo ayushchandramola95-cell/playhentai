@@ -1,8 +1,7 @@
 import React from 'react';
 import { Metadata } from 'next';
 import { createClient } from '@/utils/supabase/server';
-import { createAdminClient } from '@/utils/supabase/admin';
-import { getSeriesViewsMap } from '@/utils/views';
+import { getLocalAllPublishedSeries } from '@/utils/localCatalogStore';
 import FavoritesClient from '@/components/FavoritesClient/FavoritesClient';
 
 export const metadata: Metadata = {
@@ -32,32 +31,21 @@ export default async function FavoritesPage() {
         : [];
 
       if (userFavs.length > 0) {
-        const adminSupabase = createAdminClient();
-        const [seriesRes, viewsMap] = await Promise.all([
-          adminSupabase
-            .from('series')
-            .select('*, seasons(is_published, episodes(is_published))')
-            .in('id', userFavs),
-          getSeriesViewsMap('all').catch(() => ({} as Record<string, number>))
-        ]);
+        const allSeries = await getLocalAllPublishedSeries();
+        const matching = allSeries.filter((s) => userFavs.includes(s.id));
 
-        if (seriesRes.data) {
-          const sorted = [...seriesRes.data].sort((a, b) => {
-            const idxA = userFavs.indexOf(a.id);
-            const idxB = userFavs.indexOf(b.id);
-            return idxB - idxA;
-          });
+        const sorted = [...matching].sort((a, b) => {
+          const idxA = userFavs.indexOf(a.id);
+          const idxB = userFavs.indexOf(b.id);
+          return idxB - idxA;
+        });
 
-          initialFavorites = sorted.map((s) => ({
-            id: s.id,
-            series_id: s.id,
-            created_at: s.created_at,
-            series: {
-              ...s,
-              views: viewsMap[s.id] || 0,
-            },
-          }));
-        }
+        initialFavorites = sorted.map((s) => ({
+          id: s.id,
+          series_id: s.id,
+          created_at: s.created_at,
+          series: s,
+        }));
       }
     }
   } catch (err) {

@@ -1,8 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
 import { Flame, Star, Filter, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
-import { unstable_cache } from 'next/cache';
-import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import SeriesCard from '@/components/SeriesCard/SeriesCard';
 import TrendingGenreSelect from './TrendingGenreSelect';
 import TrendingSortSelect from './TrendingSortSelect';
@@ -14,10 +12,6 @@ import { getR2Url } from '@/utils/r2';
 import JsonLd from '@/components/JsonLd/JsonLd';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ybtbdtgtryrxrhuchlkw.supabase.co';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_HLX-SCL51o2H254WH-gN0Q_HPpNwKo5';
-const publicSupabaseClient = createSupabaseClient(supabaseUrl, supabaseAnonKey);
 
 export const revalidate = 120;
 
@@ -63,93 +57,26 @@ function getFirstEpisodeId(series: any, isDbEmpty: boolean): string | null {
   return series.firstEpisodeId || null;
 }
 
-const getCachedTrendingSeriesData = unstable_cache(
-  async (timeframe: '7d' | '30d' | 'all') => {
-    let seriesList: any[] = [];
-    let isDbEmpty = true;
+import { getLocalAllPublishedSeries } from '@/utils/localCatalogStore';
 
-    try {
-      const { data: seriesData } = await publicSupabaseClient
-        .from('series')
-        .select(`
-          id,
-          title,
-          slug,
-          description,
-          poster_image_key,
-          cover_image_key,
-          tags,
-          category,
-          studio,
-          status,
-          rating,
-          created_at,
-          release_year,
-          first_air_date,
-          seasons (
-            is_published,
-            season_number,
-            episodes (
-              id,
-              is_published,
-              episode_number
-            )
-          )
-        `)
-        .eq('is_published', true);
-
-      if (seriesData && seriesData.length > 0) {
-        isDbEmpty = false;
-        const viewsMap = await getSeriesViewsMap(timeframe);
-        seriesList = seriesData.map((s: any) => {
-          let epCount = 0;
-          let firstEpId: string | null = null;
-          if (s.seasons) {
-            const activeSeasons = [...s.seasons]
-              .filter((sea: any) => sea.is_published)
-              .sort((a: any, b: any) => a.season_number - b.season_number);
-            for (const season of activeSeasons) {
-              if (season.episodes && season.episodes.length > 0) {
-                const activeEps = [...season.episodes]
-                  .filter((ep: any) => ep.is_published)
-                  .sort((a: any, b: any) => a.episode_number - b.episode_number);
-                epCount += activeEps.length;
-                if (!firstEpId && activeEps.length > 0) {
-                  firstEpId = activeEps[0].id;
-                }
-              }
-            }
-          }
-          return {
-            id: s.id,
-            title: s.title,
-            slug: s.slug,
-            description: s.description,
-            poster_image_key: s.poster_image_key,
-            cover_image_key: s.cover_image_key,
-            tags: s.tags,
-            category: s.category,
-            studio: s.studio,
-            status: s.status,
-            rating: s.rating,
-            created_at: s.created_at,
-            release_year: s.release_year,
-            first_air_date: s.first_air_date,
-            episode_count: epCount,
-            firstEpisodeId: firstEpId,
-            views: viewsMap[s.id] || 0,
-          };
-        });
-      }
-    } catch (err) {
-      console.error('Error fetching trending series:', err);
+const getCachedTrendingSeriesData = async (timeframe: '7d' | '30d' | 'all') => {
+  try {
+    const viewsMap = await getSeriesViewsMap(timeframe);
+    const all = await getLocalAllPublishedSeries();
+    if (all && all.length > 0) {
+      const seriesList = all.map(s => ({
+        ...s,
+        views: viewsMap[s.id] || 0
+      }));
+      return { seriesList, isDbEmpty: false };
     }
+  } catch (err) {
+    console.error('Error fetching trending series:', err);
+  }
 
-    return { seriesList, isDbEmpty };
-  },
-  ['trending-catalog-cache-v2'],
-  { revalidate: 120, tags: ['trending_catalog', 'all_series_catalog'] }
-);
+  return { seriesList: [], isDbEmpty: true };
+};
+
 
 export default async function TrendingPage({
   searchParams,

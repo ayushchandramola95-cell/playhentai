@@ -33,161 +33,15 @@ interface WatchPageProps {
   params: Promise<{ episodeId: string }>;
 }
 
-async function resolveEpisode(supabase: any, episodeId: string) {
-  const parsed = parseEpisodeSlug(episodeId);
-
-  if (parsed?.seriesSlug && parsed?.episodeNumber !== undefined) {
-    try {
-      const { data: seriesData } = await supabase
-        .from('series')
-        .select('*, seasons(id, season_number, title, is_published, episodes(*))')
-        .eq('slug', parsed.seriesSlug)
-        .eq('is_published', true)
-        .maybeSingle();
-
-      if (seriesData && seriesData.seasons) {
-        let foundEp: any = null;
-        let seasonTitle: string = '';
-        let matchedSeasonEpisodes: any[] = [];
-        for (const season of seriesData.seasons) {
-          if (season.episodes && Array.isArray(season.episodes)) {
-            const ep = season.episodes.find((e: any) => e.episode_number === parsed.episodeNumber && e.is_published);
-            if (ep) {
-              foundEp = ep;
-              seasonTitle = season.title || '';
-              matchedSeasonEpisodes = [...season.episodes]
-                .filter((e: any) => e.is_published !== false)
-                .sort((a: any, b: any) => (a.episode_number || 0) - (b.episode_number || 0));
-              break;
-            }
-          }
-        }
-
-        if (foundEp) {
-          return {
-            activeEpisode: foundEp,
-            seriesDetails: seriesData,
-            seriesTitle: seriesData.title,
-            seriesSlug: seriesData.slug,
-            seasonTitle,
-            seasonEpisodes: matchedSeasonEpisodes.length > 0 ? matchedSeasonEpisodes : [foundEp],
-            isDbEmpty: false
-          };
-        }
-      }
-    } catch (e) {}
-  }
-
-  try {
-    if (episodeId.startsWith('trailer-')) {
-      const seriesId = episodeId.replace('trailer-', '');
-      const { data: sData } = await supabase
-        .from('series')
-        .select('*')
-        .or(`id.eq.${seriesId},slug.eq.${seriesId}`)
-        .maybeSingle();
-      if (sData) {
-        const activeEp = {
-          id: episodeId,
-          episode_number: 1,
-          title: '[Preview] Trailer / Preview',
-          description: 'Official trailer/preview for the upcoming release.',
-          video_key: sData.meta_title,
-          thumbnail_key: sData.cover_image_key || sData.poster_image_key,
-          duration_seconds: 180,
-          release_date: sData.created_at
-        };
-        return {
-          activeEpisode: activeEp,
-          seriesDetails: sData,
-          seriesTitle: sData.title,
-          seriesSlug: sData.slug,
-          seasonTitle: 'Trailer',
-          seasonEpisodes: [activeEp],
-          isDbEmpty: false
-        };
-      }
-    } else {
-      const { data: epData } = await supabase
-        .from('episodes')
-        .select('*, seasons(series_id, title, series(*))')
-        .eq('id', episodeId)
-        .eq('is_published', true)
-        .maybeSingle();
-
-      if (epData) {
-        const seriesObj = epData.seasons?.series || {};
-        const seasonTitle = epData.seasons?.title || '';
-        const { data: siblingEps } = await supabase
-          .from('episodes')
-          .select('*')
-          .eq('season_id', epData.season_id)
-          .eq('is_published', true)
-          .order('episode_number');
-
-        return {
-          activeEpisode: epData,
-          seriesDetails: seriesObj,
-          seriesTitle: seriesObj.title || 'Series',
-          seriesSlug: seriesObj.slug || '',
-          seasonTitle,
-          seasonEpisodes: siblingEps || [epData],
-          isDbEmpty: false
-        };
-      }
-    }
-  } catch (e) {}
-
-  if (parsed?.seriesSlug && parsed?.episodeNumber !== undefined) {
-    const mockDetail = MOCK_SERIES_DETAILS[parsed.seriesSlug] || MOCK_SERIES.find((s: any) => s.slug === parsed.seriesSlug);
-    if (mockDetail && mockDetail.seasons) {
-      let foundEp: any = null;
-      let allEps: any[] = [];
-      for (const season of mockDetail.seasons) {
-        if (season.episodes) {
-          allEps.push(...season.episodes);
-          const ep = season.episodes.find((e: any) => e.episode_number === parsed.episodeNumber);
-          if (ep) foundEp = ep;
-        }
-      }
-      if (foundEp) {
-        return {
-          activeEpisode: foundEp,
-          seriesDetails: mockDetail,
-          seriesTitle: mockDetail.title,
-          seriesSlug: mockDetail.slug || parsed.seriesSlug,
-          seasonEpisodes: allEps,
-          isDbEmpty: true
-        };
-      }
-    }
-  }
-
-  if (MOCK_EPISODES[episodeId]) {
-    const activeEp = MOCK_EPISODES[episodeId];
-    const sSlug = activeEp.slug;
-    const siblingEps = Object.values(MOCK_EPISODES).filter((ep: any) => ep.slug === sSlug);
-    const mockDetail = MOCK_SERIES_DETAILS[sSlug] || MOCK_SERIES.find((s: any) => s.slug === sSlug);
-    return {
-      activeEpisode: activeEp,
-      seriesDetails: mockDetail,
-      seriesTitle: activeEp.series_title,
-      seriesSlug: sSlug,
-      seasonEpisodes: siblingEps,
-      isDbEmpty: true
-    };
-  }
-
-  return null;
-}
+import { getLocalResolvedEpisode, getLocalAllPublishedSeries } from '@/utils/localCatalogStore';
 
 export const revalidate = 120;
 
 const getCachedResolvedEpisode = unstable_cache(
   async (episodeId: string) => {
-    return await resolveEpisode(publicSupabaseClient, episodeId);
+    return await getLocalResolvedEpisode(episodeId);
   },
-  ['watch-episode-resolved-cache-v2'],
+  ['watch-episode-resolved-cache-v3'],
   { revalidate: 120, tags: ['watch_episode', 'episodes_catalog'] }
 );
 
@@ -318,29 +172,9 @@ export async function generateMetadata({ params }: WatchPageProps): Promise<Meta
 
 const getCachedMinimalSeriesList = unstable_cache(
   async () => {
-    try {
-      const viewsMap = await getSeriesViewsMap();
-      const { data, error } = await publicSupabaseClient
-        .from('series')
-        .select('id, title, slug, studio, tags, status, release_year, poster_image_key, cover_image_key, poster_position, content_rating, description, created_at')
-        .eq('is_published', true);
-      if (error) {
-        console.error('Error fetching minimal series list for watch page:', error);
-        return [];
-      }
-      if (data && data.length > 0) {
-        return data.map((s: any) => ({
-          ...s,
-          views: viewsMap[s.id] || 0,
-        }));
-      }
-      return [];
-    } catch (err) {
-      console.error('Exception in getCachedMinimalSeriesList:', err);
-      return [];
-    }
+    return await getLocalAllPublishedSeries();
   },
-  ['minimal-series-list-watch-cache-v8'],
+  ['minimal-series-list-watch-cache-v9'],
   { revalidate: 120, tags: ['series_list', 'all_series_catalog'] }
 );
 

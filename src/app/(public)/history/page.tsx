@@ -1,5 +1,6 @@
 import React from 'react';
 import { createClient } from '@/utils/supabase/server';
+import { getLocalEpisodesWithSeriesHierarchy } from '@/utils/localCatalogStore';
 import HistoryClient from '@/components/HistoryClient/HistoryClient';
 
 export const metadata = {
@@ -37,16 +38,13 @@ export default async function HistoryPage() {
         let episodesMap: Record<string, any> = {};
 
         if (episodeIds.length > 0) {
-          const { data: dbEpisodes } = await supabase
-            .from('episodes')
-            .select('*, seasons(*, series(*))')
-            .in('id', episodeIds);
-
-          if (dbEpisodes) {
-            dbEpisodes.forEach((ep) => {
+          const allEpisodes = await getLocalEpisodesWithSeriesHierarchy();
+          const idSet = new Set(episodeIds);
+          allEpisodes.forEach((ep: any) => {
+            if (idSet.has(ep.id)) {
               episodesMap[ep.id] = ep;
-            });
-          }
+            }
+          });
         }
 
         // 3. Map each history log safely with full fallbacks

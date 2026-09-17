@@ -1,12 +1,8 @@
 import { MOCK_SERIES } from './mockData';
 import { unstable_cache } from 'next/cache';
-import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import { getLocalAllPublishedSeries } from './localCatalogStore';
 import fs from 'fs';
 import path from 'path';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ybtbdtgtryrxrhuchlkw.supabase.co';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_HLX-SCL51o2H254WH-gN0Q_HPpNwKo5';
-const publicSupabaseClient = createSupabaseClient(supabaseUrl, supabaseAnonKey);
 
 export interface Collection {
   id: string;
@@ -150,14 +146,7 @@ export const getCollectionWithSeries = unstable_cache(
 
     let seriesList: any[] = [];
     try {
-      const { data } = await publicSupabaseClient
-        .from('series')
-        .select('id, title, slug, description, poster_image_key, cover_image_key, tags, category, studio, status, rating, release_year, created_at')
-        .eq('is_published', true);
-      
-      if (data && data.length > 0) {
-        seriesList = data;
-      }
+      seriesList = await getLocalAllPublishedSeries();
     } catch (err) {
       console.error('Error fetching series for collection details:', err);
     }
@@ -207,14 +196,7 @@ export const getAllCollectionsWithPreviews = unstable_cache(
   async () => {
     let seriesList: any[] = [];
     try {
-      const { data } = await publicSupabaseClient
-        .from('series')
-        .select('*')
-        .eq('is_published', true);
-      
-      if (data && data.length > 0) {
-        seriesList = data;
-      }
+      seriesList = await getLocalAllPublishedSeries();
     } catch (err) {
       console.error('Error listing collections previews:', err);
     }

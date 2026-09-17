@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { revalidateTag } from 'next/cache';
 import { createClient } from '@/utils/supabase/server';
 import { createAdminClient } from '@/utils/supabase/admin';
+import { getLocalCatalog } from '@/utils/localCatalogStore';
 
 export async function GET(request: Request) {
   try {
@@ -30,23 +31,19 @@ export async function GET(request: Request) {
 
     // 1. Fetch tables in parallel safely without fragile joins or column-name assumptions
     const [
+      catalog,
       { count: realViewsCount },
-      viewsResult,
-      seriesResult,
-      seasonsResult,
-      episodesResult
+      viewsResult
     ] = await Promise.all([
+      getLocalCatalog(),
       adminSupabase.from('episode_views').select('*', { count: 'exact', head: true }),
-      adminSupabase.from('episode_views').select('*').limit(25000),
-      adminSupabase.from('series').select('*').order('created_at', { ascending: false }),
-      adminSupabase.from('seasons').select('id, title, season_number, series_id'),
-      adminSupabase.from('episodes').select('id, title, episode_number, thumbnail_key, season_id, created_at').order('created_at', { ascending: false })
+      adminSupabase.from('episode_views').select('*').limit(25000)
     ]);
 
     const allViewLogs = viewsResult.data || [];
-    const dbSeries = seriesResult.data || [];
-    const dbSeasons = seasonsResult.data || [];
-    const dbEpisodes = episodesResult.data || [];
+    const dbSeries = catalog.series || [];
+    const dbSeasons = catalog.seasons || [];
+    const dbEpisodes = catalog.episodes || [];
 
     // Filter view logs in memory according to chosen time range
     const viewLogs = allViewLogs.filter((log: any) => {

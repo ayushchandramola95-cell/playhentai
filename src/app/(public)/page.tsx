@@ -59,80 +59,88 @@ export const metadata = {
   },
 };
 
-// 60-Second TTL Cached Catalog Query for Super-Fast TTFB (<80ms)
-const getCachedCatalogData = unstable_cache(
-  async () => {
-    let dbSeries: any[] = [];
-    let dbEpisodes: any[] = [];
-    let isDbEmpty = true;
+import { getLocalCatalog } from '@/utils/localCatalogStore';
 
-    try {
-      const viewsMap = await getSeriesViewsMap();
-      const episodeViewsMap = await getEpisodeViewsMap();
+// Local Catalog Query with Zero Egress and Sub-Millisecond Speed
+const getCachedCatalogData = async () => {
+  try {
+    const catalog = await getLocalCatalog();
+      const viewsMap: Record<string, number> = await getSeriesViewsMap().catch(() => ({}));
+      const episodeViewsMap: Record<string, number> = await getEpisodeViewsMap().catch(() => ({}));
 
-      const { data: seriesData } = await publicSupabaseClient
-        .from('series')
-        .select(`
-          *,
-          seasons (
-            is_published,
-            season_number,
-            episodes (
-              id,
-              is_published,
-              episode_number
-            )
-          )
-        `)
-        .eq('is_published', true);
+      const isDbEmpty = !catalog.series || catalog.series.length === 0;
+      if (isDbEmpty) {
+        return { dbSeries: [], dbEpisodes: [], isDbEmpty: true };
+      }
 
-      if (seriesData && seriesData.length > 0) {
-        isDbEmpty = false;
-        dbSeries = seriesData.map((s: any) => ({
+      // Map series with seasons and episodes
+      const seasonsBySeries = new Map<string, any[]>();
+      const episodesBySeason = new Map<string, any[]>();
+
+      catalog.episodes.forEach((ep: any) => {
+        if (ep.is_published !== false) {
+          if (!episodesBySeason.has(ep.season_id)) episodesBySeason.set(ep.season_id, []);
+          episodesBySeason.get(ep.season_id)!.push(ep);
+        }
+      });
+
+      catalog.seasons.forEach((sn: any) => {
+        if (sn.is_published !== false) {
+          if (!seasonsBySeries.has(sn.series_id)) seasonsBySeries.set(sn.series_id, []);
+          const eps = episodesBySeason.get(sn.id) || [];
+          seasonsBySeries.get(sn.series_id)!.push({
+            ...sn,
+            episodes: eps
+          });
+        }
+      });
+
+      const dbSeries = catalog.series
+        .filter((s: any) => s.is_published !== false)
+        .map((s: any) => ({
           ...s,
-          views: viewsMap[s.id] || 0
+          views: viewsMap[s.id] || s.views || 0,
+          seasons: seasonsBySeries.get(s.id) || []
         }));
-      }
 
-      const { data: episodeData } = await publicSupabaseClient
-        .from('episodes')
-        .select(`
-          id,
-          episode_number,
-          title,
-          thumbnail_key,
-          duration_seconds,
-          release_date,
-          created_at,
-          seasons (
-            season_number,
-            series (
-              title,
-              slug,
-              poster_image_key,
-              tags
-            )
-          )
-        `)
-        .eq('is_published', true)
-        .order('release_date', { ascending: false, nullsFirst: false })
-        .order('created_at', { ascending: false });
+      // Map episodes with parent season and series
+      const seriesMap = new Map<string, any>();
+      catalog.series.forEach((s: any) => seriesMap.set(s.id, s));
 
-      if (episodeData && episodeData.length > 0) {
-        dbEpisodes = episodeData.map((ep: any) => ({
-          ...ep,
-          views: episodeViewsMap[ep.id] || 0
-        }));
-      }
+      const seasonMap = new Map<string, any>();
+      catalog.seasons.forEach((sn: any) => seasonMap.set(sn.id, sn));
+
+      const dbEpisodes = catalog.episodes
+        .filter((ep: any) => ep.is_published !== false)
+        .map((ep: any) => {
+          const sn = seasonMap.get(ep.season_id);
+          const s = sn ? seriesMap.get(sn.series_id) : null;
+          return {
+            ...ep,
+            views: episodeViewsMap[ep.id] || 0,
+            seasons: sn ? {
+              season_number: sn.season_number,
+              series: s ? {
+                title: s.title,
+                slug: s.slug,
+                poster_image_key: s.poster_image_key,
+                tags: s.tags
+              } : null
+            } : null
+          };
+        })
+        .sort((a: any, b: any) => {
+          const timeA = new Date(a.release_date || a.created_at || 0).getTime();
+          const timeB = new Date(b.release_date || b.created_at || 0).getTime();
+          return timeB - timeA;
+        });
+
+      return { dbSeries, dbEpisodes, isDbEmpty: false };
     } catch (err) {
-      console.error('Error fetching catalog data from Supabase:', err);
+      console.error('Error fetching catalog data from local store:', err);
+      return { dbSeries: [], dbEpisodes: [], isDbEmpty: true };
     }
-
-    return { dbSeries, dbEpisodes, isDbEmpty };
-  },
-  ['homepage-catalog-cache-v1'],
-  { revalidate: 120, tags: ['homepage_catalog'] }
-);
+  };
 
 function getLocalSettings(): Record<string, string> {
   const defaultSettings: Record<string, string> = { 

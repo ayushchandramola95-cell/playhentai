@@ -3,8 +3,6 @@ import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { Hash, ChevronLeft, ChevronRight, Layers } from 'lucide-react';
-import { unstable_cache } from 'next/cache';
-import { createClient } from '@supabase/supabase-js';
 import SeriesCard from '@/components/SeriesCard/SeriesCard';
 import JsonLd from '@/components/JsonLd/JsonLd';
 import { tagToSlug } from '@/utils/constants';
@@ -20,118 +18,19 @@ interface TagPageProps {
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
 const PAGE_SIZE = 24;
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ybtbdtgtryrxrhuchlkw.supabase.co';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_HLX-SCL51o2H254WH-gN0Q_HPpNwKo5';
-const publicSupabaseClient = createClient(supabaseUrl, supabaseAnonKey);
+import { getLocalDistinctTags, getLocalSeriesByTag } from '@/utils/localCatalogStore';
 
 export const revalidate = 120;
 
-/**
- * Fetch all distinct tags from published series in Supabase with 1-hour caching.
- */
-const getCachedDistinctTags = unstable_cache(
-  async (): Promise<string[]> => {
-    try {
-      const { data } = await publicSupabaseClient
-        .from('series')
-        .select('tags')
-        .eq('is_published', true);
-
-      if (!data) return [];
-      const tagSet = new Set<string>();
-      data.forEach((row: any) => {
-        (row.tags || []).forEach((t: string) => {
-          if (t && t.trim()) tagSet.add(t.trim());
-        });
-      });
-      return Array.from(tagSet);
-    } catch {
-      return [];
-    }
-  },
-  ['all-distinct-tags-cache-v2'],
-  { revalidate: 3600, tags: ['all_tags_catalog', 'all_series_catalog'] }
-);
-
 async function getAllDistinctTags(): Promise<string[]> {
-  return await getCachedDistinctTags();
+  return await getLocalDistinctTags();
 }
-
-/**
- * Fetch series that contain the given tag with 120s caching and trimmed payloads.
- */
-const getCachedSeriesByTag = unstable_cache(
-  async (exactTag: string): Promise<any[]> => {
-    try {
-      const viewsMap = await getSeriesViewsMap();
-
-      const { data, error } = await publicSupabaseClient
-        .from('series')
-        .select(`
-          id, title, slug, description, poster_image_key, cover_image_key,
-          banner_image_key, tags, category, status,
-          release_year, studio, episode_count_override, poster_position,
-          first_air_date, created_at, rating,
-          seasons (
-            is_published,
-            season_number,
-            episodes (
-              id,
-              is_published,
-              episode_number
-            )
-          )
-        `)
-        .eq('is_published', true)
-        .contains('tags', [exactTag])
-        .order('created_at', { ascending: false });
-
-      if (error || !data) return [];
-
-      const mapped = data.map((s: any) => {
-        let epCount = 0;
-        if (s.seasons && Array.isArray(s.seasons)) {
-          s.seasons.forEach((sea: any) => {
-            if (sea.is_published && sea.episodes && Array.isArray(sea.episodes)) {
-              epCount += sea.episodes.filter((e: any) => e.is_published).length;
-            }
-          });
-        }
-        return {
-          id: s.id,
-          title: s.title,
-          slug: s.slug,
-          description: s.description,
-          poster_image_key: s.poster_image_key,
-          cover_image_key: s.cover_image_key,
-          banner_image_key: s.banner_image_key,
-          tags: s.tags,
-          category: s.category,
-          status: s.status,
-          release_year: s.release_year,
-          studio: s.studio,
-          episode_count_override: s.episode_count_override,
-          episode_count: epCount,
-          poster_position: s.poster_position,
-          first_air_date: s.first_air_date,
-          created_at: s.created_at,
-          rating: s.rating,
-          views: viewsMap[s.id] || 0,
-        };
-      });
-
-      return mapped.sort((a: any, b: any) => (b.views || 0) - (a.views || 0));
-    } catch {
-      return [];
-    }
-  },
-  ['tag-series-catalog-cache-v2'],
-  { revalidate: 120, tags: ['tag_catalog', 'all_series_catalog'] }
-);
 
 async function getSeriesByTag(exactTag: string): Promise<any[]> {
-  return await getCachedSeriesByTag(exactTag);
+  const result = await getLocalSeriesByTag(tagToSlug(exactTag));
+  return result.series;
 }
+
 
 export async function generateMetadata({ params }: TagPageProps): Promise<Metadata> {
   const { slug } = await params;

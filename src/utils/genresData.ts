@@ -1,11 +1,6 @@
 import { GENRES, tagToSlug, isUncensoredSeries, isThreeDSeries } from './constants';
-import { getSeriesViewsMap } from './views';
 import { unstable_cache } from 'next/cache';
-import { createClient as createSupabaseClient } from '@supabase/supabase-js';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ybtbdtgtryrxrhuchlkw.supabase.co';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_HLX-SCL51o2H254WH-gN0Q_HPpNwKo5';
-const publicSupabaseClient = createSupabaseClient(supabaseUrl, supabaseAnonKey);
+import { getLocalAllPublishedSeries } from './localCatalogStore';
 
 export interface GenreSeriesPreview {
   id: string;
@@ -164,35 +159,9 @@ export const getAllGenresWithStats = unstable_cache(
   async (): Promise<GenreWithStats[]> => {
     let seriesList: any[] = [];
     try {
-      const viewsMap = await getSeriesViewsMap();
-      const { data: dbSeries, error } = await publicSupabaseClient
-        .from('series')
-        .select(`
-          id,
-          title,
-          slug,
-          tags,
-          poster_image_key,
-          cover_image_key,
-          banner_image_key,
-          status,
-          release_year,
-          studio,
-          created_at
-        `)
-        .eq('is_published', true)
-        .order('created_at', { ascending: false });
-
-      if (!error && dbSeries && dbSeries.length > 0) {
-        seriesList = dbSeries.map((s: any) => ({
-          ...s,
-          views: viewsMap[s.id] || 0
-        }));
-      } else if (error) {
-        console.error('Error fetching series for genres:', error);
-      }
+      seriesList = await getLocalAllPublishedSeries();
     } catch (err) {
-      console.error('Error in getAllGenresWithStats:', err);
+      console.error('Error fetching series for genres:', err);
     }
 
     // Standard canonical GENRES list (prevents duplicates like Big Boobs vs Large Breasts)

@@ -2,9 +2,7 @@ import React, { Suspense } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { TrendingUp, Play, ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
-import { unstable_cache } from 'next/cache';
-import { createClient as createSupabaseClient } from '@supabase/supabase-js';
-
+import { getLocalRecentSeries } from '@/utils/localCatalogStore';
 import { getR2Url } from '@/utils/r2';
 import { MOCK_SERIES } from '@/utils/mockData';
 import SeriesCard from '@/components/SeriesCard/SeriesCard';
@@ -14,10 +12,6 @@ import JsonLd from '@/components/JsonLd/JsonLd';
 import styles from '../recent.module.css';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ybtbdtgtryrxrhuchlkw.supabase.co';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_HLX-SCL51o2H254WH-gN0Q_HPpNwKo5';
-const publicSupabaseClient = createSupabaseClient(supabaseUrl, supabaseAnonKey);
 
 export const revalidate = 120;
 
@@ -33,13 +27,14 @@ export const metadata = {
     url: `${SITE_URL}/recent/series`,
     siteName: 'Play Hentai',
     locale: 'en_US',
-    type: 'website' as const,
+    type: 'website',
     images: [
       {
         url: `${SITE_URL}/hero-banner.png`,
         width: 1200,
         height: 630,
         alt: 'Recent Series on Play Hentai',
+        type: 'image/png',
       },
     ],
   },
@@ -51,128 +46,27 @@ export const metadata = {
   },
 };
 
-const getCachedRecentSeriesData = unstable_cache(
-  async () => {
-    let dbSeries: any[] = [];
-    let isDbEmpty = true;
-    let siteSortMode = 'latest_episode';
+const getCachedRecentSeriesData = async () => {
+  let siteSortMode = 'latest_episode';
 
-    try {
-      const fileContent = getSiteSettings();
-      if (fileContent.latest_series_sort_mode) {
-        siteSortMode = fileContent.latest_series_sort_mode;
-      }
-    } catch (fErr) {}
-
-    try {
-      const { data: settingsData } = await publicSupabaseClient
-        .from('site_settings')
-        .select('value')
-        .eq('key', 'latest_series_sort_mode')
-        .maybeSingle();
-
-      if (settingsData && settingsData.value) {
-        siteSortMode = settingsData.value;
-      }
-    } catch (sErr) {}
-
-    try {
-      const { data: seriesData } = await publicSupabaseClient
-        .from('series')
-        .select(`
-          id,
-          title,
-          slug,
-          description,
-          poster_image_key,
-          cover_image_key,
-          tags,
-          category,
-          studio,
-          status,
-          rating,
-          created_at,
-          release_year,
-          first_air_date,
-          seasons (
-            is_published,
-            episodes (
-              id,
-              is_published,
-              release_date,
-              created_at
-            )
-          )
-        `)
-        .eq('is_published', true);
-
-      if (seriesData && seriesData.length > 0) {
-        dbSeries = seriesData
-          .filter((s: any) => s.status !== 'upcoming')
-          .map((s: any) => {
-            let latestEpisodeAirDate = 0;
-            let fallbackSeriesDate = new Date(s.first_air_date || s.release_date || s.created_at || 0).getTime();
-            if (isNaN(fallbackSeriesDate)) fallbackSeriesDate = 0;
-            if (fallbackSeriesDate === 0 && s.release_year) {
-              fallbackSeriesDate = new Date(`${s.release_year}-01-01`).getTime();
-            }
-            
-            let epCount = 0;
-            if (s.seasons) {
-              s.seasons.forEach((season: any) => {
-                if (season.is_published && season.episodes) {
-                  season.episodes.forEach((episode: any) => {
-                    if (episode.is_published) {
-                      epCount++;
-                      const epDateStr = episode.release_date || episode.created_at;
-                      if (epDateStr) {
-                        const epTime = new Date(epDateStr).getTime();
-                        if (!isNaN(epTime) && epTime > latestEpisodeAirDate) {
-                          latestEpisodeAirDate = epTime;
-                        }
-                      }
-                    }
-                  });
-                }
-              });
-            }
-
-            const finalSortDate = latestEpisodeAirDate > 0 ? latestEpisodeAirDate : fallbackSeriesDate;
-
-            return {
-              id: s.id,
-              title: s.title,
-              slug: s.slug,
-              description: s.description,
-              poster_image_key: s.poster_image_key,
-              cover_image_key: s.cover_image_key,
-              tags: s.tags,
-              category: s.category,
-              studio: s.studio,
-              status: s.status,
-              rating: s.rating,
-              created_at: s.created_at,
-              release_year: s.release_year,
-              first_air_date: s.first_air_date,
-              episode_count: epCount,
-              latestEpisodeAirDate: finalSortDate,
-              launchDate: fallbackSeriesDate
-            };
-          });
-
-        if (dbSeries.length > 0) {
-          isDbEmpty = false;
-        }
-      }
-    } catch (err) {
-      console.error('Error fetching series from DB for recent series page:', err);
+  try {
+    const fileContent = getSiteSettings();
+    if (fileContent.latest_series_sort_mode) {
+      siteSortMode = fileContent.latest_series_sort_mode;
     }
+  } catch (fErr) {}
 
-    return { dbSeries, isDbEmpty, siteSortMode };
-  },
-  ['recent-series-catalog-cache-v2'],
-  { revalidate: 120, tags: ['recent_series_catalog', 'all_series_catalog'] }
-);
+  try {
+    const dbSeries = await getLocalRecentSeries(siteSortMode);
+    if (dbSeries && dbSeries.length > 0) {
+      return { dbSeries, isDbEmpty: false, siteSortMode };
+    }
+  } catch (err) {
+    console.error('Error fetching local recent series:', err);
+  }
+
+  return { dbSeries: [], isDbEmpty: true, siteSortMode };
+};
 
 export default async function RecentSeriesPage({
   searchParams,

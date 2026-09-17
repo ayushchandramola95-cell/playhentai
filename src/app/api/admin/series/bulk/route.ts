@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { verifyAdmin, createAdminClient } from '@/utils/supabase/admin';
 import { revalidateAllCatalogTags } from '@/utils/revalidateCatalog';
+import { syncLocalCatalogWithSupabase } from '@/utils/localCatalogStore';
 
 function generateSlug(title: string): string {
   return title
@@ -94,6 +95,7 @@ export async function POST(request: Request) {
     }
 
     if (results.length > 0) {
+      syncLocalCatalogWithSupabase().catch((err) => console.error('Error syncing local catalog after bulk insert:', err));
       revalidateAllCatalogTags();
     }
 

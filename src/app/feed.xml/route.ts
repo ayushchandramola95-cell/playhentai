@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { unstable_cache } from 'next/cache';
-import { createClient } from '@supabase/supabase-js';
+import { getLocalEpisodesWithSeriesHierarchy } from '@/utils/localCatalogStore';
 import { getR2Url } from '@/utils/r2';
 import { getEpisodeWatchUrl } from '@/utils/episodeUrl';
 import { MOCK_SERIES, MOCK_EPISODES } from '@/utils/mockData';
@@ -32,31 +31,21 @@ function formatRfc822Date(dateStr?: string | null): string {
   return new Date().toUTCString();
 }
 
-const getCachedFeedEpisodes = unstable_cache(
-  async () => {
-    try {
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ybtbdtgtryrxrhuchlkw.supabase.co',
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_HLX-SCL51o2H254WH-gN0Q_HPpNwKo5'
-      );
-
-      // Fetch up to 50 latest published episodes with joined series data (pruned columns)
-      const { data: episodes } = await supabase
-        .from('episodes')
-        .select('id, episode_number, title, description, release_date, created_at, thumbnail_key, seasons(series(title, slug, poster_image_key, cover_image_key, is_published, tags))')
-        .eq('is_published', true)
-        .order('release_date', { ascending: false })
-        .limit(50);
-
-      return episodes || [];
-    } catch (err) {
-      console.error('Error in getCachedFeedEpisodes:', err);
-      return [];
-    }
-  },
-  ['rss-feed-episodes-cache-v2'],
-  { revalidate: 3600, tags: ['rss_feed', 'episodes_catalog'] }
-);
+const getCachedFeedEpisodes = async () => {
+  try {
+    const episodes = await getLocalEpisodesWithSeriesHierarchy();
+    return episodes
+      .sort((a, b) => {
+        const aDate = new Date(a.release_date || a.created_at || 0).getTime();
+        const bDate = new Date(b.release_date || b.created_at || 0).getTime();
+        return bDate - aDate;
+      })
+      .slice(0, 50);
+  } catch (err) {
+    console.error('Error in getCachedFeedEpisodes:', err);
+    return [];
+  }
+};
 
 export async function GET() {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { verifyAdmin, createAdminClient } from '@/utils/supabase/admin';
 import { getSeriesViewsMap } from '@/utils/views';
 import { revalidateAllCatalogTags } from '@/utils/revalidateCatalog';
+import { upsertLocalSeries, deleteLocalSeries, upsertLocalSeason } from '@/utils/localCatalogStore';
 
 export async function GET() {
   try {
@@ -105,6 +106,11 @@ export async function POST(request: Request) {
 
     await syncTagsToCategories(payload.tags || [], adminSupabase);
     await syncStudioToDatabase(payload.studio, adminSupabase);
+    try {
+      await upsertLocalSeries(data);
+    } catch (localErr) {
+      console.warn('Local store series upsert fallback:', localErr);
+    }
     revalidateAllCatalogTags();
     return NextResponse.json({ success: true, series: data });
   } catch (err: any) {
@@ -170,6 +176,11 @@ export async function PUT(request: Request) {
     if (error) throw error;
     await syncTagsToCategories(payload.tags || [], adminSupabase);
     await syncStudioToDatabase(payload.studio, adminSupabase);
+    try {
+      await upsertLocalSeries(data);
+    } catch (localErr) {
+      console.warn('Local store series update fallback:', localErr);
+    }
     revalidateAllCatalogTags();
     return NextResponse.json({ success: true, series: data });
   } catch (err: any) {
@@ -234,6 +245,11 @@ export async function DELETE(request: Request) {
       .eq('id', id);
 
     if (error) throw error;
+    try {
+      await deleteLocalSeries(id);
+    } catch (localErr) {
+      console.warn('Local store series delete fallback:', localErr);
+    }
     revalidateAllCatalogTags();
     return NextResponse.json({ success: true });
   } catch (err: any) {

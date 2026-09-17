@@ -1,16 +1,10 @@
 import React from 'react';
-import { unstable_cache } from 'next/cache';
-import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import { getLocalAllPublishedSeries } from '@/utils/localCatalogStore';
 import { MOCK_SERIES } from '@/utils/mockData';
-import { getSeriesViewsMap } from '@/utils/views';
 import RandomizerPortal from './RandomizerPortal';
 import JsonLd from '@/components/JsonLd/JsonLd';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ybtbdtgtryrxrhuchlkw.supabase.co';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_HLX-SCL51o2H254WH-gN0Q_HPpNwKo5';
-const publicSupabaseClient = createSupabaseClient(supabaseUrl, supabaseAnonKey);
 
 interface PageProps {
   searchParams: Promise<{
@@ -40,16 +34,16 @@ export async function generateMetadata({ searchParams }: PageProps) {
       description: 'Discover random hentai anime series with the Random Hentai Anime Generator. Shuffle the library, explore recommendations, and find new series to watch on Play Hentai.',
       url: `${SITE_URL}/random`,
       siteName: 'Play Hentai',
-      locale: 'en_US',
-      type: 'website' as const,
       images: [
         {
           url: `${SITE_URL}/og-banner.png`,
           width: 1200,
           height: 630,
-          alt: 'Play Hentai Random Hentai Anime Generator',
+          alt: 'Random Hentai Anime Generator and Picker on Play Hentai',
+          type: 'image/png',
         },
       ],
+      type: 'website',
     },
     twitter: {
       card: 'summary_large_image',
@@ -62,52 +56,16 @@ export async function generateMetadata({ searchParams }: PageProps) {
 
 export const revalidate = 120;
 
-const getCachedRandomizerSeries = unstable_cache(
-  async () => {
-    let dbSeries: any[] = [];
-    let isDbEmpty = true;
+const getCachedRandomizerSeries = async () => {
+  try {
+    const dbSeries = await getLocalAllPublishedSeries();
+    return { dbSeries, isDbEmpty: dbSeries.length === 0 };
+  } catch (err) {
+    console.error('Error fetching local series for randomizer:', err);
+  }
 
-    try {
-      const viewsMap = await getSeriesViewsMap();
-
-      const { data: seriesData, error } = await publicSupabaseClient
-        .from('series')
-        .select(`
-          id,
-          title,
-          slug,
-          description,
-          poster_image_key,
-          cover_image_key,
-          poster_position,
-          content_rating,
-          tags,
-          category,
-          status,
-          release_year,
-          studio,
-          rating,
-          created_at
-        `)
-        .eq('is_published', true)
-        .order('created_at', { ascending: false });
-
-      if (!error && seriesData && seriesData.length > 0) {
-        dbSeries = seriesData.map((s: any) => ({
-          ...s,
-          views: viewsMap[s.id] || 0
-        }));
-        isDbEmpty = false;
-      }
-    } catch (err) {
-      console.error('Error fetching series from DB for randomizer:', err);
-    }
-
-    return { dbSeries, isDbEmpty };
-  },
-  ['random-series-catalog-cache-v4'],
-  { revalidate: 120, tags: ['randomizer_catalog', 'series_catalog', 'all_series_catalog'] }
-);
+  return { dbSeries: [], isDbEmpty: true };
+};
 
 export default async function RandomPage() {
   const { dbSeries, isDbEmpty } = await getCachedRandomizerSeries();

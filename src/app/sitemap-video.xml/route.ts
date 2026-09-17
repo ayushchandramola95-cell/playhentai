@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { unstable_cache } from 'next/cache';
-import { createClient } from '@supabase/supabase-js';
+import { getLocalEpisodesWithSeriesHierarchy } from '@/utils/localCatalogStore';
 import { getR2Url } from '@/utils/r2';
 
 export const revalidate = 7200;
@@ -22,29 +21,14 @@ function escapeXml(unsafe: string | null | undefined): string {
     });
 }
 
-const getCachedVideoSitemapEpisodes = unstable_cache(
-  async () => {
-    try {
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ybtbdtgtryrxrhuchlkw.supabase.co',
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_HLX-SCL51o2H254WH-gN0Q_HPpNwKo5'
-      );
-
-      // Fetch published episodes with joined series details
-      const { data: episodes } = await supabase
-        .from('episodes')
-        .select('id, episode_number, title, description, duration_seconds, release_date, created_at, thumbnail_key, video_key, seasons(series(title, slug, poster_image_key, cover_image_key, is_published, tags))')
-        .eq('is_published', true);
-
-      return episodes || [];
-    } catch (err) {
-      console.error('Error in getCachedVideoSitemapEpisodes:', err);
-      return [];
-    }
-  },
-  ['video-sitemap-episodes-cache-v2'],
-  { revalidate: 7200, tags: ['video_sitemap', 'episodes_catalog'] }
-);
+const getCachedVideoSitemapEpisodes = async () => {
+  try {
+    return await getLocalEpisodesWithSeriesHierarchy();
+  } catch (err) {
+    console.error('Error in getCachedVideoSitemapEpisodes:', err);
+    return [];
+  }
+};
 
 export async function GET() {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';

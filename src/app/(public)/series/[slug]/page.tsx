@@ -64,97 +64,23 @@ function getFirstEpisodeId(series: any, isDbEmpty: boolean): string | null {
   return null;
 }
 
+import { getLocalAllPublishedSeries, getLocalSeriesDetails } from '@/utils/localCatalogStore';
+
 export const revalidate = 120;
 
 const getCachedAllPublishedSeries = unstable_cache(
   async () => {
-    try {
-      const viewsMap = await getSeriesViewsMap();
-      const { data: allSeriesData, error } = await publicSupabaseClient
-        .from('series')
-        .select('id, title, slug, studio, tags, poster_image_key, cover_image_key, banner_image_key, poster_position, release_year, status, description, created_at')
-        .eq('is_published', true)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching all published series for catalog:', error);
-        return [];
-      }
-
-      if (allSeriesData && allSeriesData.length > 0) {
-        return allSeriesData.map((s: any) => ({
-          ...s,
-          views: viewsMap[s.id] || 0
-        }));
-      }
-    } catch (err) {
-      console.error('Error in getCachedAllPublishedSeries:', err);
-    }
-    return [];
+    return await getLocalAllPublishedSeries();
   },
-  ['all-published-series-catalog-v10'],
+  ['all-published-series-catalog-v11'],
   { revalidate: 120, tags: ['all_series_catalog'] }
 );
 
 const getCachedSeriesDetails = unstable_cache(
   async (slug: string) => {
-    let dbSeries: any = null;
-    let dbSeasons: any[] = [];
-    let isDbEmpty = true;
-
-    try {
-      const viewsMap = await getSeriesViewsMap();
-
-      const { data: seriesData, error } = await publicSupabaseClient
-        .from('series')
-        .select('*')
-        .eq('slug', slug)
-        .eq('is_published', true)
-        .single();
-
-      if (seriesData) {
-        dbSeries = {
-          ...seriesData,
-          views: viewsMap[seriesData.id] || 0
-        };
-        isDbEmpty = false;
-
-        const { data: seasonsData } = await publicSupabaseClient
-          .from('seasons')
-          .select(`
-            *,
-            episodes (
-              id,
-              episode_number,
-              title,
-              description,
-              duration_seconds,
-              thumbnail_key,
-              release_date,
-              created_at,
-              is_published
-            )
-          `)
-          .eq('series_id', seriesData.id)
-          .eq('is_published', true)
-          .order('season_number');
-
-        if (seasonsData) {
-          dbSeasons = seasonsData.map((season: any) => ({
-            ...season,
-            episodes: (season.episodes || [])
-              .filter((ep: any) => ep.is_published !== false)
-              .sort((a: any, b: any) => (a.episode_number || 0) - (b.episode_number || 0))
-          }));
-        }
-      }
-    } catch (err) {
-      console.error('Error fetching series details for slug:', slug, err);
-    }
-
-    return { dbSeries, dbSeasons, isDbEmpty };
+    return await getLocalSeriesDetails(slug);
   },
-  ['series-details-single-item-v9'],
+  ['series-details-single-item-v10'],
   { revalidate: 120, tags: ['series_details'] }
 );
 
