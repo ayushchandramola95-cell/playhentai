@@ -111,11 +111,11 @@ export async function generateMetadata({ params }: WatchPageProps): Promise<Meta
         seasonQualifier = ` Special`;
       }
       
-      title = `${titleText}${seasonQualifier} ${epLabel} — Watch Online | Play Hentai`;
-      
       const isUncensored = 
         series.content_rating?.toLowerCase() === 'uncensored' ||
         series.tags?.some((t: string) => t.toLowerCase() === 'uncensored');
+      
+      title = `Watch ${titleText}${seasonQualifier} ${epLabel} ${isUncensored ? 'Uncensored ' : ''}English Subbed Online Free HD | Play Hentai`;
 
       if (isUncensored) {
         description = `Watch ${resolved.seriesTitle}${seasonQualifier} ${epLabel} uncensored in HD with English subtitles. Stream the hentai anime episode for free on Play Hentai.`;

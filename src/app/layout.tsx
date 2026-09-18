@@ -82,8 +82,11 @@ export async function generateMetadata(): Promise<Metadata> {
       apple: '/apple-icon.png',
     },
     verification: {
+      google: process.env.GOOGLE_SITE_VERIFICATION || 'YOUR_GOOGLE_VERIFICATION_CODE',
       yandex: 'fe39af37bfe31147',
       other: {
+        'google-site-verification': process.env.GOOGLE_SITE_VERIFICATION || '',
+        'msvalidate.01': process.env.BING_SITE_VERIFICATION || '',
         '6a97888e-site-verification': 'ae5b610b0f4d1db35865d663bf9fa0ee',
         'yandex-verification': 'fe39af37bfe31147',
       },
