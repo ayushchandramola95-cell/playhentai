@@ -1,17 +1,30 @@
 import { NextResponse } from 'next/server';
 import { verifyAdmin, createAdminClient } from '@/utils/supabase/admin';
 import { revalidateAllCatalogTags } from '@/utils/revalidateCatalog';
-import { upsertLocalEpisode, deleteLocalEpisode } from '@/utils/localCatalogStore';
+import { getLocalCatalog, upsertLocalEpisode, deleteLocalEpisode } from '@/utils/localCatalogStore';
 
 export async function GET(request: Request) {
   try {
     await verifyAdmin();
-    const adminSupabase = createAdminClient();
     const { searchParams } = new URL(request.url);
     const seasonId = searchParams.get('season_id');
     const seriesId = searchParams.get('series_id');
 
+    // 1. Check AWS high-speed memory store first (0ms latency, zero egress)
+    const catalog = await getLocalCatalog();
+
     if (seriesId) {
+      const seasonIds = new Set((catalog.seasons || []).filter((s: any) => s.series_id === seriesId).map((s: any) => s.id));
+      const localEps = (catalog.episodes || [])
+        .filter((ep: any) => seasonIds.has(ep.season_id))
+        .sort((a: any, b: any) => (a.episode_number || 0) - (b.episode_number || 0));
+
+      if (localEps.length > 0) {
+        return NextResponse.json({ episodes: localEps, source: 'aws-memory' });
+      }
+
+      // Fallback to Supabase if not found locally
+      const adminSupabase = createAdminClient();
       const { data: seasons, error: seasonsError } = await adminSupabase
         .from('seasons')
         .select('id')
@@ -23,16 +36,28 @@ export async function GET(request: Request) {
         return NextResponse.json({ episodes: [] });
       }
 
-      const seasonIds = seasons.map((s: any) => s.id);
+      const dbSeasonIds = seasons.map((s: any) => s.id);
       const { data: episodes, error: episodesError } = await adminSupabase
         .from('episodes')
         .select('id, episode_number, title, duration_seconds, thumbnail_key, thumbnail_options, release_date, created_at')
-        .in('season_id', seasonIds)
+        .in('season_id', dbSeasonIds)
         .order('episode_number', { ascending: true });
 
       if (episodesError) throw episodesError;
       return NextResponse.json({ episodes });
     }
+
+    if (seasonId) {
+      const localEps = (catalog.episodes || [])
+        .filter((ep: any) => ep.season_id === seasonId)
+        .sort((a: any, b: any) => (a.episode_number || 0) - (b.episode_number || 0));
+
+      if (localEps.length > 0) {
+        return NextResponse.json({ episodes: localEps, source: 'aws-memory' });
+      }
+    }
+
+    const adminSupabase = createAdminClient();
 
     let query = adminSupabase.from('episodes').select('*, seasons(title, series(title))');
     

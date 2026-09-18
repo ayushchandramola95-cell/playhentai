@@ -2,37 +2,64 @@ import { NextResponse } from 'next/server';
 import { verifyAdmin, createAdminClient } from '@/utils/supabase/admin';
 import { getSeriesViewsMap } from '@/utils/views';
 import { revalidateAllCatalogTags } from '@/utils/revalidateCatalog';
-import { upsertLocalSeries, deleteLocalSeries, upsertLocalSeason } from '@/utils/localCatalogStore';
+import { getLocalCatalog, upsertLocalSeries, deleteLocalSeries, upsertLocalSeason } from '@/utils/localCatalogStore';
 
 export async function GET() {
   try {
     await verifyAdmin();
-    const adminSupabase = createAdminClient();
     
-    const [{ data: seriesData, error }, { data: episodesData }, viewsMap] = await Promise.all([
-      adminSupabase.from('series').select('*').order('created_at', { ascending: false }),
-      adminSupabase.from('episodes').select('id, seasons(series(id))').order('created_at', { ascending: false }),
-      getSeriesViewsMap().catch(() => ({})),
+    // 1. Fetch from high-performance AWS memory catalog (0ms latency, zero Supabase egress)
+    const [catalog, viewsMap] = await Promise.all([
+      getLocalCatalog(),
+      getSeriesViewsMap().catch(() => ({}))
     ]);
 
-    if (error) throw error;
+    let seriesData = catalog.series || [];
+    let episodesData = catalog.episodes || [];
+
+    // Fallback to Supabase only if local catalog is empty
+    if (seriesData.length === 0) {
+      const adminSupabase = createAdminClient();
+      const [{ data: sData, error }, { data: epData }] = await Promise.all([
+        adminSupabase.from('series').select('*').order('created_at', { ascending: false }),
+        adminSupabase.from('episodes').select('id, seasons(series(id))').order('created_at', { ascending: false }),
+      ]);
+      if (!error && sData) {
+        seriesData = sData;
+        episodesData = epData || [];
+      }
+    }
 
     // Count episodes per series
     const epCountMap: Record<string, number> = {};
-    (episodesData || []).forEach((ep: any) => {
-      const seriesId = ep.seasons?.series?.id || ep.seasons?.series_id;
+    const seasonToSeriesMap: Record<string, string> = {};
+    (catalog.seasons || []).forEach((season: any) => {
+      if (season.id && season.series_id) {
+        seasonToSeriesMap[season.id] = season.series_id;
+      }
+    });
+
+    episodesData.forEach((ep: any) => {
+      const seriesId = ep.seasons?.series?.id || ep.seasons?.series_id || (ep.season_id ? seasonToSeriesMap[ep.season_id] : null);
       if (seriesId) {
         epCountMap[seriesId] = (epCountMap[seriesId] || 0) + 1;
       }
     });
 
-    const enriched = (seriesData || []).map((s: any) => ({
+    // Sort descending by created_at
+    const sortedSeries = [...seriesData].sort((a: any, b: any) => {
+      const dateA = new Date(a.created_at || 0).getTime();
+      const dateB = new Date(b.created_at || 0).getTime();
+      return dateB - dateA;
+    });
+
+    const enriched = sortedSeries.map((s: any) => ({
       ...s,
       views: (viewsMap as Record<string, number>)[s.id] || 0,
       actual_episode_count: epCountMap[s.id] || 0,
     }));
 
-    return NextResponse.json({ series: enriched });
+    return NextResponse.json({ series: enriched, source: 'aws-memory' });
   } catch (err: any) {
     console.error('Error fetching admin series:', err);
     const status = err.message === 'Unauthorized' ? 401 : err.message === 'Forbidden' ? 403 : 500;
