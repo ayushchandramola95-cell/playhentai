@@ -675,6 +675,9 @@ export default function BulkSeriesEditModal({
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to apply bulk updates');
+      if (data.updatedCount === 0 && data.errors && data.errors.length > 0) {
+        throw new Error(data.errors[0]?.error || 'Failed to save series updates to database');
+      }
 
       setStatusNotice({
         type: 'success',
@@ -1232,11 +1235,11 @@ export default function BulkSeriesEditModal({
                                 <code style={{ fontSize: '0.7rem', color: '#94a3b8' }}>/{update.series.slug}</code>
                               </td>
                             )}
-                            <td style={{ color: '#fcd34d', fontWeight: 600 }}>{diff.label}</td>
-                            <td style={{ color: '#94a3b8', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            <td style={{ color: '#fcd34d', fontWeight: 600, minWidth: '130px' }}>{diff.label}</td>
+                            <td style={{ color: '#94a3b8', maxWidth: '360px', wordBreak: 'break-word' }}>
                               {diff.oldVal}
                             </td>
-                            <td style={{ color: '#4ade80', fontWeight: 700, maxWidth: '240px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            <td style={{ color: '#4ade80', fontWeight: 700, maxWidth: '420px', wordBreak: 'break-word' }}>
                               {diff.newVal}
                             </td>
                             <td style={{ textAlign: 'center' }}>

@@ -169,9 +169,18 @@ export async function PATCH(request: Request) {
         ].filter(Boolean).join('\n\n') || null;
       }
 
-      if (Object.keys(sanitizedChanges).length === 0) continue;
+      // Ensure array fields are formatted as arrays of strings
+      ['tags', 'aliases', 'content_warnings'].forEach((arrField) => {
+        if (sanitizedChanges[arrField] !== undefined) {
+          if (typeof sanitizedChanges[arrField] === 'string') {
+            sanitizedChanges[arrField] = sanitizedChanges[arrField].split(',').map((t: string) => t.trim()).filter(Boolean);
+          } else if (!Array.isArray(sanitizedChanges[arrField])) {
+            sanitizedChanges[arrField] = [];
+          }
+        }
+      });
 
-      sanitizedChanges.updated_at = new Date().toISOString();
+      if (Object.keys(sanitizedChanges).length === 0) continue;
 
       const { data, error } = await adminSupabase
         .from('series')
@@ -181,6 +190,7 @@ export async function PATCH(request: Request) {
         .single();
 
       if (error) {
+        console.error(`Error updating series ${seriesId}:`, error);
         errors.push({ id: seriesId, error: error.message });
       } else {
         updatedResults.push(data);
@@ -190,6 +200,13 @@ export async function PATCH(request: Request) {
     if (updatedResults.length > 0) {
       syncLocalCatalogWithSupabase().catch((err) => console.error('Error syncing local catalog after bulk update:', err));
       revalidateAllCatalogTags();
+    }
+
+    if (updatedResults.length === 0 && errors.length > 0) {
+      return NextResponse.json({
+        error: errors[0]?.error || 'Failed to update series in database',
+        errors
+      }, { status: 400 });
     }
 
     return NextResponse.json({
