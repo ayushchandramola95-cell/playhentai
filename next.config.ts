@@ -105,6 +105,11 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       {
+        source: '/video-sitemap.xml',
+        destination: '/sitemap-video.xml',
+        permanent: true,
+      },
+      {
         source: '/recent',
         destination: '/recent/series',
         permanent: true,

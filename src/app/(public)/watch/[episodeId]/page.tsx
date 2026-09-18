@@ -1,6 +1,7 @@
 import React from 'react';
 import { Metadata } from 'next';
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { unstable_cache } from 'next/cache';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { getR2Url } from '@/utils/r2';
@@ -208,6 +209,12 @@ export default async function WatchPage({ params }: WatchPageProps) {
   }
 
   const { activeEpisode, seriesDetails, seriesTitle, seriesSlug, seasonTitle, seasonEpisodes, isDbEmpty } = resolved;
+
+  // 301 Canonical Redirect: If URL was requested via raw database ID or non-canonical format, redirect to clean slug
+  const canonicalSlug = seriesSlug && activeEpisode.episode_number ? `${seriesSlug}-episode-${activeEpisode.episode_number}` : activeEpisode.id;
+  if (canonicalSlug && episodeId !== canonicalSlug && !isDbEmpty) {
+    redirect(`/watch/${canonicalSlug}`);
+  }
 
   const sourceList = (allSeriesList && allSeriesList.length > 0) ? allSeriesList : MOCK_SERIES;
 

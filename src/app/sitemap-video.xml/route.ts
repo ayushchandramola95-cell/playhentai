@@ -82,9 +82,12 @@ export async function GET() {
 
         // 4. Description (Synopsis or descriptive fallback)
         const rawDesc = ep.description?.trim();
+        const seriesSynopsis = seriesObj?.description?.trim() || '';
         const videoDescription = rawDesc && rawDesc.length >= 10
           ? rawDesc
-          : `Watch ${seriesTitle} Episode ${ep.episode_number} online in HD with English subtitles on Play Hentai. Free streaming anime episode with full player controls.`;
+          : seriesSynopsis
+            ? `${seriesSynopsis.length > 200 ? seriesSynopsis.slice(0, 195).trim() + '...' : seriesSynopsis} Watch ${seriesTitle} Episode ${ep.episode_number} in full HD online free on Play Hentai.`
+            : `Watch ${seriesTitle} Episode ${ep.episode_number} online in HD with English subtitles on Play Hentai. Free streaming anime episode with full player controls.`;
 
         // 5. Video content MP4 URL (direct file URL)
         const videoContentUrl = getR2Url(ep.video_key, 'video');
