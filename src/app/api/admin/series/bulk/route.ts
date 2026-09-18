@@ -111,3 +111,76 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: err.message || 'Server Error' }, { status });
   }
 }
+
+export async function PATCH(request: Request) {
+  try {
+    await verifyAdmin();
+    const adminSupabase = createAdminClient();
+    const body = await request.json();
+
+    const updates = Array.isArray(body.updates) ? body.updates : [];
+    if (updates.length === 0) {
+      return NextResponse.json({ error: 'No series updates provided' }, { status: 400 });
+    }
+
+    const updatedResults: any[] = [];
+    const errors: any[] = [];
+
+    // Whitelist allowed fields to prevent arbitrary injection
+    const allowedFields = [
+      'title', 'slug', 'description', 'studio', 'release_year', 'status',
+      'is_published', 'tags', 'content_rating', 'age_rating', 'runtime',
+      'first_air_date', 'last_air_date', 'original_language', 'original_source',
+      'country', 'episode_count_override', 'meta_title', 'meta_description',
+      'poster_image_key', 'cover_image_key', 'banner_image_key',
+      'alt_title_japanese', 'alt_title_romaji', 'alt_title_english'
+    ];
+
+    for (const item of updates) {
+      const seriesId = item.id;
+      if (!seriesId) continue;
+      const changes = item.changes || {};
+
+      const sanitizedChanges: Record<string, any> = {};
+      for (const key of Object.keys(changes)) {
+        if (allowedFields.includes(key)) {
+          sanitizedChanges[key] = changes[key];
+        }
+      }
+
+      if (Object.keys(sanitizedChanges).length === 0) continue;
+
+      sanitizedChanges.updated_at = new Date().toISOString();
+
+      const { data, error } = await adminSupabase
+        .from('series')
+        .update(sanitizedChanges)
+        .eq('id', seriesId)
+        .select('id, title, slug')
+        .single();
+
+      if (error) {
+        errors.push({ id: seriesId, error: error.message });
+      } else {
+        updatedResults.push(data);
+      }
+    }
+
+    if (updatedResults.length > 0) {
+      syncLocalCatalogWithSupabase().catch((err) => console.error('Error syncing local catalog after bulk update:', err));
+      revalidateAllCatalogTags();
+    }
+
+    return NextResponse.json({
+      success: true,
+      updatedCount: updatedResults.length,
+      updated: updatedResults,
+      errors
+    });
+  } catch (err: any) {
+    console.error('Error in bulk series edit:', err);
+    const status = err.message === 'Unauthorized' ? 401 : err.message === 'Forbidden' ? 403 : 500;
+    return NextResponse.json({ error: err.message || 'Server Error' }, { status });
+  }
+}
+

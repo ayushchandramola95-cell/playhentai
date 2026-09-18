@@ -26,7 +26,7 @@ export async function GET(request: Request) {
       const seasonIds = seasons.map((s: any) => s.id);
       const { data: episodes, error: episodesError } = await adminSupabase
         .from('episodes')
-        .select('id, episode_number, title, duration_seconds, thumbnail_key, thumbnail_options')
+        .select('id, episode_number, title, duration_seconds, thumbnail_key, thumbnail_options, release_date, created_at')
         .in('season_id', seasonIds)
         .order('episode_number', { ascending: true });
 

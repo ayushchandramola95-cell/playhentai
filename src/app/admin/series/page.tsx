@@ -44,6 +44,7 @@ import FileUploader from '@/components/FileUploader/FileUploader';
 import { GENRES, STUDIOS, RELEASE_YEARS } from '@/utils/constants';
 import { getR2Url } from '@/utils/r2';
 import BulkSeriesModal from '@/components/BulkSeriesModal/BulkSeriesModal';
+import BulkSeriesEditModal from '@/components/BulkSeriesEditModal/BulkSeriesEditModal';
 import styles from '../admin.module.css';
 
 interface Series {
@@ -136,6 +137,7 @@ export default function AdminSeriesPage() {
   // Modal form states
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
+  const [isBulkEditModalOpen, setIsBulkEditModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [modalTab, setModalTab] = useState<'general' | 'genres' | 'specs' | 'about_faq' | 'seo' | 'tsv'>('general');
   const [showTsvDrawer, setShowTsvDrawer] = useState(false);
@@ -795,6 +797,8 @@ export default function AdminSeriesPage() {
   const [metaDescription, setMetaDescription] = useState('');
   const [firstAirDate, setFirstAirDate] = useState('');
   const [lastAirDate, setLastAirDate] = useState('');
+  const [isFetchingEpisodeDates, setIsFetchingEpisodeDates] = useState(false);
+  const [autoDateNotice, setAutoDateNotice] = useState<string | null>(null);
   const [imageLibrary, setImageLibrary] = useState<string[]>([]);
 
   // Separate Manage Media Modal states
@@ -1460,12 +1464,65 @@ export default function AdminSeriesPage() {
     setLastAirDate(s.last_air_date ? s.last_air_date.substring(0, 10) : '');
     setImageLibrary(s.image_library || []);
     resetTsvParser();
+    setAutoDateNotice(null);
     if (s.about_data?.tsv) {
       setTsvInput(s.about_data.tsv);
     }
 
     setError(null);
     setIsModalOpen(true);
+  };
+
+  const handleAutoFetchEpisodeAirDates = async () => {
+    if (!editingId) return;
+    setIsFetchingEpisodeDates(true);
+    setAutoDateNotice(null);
+    try {
+      const res = await fetch(`/api/admin/episodes?series_id=${editingId}`);
+      if (!res.ok) throw new Error('Failed to load series episodes');
+      const data = await res.json();
+      const eps = Array.isArray(data.episodes) ? data.episodes : [];
+
+      const epsWithDates = eps
+        .map((ep: any) => ({
+          epNum: ep.episode_number,
+          dateStr: ep.release_date || ep.created_at
+        }))
+        .filter((item: any) => Boolean(item.dateStr));
+
+      if (epsWithDates.length === 0) {
+        setAutoDateNotice('No episodes with release dates found for this series.');
+        return;
+      }
+
+      epsWithDates.sort((a: any, b: any) => (a.epNum || 0) - (b.epNum || 0));
+
+      const firstEp = epsWithDates[0];
+      const lastEp = epsWithDates[epsWithDates.length - 1];
+
+      const formatDateToYYYYMMDD = (val: string) => {
+        try {
+          const d = new Date(val);
+          if (!isNaN(d.getTime())) {
+            return d.toISOString().substring(0, 10);
+          }
+        } catch {}
+        return val.substring(0, 10);
+      };
+
+      const firstFormatted = formatDateToYYYYMMDD(firstEp.dateStr);
+      const lastFormatted = formatDateToYYYYMMDD(lastEp.dateStr);
+
+      setFirstAirDate(firstFormatted);
+      setLastAirDate(lastFormatted);
+
+      setAutoDateNotice(`✓ Auto-filled First Air Date (${firstFormatted} from Ep ${firstEp.epNum}) and Last Air Date (${lastFormatted} from Ep ${lastEp.epNum}). Click Save below to apply.`);
+    } catch (err: any) {
+      console.error('Error auto-fetching episode dates:', err);
+      setAutoDateNotice(`Error: ${err.message || 'Could not fetch episode dates'}`);
+    } finally {
+      setIsFetchingEpisodeDates(false);
+    }
   };
 
   // Auto-generate slug from title
@@ -1720,6 +1777,28 @@ export default function AdminSeriesPage() {
           </p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+          <button
+            type="button"
+            onClick={() => setIsBulkEditModalOpen(true)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.45rem',
+              padding: '0.6rem 1.1rem',
+              background: 'rgba(245, 158, 11, 0.12)',
+              border: '1px solid rgba(245, 158, 11, 0.35)',
+              borderRadius: '8px',
+              color: '#fcd34d',
+              fontWeight: 700,
+              fontSize: '0.85rem',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              boxShadow: '0 2px 8px rgba(245, 158, 11, 0.15)'
+            }}
+          >
+            <SlidersHorizontal size={16} />
+            <span>Bulk Series Edit</span>
+          </button>
           <button
             type="button"
             onClick={() => setIsBulkModalOpen(true)}
@@ -2911,24 +2990,72 @@ export default function AdminSeriesPage() {
                         </div>
                       </div>
 
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                        <div className={styles.formGroup}>
-                          <label>First Air Date</label>
-                          <input
-                            type="date"
-                            className={styles.inputField}
-                            value={firstAirDate}
-                            onChange={(e) => setFirstAirDate(e.target.value)}
-                          />
+                      <div style={{ marginTop: '0.25rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.45rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                          <span style={{ fontSize: '0.82rem', fontWeight: 800, color: 'var(--foreground-primary)' }}>
+                            Broadcast Air Dates
+                          </span>
+                          {editingId && (
+                            <button
+                              type="button"
+                              onClick={handleAutoFetchEpisodeAirDates}
+                              disabled={isFetchingEpisodeDates}
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '0.4rem',
+                                padding: '0.3rem 0.65rem',
+                                background: 'rgba(59, 130, 246, 0.12)',
+                                border: '1px solid rgba(59, 130, 246, 0.35)',
+                                borderRadius: '6px',
+                                color: '#60a5fa',
+                                fontSize: '0.76rem',
+                                fontWeight: 700,
+                                cursor: isFetchingEpisodeDates ? 'not-allowed' : 'pointer',
+                                transition: 'all 0.15s ease'
+                              }}
+                              title="Automatically detect first and last air dates from this series' uploaded episodes"
+                            >
+                              <Sparkles size={13} />
+                              <span>{isFetchingEpisodeDates ? 'Detecting Dates...' : 'Auto Fetch from Episodes'}</span>
+                            </button>
+                          )}
                         </div>
-                        <div className={styles.formGroup}>
-                          <label>Last Air Date</label>
-                          <input
-                            type="date"
-                            className={styles.inputField}
-                            value={lastAirDate}
-                            onChange={(e) => setLastAirDate(e.target.value)}
-                          />
+
+                        {autoDateNotice && (
+                          <div style={{
+                            padding: '0.5rem 0.75rem',
+                            borderRadius: '6px',
+                            fontSize: '0.78rem',
+                            fontWeight: 600,
+                            marginBottom: '0.65rem',
+                            background: autoDateNotice.startsWith('✓') ? 'rgba(34, 197, 94, 0.12)' : 'rgba(239, 68, 68, 0.12)',
+                            border: `1px solid ${autoDateNotice.startsWith('✓') ? 'rgba(34, 197, 94, 0.35)' : 'rgba(239, 68, 68, 0.35)'}`,
+                            color: autoDateNotice.startsWith('✓') ? '#4ade80' : '#f87171'
+                          }}>
+                            {autoDateNotice}
+                          </div>
+                        )}
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                          <div className={styles.formGroup}>
+                            <label>First Air Date</label>
+                            <input
+                              type="date"
+                              className={styles.inputField}
+                              value={firstAirDate}
+                              onChange={(e) => setFirstAirDate(e.target.value)}
+                            />
+                          </div>
+                          <div className={styles.formGroup}>
+                            <label>Last Air Date</label>
+                            <input
+                              type="date"
+                              className={styles.inputField}
+                              value={lastAirDate}
+                              onChange={(e) => setLastAirDate(e.target.value)}
+                            />
+                          </div>
                         </div>
                       </div>
 
@@ -4430,6 +4557,16 @@ export default function AdminSeriesPage() {
           </div>
         </div>
       )}
+
+      {/* Bulk Series Edit Modal */}
+      <BulkSeriesEditModal
+        isOpen={isBulkEditModalOpen}
+        onClose={() => setIsBulkEditModalOpen(false)}
+        onSuccess={() => {
+          fetchSeries();
+        }}
+        seriesList={seriesList}
+      />
 
       {/* Bulk Quick Add Modal */}
       <BulkSeriesModal
