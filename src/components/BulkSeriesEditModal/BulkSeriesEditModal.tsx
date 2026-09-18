@@ -10,15 +10,17 @@ import {
   AlertCircle, 
   Loader2, 
   Copy, 
-  FileSpreadsheet, 
-  Layers, 
   Sparkles,
   ArrowRight,
-  ArrowLeft
+  ArrowLeft,
+  Trash2,
+  ShieldCheck,
+  RotateCcw,
+  Zap
 } from 'lucide-react';
 import styles from './BulkSeriesEditModal.module.css';
 
-interface SeriesItem {
+export interface SeriesItem {
   id: string;
   title: string;
   slug: string;
@@ -33,6 +35,20 @@ interface SeriesItem {
   first_air_date?: string | null;
   last_air_date?: string | null;
   description?: string;
+  alt_title_japanese?: string;
+  alt_title_romaji?: string;
+  alt_title_english?: string;
+  episode_count_override?: number | null;
+  aliases?: string[];
+  about_text?: string;
+  about_data?: any;
+  original_language?: string;
+  country?: string;
+  original_source?: string;
+  content_warnings?: string[];
+  meta_title?: string;
+  meta_description?: string;
+  featured_type?: string;
 }
 
 interface BulkSeriesEditModalProps {
@@ -43,33 +59,76 @@ interface BulkSeriesEditModalProps {
 }
 
 export type EditableFieldKey = 
-  | 'studio'
+  | 'title'
+  | 'description'
   | 'release_year'
+  | 'studio'
+  | 'tags'
+  | 'alt_title_japanese'
+  | 'alt_title_romaji'
+  | 'alt_title_english'
   | 'status'
+  | 'episode_count_override'
+  | 'first_air_date'
+  | 'last_air_date'
+  | 'aliases'
+  | 'about_overview'
+  | 'about_production'
+  | 'about_themes'
+  | 'about_recommended'
   | 'content_rating'
   | 'age_rating'
   | 'is_published'
-  | 'tags'
   | 'runtime'
-  | 'first_air_date'
-  | 'last_air_date'
-  | 'description';
+  | 'original_language'
+  | 'country'
+  | 'original_source'
+  | 'content_warnings'
+  | 'meta_title'
+  | 'meta_description'
+  | 'featured_type';
 
 interface FieldOption {
   key: EditableFieldKey;
   label: string;
   placeholder: string;
+  category: 'Core' | 'Titles & Aliases' | 'Dates & Episodes' | 'About Content' | 'Ratings & Publishing' | 'Origin & SEO';
   type: 'text' | 'number' | 'select' | 'date';
   options?: { value: string; label: string }[];
 }
 
+export const STANDARD_17_FIELDS: EditableFieldKey[] = [
+  'title',
+  'description',
+  'release_year',
+  'studio',
+  'tags',
+  'alt_title_japanese',
+  'alt_title_romaji',
+  'alt_title_english',
+  'status',
+  'episode_count_override',
+  'first_air_date',
+  'last_air_date',
+  'aliases',
+  'about_overview',
+  'about_production',
+  'about_themes',
+  'about_recommended',
+];
+
 const AVAILABLE_FIELDS: FieldOption[] = [
-  { key: 'studio', label: 'Studio', placeholder: 'e.g. PoJu, Millepensee', type: 'text' },
-  { key: 'release_year', label: 'Release Year', placeholder: 'e.g. 2024', type: 'number' },
+  // Core
+  { key: 'title', label: 'Series Title', placeholder: 'e.g. Kanojo x Kanojo x Kanojo', category: 'Core', type: 'text' },
+  { key: 'description', label: 'Synopsis / Description', placeholder: 'Series synopsis...', category: 'Core', type: 'text' },
+  { key: 'release_year', label: 'Release Year', placeholder: 'e.g. 2024', category: 'Core', type: 'number' },
+  { key: 'studio', label: 'Studio', placeholder: 'e.g. PoJu, Millepensee', category: 'Core', type: 'text' },
+  { key: 'tags', label: 'Tags / Genres (comma separated)', placeholder: 'e.g. Uncensored, Fantasy, 3D', category: 'Core', type: 'text' },
   { 
     key: 'status', 
     label: 'Show Status', 
     placeholder: 'Select Status', 
+    category: 'Core',
     type: 'select',
     options: [
       { value: 'ongoing', label: 'Ongoing' },
@@ -78,10 +137,42 @@ const AVAILABLE_FIELDS: FieldOption[] = [
       { value: 'upcoming', label: 'Upcoming' }
     ]
   },
+
+  // Titles & Aliases
+  { key: 'alt_title_japanese', label: 'Japanese Title', placeholder: 'e.g. 彼女×彼女×彼女', category: 'Titles & Aliases', type: 'text' },
+  { key: 'alt_title_romaji', label: 'Romaji Title', placeholder: 'e.g. Kanojo x Kanojo x Kanojo', category: 'Titles & Aliases', type: 'text' },
+  { key: 'alt_title_english', label: 'English Title', placeholder: 'e.g. Girlfriend x Girlfriend x Girlfriend', category: 'Titles & Aliases', type: 'text' },
+  { key: 'aliases', label: 'Search Aliases (comma separated)', placeholder: 'e.g. Alias 1, Alias 2', category: 'Titles & Aliases', type: 'text' },
+
+  // Dates & Episodes
+  { key: 'first_air_date', label: 'First Air Date', placeholder: 'YYYY-MM-DD', category: 'Dates & Episodes', type: 'date' },
+  { key: 'last_air_date', label: 'Last Air Date', placeholder: 'YYYY-MM-DD', category: 'Dates & Episodes', type: 'date' },
+  { key: 'episode_count_override', label: 'Planned Episode Count', placeholder: 'e.g. 2', category: 'Dates & Episodes', type: 'number' },
+  { key: 'runtime', label: 'Runtime (minutes)', placeholder: 'e.g. 24', category: 'Dates & Episodes', type: 'number' },
+
+  // About Content
+  { key: 'about_overview', label: 'About: Overview', placeholder: 'Overview text...', category: 'About Content', type: 'text' },
+  { key: 'about_production', label: 'About: Production', placeholder: 'Production background...', category: 'About Content', type: 'text' },
+  { key: 'about_themes', label: 'About: Themes & Style', placeholder: 'Themes analysis...', category: 'About Content', type: 'text' },
+  { key: 'about_recommended', label: 'About: Recommended For', placeholder: 'Target audience...', category: 'About Content', type: 'text' },
+
+  // Ratings & Publishing
+  { 
+    key: 'is_published', 
+    label: 'Publication State', 
+    placeholder: 'Select State', 
+    category: 'Ratings & Publishing',
+    type: 'select',
+    options: [
+      { value: 'true', label: 'Live Published' },
+      { value: 'false', label: 'Draft (Hidden)' }
+    ]
+  },
   { 
     key: 'content_rating', 
     label: 'Content Rating', 
     placeholder: 'Select Rating', 
+    category: 'Ratings & Publishing',
     type: 'select',
     options: [
       { value: 'explicit', label: 'Explicit' },
@@ -93,6 +184,7 @@ const AVAILABLE_FIELDS: FieldOption[] = [
     key: 'age_rating', 
     label: 'Age Rating', 
     placeholder: 'Select Age', 
+    category: 'Ratings & Publishing',
     type: 'select',
     options: [
       { value: '18+', label: '18+' },
@@ -101,21 +193,125 @@ const AVAILABLE_FIELDS: FieldOption[] = [
     ]
   },
   { 
-    key: 'is_published', 
-    label: 'Publication State', 
-    placeholder: 'Select State', 
+    key: 'featured_type', 
+    label: 'Featured Type', 
+    placeholder: 'Select Type', 
+    category: 'Ratings & Publishing',
     type: 'select',
     options: [
-      { value: 'true', label: 'Live Published' },
-      { value: 'false', label: 'Draft (Hidden)' }
+      { value: 'none', label: 'None' },
+      { value: 'trending', label: 'Trending' },
+      { value: 'popular', label: 'Popular' },
+      { value: 'featured', label: 'Hero Featured' }
     ]
   },
-  { key: 'tags', label: 'Tags (comma separated)', placeholder: 'e.g. Uncensored, Fantasy, 3D', type: 'text' },
-  { key: 'runtime', label: 'Runtime (minutes)', placeholder: 'e.g. 24', type: 'number' },
-  { key: 'first_air_date', label: 'First Air Date', placeholder: 'YYYY-MM-DD', type: 'date' },
-  { key: 'last_air_date', label: 'Last Air Date', placeholder: 'YYYY-MM-DD', type: 'date' },
-  { key: 'description', label: 'Synopsis / Description', placeholder: 'Series synopsis...', type: 'text' },
+
+  // Origin & SEO
+  { key: 'original_source', label: 'Original Source', placeholder: 'e.g. Manga, Visual Novel, Game', category: 'Origin & SEO', type: 'text' },
+  { key: 'original_language', label: 'Original Language', placeholder: 'e.g. Japanese', category: 'Origin & SEO', type: 'text' },
+  { key: 'country', label: 'Country', placeholder: 'e.g. Japan', category: 'Origin & SEO', type: 'text' },
+  { key: 'content_warnings', label: 'Content Warnings', placeholder: 'e.g. Nudity, Gore', category: 'Origin & SEO', type: 'text' },
+  { key: 'meta_title', label: 'SEO Meta Title', placeholder: 'Custom title tag...', category: 'Origin & SEO', type: 'text' },
+  { key: 'meta_description', label: 'SEO Meta Description', placeholder: 'Custom description tag...', category: 'Origin & SEO', type: 'text' },
 ];
+
+/**
+ * Robust TSV row parser that supports quotes, embedded newlines, and various delimiters.
+ */
+function parseTSVRows(rawText: string): string[][] {
+  const rawLines = rawText.split(/\r?\n/);
+  const reconstructedRows: string[] = [];
+  let currentAccumulatedRow = '';
+
+  for (let i = 0; i < rawLines.length; i++) {
+    const line = rawLines[i];
+    if (currentAccumulatedRow === '') {
+      currentAccumulatedRow = line;
+    } else {
+      currentAccumulatedRow += '\n' + line;
+    }
+
+    let tabCount = 0;
+    let inQuotes = false;
+    for (let j = 0; j < currentAccumulatedRow.length; j++) {
+      const char = currentAccumulatedRow[j];
+      if (char === '"') {
+        if (inQuotes && currentAccumulatedRow[j + 1] === '"') {
+          j++;
+        } else {
+          inQuotes = !inQuotes;
+        }
+      } else if (char === '\t' && !inQuotes) {
+        tabCount++;
+      }
+    }
+
+    if (tabCount >= 16 || i === rawLines.length - 1) {
+      reconstructedRows.push(currentAccumulatedRow);
+      currentAccumulatedRow = '';
+    }
+  }
+
+  const finalRows: string[][] = [];
+  for (const rowText of reconstructedRows) {
+    const rowFields: string[] = [];
+    let currentField = '';
+    let inQuotes = false;
+
+    for (let i = 0; i < rowText.length; i++) {
+      const char = rowText[i];
+      if (char === '"') {
+        if (inQuotes && rowText[i + 1] === '"') {
+          currentField += '"';
+          i++;
+        } else {
+          inQuotes = !inQuotes;
+        }
+      } else if (char === '\t' && !inQuotes) {
+        rowFields.push(currentField);
+        currentField = '';
+      } else {
+        currentField += char;
+      }
+    }
+    rowFields.push(currentField);
+    finalRows.push(rowFields.map(cell => cell.trim()));
+  }
+
+  return finalRows;
+}
+
+function parseDateToYYYYMMDD(dateStr: string): string {
+  if (!dateStr || dateStr.trim() === '') return '';
+  const trimmed = dateStr.trim();
+  
+  // Try MM/DD/YYYY
+  const mdY = trimmed.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (mdY) {
+    const month = mdY[1].padStart(2, '0');
+    const day = mdY[2].padStart(2, '0');
+    const year = mdY[3];
+    return `${year}-${month}-${day}`;
+  }
+
+  // Try YYYY-MM-DD
+  const yMd = trimmed.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (yMd) {
+    const year = yMd[1];
+    const month = yMd[2].padStart(2, '0');
+    const day = yMd[3].padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  try {
+    const d = new Date(trimmed);
+    if (!isNaN(d.getTime())) {
+      return d.toISOString().substring(0, 10);
+    }
+  } catch {}
+
+  return trimmed;
+}
 
 export default function BulkSeriesEditModal({
   isOpen,
@@ -129,7 +325,7 @@ export default function BulkSeriesEditModal({
   const [filterType, setFilterType] = useState<'all' | 'draft' | 'published' | 'selected'>('all');
 
   // Fields user chose to edit
-  const [selectedFields, setSelectedFields] = useState<Set<EditableFieldKey>>(new Set(['studio', 'release_year']));
+  const [selectedFields, setSelectedFields] = useState<Set<EditableFieldKey>>(new Set(['studio', 'release_year', 'tags', 'description']));
 
   // Edit Mode: TSV Paste vs Common Values
   const [inputMode, setInputMode] = useState<'tsv' | 'common'>('tsv');
@@ -138,6 +334,9 @@ export default function BulkSeriesEditModal({
 
   // Common values state
   const [commonValues, setCommonValues] = useState<Partial<Record<EditableFieldKey, any>>>({});
+
+  // Field Exclusions in Tab 3 (Preview)
+  const [excludedFieldKeys, setExcludedFieldKeys] = useState<Set<string>>(new Set());
 
   // Submission state
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -189,6 +388,23 @@ export default function BulkSeriesEditModal({
     });
   };
 
+  const handleApply17ColumnPreset = () => {
+    setSelectedFields(new Set(STANDARD_17_FIELDS));
+  };
+
+  const handleSelectAllFields = () => {
+    setSelectedFields(new Set(AVAILABLE_FIELDS.map((f) => f.key)));
+  };
+
+  const handleClearAllFields = () => {
+    setSelectedFields(new Set());
+  };
+
+  // Selected series array in selection order
+  const selectedSeriesArray = useMemo(() => {
+    return seriesList.filter((s) => selectedSeriesIds.has(s.id));
+  }, [seriesList, selectedSeriesIds]);
+
   // Build TSV header template for user copy
   const tsvExpectedHeader = useMemo(() => {
     const fields = Array.from(selectedFields).map((f) => {
@@ -204,12 +420,44 @@ export default function BulkSeriesEditModal({
     setTimeout(() => setCopiedHeader(false), 2000);
   };
 
+  // Quick exclusion of air dates & release year
+  const isDatesAndYearExcluded = useMemo(() => {
+    return excludedFieldKeys.has('first_air_date') && 
+           excludedFieldKeys.has('last_air_date') && 
+           excludedFieldKeys.has('release_year');
+  }, [excludedFieldKeys]);
+
+  const handleToggleExcludeDatesAndYear = () => {
+    setExcludedFieldKeys((prev) => {
+      const next = new Set(prev);
+      if (isDatesAndYearExcluded) {
+        next.delete('first_air_date');
+        next.delete('last_air_date');
+        next.delete('release_year');
+      } else {
+        next.add('first_air_date');
+        next.add('last_air_date');
+        next.add('release_year');
+      }
+      return next;
+    });
+  };
+
+  const handleToggleExcludeField = (key: string) => {
+    setExcludedFieldKeys((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+
   // Parse TSV rows and compute diff updates
-  const parsedUpdates = useMemo(() => {
+  const rawParsedUpdates = useMemo(() => {
     const updates: Array<{
       series: SeriesItem;
       changes: Record<string, any>;
-      diffs: Array<{ field: string; oldVal: string; newVal: string }>;
+      diffs: Array<{ field: string; label: string; oldVal: string; newVal: string }>;
     }> = [];
 
     const fieldKeys = Array.from(selectedFields);
@@ -221,31 +469,40 @@ export default function BulkSeriesEditModal({
         if (!s) return;
 
         const changes: Record<string, any> = {};
-        const diffs: Array<{ field: string; oldVal: string; newVal: string }> = [];
+        const diffs: Array<{ field: string; label: string; oldVal: string; newVal: string }> = [];
 
         fieldKeys.forEach((key) => {
           const val = commonValues[key];
           if (val === undefined || val === '') return;
 
           let finalVal = val;
-          if (key === 'release_year' || key === 'runtime') {
+          if (key === 'release_year' || key === 'runtime' || key === 'episode_count_override') {
             finalVal = parseInt(val, 10) || null;
           } else if (key === 'is_published') {
             finalVal = val === 'true';
-          } else if (key === 'tags') {
-            const newTags = String(val).split(',').map((t) => t.trim()).filter(Boolean);
-            if (tagUpdateMode === 'append') {
-              const merged = Array.from(new Set([...(s.tags || []), ...newTags]));
-              finalVal = merged;
+          } else if (key === 'tags' || key === 'aliases' || key === 'content_warnings') {
+            const arr = String(val).split(',').map((t) => t.trim()).filter(Boolean);
+            if (key === 'tags' && tagUpdateMode === 'append') {
+              finalVal = Array.from(new Set([...(s.tags || []), ...arr]));
             } else {
-              finalVal = newTags;
+              finalVal = arr;
             }
+          } else if (key === 'first_air_date' || key === 'last_air_date') {
+            finalVal = parseDateToYYYYMMDD(val);
           }
 
           changes[key] = finalVal;
-          const oldVal = key === 'tags' ? (s.tags || []).join(', ') : String((s as any)[key] ?? 'N/A');
-          const newValDisplay = key === 'tags' ? (finalVal as string[]).join(', ') : String(finalVal ?? 'N/A');
-          diffs.push({ field: key, oldVal, newVal: newValDisplay });
+          const fieldDef = AVAILABLE_FIELDS.find(f => f.key === key);
+          const label = fieldDef?.label || key;
+
+          const oldVal = Array.isArray((s as any)[key]) 
+            ? ((s as any)[key] || []).join(', ') 
+            : String((s as any)[key] ?? '—');
+          const newValDisplay = Array.isArray(finalVal) 
+            ? finalVal.join(', ') 
+            : String(finalVal ?? '—');
+
+          diffs.push({ field: key, label, oldVal, newVal: newValDisplay });
         });
 
         if (Object.keys(changes).length > 0) {
@@ -256,75 +513,143 @@ export default function BulkSeriesEditModal({
     }
 
     // TSV Mode
-    if (!tsvText.trim() || fieldKeys.length === 0) return [];
+    if (!tsvText.trim()) return [];
 
-    const lines = tsvText.split('\n');
-    for (let rawLine of lines) {
-      const line = rawLine.trim();
-      if (!line) continue;
+    const parsedRows = parseTSVRows(tsvText).filter((r) => r.length > 0 && r.some((c) => c !== ''));
+    if (parsedRows.length === 0) return [];
 
-      // Ignore header row if pasted
-      if (line.toLowerCase().startsWith('series slug') || line.toLowerCase().startsWith('title\t') || line.toLowerCase().startsWith('series\t')) {
-        continue;
-      }
+    // Check if user pasted standard 17-column format or custom fields
+    let activeFieldOrder: EditableFieldKey[] = fieldKeys;
+    let dataRows = parsedRows;
 
-      // Delimiter detection (Tab, Pipe, Comma)
-      let parts: string[] = [];
-      if (line.includes('\t')) {
-        parts = line.split('\t');
-      } else if (line.includes('|')) {
-        parts = line.split('|');
-      } else if (line.includes(',')) {
-        parts = line.split(',');
-      } else {
-        parts = [line];
-      }
+    // Check if first row is a header
+    const firstRow = parsedRows[0];
+    const headerKeywords = ['series', 'slug', 'title', 'synopsis', 'release year', 'studio', 'tags'];
+    const hasHeader = firstRow.some((cell) => headerKeywords.includes(cell.toLowerCase().trim()));
+    if (hasHeader) {
+      dataRows = parsedRows.slice(1);
+    }
 
-      const identifier = parts[0]?.trim();
-      if (!identifier) continue;
+    if (dataRows.length === 0) return [];
 
-      // Match against seriesList by slug or title
-      const matched = seriesList.find((s) => 
-        s.slug.toLowerCase() === identifier.toLowerCase() ||
-        s.title.toLowerCase() === identifier.toLowerCase()
+    // If rows have ~17 columns or standard format, auto-adopt the standard 17-column layout
+    if (dataRows[0].length >= 16) {
+      activeFieldOrder = STANDARD_17_FIELDS;
+    }
+
+    // Process each row
+    dataRows.forEach((row, rowIdx) => {
+      const col0 = row[0]?.trim() || '';
+
+      // Match strategy:
+      // 1. First check if col0 matches any series in seriesList by slug or title
+      let matched = seriesList.find((s) => 
+        s.slug.toLowerCase() === col0.toLowerCase() ||
+        s.title.toLowerCase() === col0.toLowerCase()
       );
 
-      if (!matched) continue;
+      // 2. If not matched, but user checked series in Tab 1, map row position to selected series!
+      // (e.g. User checked 5 series, row 0 -> selected series 0, row 1 -> selected series 1, etc.)
+      if (!matched && selectedSeriesArray.length > 0 && rowIdx < selectedSeriesArray.length) {
+        matched = selectedSeriesArray[rowIdx];
+      }
+
+      if (!matched) return;
 
       const changes: Record<string, any> = {};
-      const diffs: Array<{ field: string; oldVal: string; newVal: string }> = [];
+      const diffs: Array<{ field: string; label: string; oldVal: string; newVal: string }> = [];
 
-      fieldKeys.forEach((key, idx) => {
-        const rawColVal = parts[idx + 1]?.trim();
-        if (rawColVal === undefined || rawColVal === '') return;
+      const is17Format = activeFieldOrder === STANDARD_17_FIELDS;
 
-        let finalVal: any = rawColVal;
-        if (key === 'release_year' || key === 'runtime') {
-          finalVal = parseInt(rawColVal, 10) || null;
-        } else if (key === 'is_published') {
-          finalVal = rawColVal.toLowerCase() === 'true' || rawColVal.toLowerCase() === 'live' || rawColVal.toLowerCase() === 'published';
-        } else if (key === 'tags') {
-          const newTags = rawColVal.split(',').map((t) => t.trim()).filter(Boolean);
-          if (tagUpdateMode === 'append') {
-            finalVal = Array.from(new Set([...(matched.tags || []), ...newTags]));
+      activeFieldOrder.forEach((key, fIdx) => {
+        let rawColVal = '';
+        if (is17Format) {
+          rawColVal = row[fIdx]?.trim();
+        } else {
+          // If custom fields, check if row has identifier in col 0 + fields in col 1..N
+          if (row.length > activeFieldOrder.length) {
+            rawColVal = row[fIdx + 1]?.trim();
           } else {
-            finalVal = newTags;
+            rawColVal = row[fIdx]?.trim();
           }
         }
 
+        if (rawColVal === undefined || rawColVal === '') return;
+
+        let finalVal: any = rawColVal;
+        if (key === 'release_year' || key === 'runtime' || key === 'episode_count_override') {
+          finalVal = parseInt(rawColVal, 10) || null;
+        } else if (key === 'is_published') {
+          finalVal = rawColVal.toLowerCase() === 'true' || rawColVal.toLowerCase() === 'live' || rawColVal.toLowerCase() === 'published';
+        } else if (key === 'status') {
+          const lower = rawColVal.toLowerCase();
+          if (lower.includes('completed')) finalVal = 'completed';
+          else if (lower.includes('upcoming')) finalVal = 'upcoming';
+          else if (lower.includes('finalized')) finalVal = 'finalized';
+          else finalVal = 'ongoing';
+        } else if (key === 'tags' || key === 'aliases' || key === 'content_warnings') {
+          const arr = rawColVal.split(',').map((t) => t.trim()).filter(Boolean);
+          if (key === 'tags' && tagUpdateMode === 'append') {
+            finalVal = Array.from(new Set([...(matched.tags || []), ...arr]));
+          } else {
+            finalVal = arr;
+          }
+        } else if (key === 'first_air_date' || key === 'last_air_date') {
+          finalVal = parseDateToYYYYMMDD(rawColVal);
+        }
+
         changes[key] = finalVal;
-        const oldVal = key === 'tags' ? (matched.tags || []).join(', ') : String((matched as any)[key] ?? 'N/A');
-        const newValDisplay = key === 'tags' ? (finalVal as string[]).join(', ') : String(finalVal ?? 'N/A');
-        diffs.push({ field: key, oldVal, newVal: newValDisplay });
+        const fieldDef = AVAILABLE_FIELDS.find(f => f.key === key);
+        const label = fieldDef?.label || key;
+
+        const oldVal = Array.isArray((matched as any)[key]) 
+          ? ((matched as any)[key] || []).join(', ') 
+          : String((matched as any)[key] ?? '—');
+        const newValDisplay = Array.isArray(finalVal) 
+          ? finalVal.join(', ') 
+          : String(finalVal ?? '—');
+
+        diffs.push({ field: key, label, oldVal, newVal: newValDisplay });
       });
 
       if (Object.keys(changes).length > 0) {
         updates.push({ series: matched, changes, diffs });
       }
-    }
+    });
 
     return updates;
-  }, [inputMode, tsvText, selectedFields, selectedSeriesIds, seriesList, commonValues, tagUpdateMode]);
+  }, [inputMode, tsvText, selectedFields, selectedSeriesIds, selectedSeriesArray, seriesList, commonValues, tagUpdateMode]);
+
+  // Filter out updates where fields have been excluded in Tab 3
+  const parsedUpdates = useMemo(() => {
+    return rawParsedUpdates
+      .map((update) => {
+        const filteredChanges: Record<string, any> = {};
+        const filteredDiffs = update.diffs.filter((d) => !excludedFieldKeys.has(d.field));
+
+        filteredDiffs.forEach((d) => {
+          filteredChanges[d.field] = update.changes[d.field];
+        });
+
+        return {
+          ...update,
+          changes: filteredChanges,
+          diffs: filteredDiffs
+        };
+      })
+      .filter((update) => update.diffs.length > 0);
+  }, [rawParsedUpdates, excludedFieldKeys]);
+
+  // All distinct fields present in the current raw preview
+  const activePreviewFields = useMemo(() => {
+    const fieldMap = new Map<string, string>();
+    rawParsedUpdates.forEach((u) => {
+      u.diffs.forEach((d) => {
+        fieldMap.set(d.field, d.label);
+      });
+    });
+    return Array.from(fieldMap.entries()).map(([key, label]) => ({ key, label }));
+  }, [rawParsedUpdates]);
 
   if (!isOpen) return null;
 
@@ -353,7 +678,7 @@ export default function BulkSeriesEditModal({
 
       setStatusNotice({
         type: 'success',
-        message: `Successfully updated ${data.updatedCount || parsedUpdates.length} series!`
+        message: `Successfully updated ${data.updatedCount || parsedUpdates.length} series in database!`
       });
 
       setTimeout(() => {
@@ -369,6 +694,9 @@ export default function BulkSeriesEditModal({
       setIsSubmitting(false);
     }
   };
+
+  // Group fields by category for clean UI display
+  const fieldCategories = ['Core', 'Titles & Aliases', 'Dates & Episodes', 'About Content', 'Ratings & Publishing', 'Origin & SEO'] as const;
 
   return (
     <div className={styles.modalOverlay} onClick={onClose}>
@@ -448,47 +776,62 @@ export default function BulkSeriesEditModal({
                     placeholder="Search by series title, slug, or studio..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className={styles.searchInput}
                   />
+                  {searchQuery && (
+                    <button className={styles.clearSearchBtn} onClick={() => setSearchQuery('')}>
+                      <X size={13} />
+                    </button>
+                  )}
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <button type="button" onClick={selectAllFiltered} className={styles.secondaryBtn} style={{ fontSize: '0.78rem', padding: '0.45rem 0.8rem' }}>
-                    Select All ({filteredSeries.length})
+                <div className={styles.filterPillsRow}>
+                  <button
+                    type="button"
+                    className={`${styles.filterPill} ${filterType === 'all' ? styles.filterPillActive : ''}`}
+                    onClick={() => setFilterType('all')}
+                  >
+                    All ({seriesList.length})
                   </button>
-                  <button type="button" onClick={deselectAll} className={styles.secondaryBtn} style={{ fontSize: '0.78rem', padding: '0.45rem 0.8rem' }}>
+                  <button
+                    type="button"
+                    className={`${styles.filterPill} ${filterType === 'draft' ? styles.filterPillActive : ''}`}
+                    onClick={() => setFilterType('draft')}
+                  >
+                    Drafts ({seriesList.filter(s => !s.is_published).length})
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.filterPill} ${filterType === 'published' ? styles.filterPillActive : ''}`}
+                    onClick={() => setFilterType('published')}
+                  >
+                    Live ({seriesList.filter(s => s.is_published).length})
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.filterPill} ${filterType === 'selected' ? styles.filterPillActive : ''}`}
+                    onClick={() => setFilterType('selected')}
+                  >
+                    Selected ({selectedSeriesIds.size})
+                  </button>
+                </div>
+              </div>
+
+              {/* Bulk Select Actions */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem', color: '#94a3b8' }}>
+                <div>
+                  Showing {filteredSeries.length} shows • <strong style={{ color: '#f59e0b' }}>{selectedSeriesIds.size} selected</strong>
+                </div>
+                <div style={{ display: 'flex', gap: '0.65rem' }}>
+                  <button type="button" className={styles.secondaryBtn} onClick={selectAllFiltered} style={{ padding: '0.3rem 0.65rem', fontSize: '0.75rem' }}>
+                    Select All Filtered
+                  </button>
+                  <button type="button" className={styles.secondaryBtn} onClick={deselectAll} style={{ padding: '0.3rem 0.65rem', fontSize: '0.75rem' }}>
                     Deselect All
                   </button>
                 </div>
               </div>
 
-              {/* Filter Pills */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
-                {(['all', 'published', 'draft', 'selected'] as const).map((t) => (
-                  <button
-                    key={t}
-                    type="button"
-                    onClick={() => setFilterType(t)}
-                    style={{
-                      padding: '0.3rem 0.75rem',
-                      borderRadius: '6px',
-                      fontSize: '0.75rem',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                      background: filterType === t ? '#f59e0b' : 'rgba(255, 255, 255, 0.05)',
-                      color: filterType === t ? '#000' : '#94a3b8',
-                      border: '1px solid ' + (filterType === t ? '#f59e0b' : 'rgba(255, 255, 255, 0.08)')
-                    }}
-                  >
-                    {t === 'all' && `All (${seriesList.length})`}
-                    {t === 'published' && `Published (${seriesList.filter(s => s.is_published).length})`}
-                    {t === 'draft' && `Drafts (${seriesList.filter(s => !s.is_published).length})`}
-                    {t === 'selected' && `Selected (${selectedSeriesIds.size})`}
-                  </button>
-                ))}
-              </div>
-
-              {/* Series List */}
+              {/* Series Selection List */}
               <div className={styles.seriesSelectionList}>
                 {filteredSeries.length > 0 ? (
                   filteredSeries.map((s) => {
@@ -551,33 +894,74 @@ export default function BulkSeriesEditModal({
           {/* TAB 2: EDIT OPTIONS & TSV PASTE */}
           {activeTab === 'options' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-              {/* Field Selectors */}
+              {/* Field Presets */}
               <div>
-                <label style={{ fontSize: '0.85rem', fontWeight: 800, color: '#f8fafc', display: 'block', marginBottom: '0.5rem' }}>
-                  Select Fields to Edit:
-                </label>
-                <div className={styles.fieldGrid}>
-                  {AVAILABLE_FIELDS.map((f) => {
-                    const isChecked = selectedFields.has(f.key);
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                  <label style={{ fontSize: '0.85rem', fontWeight: 800, color: '#f8fafc' }}>
+                    Select Fields to Edit ({selectedFields.size} active):
+                  </label>
+                  <div className={styles.presetRow}>
+                    <button
+                      type="button"
+                      className={`${styles.presetBtn} ${styles.presetBtnActive}`}
+                      onClick={handleApply17ColumnPreset}
+                      title="Load all 17 standard series columns in spreadsheet order"
+                    >
+                      <Sparkles size={12} />
+                      <span>Standard 17-Column TSV</span>
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.presetBtn}
+                      onClick={handleSelectAllFields}
+                    >
+                      Select All
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.presetBtn}
+                      onClick={handleClearAllFields}
+                    >
+                      Clear
+                    </button>
+                  </div>
+                </div>
+
+                {/* Categorized Fields Grid */}
+                <div style={{ maxHeight: '240px', overflowY: 'auto', paddingRight: '0.3rem' }}>
+                  {fieldCategories.map((cat) => {
+                    const fieldsInCat = AVAILABLE_FIELDS.filter(f => f.category === cat);
                     return (
-                      <div
-                        key={f.key}
-                        className={`${styles.fieldCheckboxCard} ${isChecked ? styles.fieldCheckboxCardActive : ''}`}
-                        onClick={() => toggleFieldOption(f.key)}
-                      >
-                        <div style={{
-                          width: '16px',
-                          height: '16px',
-                          borderRadius: '4px',
-                          border: `2px solid ${isChecked ? '#f59e0b' : '#64748b'}`,
-                          background: isChecked ? '#f59e0b' : 'transparent',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center'
-                        }}>
-                          {isChecked && <Check size={11} color="#000" strokeWidth={3} />}
+                      <div key={cat} style={{ marginBottom: '0.75rem' }}>
+                        <div className={styles.fieldCategoryHeader}>
+                          <span>{cat}</span>
                         </div>
-                        <span className={styles.fieldLabel}>{f.label}</span>
+                        <div className={styles.fieldGrid}>
+                          {fieldsInCat.map((f) => {
+                            const isChecked = selectedFields.has(f.key);
+                            return (
+                              <div
+                                key={f.key}
+                                className={`${styles.fieldCheckboxCard} ${isChecked ? styles.fieldCheckboxCardActive : ''}`}
+                                onClick={() => toggleFieldOption(f.key)}
+                              >
+                                <div style={{
+                                  width: '16px',
+                                  height: '16px',
+                                  borderRadius: '4px',
+                                  border: `2px solid ${isChecked ? '#f59e0b' : '#64748b'}`,
+                                  background: isChecked ? '#f59e0b' : 'transparent',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center'
+                                }}>
+                                  {isChecked && <Check size={11} color="#000" strokeWidth={3} />}
+                                </div>
+                                <span className={styles.fieldLabel}>{f.label}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
                     );
                   })}
@@ -626,7 +1010,11 @@ export default function BulkSeriesEditModal({
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                   <div className={styles.instructionsBox}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
-                      <strong style={{ color: '#fcd34d' }}>Expected TSV Format (Tab, Pipe, or Comma separated):</strong>
+                      <strong style={{ color: '#fcd34d' }}>
+                        {selectedSeriesIds.size > 0 
+                          ? `Paste Rows for Your ${selectedSeriesIds.size} Selected Series:`
+                          : 'Expected TSV Format (Tab-separated):'}
+                      </strong>
                       <button
                         type="button"
                         onClick={handleCopyHeader}
@@ -649,7 +1037,9 @@ export default function BulkSeriesEditModal({
                     </div>
                     <code>{tsvExpectedHeader}</code>
                     <div style={{ marginTop: '0.4rem', fontSize: '0.75rem', color: '#94a3b8' }}>
-                      Tip: You can copy directly from Excel or Google Sheets. Column 1 must match the series slug or title.
+                      {selectedSeriesIds.size > 0 
+                        ? `Tip: You selected ${selectedSeriesIds.size} series. You can paste ${selectedSeriesIds.size} lines in order, or lines starting with the series title/slug. In Step 3 Preview, you can freely remove dates or any other fields with 1-click!`
+                        : 'Tip: You can copy directly from Excel or Google Sheets. Column 1 matches the series slug or title.'}
                     </div>
                   </div>
 
@@ -679,14 +1069,14 @@ export default function BulkSeriesEditModal({
 
                   <textarea
                     className={styles.textareaField}
-                    placeholder={`Paste rows from Excel or TSV here...\nExample:\nyuutousei-ayaka-no-uraomote\tPoJu\t2024\nyouma-shoukan-e-youkoso\tMillepensee\t2023`}
+                    placeholder={`Paste rows from Excel or TSV here...\nExample (1 line per series):\nShow Title 1\tSynopsis text...\t2024\tPoJu\tUncensored, 3D\t...\nShow Title 2\tSynopsis text...\t2023\tMillepensee\tFantasy\t...`}
                     value={tsvText}
                     onChange={(e) => setTsvText(e.target.value)}
                   />
                 </div>
               ) : (
                 /* MODE B: COMMON BATCH VALUES */
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', maxHeight: '250px', overflowY: 'auto' }}>
                   {Array.from(selectedFields).map((fieldKey) => {
                     const fieldConfig = AVAILABLE_FIELDS.find((f) => f.key === fieldKey);
                     if (!fieldConfig) return null;
@@ -741,21 +1131,87 @@ export default function BulkSeriesEditModal({
           {/* TAB 3: PREVIEW & APPLY */}
           {activeTab === 'preview' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {/* Quick Field Removal / Protection Toolbar */}
+              <div className={styles.excludeBanner}>
+                <div className={styles.excludeBannerHeader}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <ShieldCheck size={16} color="#f59e0b" />
+                    <strong style={{ fontSize: '0.86rem', color: '#fcd34d' }}>
+                      Field Protection & Exclusion Controls
+                    </strong>
+                  </div>
+                  
+                  {/* One-click button to remove First Air Date, Last Air Date, and Release Year */}
+                  <button
+                    type="button"
+                    className={`${styles.quickRemoveBtn} ${isDatesAndYearExcluded ? styles.quickRemoveBtnActive : ''}`}
+                    onClick={handleToggleExcludeDatesAndYear}
+                    title="Toggle exclusion of First Air Date, Last Air Date, and Release Year so episode auto-fetch dates are protected"
+                  >
+                    <Zap size={13} />
+                    <span>
+                      {isDatesAndYearExcluded 
+                        ? '✓ Dates & Year Removed / Protected' 
+                        : '⚡ Remove First & Last Air Date & Release Year'}
+                    </span>
+                  </button>
+                </div>
+
+                {/* Individual Field Exclusion Chips */}
+                {activePreviewFields.length > 0 && (
+                  <div>
+                    <div style={{ fontSize: '0.74rem', color: '#94a3b8', marginBottom: '0.35rem' }}>
+                      Click any field below to remove it from this update:
+                    </div>
+                    <div className={styles.chipList}>
+                      {activePreviewFields.map((field) => {
+                        const isExcluded = excludedFieldKeys.has(field.key);
+                        return (
+                          <button
+                            key={field.key}
+                            type="button"
+                            className={`${styles.excludeChip} ${isExcluded ? styles.excludeChipExcluded : ''}`}
+                            onClick={() => handleToggleExcludeField(field.key)}
+                            title={isExcluded ? `Click to restore ${field.label}` : `Click to exclude ${field.label}`}
+                          >
+                            <span>{isExcluded ? '✕' : '✓'} {field.label}</span>
+                            {isExcluded && <span style={{ fontSize: '0.65rem', opacity: 0.8 }}>(Removed)</span>}
+                          </button>
+                        );
+                      })}
+                      {excludedFieldKeys.size > 0 && (
+                        <button
+                          type="button"
+                          className={styles.presetBtn}
+                          onClick={() => setExcludedFieldKeys(new Set())}
+                          style={{ fontSize: '0.7rem', padding: '0.2rem 0.5rem' }}
+                        >
+                          <RotateCcw size={11} />
+                          <span>Reset All Exclusions</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Status Header */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#f8fafc' }}>
                   {parsedUpdates.length > 0 
-                    ? `Review ${parsedUpdates.length} Series Updates:` 
-                    : 'No updates detected. Check your selection and inputs in Tab 1 & Tab 2.'}
+                    ? `Ready to update ${parsedUpdates.length} Series (${excludedFieldKeys.size > 0 ? `${excludedFieldKeys.size} fields excluded` : 'all fields included'}):` 
+                    : 'No updates to apply. (Either all fields were excluded, or no rows matched).'}
                 </span>
                 {parsedUpdates.length > 0 && (
                   <span style={{ fontSize: '0.78rem', color: '#4ade80', fontWeight: 700 }}>
-                    ✓ Ready to save
+                    ✓ Ready to save to database
                   </span>
                 )}
               </div>
 
+              {/* Preview Diff Table */}
               {parsedUpdates.length > 0 ? (
-                <div style={{ maxHeight: '380px', overflowY: 'auto', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '10px' }}>
+                <div style={{ maxHeight: '340px', overflowY: 'auto', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '10px' }}>
                   <table className={styles.previewTable}>
                     <thead>
                       <tr>
@@ -763,6 +1219,7 @@ export default function BulkSeriesEditModal({
                         <th>Field</th>
                         <th>Current Value</th>
                         <th>New Value</th>
+                        <th style={{ width: '40px', textAlign: 'center' }}>Exclude</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -775,9 +1232,23 @@ export default function BulkSeriesEditModal({
                                 <code style={{ fontSize: '0.7rem', color: '#94a3b8' }}>/{update.series.slug}</code>
                               </td>
                             )}
-                            <td style={{ color: '#fcd34d', fontWeight: 600 }}>{diff.field}</td>
-                            <td style={{ color: '#94a3b8' }}>{diff.oldVal}</td>
-                            <td style={{ color: '#4ade80', fontWeight: 700 }}>{diff.newVal}</td>
+                            <td style={{ color: '#fcd34d', fontWeight: 600 }}>{diff.label}</td>
+                            <td style={{ color: '#94a3b8', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {diff.oldVal}
+                            </td>
+                            <td style={{ color: '#4ade80', fontWeight: 700, maxWidth: '240px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {diff.newVal}
+                            </td>
+                            <td style={{ textAlign: 'center' }}>
+                              <button
+                                type="button"
+                                className={styles.tableExcludeBtn}
+                                onClick={() => handleToggleExcludeField(diff.field)}
+                                title={`Exclude ${diff.label} from this bulk update`}
+                              >
+                                <X size={14} />
+                              </button>
+                            </td>
                           </tr>
                         ))
                       )}
@@ -789,8 +1260,10 @@ export default function BulkSeriesEditModal({
                   <AlertCircle size={36} style={{ margin: '0 auto 0.75rem', opacity: 0.5 }} />
                   <div>No valid changes found to preview.</div>
                   <div style={{ fontSize: '0.8rem', marginTop: '0.25rem' }}>
-                    {inputMode === 'tsv' 
-                      ? 'Ensure your TSV rows match existing series slugs or titles.' 
+                    {excludedFieldKeys.size > 0 
+                      ? 'You have excluded all matched fields. Click "Reset All Exclusions" above to bring them back.'
+                      : inputMode === 'tsv' 
+                      ? 'Ensure you selected series in Tab 1, or that your TSV rows match series titles or slugs.' 
                       : 'Ensure you selected series in Tab 1 and entered values in Tab 2.'}
                   </div>
                 </div>
@@ -826,7 +1299,7 @@ export default function BulkSeriesEditModal({
                 className={styles.primaryBtn}
                 onClick={() => setActiveTab('options')}
               >
-                <span>Continue to Fields ({selectedSeriesIds.size})</span>
+                <span>Continue to Fields ({selectedSeriesIds.size} selected)</span>
                 <ArrowRight size={14} />
               </button>
             )}
@@ -852,7 +1325,7 @@ export default function BulkSeriesEditModal({
                 {isSubmitting ? (
                   <>
                     <Loader2 size={16} className={styles.spin} />
-                    <span>Applying {parsedUpdates.length} Updates...</span>
+                    <span>Saving {parsedUpdates.length} Series...</span>
                   </>
                 ) : (
                   <>

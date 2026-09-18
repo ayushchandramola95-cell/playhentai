@@ -133,7 +133,8 @@ export async function PATCH(request: Request) {
       'first_air_date', 'last_air_date', 'original_language', 'original_source',
       'country', 'episode_count_override', 'meta_title', 'meta_description',
       'poster_image_key', 'cover_image_key', 'banner_image_key',
-      'alt_title_japanese', 'alt_title_romaji', 'alt_title_english'
+      'alt_title_japanese', 'alt_title_romaji', 'alt_title_english',
+      'aliases', 'content_warnings', 'featured_type', 'about_text', 'about_data'
     ];
 
     for (const item of updates) {
@@ -146,6 +147,26 @@ export async function PATCH(request: Request) {
         if (allowedFields.includes(key)) {
           sanitizedChanges[key] = changes[key];
         }
+      }
+
+      // Handle about sections if provided as individual fields
+      if (changes.about_overview || changes.about_production || changes.about_themes || changes.about_recommended) {
+        const overview = changes.about_overview || '';
+        const production = changes.about_production || '';
+        const themes = changes.about_themes || '';
+        const recommended = changes.about_recommended || '';
+        sanitizedChanges.about_data = {
+          overview,
+          production,
+          themes,
+          recommended
+        };
+        sanitizedChanges.about_text = [
+          overview.trim() ? `## Overview\n${overview.trim()}` : '',
+          production.trim() ? `## Production & Presentation\n${production.trim()}` : '',
+          themes.trim() ? `## Themes & Style\n${themes.trim()}` : '',
+          recommended.trim() ? `## Recommended For\n${recommended.trim()}` : ''
+        ].filter(Boolean).join('\n\n') || null;
       }
 
       if (Object.keys(sanitizedChanges).length === 0) continue;
