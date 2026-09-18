@@ -216,69 +216,57 @@ const AVAILABLE_FIELDS: FieldOption[] = [
 ];
 
 /**
- * Robust TSV row parser that supports quotes, embedded newlines, and various delimiters.
+ * Robust TSV row parser that parses each line as a distinct row,
+ * correctly handling embedded newlines and quotes.
  */
 function parseTSVRows(rawText: string): string[][] {
-  const rawLines = rawText.split(/\r?\n/);
-  const reconstructedRows: string[] = [];
-  let currentAccumulatedRow = '';
+  const rows: string[][] = [];
+  const lines = rawText.split(/\r?\n/);
+  let currentRowCells: string[] = [];
+  let currentCell = '';
+  let inQuotes = false;
 
-  for (let i = 0; i < rawLines.length; i++) {
-    const line = rawLines[i];
-    if (currentAccumulatedRow === '') {
-      currentAccumulatedRow = line;
-    } else {
-      currentAccumulatedRow += '\n' + line;
-    }
+  for (let lineIdx = 0; lineIdx < lines.length; lineIdx++) {
+    const line = lines[lineIdx];
 
-    let tabCount = 0;
-    let inQuotes = false;
-    for (let j = 0; j < currentAccumulatedRow.length; j++) {
-      const char = currentAccumulatedRow[j];
+    for (let charIdx = 0; charIdx < line.length; charIdx++) {
+      const char = line[charIdx];
+
       if (char === '"') {
-        if (inQuotes && currentAccumulatedRow[j + 1] === '"') {
-          j++;
+        if (inQuotes && line[charIdx + 1] === '"') {
+          currentCell += '"';
+          charIdx++;
         } else {
           inQuotes = !inQuotes;
         }
-      } else if (char === '\t' && !inQuotes) {
-        tabCount++;
-      }
-    }
-
-    if (tabCount >= 16 || i === rawLines.length - 1) {
-      reconstructedRows.push(currentAccumulatedRow);
-      currentAccumulatedRow = '';
-    }
-  }
-
-  const finalRows: string[][] = [];
-  for (const rowText of reconstructedRows) {
-    const rowFields: string[] = [];
-    let currentField = '';
-    let inQuotes = false;
-
-    for (let i = 0; i < rowText.length; i++) {
-      const char = rowText[i];
-      if (char === '"') {
-        if (inQuotes && rowText[i + 1] === '"') {
-          currentField += '"';
-          i++;
-        } else {
-          inQuotes = !inQuotes;
-        }
-      } else if (char === '\t' && !inQuotes) {
-        rowFields.push(currentField);
-        currentField = '';
+      } else if ((char === '\t' || (!line.includes('\t') && char === '|')) && !inQuotes) {
+        currentRowCells.push(currentCell.trim());
+        currentCell = '';
       } else {
-        currentField += char;
+        currentCell += char;
       }
     }
-    rowFields.push(currentField);
-    finalRows.push(rowFields.map(cell => cell.trim()));
+
+    if (!inQuotes) {
+      currentRowCells.push(currentCell.trim());
+      currentCell = '';
+      if (currentRowCells.length > 0 && currentRowCells.some((c) => c !== '')) {
+        rows.push(currentRowCells);
+      }
+      currentRowCells = [];
+    } else {
+      currentCell += '\n';
+    }
   }
 
-  return finalRows;
+  if (currentCell || currentRowCells.length > 0) {
+    currentRowCells.push(currentCell.trim());
+    if (currentRowCells.some((c) => c !== '')) {
+      rows.push(currentRowCells);
+    }
+  }
+
+  return rows;
 }
 
 function parseDateToYYYYMMDD(dateStr: string): string {
@@ -405,14 +393,23 @@ export default function BulkSeriesEditModal({
     return seriesList.filter((s) => selectedSeriesIds.has(s.id));
   }, [seriesList, selectedSeriesIds]);
 
+  const orderedSelectedFields = useMemo(() => {
+    return AVAILABLE_FIELDS
+      .filter((f) => selectedFields.has(f.key))
+      .map((f) => f.key);
+  }, [selectedFields]);
+
   // Build TSV header template for user copy
   const tsvExpectedHeader = useMemo(() => {
-    const fields = Array.from(selectedFields).map((f) => {
+    const labels = orderedSelectedFields.map((f) => {
       const found = AVAILABLE_FIELDS.find((af) => af.key === f);
       return found ? found.label : f;
     });
-    return `Series Slug / Title\t${fields.join('\t')}`;
-  }, [selectedFields]);
+    if (orderedSelectedFields.includes('title')) {
+      return labels.join('\t');
+    }
+    return `Series (Title or Slug)\t${labels.join('\t')}`;
+  }, [orderedSelectedFields]);
 
   const handleCopyHeader = () => {
     navigator.clipboard.writeText(tsvExpectedHeader);
@@ -460,8 +457,6 @@ export default function BulkSeriesEditModal({
       diffs: Array<{ field: string; label: string; oldVal: string; newVal: string }>;
     }> = [];
 
-    const fieldKeys = Array.from(selectedFields);
-
     if (inputMode === 'common') {
       // Apply common values to all selected series
       selectedSeriesIds.forEach((id) => {
@@ -471,7 +466,7 @@ export default function BulkSeriesEditModal({
         const changes: Record<string, any> = {};
         const diffs: Array<{ field: string; label: string; oldVal: string; newVal: string }> = [];
 
-        fieldKeys.forEach((key) => {
+        orderedSelectedFields.forEach((key) => {
           const val = commonValues[key];
           if (val === undefined || val === '') return;
 
@@ -513,18 +508,16 @@ export default function BulkSeriesEditModal({
     }
 
     // TSV Mode
-    if (!tsvText.trim()) return [];
+    if (!tsvText.trim() || orderedSelectedFields.length === 0) return [];
 
     const parsedRows = parseTSVRows(tsvText).filter((r) => r.length > 0 && r.some((c) => c !== ''));
     if (parsedRows.length === 0) return [];
 
-    // Check if user pasted standard 17-column format or custom fields
-    let activeFieldOrder: EditableFieldKey[] = fieldKeys;
     let dataRows = parsedRows;
 
     // Check if first row is a header
     const firstRow = parsedRows[0];
-    const headerKeywords = ['series', 'slug', 'title', 'synopsis', 'release year', 'studio', 'tags'];
+    const headerKeywords = ['series', 'slug', 'title', 'synopsis', 'release year', 'studio', 'tags', 'japanese'];
     const hasHeader = firstRow.some((cell) => headerKeywords.includes(cell.toLowerCase().trim()));
     if (hasHeader) {
       dataRows = parsedRows.slice(1);
@@ -532,12 +525,7 @@ export default function BulkSeriesEditModal({
 
     if (dataRows.length === 0) return [];
 
-    // If rows have ~17 columns or standard format, auto-adopt the standard 17-column layout
-    if (dataRows[0].length >= 16) {
-      activeFieldOrder = STANDARD_17_FIELDS;
-    }
-
-    // Process each row
+    // Process each row strictly mapping to orderedSelectedFields
     dataRows.forEach((row, rowIdx) => {
       const col0 = row[0]?.trim() || '';
 
@@ -559,20 +547,14 @@ export default function BulkSeriesEditModal({
       const changes: Record<string, any> = {};
       const diffs: Array<{ field: string; label: string; oldVal: string; newVal: string }> = [];
 
-      const is17Format = activeFieldOrder === STANDARD_17_FIELDS;
+      // Determine column offset:
+      // If row has more columns than orderedSelectedFields AND orderedSelectedFields does not start with 'title',
+      // then col 0 was an extra series identifier. Otherwise, col 0 corresponds directly to field 0.
+      const hasPrefixIdentifier = row.length > orderedSelectedFields.length && orderedSelectedFields[0] !== 'title';
 
-      activeFieldOrder.forEach((key, fIdx) => {
-        let rawColVal = '';
-        if (is17Format) {
-          rawColVal = row[fIdx]?.trim();
-        } else {
-          // If custom fields, check if row has identifier in col 0 + fields in col 1..N
-          if (row.length > activeFieldOrder.length) {
-            rawColVal = row[fIdx + 1]?.trim();
-          } else {
-            rawColVal = row[fIdx]?.trim();
-          }
-        }
+      orderedSelectedFields.forEach((key, fIdx) => {
+        const colIdx = hasPrefixIdentifier ? fIdx + 1 : fIdx;
+        const rawColVal = row[colIdx]?.trim();
 
         if (rawColVal === undefined || rawColVal === '') return;
 
@@ -618,7 +600,7 @@ export default function BulkSeriesEditModal({
     });
 
     return updates;
-  }, [inputMode, tsvText, selectedFields, selectedSeriesIds, selectedSeriesArray, seriesList, commonValues, tagUpdateMode]);
+  }, [inputMode, tsvText, orderedSelectedFields, selectedSeriesIds, selectedSeriesArray, seriesList, commonValues, tagUpdateMode]);
 
   // Filter out updates where fields have been excluded in Tab 3
   const parsedUpdates = useMemo(() => {
