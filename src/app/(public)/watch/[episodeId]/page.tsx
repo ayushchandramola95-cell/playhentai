@@ -117,7 +117,15 @@ export async function generateMetadata({ params }: WatchPageProps): Promise<Meta
       
       title = `Watch ${titleText}${seasonQualifier} ${epLabel} ${isUncensored ? 'Uncensored ' : ''}English Subbed Online Free HD | Play Hentai`;
 
-      if (isUncensored) {
+      const seriesSynopsis = series.description?.trim() || '';
+      const customEpDesc = ep.description?.trim();
+
+      if (customEpDesc) {
+        description = customEpDesc;
+      } else if (seriesSynopsis) {
+        const shortSynopsis = seriesSynopsis.length > 180 ? `${seriesSynopsis.slice(0, 175).trim()}...` : seriesSynopsis;
+        description = `${shortSynopsis} Stream ${resolved.seriesTitle}${seasonQualifier} ${epLabel} in full 1080p HD with English subtitles online free on Play Hentai.`;
+      } else if (isUncensored) {
         description = `Watch ${resolved.seriesTitle}${seasonQualifier} ${epLabel} uncensored in HD with English subtitles. Stream the hentai anime episode for free on Play Hentai.`;
       } else {
         description = `Watch ${resolved.seriesTitle}${seasonQualifier} ${epLabel} online in HD with English subtitles. Stream the hentai anime episode for free on Play Hentai.`;
@@ -347,13 +355,16 @@ export default async function WatchPage({ params }: WatchPageProps) {
     : `${seriesTitle} ${epPrefix} — ${epTitleClean.replace(/^\[Preview\]\s*/i, '').replace(/^\[Trailer\]\s*/i, '')}`;
 
   const fallbackDescription = `Watch ${seriesTitle} ${epPrefix} online in HD with English subtitles on Play Hentai. Free streaming anime episode with full player controls.`;
+  const seriesSynopsis = seriesDetails?.description?.trim() || '';
+  const episodeUniqueDescription = activeEpisode.description?.trim() 
+    || (seriesSynopsis ? `${seriesSynopsis.length > 200 ? seriesSynopsis.slice(0, 195) + '...' : seriesSynopsis} Watch ${seriesTitle} ${epPrefix} in full HD online free on Play Hentai.` : fallbackDescription);
 
   const videoJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'VideoObject',
     '@id': `${canonicalUrl}#video`,
     'name': videoName,
-    'description': activeEpisode.description || fallbackDescription,
+    'description': episodeUniqueDescription,
     'thumbnailUrl': [verifiedThumbnailUrl, `${siteUrl}/hero-banner.png`],
     'uploadDate': formatIso8601Date(activeEpisode.release_date || activeEpisode.created_at),
     'duration': formatIso8601Duration(activeEpisode.duration_seconds),

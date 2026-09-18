@@ -192,13 +192,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  // 7. Tag Pages
-  const tagPages = dbDistinctTags.map(tag => ({
-    url: `${baseUrl}/tag/${tagToSlug(tag)}`,
-    lastModified: new Date(),
-    changeFrequency: 'weekly' as const,
-    priority: 0.85,
-  }));
+  // 7. Tag Pages (Filter out tags that already have dedicated category pages to prevent keyword cannibalization)
+  const categorySlugs = new Set(genres.map(g => tagToSlug(g)));
+  const tagPages = dbDistinctTags
+    .filter(tag => !categorySlugs.has(tagToSlug(tag)))
+    .map(tag => ({
+      url: `${baseUrl}/tag/${tagToSlug(tag)}`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.85,
+    }));
 
   // 8. Playlist / Collection Pages
   const playlistPages = dbPlaylists.map(pl => ({

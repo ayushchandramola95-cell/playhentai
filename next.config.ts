@@ -94,6 +94,17 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
+        source: '/:path*',
+        has: [
+          {
+            type: 'host',
+            value: 'www.playhentai.live',
+          },
+        ],
+        destination: 'https://playhentai.live/:path*',
+        permanent: true,
+      },
+      {
         source: '/recent',
         destination: '/recent/series',
         permanent: true,

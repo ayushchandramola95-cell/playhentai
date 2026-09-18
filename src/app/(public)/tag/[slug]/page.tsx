@@ -1,5 +1,5 @@
 import React from 'react';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { Hash, ChevronLeft, ChevronRight, Layers } from 'lucide-react';
@@ -18,6 +18,12 @@ interface TagPageProps {
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
 const PAGE_SIZE = 24;
 
+const CORE_CATEGORY_SLUGS = new Set([
+  'action', 'sci-fi', 'fantasy', 'adventure', 'drama', 'mystery', 
+  'romance', 'comedy', 'supernatural', 'slice-of-life', 'harem', 
+  'ecchi', 'hentai', 'uncensored', '3d', 'cgi'
+]);
+
 import { getLocalDistinctTags, getLocalSeriesByTag } from '@/utils/localCatalogStore';
 
 export const revalidate = 120;
@@ -34,6 +40,14 @@ async function getSeriesByTag(exactTag: string): Promise<any[]> {
 
 export async function generateMetadata({ params }: TagPageProps): Promise<Metadata> {
   const { slug } = await params;
+
+  if (CORE_CATEGORY_SLUGS.has(slug.toLowerCase())) {
+    return {
+      alternates: {
+        canonical: `/categories/${slug.toLowerCase()}`,
+      },
+    };
+  }
 
   const allTags = await getAllDistinctTags();
   const exactTag = allTags.find(t => tagToSlug(t) === slug);
@@ -85,6 +99,10 @@ export default async function TagPage({ params, searchParams }: TagPageProps) {
   const { slug } = await params;
   const sp = await searchParams;
   const page = Math.max(1, parseInt(sp.page || '1', 10));
+
+  if (CORE_CATEGORY_SLUGS.has(slug.toLowerCase())) {
+    redirect(`/categories/${slug.toLowerCase()}`);
+  }
 
   // 1. Get all real tags from DB
   const allTags = await getAllDistinctTags();
