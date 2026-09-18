@@ -154,6 +154,7 @@ export default function AdminAnalyticsPage() {
   
   // Analytics Data States
   const [totalViews, setTotalViews] = useState<number>(0);
+  const [realViewsCount, setRealViewsCount] = useState<number>(0);
   const [totalWatchHours, setTotalWatchHours] = useState<number>(0);
   const [totalSeriesCount, setTotalSeriesCount] = useState<number>(0);
   const [totalEpisodesCount, setTotalEpisodesCount] = useState<number>(0);
@@ -170,6 +171,7 @@ export default function AdminAnalyticsPage() {
   const [allSeriesAnalytics, setAllSeriesAnalytics] = useState<ViewedSeries[]>([]);
   const [allEpisodesAnalytics, setAllEpisodesAnalytics] = useState<ViewedEpisode[]>([]);
   const [todayStats, setTodayStats] = useState<TodayStats | null>(null);
+  const [periodStats, setPeriodStats] = useState<any>(null);
   const [todayTopContentTab, setTodayTopContentTab] = useState<'series' | 'episodes'>('series');
   const [loadingMetrics, setLoadingMetrics] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -207,13 +209,14 @@ export default function AdminAnalyticsPage() {
       if (res.ok) {
         const data = await res.json();
         setTotalViews(data.totalViews || 0);
+        if (data.realViewsCount !== undefined) setRealViewsCount(data.realViewsCount);
         setTotalWatchHours(data.totalWatchHours || 0);
         setTotalSeriesCount(data.totalSeriesCount || 0);
         setTotalEpisodesCount(data.totalEpisodesCount || 0);
         if (data.viewTrends) setViewTrends(data.viewTrends);
         if (data.visitTrends) setVisitTrends(data.visitTrends);
-        if (data.totalAudienceVisits) setTotalAudienceVisits(data.totalAudienceVisits);
-        if (data.totalAudienceUnique) setTotalAudienceUnique(data.totalAudienceUnique);
+        if (data.totalAudienceVisits !== undefined) setTotalAudienceVisits(data.totalAudienceVisits);
+        if (data.totalAudienceUnique !== undefined) setTotalAudienceUnique(data.totalAudienceUnique);
         if (data.audienceAvgPagesPerVisit) setAudienceAvgPages(data.audienceAvgPagesPerVisit);
         if (data.audienceWatchConversion !== undefined) setAudienceConversion(data.audienceWatchConversion);
         if (data.genreDistribution) setGenreDistribution(data.genreDistribution);
@@ -223,6 +226,7 @@ export default function AdminAnalyticsPage() {
         if (data.allSeriesAnalytics) setAllSeriesAnalytics(data.allSeriesAnalytics);
         if (data.allEpisodesAnalytics) setAllEpisodesAnalytics(data.allEpisodesAnalytics);
         if (data.todayStats) setTodayStats(data.todayStats);
+        if (data.periodStats) setPeriodStats(data.periodStats);
       }
     } catch (err) {
       console.error('Error fetching view metrics:', err);
@@ -368,8 +372,8 @@ export default function AdminAnalyticsPage() {
       exportedAt: new Date().toISOString(),
       timeRange,
       visitsAudience: {
-        totalVisits: totalAudienceVisits || 246,
-        uniqueVisitors: totalAudienceUnique || 60,
+        totalVisits: totalAudienceVisits || 0,
+        uniqueVisitors: totalAudienceUnique || 0,
         avgPagesPerVisit: audienceAvgPages,
         watchConversionRate: `${audienceConversion}%`,
         dailyBreakdown: visitTrends
@@ -377,6 +381,7 @@ export default function AdminAnalyticsPage() {
       watchOverview: {
         totalViews,
         totalWatchHours,
+        periodStats,
         todayStats,
         mostViewedSeries,
         mostViewedEpisodes
@@ -403,11 +408,9 @@ export default function AdminAnalyticsPage() {
   // Visit Trends Data Points for Chart
   const visitPointsData = visitTrends.length > 0 
     ? visitTrends 
-    : [
-        { date: 'Today', visits: 246, uniqueVisitors: 60, streamViews: 82, pagesPerVisit: '4.1', watchConversion: 50, avgDurationFormatted: '13m 45s' }
-      ];
+    : [];
 
-  const maxVisitsVal = Math.max(...visitPointsData.map(v => v.visits), 15);
+  const maxVisitsVal = Math.max(...visitPointsData.map(v => v.visits), 10);
 
   const visitPoints = visitPointsData.map((v, i) => {
     const x = padding + (i * (width - 2 * padding)) / Math.max(visitPointsData.length - 1, 1);
@@ -519,10 +522,18 @@ export default function AdminAnalyticsPage() {
           >
             <PlayCircle size={17} style={{ color: '#f59e0b' }} />
             <span>2. Watch &amp; Video Overview</span>
-            {todayStats && todayStats.viewsCount > 0 && (
-              <span className={styles.tabCountBadge} style={{ background: 'rgba(245, 158, 11, 0.2)', color: '#fbbf24' }}>
-                {todayStats.viewsCount} streams today
-              </span>
+            {timeRange === 'today' ? (
+              todayStats && todayStats.viewsCount > 0 && (
+                <span className={styles.tabCountBadge} style={{ background: 'rgba(245, 158, 11, 0.2)', color: '#fbbf24' }}>
+                  {todayStats.viewsCount} streams today
+                </span>
+              )
+            ) : (
+              totalViews > 0 && (
+                <span className={styles.tabCountBadge} style={{ background: 'rgba(245, 158, 11, 0.2)', color: '#fbbf24' }}>
+                  {totalViews.toLocaleString()} streams ({timeRange})
+                </span>
+              )
             )}
           </button>
 
@@ -569,11 +580,13 @@ export default function AdminAnalyticsPage() {
         {/* PILLAR 1: VISITS & AUDIENCE PERFORMANCE                                    */}
         {/* ========================================================================= */}
         {activeTab === 'visits' && (() => {
-          const displayVisits = timeRange === 'today' ? 246 : (totalAudienceVisits || totalViews * 3 || 246);
-          const displayUnique = timeRange === 'today' ? 60 : (totalAudienceUnique || Math.round(displayVisits / 4.1) || 60);
-          const displayPagesPerVisit = (displayVisits / Math.max(displayUnique, 1)).toFixed(1);
-          const displayAvgTime = '13m 45s';
-          const displayConversion = audienceConversion || 50;
+          const displayVisits = totalAudienceVisits;
+          const displayUnique = totalAudienceUnique;
+          const displayPagesPerVisit = displayUnique > 0 ? (displayVisits / displayUnique).toFixed(1) : '1.0';
+          const displayAvgTime = (timeRange === 'today' ? telemetry?.today?.avgDurationFormatted : null) || telemetry?.avgDurationFormatted || '0s';
+          const displayConversion = displayVisits > 0 
+            ? Math.min(Math.round((totalViews / Math.max(displayUnique, 1)) * 100), 100) 
+            : 0;
 
           return (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -836,58 +849,108 @@ export default function AdminAnalyticsPage() {
         {/* PILLAR 2: WATCH & VIDEO OVERVIEW                                          */}
         {/* ========================================================================= */}
         {activeTab === 'watch' && (() => {
-          const todayCount = todayStats?.viewsCount || 82;
-          const yesterdayCount = todayStats?.yesterdayViewsCount || 13;
-          const growth = todayStats?.growthPct || 531;
-          const uniqueSeriesToday = todayStats?.uniqueSeriesCount || 60;
-          const watchHoursToday = todayStats?.watchHours || 33;
+          const isToday = timeRange === 'today';
+          const rangeLabel = isToday ? 'Today' : timeRange === '7d' ? 'Last 7 Days' : timeRange === '30d' ? 'Last 30 Days' : 'All-Time';
+
+          const currentCount = isToday ? (todayStats?.viewsCount ?? 0) : totalViews;
+          const growth = isToday 
+            ? (todayStats?.growthPct ?? 0) 
+            : (periodStats?.growthPct ?? 0);
+          const growthLabel = isToday ? 'vs yesterday' : timeRange === '7d' ? 'vs prior 7d' : timeRange === '30d' ? 'vs prior 30d' : 'catalog volume';
+
+          const uniqueSeriesCount = isToday 
+            ? (todayStats?.uniqueSeriesCount ?? 0) 
+            : (periodStats?.uniqueSeriesCount ?? mostViewedSeries.filter(s => s.viewsCount > 0).length);
+
+          const currentWatchHours = isToday 
+            ? (todayStats?.watchHours ?? 0) 
+            : totalWatchHours;
+
+          const watchTimeFormatted = currentWatchHours > 0 
+            ? `${currentWatchHours.toLocaleString()} hrs` 
+            : currentCount > 0 
+              ? `${Math.round(currentCount * 24)} mins` 
+              : '0 hrs';
+
+          // Dynamic Chart Data: Hourly distribution for 'today', or day-by-day viewTrends for 7d/30d/all
+          const chartData = isToday 
+            ? (todayStats?.hourlyDistribution?.map(h => ({ label: h.hourLabel, count: h.count })) || [])
+            : (viewTrends?.map(v => ({ label: v.date, count: v.count })) || []);
+
+          const maxChartVal = Math.max(...chartData.map(d => d.count), 5);
+          const chartPoints = chartData.map((d, i) => {
+            const x = padding + (i * (width - 2 * padding)) / Math.max(chartData.length - 1, 1);
+            const y = height - padding - (d.count * (height - 2 * padding)) / maxChartVal;
+            return { x, y, label: d.label, count: d.count };
+          });
+
+          const chartLinePath = chartPoints.reduce((acc, pt, i) => i === 0 ? `M ${pt.x} ${pt.y}` : `${acc} L ${pt.x} ${pt.y}`, '');
+          const chartAreaPath = chartPoints.length > 0 
+            ? `${chartLinePath} L ${chartPoints[chartPoints.length - 1].x} ${height - padding} L ${chartPoints[0].x} ${height - padding} Z`
+            : '';
+
+          // Real-time / recent playback feed for the selected range
+          const recentPlaysList = isToday 
+            ? (todayStats?.recentPlays || []) 
+            : (periodStats?.recentPlays || todayStats?.recentPlays || []);
+
+          // Top ranked series & episodes for the selected range
+          const displayTopSeries = isToday 
+            ? (todayStats?.topSeries || []) 
+            : (periodStats?.topSeries || mostViewedSeries.filter(s => s.viewsCount > 0));
+
+          const displayTopEpisodes = isToday 
+            ? (todayStats?.topEpisodes || []) 
+            : (periodStats?.topEpisodes || mostViewedEpisodes.filter(e => e.viewsCount > 0));
 
           return (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
               {/* Top Playback Scorecard */}
               <div className={styles.statsOverviewFour}>
-                {/* 1. Episodes Streamed Today */}
+                {/* 1. Episodes Streamed */}
                 <div className={styles.metricCard} style={{ border: '1px solid rgba(16, 185, 129, 0.4)', background: 'rgba(16, 185, 129, 0.04)' }}>
                   <div className={styles.metricIcon} style={{ background: 'rgba(16, 185, 129, 0.2)', color: '#34d399' }}>
                     <PlayCircle size={22} />
                   </div>
                   <div className={styles.metricInfo}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <span className={styles.metricLabel}>Episodes Streamed Today</span>
-                      <span className={`${styles.growthBadge} ${styles.growthBadgePositive}`}>
-                        +{growth}% vs yesterday
-                      </span>
+                      <span className={styles.metricLabel}>Episodes Streamed ({rangeLabel})</span>
+                      {timeRange !== 'all' && (
+                        <span className={`${styles.growthBadge} ${growth >= 0 ? styles.growthBadgePositive : styles.growthBadgeNeutral}`}>
+                          {growth >= 0 ? `+${growth}%` : `${growth}%`} {growthLabel}
+                        </span>
+                      )}
                     </div>
                     <span className={styles.metricValue} style={{ color: '#34d399' }}>
-                      {loadingMetrics ? '...' : todayCount.toLocaleString()}
+                      {loadingMetrics ? '...' : currentCount.toLocaleString()}
                     </span>
-                    <span className={styles.metricSubtext}>Across {uniqueSeriesToday} distinct anime titles</span>
+                    <span className={styles.metricSubtext}>Across {uniqueSeriesCount} distinct anime titles</span>
                   </div>
                 </div>
 
-                {/* 2. Distinct Anime Series Watched Today */}
+                {/* 2. Distinct Anime Series Watched */}
                 <div className={styles.metricCard} style={{ border: '1px solid rgba(245, 158, 11, 0.3)', background: 'rgba(245, 158, 11, 0.03)' }}>
                   <div className={styles.metricIcon} style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#fbbf24' }}>
                     <Film size={22} />
                   </div>
                   <div className={styles.metricInfo}>
-                    <span className={styles.metricLabel}>Unique Series Watched Today</span>
+                    <span className={styles.metricLabel}>Unique Series Watched ({rangeLabel})</span>
                     <span className={styles.metricValue} style={{ color: '#fbbf24' }}>
-                      {loadingMetrics ? '...' : `${uniqueSeriesToday} Series`}
+                      {loadingMetrics ? '...' : `${uniqueSeriesCount} Series`}
                     </span>
-                    <span className={styles.metricSubtext}>High content diversity today</span>
+                    <span className={styles.metricSubtext}>High content diversity in {rangeLabel.toLowerCase()}</span>
                   </div>
                 </div>
 
-                {/* 3. Watch Time Streamed Today */}
+                {/* 3. Watch Time Streamed */}
                 <div className={styles.metricCard}>
                   <div className={styles.metricIcon} style={{ background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8' }}>
                     <Clock size={22} />
                   </div>
                   <div className={styles.metricInfo}>
-                    <span className={styles.metricLabel}>Watch Time Today</span>
+                    <span className={styles.metricLabel}>Watch Time ({rangeLabel})</span>
                     <span className={styles.metricValue}>
-                      {loadingMetrics ? '...' : `${watchHoursToday} hrs`}
+                      {loadingMetrics ? '...' : watchTimeFormatted}
                     </span>
                     <span className={styles.metricSubtext}>Calculated from active video playback</span>
                   </div>
@@ -899,24 +962,26 @@ export default function AdminAnalyticsPage() {
                     <Eye size={22} />
                   </div>
                   <div className={styles.metricInfo}>
-                    <span className={styles.metricLabel}>Total Catalog Plays ({timeRange})</span>
+                    <span className={styles.metricLabel}>Total Catalog Plays</span>
                     <span className={styles.metricValue}>
-                      {loadingMetrics ? '...' : totalViews.toLocaleString()}
+                      {loadingMetrics ? '...' : (realViewsCount || totalViews).toLocaleString()}
                     </span>
-                    <span className={styles.metricSubtext}>{totalWatchHours.toLocaleString()} total hours streamed</span>
+                    <span className={styles.metricSubtext}>{totalWatchHours.toLocaleString()} total hours streamed in catalog</span>
                   </div>
                 </div>
               </div>
 
-              {/* Hourly Playback Velocity Curve */}
+              {/* Dynamic Playback Velocity Curve */}
               <div className={styles.chartCard}>
                 <div className={styles.chartHeader}>
                   <div>
                     <h3 className={styles.chartTitle} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                       <Activity size={18} style={{ color: '#f59e0b' }} />
-                      <span>📈 Today's Hourly Playback Velocity (UTC)</span>
+                      <span>📈 {isToday ? "Today's Hourly Playback Velocity (UTC)" : `Playback Velocity & Streaming Trajectory (${rangeLabel})`}</span>
                     </h3>
-                    <span className={styles.chartSubtitle}>Streaming distribution throughout today</span>
+                    <span className={styles.chartSubtitle}>
+                      {isToday ? 'Streaming distribution across today (00:00 to 23:59 UTC)' : `Day-by-day episode streaming volume and view velocity`}
+                    </span>
                   </div>
                   <span className={styles.livePulse} style={{ padding: '0.2rem 0.55rem', fontSize: '0.72rem' }}>
                     <span className={styles.livePulseDot} />
@@ -943,44 +1008,33 @@ export default function AdminAnalyticsPage() {
                       );
                     })}
 
-                    {todayStats?.hourlyDistribution && todayStats.hourlyDistribution.length > 0 && (() => {
-                      const maxTodayH = Math.max(...todayStats.hourlyDistribution.map(h => h.count), 5);
-                      const hPoints = todayStats.hourlyDistribution.map((h, i) => {
-                        const x = padding + (i * (width - 2 * padding)) / Math.max(todayStats.hourlyDistribution.length - 1, 1);
-                        const y = height - padding - (h.count * (height - 2 * padding)) / maxTodayH;
-                        return { x, y, label: h.hourLabel, count: h.count };
-                      });
-                      const hPath = hPoints.reduce((acc, pt, i) => i === 0 ? `M ${pt.x} ${pt.y}` : `${acc} L ${pt.x} ${pt.y}`, '');
-                      const hArea = `${hPath} L ${hPoints[hPoints.length - 1].x} ${height - padding} L ${hPoints[0].x} ${height - padding} Z`;
-
-                      return (
-                        <>
-                          <path d={hArea} fill="url(#todayCurveGrad)" />
-                          <path d={hPath} fill="none" stroke="#f59e0b" strokeWidth="2.5" />
-                          {hPoints.map((pt, idx) => (
-                            <circle
-                              key={idx}
-                              cx={pt.x}
-                              cy={pt.y}
-                              r={hoveredPoint?.index === idx ? 6 : (pt.count > 0 ? 4 : 2)}
-                              fill={hoveredPoint?.index === idx ? '#ffffff' : (pt.count > 0 ? '#fbbf24' : '#64748b')}
-                              stroke="#d97706"
-                              strokeWidth="2"
-                              style={{ cursor: 'pointer', transition: 'all 0.15s ease' }}
-                              onMouseEnter={() => {
-                                setHoveredPoint({ index: idx, date: pt.label, count: pt.count, x: pt.x, y: pt.y });
-                              }}
-                              onMouseLeave={() => setHoveredPoint(null)}
-                            />
-                          ))}
-                        </>
-                      );
-                    })()}
+                    {chartPoints.length > 0 && (
+                      <>
+                        <path d={chartAreaPath} fill="url(#todayCurveGrad)" />
+                        <path d={chartLinePath} fill="none" stroke="#f59e0b" strokeWidth="2.5" />
+                        {chartPoints.map((pt, idx) => (
+                          <circle
+                            key={idx}
+                            cx={pt.x}
+                            cy={pt.y}
+                            r={hoveredPoint?.index === idx ? 6 : (pt.count > 0 ? 4 : 2)}
+                            fill={hoveredPoint?.index === idx ? '#ffffff' : (pt.count > 0 ? '#fbbf24' : '#64748b')}
+                            stroke="#d97706"
+                            strokeWidth="2"
+                            style={{ cursor: 'pointer', transition: 'all 0.15s ease' }}
+                            onMouseEnter={() => {
+                              setHoveredPoint({ index: idx, date: pt.label, count: pt.count, x: pt.x, y: pt.y });
+                            }}
+                            onMouseLeave={() => setHoveredPoint(null)}
+                          />
+                        ))}
+                      </>
+                    )}
                   </svg>
 
                   {hoveredPoint && (
                     <div style={{ position: 'absolute', left: `${(hoveredPoint.x / width) * 100}%`, top: `${(hoveredPoint.y / height) * 100}%`, transform: 'translate(-50%, -120%)', background: '#0a0d16', border: '1px solid #f59e0b', padding: '0.4rem 0.75rem', borderRadius: '8px', pointerEvents: 'none', zIndex: 10, whiteSpace: 'nowrap', boxShadow: '0 4px 12px rgba(0,0,0,0.5)' }}>
-                      <span style={{ fontSize: '0.7rem', color: '#94a3b8', display: 'block' }}>{hoveredPoint.date} (UTC)</span>
+                      <span style={{ fontSize: '0.7rem', color: '#94a3b8', display: 'block' }}>{hoveredPoint.date} {isToday ? '(UTC)' : ''}</span>
                       <strong style={{ fontSize: '0.85rem', color: '#f8fafc' }}>{hoveredPoint.count.toLocaleString()} plays</strong>
                     </div>
                   )}
@@ -988,25 +1042,44 @@ export default function AdminAnalyticsPage() {
 
                 {/* X-axis time markings */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: `0 ${padding}px`, marginTop: '0.6rem' }}>
-                  {todayStats?.hourlyDistribution?.filter((_, i) => i % 2 === 0).map((h, i) => (
-                    <span key={i} style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 600 }}>
-                      {h.hourLabel}
-                    </span>
-                  ))}
+                  {isToday ? (
+                    chartData.filter((_, i) => i % 2 === 0).map((h, i) => (
+                      <span key={i} style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 600 }}>
+                        {h.label}
+                      </span>
+                    ))
+                  ) : timeRange === '7d' ? (
+                    chartData.map((h, i) => (
+                      <span key={i} style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 600 }}>
+                        {h.label}
+                      </span>
+                    ))
+                  ) : (
+                    chartData.filter((_, i, arr) => {
+                      const step = Math.ceil(arr.length / 7);
+                      return i % step === 0 || i === arr.length - 1;
+                    }).map((h, i) => (
+                      <span key={i} style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 600 }}>
+                        {h.label}
+                      </span>
+                    ))
+                  )}
                 </div>
               </div>
 
-              {/* Which Ones Were Watched: Real-Time Playback Feed & Most Watched Content */}
+              {/* Which Ones Were Watched: Playback Feed & Most Watched Content */}
               <div className={styles.chartsGrid}>
-                {/* Column 1: ⚡ Real-Time Playback Feed */}
+                {/* Column 1: ⚡ Playback Feed */}
                 <div className={styles.chartCard} style={{ gridColumn: 'span 1' }}>
                   <div className={styles.chartHeader}>
                     <div>
                       <h3 className={styles.chartTitle} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <Zap size={18} style={{ color: '#38bdf8' }} />
-                        <span>⚡ Real-Time Playback Feed</span>
+                        <span>⚡ {isToday ? 'Real-Time Playback Feed' : `Playback Stream Feed (${rangeLabel})`}</span>
                       </h3>
-                      <span className={styles.chartSubtitle}>Latest 30 episodes watched today in chronological order</span>
+                      <span className={styles.chartSubtitle}>
+                        {isToday ? 'Latest episodes watched today in chronological order' : `Latest episodes streamed in ${rangeLabel.toLowerCase()}`}
+                      </span>
                     </div>
                     <span className={styles.livePulse} style={{ padding: '0.15rem 0.5rem', fontSize: '0.7rem' }}>
                       <span className={styles.liveFeedDot} />
@@ -1016,11 +1089,11 @@ export default function AdminAnalyticsPage() {
 
                   <div className={styles.streamFeedList}>
                     {loadingMetrics ? (
-                      <div style={{ padding: '2rem', textAlign: 'center', color: '#94a3b8' }}>Loading today's stream feed...</div>
-                    ) : !todayStats?.recentPlays || todayStats.recentPlays.length === 0 ? (
-                      <div style={{ padding: '2rem', textAlign: 'center', color: '#94a3b8' }}>No streams recorded yet today.</div>
+                      <div style={{ padding: '2rem', textAlign: 'center', color: '#94a3b8' }}>Loading stream feed...</div>
+                    ) : recentPlaysList.length === 0 ? (
+                      <div style={{ padding: '2rem', textAlign: 'center', color: '#94a3b8' }}>No streams recorded in this timeframe.</div>
                     ) : (
-                      todayStats.recentPlays.map((item) => (
+                      recentPlaysList.map((item: any) => (
                         <div key={item.id} className={styles.streamFeedItem}>
                           <div className={styles.streamFeedLeft}>
                             {item.poster_image_key || item.thumbnail_image_key ? (
@@ -1058,17 +1131,17 @@ export default function AdminAnalyticsPage() {
                   </div>
                 </div>
 
-                {/* Column 2: 🏆 Most Watched Content Today (Series & Episodes Toggle) */}
+                {/* Column 2: 🏆 Most Watched Content */}
                 <div className={styles.chartCard} style={{ gridColumn: 'span 1' }}>
                   <div className={styles.chartHeader}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', flexWrap: 'wrap', gap: '0.5rem' }}>
                       <div>
                         <h3 className={styles.chartTitle} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                           <Award size={18} style={{ color: '#f59e0b' }} />
-                          <span>🏆 Most Watched {todayTopContentTab === 'series' ? 'Series' : 'Episodes'} Today</span>
+                          <span>🏆 Most Watched {todayTopContentTab === 'series' ? 'Series' : 'Episodes'} ({rangeLabel})</span>
                         </h3>
                         <span className={styles.chartSubtitle}>
-                          Top ranked {todayTopContentTab === 'series' ? 'anime series' : 'specific episodes'} watched today
+                          Top ranked {todayTopContentTab === 'series' ? 'anime series' : 'specific episodes'} in {rangeLabel.toLowerCase()}
                         </span>
                       </div>
 
@@ -1093,12 +1166,12 @@ export default function AdminAnalyticsPage() {
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', maxHeight: '520px', overflowY: 'auto' }}>
                     {loadingMetrics ? (
-                      <div style={{ padding: '2rem', textAlign: 'center', color: '#94a3b8' }}>Calculating today's rankings...</div>
+                      <div style={{ padding: '2rem', textAlign: 'center', color: '#94a3b8' }}>Calculating rankings...</div>
                     ) : todayTopContentTab === 'series' ? (
-                      !todayStats?.topSeries || todayStats.topSeries.length === 0 ? (
-                        <div style={{ padding: '2rem', textAlign: 'center', color: '#94a3b8' }}>No series rankings available for today.</div>
+                      displayTopSeries.length === 0 ? (
+                        <div style={{ padding: '2rem', textAlign: 'center', color: '#94a3b8' }}>No series rankings available for this timeframe.</div>
                       ) : (
-                        todayStats.topSeries.map((s, idx) => (
+                        displayTopSeries.map((s: any, idx: number) => (
                           <div key={s.id} className={styles.todayRankCard}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0, flex: 1 }}>
                               <span className={`${styles.rankBadge} ${idx === 0 ? styles.rankBadgeGold : idx === 1 ? styles.rankBadgeSilver : idx === 2 ? styles.rankBadgeBronze : ''}`}>
@@ -1130,10 +1203,10 @@ export default function AdminAnalyticsPage() {
                         ))
                       )
                     ) : (
-                      !todayStats?.topEpisodes || todayStats.topEpisodes.length === 0 ? (
-                        <div style={{ padding: '2rem', textAlign: 'center', color: '#94a3b8' }}>No episode rankings available for today.</div>
+                      displayTopEpisodes.length === 0 ? (
+                        <div style={{ padding: '2rem', textAlign: 'center', color: '#94a3b8' }}>No episode rankings available for this timeframe.</div>
                       ) : (
-                        todayStats.topEpisodes.map((ep, idx) => (
+                        displayTopEpisodes.map((ep: any, idx: number) => (
                           <div key={ep.id} className={styles.todayRankCard}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0, flex: 1 }}>
                               <span className={`${styles.rankBadge} ${idx === 0 ? styles.rankBadgeGold : idx === 1 ? styles.rankBadgeSilver : idx === 2 ? styles.rankBadgeBronze : ''}`}>
@@ -1179,7 +1252,7 @@ export default function AdminAnalyticsPage() {
                   <div>
                     <h3 className={styles.tableTitle}>
                       <Award size={18} style={{ color: '#a855f7' }} />
-                      <span>Catalog Leaderboards &amp; Playback Volume ({timeRange})</span>
+                      <span>Catalog Leaderboards &amp; Playback Volume ({rangeLabel})</span>
                     </h3>
                     <span className={styles.tableSubtitle}>Searchable rankings of all anime series and estimated watch hours</span>
                   </div>
@@ -1324,10 +1397,11 @@ export default function AdminAnalyticsPage() {
 
               {/* 2. Device Breakdown */}
               {(() => {
-                const mob = telemetry?.today?.deviceBreakdown?.mobile ?? telemetry?.deviceBreakdown?.mobile ?? 54;
-                const desk = telemetry?.today?.deviceBreakdown?.desktop ?? telemetry?.deviceBreakdown?.desktop ?? 42;
-                const tab = telemetry?.today?.deviceBreakdown?.tablet ?? telemetry?.deviceBreakdown?.tablet ?? 4;
+                const mob = telemetry?.today?.deviceBreakdown?.mobile ?? telemetry?.deviceBreakdown?.mobile ?? 0;
+                const desk = telemetry?.today?.deviceBreakdown?.desktop ?? telemetry?.deviceBreakdown?.desktop ?? 0;
+                const tab = telemetry?.today?.deviceBreakdown?.tablet ?? telemetry?.deviceBreakdown?.tablet ?? 0;
                 const isMobilePrimary = mob >= desk;
+                const hasDevices = (mob + desk + tab) > 0;
                 return (
                   <div className={styles.metricCard}>
                     <div className={styles.metricIcon} style={{ background: isMobilePrimary ? 'rgba(56, 189, 248, 0.15)' : 'rgba(192, 132, 252, 0.15)', color: isMobilePrimary ? '#38bdf8' : '#c084fc' }}>
@@ -1336,10 +1410,10 @@ export default function AdminAnalyticsPage() {
                     <div className={styles.metricInfo}>
                       <span className={styles.metricLabel}>Primary Traffic Hardware</span>
                       <span className={styles.metricValue}>
-                        {isMobilePrimary ? `${mob}% Mobile` : `${desk}% Desktop`}
+                        {hasDevices ? (isMobilePrimary ? `${mob}% Mobile` : `${desk}% Desktop`) : 'N/A'}
                       </span>
                       <span className={styles.metricSubtext}>
-                        {isMobilePrimary ? `${desk}% Desktop • ${tab}% Tablet` : `${mob}% Mobile • ${tab}% Tablet`}
+                        {hasDevices ? (isMobilePrimary ? `${desk}% Desktop • ${tab}% Tablet` : `${mob}% Mobile • ${tab}% Tablet`) : 'Awaiting hardware telemetry'}
                       </span>
                     </div>
                   </div>
@@ -1354,7 +1428,7 @@ export default function AdminAnalyticsPage() {
                 <div className={styles.metricInfo}>
                   <span className={styles.metricLabel}>AdBlock / Shield Rate</span>
                   <span className={styles.metricValue} style={{ color: '#fbbf24' }}>
-                    {telemetry?.today?.adBlockRate ?? telemetry?.adBlockRate ?? 21}%
+                    {telemetry?.today?.adBlockRate ?? telemetry?.adBlockRate ?? 0}%
                   </span>
                   <span className={styles.metricSubtext}>Visitors with shields or uBlock</span>
                 </div>
@@ -1368,7 +1442,7 @@ export default function AdminAnalyticsPage() {
                 <div className={styles.metricInfo}>
                   <span className={styles.metricLabel}>Watch Conversion Rate</span>
                   <span className={styles.metricValue} style={{ color: '#f472b6' }}>
-                    {telemetry?.today?.watchConversionRate ?? telemetry?.watchConversionRate ?? 50}%
+                    {telemetry?.today?.watchConversionRate ?? telemetry?.watchConversionRate ?? 0}%
                   </span>
                   <span className={styles.metricSubtext}>Converted from browse to play</span>
                 </div>
@@ -1390,40 +1464,40 @@ export default function AdminAnalyticsPage() {
                   <div className={styles.funnelRow}>
                     <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#f8fafc', width: '130px' }}>Top Header (25%)</span>
                     <div className={styles.funnelBarTrack}>
-                      <div className={styles.funnelBarFill} style={{ width: `${telemetry?.scrollFunnel?.depth25 ?? 100}%`, background: '#7c3aed' }} />
+                      <div className={styles.funnelBarFill} style={{ width: `${telemetry?.scrollFunnel?.depth25 ?? 0}%`, background: '#7c3aed' }} />
                     </div>
                     <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#c4b5fd', width: '45px', textAlign: 'right' }}>
-                      {telemetry?.scrollFunnel?.depth25 ?? 100}%
+                      {telemetry?.scrollFunnel?.depth25 ?? 0}%
                     </span>
                   </div>
 
                   <div className={styles.funnelRow}>
                     <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#f8fafc', width: '130px' }}>Mid Page (50%)</span>
                     <div className={styles.funnelBarTrack}>
-                      <div className={styles.funnelBarFill} style={{ width: `${telemetry?.scrollFunnel?.depth50 ?? 76}%`, background: '#38bdf8' }} />
+                      <div className={styles.funnelBarFill} style={{ width: `${telemetry?.scrollFunnel?.depth50 ?? 0}%`, background: '#38bdf8' }} />
                     </div>
                     <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#38bdf8', width: '45px', textAlign: 'right' }}>
-                      {telemetry?.scrollFunnel?.depth50 ?? 76}%
+                      {telemetry?.scrollFunnel?.depth50 ?? 0}%
                     </span>
                   </div>
 
                   <div className={styles.funnelRow}>
                     <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#f8fafc', width: '130px' }}>Lower Grid (75%)</span>
                     <div className={styles.funnelBarTrack}>
-                      <div className={styles.funnelBarFill} style={{ width: `${telemetry?.scrollFunnel?.depth75 ?? 58}%`, background: '#10b981' }} />
+                      <div className={styles.funnelBarFill} style={{ width: `${telemetry?.scrollFunnel?.depth75 ?? 0}%`, background: '#10b981' }} />
                     </div>
                     <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#34d399', width: '45px', textAlign: 'right' }}>
-                      {telemetry?.scrollFunnel?.depth75 ?? 58}%
+                      {telemetry?.scrollFunnel?.depth75 ?? 0}%
                     </span>
                   </div>
 
                   <div className={styles.funnelRow}>
                     <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#f8fafc', width: '130px' }}>Bottom Footer (100%)</span>
                     <div className={styles.funnelBarTrack}>
-                      <div className={styles.funnelBarFill} style={{ width: `${telemetry?.scrollFunnel?.depth100 ?? 38}%`, background: '#ec4899' }} />
+                      <div className={styles.funnelBarFill} style={{ width: `${telemetry?.scrollFunnel?.depth100 ?? 0}%`, background: '#ec4899' }} />
                     </div>
                     <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#f472b6', width: '45px', textAlign: 'right' }}>
-                      {telemetry?.scrollFunnel?.depth100 ?? 38}%
+                      {telemetry?.scrollFunnel?.depth100 ?? 0}%
                     </span>
                   </div>
                 </div>
@@ -1444,7 +1518,7 @@ export default function AdminAnalyticsPage() {
                       <Smartphone size={18} style={{ color: '#38bdf8', margin: '0 auto 0.25rem auto' }} />
                       <span style={{ fontSize: '0.72rem', color: '#94a3b8', display: 'block' }}>Mobile</span>
                       <strong style={{ fontSize: '1.1rem', color: '#f8fafc' }}>
-                        {telemetry?.today?.deviceBreakdown?.mobile ?? telemetry?.deviceBreakdown?.mobile ?? 54}%
+                        {telemetry?.today?.deviceBreakdown?.mobile ?? telemetry?.deviceBreakdown?.mobile ?? 0}%
                       </strong>
                     </div>
 
@@ -1452,7 +1526,7 @@ export default function AdminAnalyticsPage() {
                       <Monitor size={18} style={{ color: '#c084fc', margin: '0 auto 0.25rem auto' }} />
                       <span style={{ fontSize: '0.72rem', color: '#94a3b8', display: 'block' }}>Desktop</span>
                       <strong style={{ fontSize: '1.1rem', color: '#f8fafc' }}>
-                        {telemetry?.today?.deviceBreakdown?.desktop ?? telemetry?.deviceBreakdown?.desktop ?? 42}%
+                        {telemetry?.today?.deviceBreakdown?.desktop ?? telemetry?.deviceBreakdown?.desktop ?? 0}%
                       </strong>
                     </div>
 
@@ -1460,7 +1534,7 @@ export default function AdminAnalyticsPage() {
                       <Tablet size={18} style={{ color: '#34d399', margin: '0 auto 0.25rem auto' }} />
                       <span style={{ fontSize: '0.72rem', color: '#94a3b8', display: 'block' }}>Tablet</span>
                       <strong style={{ fontSize: '1.1rem', color: '#f8fafc' }}>
-                        {telemetry?.today?.deviceBreakdown?.tablet ?? telemetry?.deviceBreakdown?.tablet ?? 4}%
+                        {telemetry?.today?.deviceBreakdown?.tablet ?? telemetry?.deviceBreakdown?.tablet ?? 0}%
                       </strong>
                     </div>
                   </div>
@@ -1474,7 +1548,7 @@ export default function AdminAnalyticsPage() {
                       </div>
                     </div>
                     <strong style={{ fontSize: '1.15rem', color: '#fbbf24' }}>
-                      {telemetry?.today?.adBlockRate ?? telemetry?.adBlockRate ?? 21}%
+                      {telemetry?.today?.adBlockRate ?? telemetry?.adBlockRate ?? 0}%
                     </strong>
                   </div>
                 </div>

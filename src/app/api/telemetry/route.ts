@@ -40,7 +40,8 @@ interface TelemetryStore {
   lastCleaned: number;
 }
 
-const STORE_PATH = path.join(process.cwd(), 'src', 'utils', 'telemetry_store.json');
+const STORE_PATH = path.join(process.cwd(), 'src', 'data', 'telemetry_store.json');
+const LEGACY_STORE_PATH = path.join(process.cwd(), 'src', 'utils', 'telemetry_store.json');
 
 // In-memory runtime cache for high-speed lookup
 let memoryStore: TelemetryStore | null = null;
@@ -69,40 +70,25 @@ function getEmptyStore(): TelemetryStore {
   };
 }
 
-async function getStore(): Promise<TelemetryStore> {
+export async function getTelemetryStore(): Promise<TelemetryStore> {
   if (memoryStore) return memoryStore;
 
   const emptyStore = getEmptyStore();
 
-  // 1. Try to read from local file
+  // 1. Try to read from local persistent data directory first, fallback to legacy utils path
   try {
-    if (fs.existsSync(STORE_PATH)) {
-      const data = fs.readFileSync(STORE_PATH, 'utf-8');
+    const filePath = fs.existsSync(STORE_PATH) 
+      ? STORE_PATH 
+      : (fs.existsSync(LEGACY_STORE_PATH) ? LEGACY_STORE_PATH : null);
+
+    if (filePath) {
+      const data = fs.readFileSync(filePath, 'utf-8');
       const loaded: TelemetryStore = { ...emptyStore, ...JSON.parse(data) };
       memoryStore = loaded;
       return loaded;
     }
   } catch (err) {
     console.error('Error reading local telemetry store:', err);
-  }
-
-  // 2. Try to read from Supabase site_settings table (Production Persistence)
-  try {
-    const adminSupabase = createAdminClient();
-    const { data } = await adminSupabase
-      .from('site_settings')
-      .select('value')
-      .eq('key', 'site_telemetry_data')
-      .single();
-
-    if (data && data.value) {
-      const parsed = JSON.parse(data.value);
-      const loaded: TelemetryStore = { ...emptyStore, ...parsed };
-      memoryStore = loaded;
-      return loaded;
-    }
-  } catch (dbErr) {
-    // Supabase fallback
   }
 
   memoryStore = emptyStore;
@@ -112,7 +98,7 @@ async function getStore(): Promise<TelemetryStore> {
 async function saveStore(store: TelemetryStore) {
   memoryStore = store;
 
-  // 1. Save to local file
+  // 1. Save to local persistent file
   try {
     const dir = path.dirname(STORE_PATH);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
@@ -120,21 +106,9 @@ async function saveStore(store: TelemetryStore) {
   } catch (err) {
     console.error('Error saving local telemetry store:', err);
   }
-
-  // 2. Persist to Supabase in background for production live domain
-  try {
-    const adminSupabase = createAdminClient();
-    await adminSupabase
-      .from('site_settings')
-      .upsert({
-        key: 'site_telemetry_data',
-        value: JSON.stringify(store),
-        updated_at: new Date().toISOString(),
-      }, { onConflict: 'key' });
-  } catch (dbErr) {
-    // Graceful fallback
-  }
 }
+
+const getStore = getTelemetryStore;
 
 // GET: Returns 100% genuine calculated telemetry metrics for Admin Analytics
 export async function GET(request: Request) {
@@ -178,16 +152,16 @@ export async function GET(request: Request) {
       : '3.4';
 
     // 4. Device Breakdown Percentages (Guaranteed strictly to sum to 100%)
-    const rawMobile = store.deviceCounts.mobile;
-    const rawDesktop = store.deviceCounts.desktop;
-    const rawTablet = store.deviceCounts.tablet;
+    const rawMobile = store.deviceCounts.mobile || 0;
+    const rawDesktop = store.deviceCounts.desktop || 0;
+    const rawTablet = store.deviceCounts.tablet || 0;
     const totalDevices = rawMobile + rawDesktop + rawTablet;
 
-    let mobilePercent = 54;
-    let desktopPercent = 42;
-    let tabletPercent = 4;
+    let mobilePercent = 0;
+    let desktopPercent = 0;
+    let tabletPercent = 0;
 
-    if (totalDevices >= 10) {
+    if (totalDevices > 0) {
       mobilePercent = Math.round((rawMobile / totalDevices) * 100);
       desktopPercent = Math.round((rawDesktop / totalDevices) * 100);
       tabletPercent = Math.max(0, 100 - mobilePercent - desktopPercent);
@@ -195,25 +169,25 @@ export async function GET(request: Request) {
 
     // 5. AdBlocker Usage Rate
     const totalAdChecks = (store.adBlockCounts.blocked + store.adBlockCounts.notBlocked) || 0;
-    const adBlockPercent = totalAdChecks >= 5 
+    const adBlockPercent = totalAdChecks > 0 
       ? Math.round((store.adBlockCounts.blocked / totalAdChecks) * 100) 
-      : 21;
+      : 0;
 
     // 6. Scroll Funnel Percentages
-    const depth25Count = store.scrollCounts.depth25;
+    const depth25Count = store.scrollCounts.depth25 || 0;
     const scrollFunnel = {
-      depth25: 100,
-      depth50: depth25Count >= 5 ? Math.round((store.scrollCounts.depth50 / depth25Count) * 100) : 76,
-      depth75: depth25Count >= 5 ? Math.round((store.scrollCounts.depth75 / depth25Count) * 100) : 58,
-      depth100: depth25Count >= 5 ? Math.round((store.scrollCounts.depth100 / depth25Count) * 100) : 38,
+      depth25: depth25Count > 0 ? 100 : 0,
+      depth50: depth25Count > 0 ? Math.round((store.scrollCounts.depth50 / depth25Count) * 100) : 0,
+      depth75: depth25Count > 0 ? Math.round((store.scrollCounts.depth75 / depth25Count) * 100) : 0,
+      depth100: depth25Count > 0 ? Math.round((store.scrollCounts.depth100 / depth25Count) * 100) : 0,
     };
 
     // 7. Watch Video Conversion Rate (% of sessions that triggered playback)
     const totalSessionsRecorded = allSessions.length;
     const sessionsThatWatched = allSessions.filter(s => s.hasWatchedVideo).length;
-    const watchConversionRate = totalSessionsRecorded >= 5 
+    const watchConversionRate = totalSessionsRecorded > 0 
       ? Math.round((sessionsThatWatched / totalSessionsRecorded) * 100) 
-      : 50;
+      : 0;
 
     // 8. TODAY-SPECIFIC VISITOR ANALYTICS (Since 00:00:00 UTC)
     const todayStart = new Date();
@@ -255,25 +229,29 @@ export async function GET(request: Request) {
 
     const todayAvgMinutes = Math.floor(todayAvgDurationSeconds / 60);
     const todayAvgSecs = todayAvgDurationSeconds % 60;
-    const todayAvgDurationFormatted = `${todayAvgMinutes}m ${todayAvgSecs}s`;
+    const todayAvgDurationFormatted = todayAvgDurationSeconds > 0 ? `${todayAvgMinutes}m ${todayAvgSecs}s` : '0s';
 
     const todayAvgPagesPerSession = todaySessions.length > 0
       ? (todayPageViews / todaySessions.length).toFixed(1)
       : avgPagesPerSession;
 
-    const todayWatchConversionRate = todaySessions.length >= 5
+    const todayWatchConversionRate = todaySessions.length > 0
       ? Math.round((todayWatchedCount / todaySessions.length) * 100)
-      : watchConversionRate;
+      : 0;
 
     const todayTotalDeviceCount = todayDevices.desktop + todayDevices.mobile + todayDevices.tablet;
-    let todayMobile = mobilePercent;
-    let todayDesktop = desktopPercent;
-    let todayTablet = tabletPercent;
+    let todayMobile = 0;
+    let todayDesktop = 0;
+    let todayTablet = 0;
 
-    if (todayTotalDeviceCount >= 10) {
+    if (todayTotalDeviceCount > 0) {
       todayMobile = Math.round((todayDevices.mobile / todayTotalDeviceCount) * 100);
       todayDesktop = Math.round((todayDevices.desktop / todayTotalDeviceCount) * 100);
       todayTablet = Math.max(0, 100 - todayMobile - todayDesktop);
+    } else if (totalDevices > 0) {
+      todayMobile = mobilePercent;
+      todayDesktop = desktopPercent;
+      todayTablet = tabletPercent;
     }
 
     const todayDeviceBreakdown = {
@@ -282,15 +260,12 @@ export async function GET(request: Request) {
       tablet: todayTablet,
     };
 
-    const todayAdBlockRate = todaySessions.length >= 5
+    const todayAdBlockRate = todaySessions.length > 0
       ? Math.round((todayAdBlockCount / todaySessions.length) * 100)
-      : adBlockPercent;
+      : 0;
 
     // 9. Top Visited Routes: Merge tracked store routes with today's real catalog plays from Database
     const routeVisitMap: Record<string, number> = { ...store.routeVisits };
-    if (!routeVisitMap['/']) {
-      routeVisitMap['/'] = 14;
-    }
 
     try {
       const adminSupabase = createAdminClient();
