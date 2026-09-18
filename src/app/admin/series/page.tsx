@@ -799,6 +799,8 @@ export default function AdminSeriesPage() {
   const [lastAirDate, setLastAirDate] = useState('');
   const [isFetchingEpisodeDates, setIsFetchingEpisodeDates] = useState(false);
   const [autoDateNotice, setAutoDateNotice] = useState<string | null>(null);
+  const [isFetchingReleaseYear, setIsFetchingReleaseYear] = useState(false);
+  const [autoYearNotice, setAutoYearNotice] = useState<string | null>(null);
   const [imageLibrary, setImageLibrary] = useState<string[]>([]);
 
   // Separate Manage Media Modal states
@@ -1415,6 +1417,8 @@ export default function AdminSeriesPage() {
     setLastAirDate('');
     setImageLibrary([]);
     resetTsvParser();
+    setAutoDateNotice(null);
+    setAutoYearNotice(null);
 
     setError(null);
     setIsModalOpen(true);
@@ -1465,6 +1469,7 @@ export default function AdminSeriesPage() {
     setImageLibrary(s.image_library || []);
     resetTsvParser();
     setAutoDateNotice(null);
+    setAutoYearNotice(null);
     if (s.about_data?.tsv) {
       setTsvInput(s.about_data.tsv);
     }
@@ -1516,12 +1521,72 @@ export default function AdminSeriesPage() {
       setFirstAirDate(firstFormatted);
       setLastAirDate(lastFormatted);
 
-      setAutoDateNotice(`✓ Auto-filled First Air Date (${firstFormatted} from Ep ${firstEp.epNum}) and Last Air Date (${lastFormatted} from Ep ${lastEp.epNum}). Click Save below to apply.`);
+      // Also set release year if detected
+      const epYear = parseInt(firstFormatted.substring(0, 4), 10);
+      if (!isNaN(epYear) && epYear >= 1970 && epYear <= 2035) {
+        setReleaseYear(epYear);
+      }
+
+      setAutoDateNotice(`✓ Auto-filled First Air Date (${firstFormatted} from Ep ${firstEp.epNum}), Last Air Date (${lastFormatted} from Ep ${lastEp.epNum}), and Release Year (${epYear}). Click Save below to apply.`);
     } catch (err: any) {
       console.error('Error auto-fetching episode dates:', err);
       setAutoDateNotice(`Error: ${err.message || 'Could not fetch episode dates'}`);
     } finally {
       setIsFetchingEpisodeDates(false);
+    }
+  };
+
+  const handleAutoFetchReleaseYear = async () => {
+    if (!editingId) return;
+    setIsFetchingReleaseYear(true);
+    setAutoYearNotice(null);
+    try {
+      // 1. Check if First Air Date is already filled in the modal
+      if (firstAirDate && firstAirDate.length >= 4) {
+        const parsedYear = parseInt(firstAirDate.substring(0, 4), 10);
+        if (!isNaN(parsedYear) && parsedYear >= 1970 && parsedYear <= 2035) {
+          setReleaseYear(parsedYear);
+          setAutoYearNotice(`✓ Set Release Year to ${parsedYear} from First Air Date`);
+          setIsFetchingReleaseYear(false);
+          return;
+        }
+      }
+
+      // 2. Otherwise fetch episodes to find Episode 1 launch date
+      const res = await fetch(`/api/admin/episodes?series_id=${editingId}`);
+      if (!res.ok) throw new Error('Failed to load series episodes');
+      const data = await res.json();
+      const eps = Array.isArray(data.episodes) ? data.episodes : [];
+
+      const epsWithDates = eps
+        .map((ep: any) => ({
+          epNum: ep.episode_number,
+          dateStr: ep.release_date || ep.created_at
+        }))
+        .filter((item: any) => Boolean(item.dateStr));
+
+      if (epsWithDates.length === 0) {
+        setAutoYearNotice('No episodes with release dates found for this series.');
+        return;
+      }
+
+      epsWithDates.sort((a: any, b: any) => (a.epNum || 0) - (b.epNum || 0));
+      const firstEp = epsWithDates[0];
+      const d = new Date(firstEp.dateStr);
+      const year = d.getFullYear();
+
+      if (!isNaN(year) && year >= 1970 && year <= 2035) {
+        setReleaseYear(year);
+        const dateFormatted = d.toISOString().substring(0, 10);
+        setAutoYearNotice(`✓ Set Release Year to ${year} from Episode ${firstEp.epNum} (${dateFormatted})`);
+      } else {
+        setAutoYearNotice('Could not determine a valid 4-digit release year.');
+      }
+    } catch (err: any) {
+      console.error('Error auto-fetching release year:', err);
+      setAutoYearNotice(`Error: ${err.message || 'Could not fetch release year'}`);
+    } finally {
+      setIsFetchingReleaseYear(false);
     }
   };
 
@@ -2706,15 +2771,61 @@ export default function AdminSeriesPage() {
                       </div>
 
                       {/* Year & Studio */}
-                      <div className={styles.formRow} style={{ display: 'grid', gridTemplateColumns: '220px 1fr', gap: '1rem' }}>
+                      <div className={styles.formRow} style={{ display: 'grid', gridTemplateColumns: '250px 1fr', gap: '1rem' }}>
                         <div className={styles.formGroup}>
-                          <label>Release Year</label>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
+                            <label style={{ margin: 0 }}>Release Year</label>
+                            {editingId && (
+                              <button
+                                type="button"
+                                onClick={handleAutoFetchReleaseYear}
+                                disabled={isFetchingReleaseYear}
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '0.3rem',
+                                  padding: '0.2rem 0.5rem',
+                                  background: 'rgba(59, 130, 246, 0.12)',
+                                  border: '1px solid rgba(59, 130, 246, 0.35)',
+                                  borderRadius: '5px',
+                                  color: '#60a5fa',
+                                  fontSize: '0.72rem',
+                                  fontWeight: 700,
+                                  cursor: isFetchingReleaseYear ? 'not-allowed' : 'pointer',
+                                  transition: 'all 0.15s ease'
+                                }}
+                                title="Auto-detect release year from Episode 1 launch date"
+                              >
+                                <Sparkles size={11} />
+                                <span>{isFetchingReleaseYear ? 'Fetching...' : 'Auto from Ep 1'}</span>
+                              </button>
+                            )}
+                          </div>
+
+                          {autoYearNotice && (
+                            <div style={{
+                              padding: '0.35rem 0.55rem',
+                              borderRadius: '6px',
+                              fontSize: '0.72rem',
+                              fontWeight: 600,
+                              marginBottom: '0.45rem',
+                              background: autoYearNotice.startsWith('✓') ? 'rgba(34, 197, 94, 0.12)' : 'rgba(239, 68, 68, 0.12)',
+                              border: `1px solid ${autoYearNotice.startsWith('✓') ? 'rgba(34, 197, 94, 0.35)' : 'rgba(239, 68, 68, 0.35)'}`,
+                              color: autoYearNotice.startsWith('✓') ? '#4ade80' : '#f87171'
+                            }}>
+                              {autoYearNotice}
+                            </div>
+                          )}
+
                           <select
                             value={releaseYear}
                             onChange={(e) => setReleaseYear(e.target.value ? Number(e.target.value) : '')}
                             style={{ width: '100%', height: '42px', padding: '0 0.75rem', borderRadius: '8px', border: '1px solid #282e44', background: '#181c2b', color: '#f1f5f9', fontWeight: 600, outline: 'none' }}
                           >
                             <option value="">-- Select Year --</option>
+                            {releaseYear && !RELEASE_YEARS.includes(Number(releaseYear)) && (
+                              <option value={releaseYear}>{releaseYear}</option>
+                            )}
                             {RELEASE_YEARS.map((y) => (
                               <option key={y} value={y}>{y}</option>
                             ))}
