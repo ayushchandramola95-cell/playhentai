@@ -303,6 +303,106 @@ function parseDateToYYYYMMDD(dateStr: string): string {
   return trimmed;
 }
 
+/**
+ * Robust matcher for TSV column headers to known editable field keys.
+ * Correctly matches variations like "Search Aliases", "Search Aliases (comma separated)", "aliases", etc.
+ */
+function matchHeaderCellToFieldKey(cell: string): EditableFieldKey | undefined {
+  if (!cell || typeof cell !== 'string') return undefined;
+  const raw = cell.trim().toLowerCase();
+  if (!raw) return undefined;
+
+  // Clean strings
+  const clean = raw.replace(/\(.*?\)/g, '').trim(); // Remove parentheses like "(comma separated)"
+  const norm = clean.replace(/[^a-z0-9]/g, '');
+  const fullNorm = raw.replace(/[^a-z0-9]/g, '');
+
+  // 1. Direct match against AVAILABLE_FIELDS
+  for (const f of AVAILABLE_FIELDS) {
+    const fKeyNorm = f.key.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const fLabelNorm = f.label.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const fLabelCleanNorm = f.label.toLowerCase().replace(/\(.*?\)/g, '').replace(/[^a-z0-9]/g, '');
+    if (
+      norm === fKeyNorm || 
+      norm === fLabelNorm || 
+      norm === fLabelCleanNorm || 
+      fullNorm === fLabelNorm || 
+      fullNorm === fKeyNorm
+    ) {
+      return f.key;
+    }
+  }
+
+  // 2. Specific semantic field keywords
+  // Aliases (critical fix for "Search Aliases", "Aliases", "Search_Aliases", etc.)
+  if (norm.includes('alias') || norm === 'searchaliases' || norm === 'searchalias' || norm === 'othernames') {
+    return 'aliases';
+  }
+
+  // Tags / Genres
+  if (norm.includes('tag') || norm.includes('genre')) {
+    return 'tags';
+  }
+
+  // Titles
+  if (norm.includes('romaji')) return 'alt_title_romaji';
+  if (norm.includes('japanese') || norm.includes('kanji') || norm.includes('nihongo')) return 'alt_title_japanese';
+  if (norm.includes('english')) return 'alt_title_english';
+  if (norm === 'title' || norm === 'seriestitle' || norm === 'showname' || norm === 'name' || norm === 'series') return 'title';
+
+  // Episode count
+  if (norm.includes('episode') || norm === 'episodes' || norm === 'epcount' || norm === 'totalepisodes') {
+    return 'episode_count_override';
+  }
+
+  // Air dates
+  if (norm.includes('firstair') || norm === 'airdate' || norm === 'premieredate' || norm === 'startdate' || norm === 'firstdate') {
+    return 'first_air_date';
+  }
+  if (norm.includes('lastair') || norm === 'enddate' || norm === 'finishdate' || norm === 'lastdate') {
+    return 'last_air_date';
+  }
+
+  // Year & Studio
+  if (norm === 'year' || norm === 'releaseyear' || norm === 'rel' || norm === 'airyear') return 'release_year';
+  if (norm === 'studio' || norm === 'animationstudio' || norm === 'producer') return 'studio';
+
+  // Description / Synopsis
+  if (norm.includes('synopsis') || norm.includes('summary') || norm === 'desc' || norm === 'description' || norm === 'plot') {
+    return 'description';
+  }
+
+  // Runtime
+  if (norm.includes('runtime') || norm.includes('duration') || norm === 'length') return 'runtime';
+
+  // Status
+  if (norm === 'status' || norm === 'showstatus') return 'status';
+
+  // Publication State
+  if (norm.includes('publish') || norm === 'live' || norm === 'draft') return 'is_published';
+
+  // Content / Age Ratings
+  if (norm.includes('contentrating')) return 'content_rating';
+  if (norm.includes('agerating')) return 'age_rating';
+
+  // About Content
+  if (norm.includes('overview')) return 'about_overview';
+  if (norm.includes('production')) return 'about_production';
+  if (norm.includes('theme') || norm.includes('themes')) return 'about_themes';
+  if (norm.includes('recommend') || norm.includes('targetaudience')) return 'about_recommended';
+
+  // SEO & Origin
+  if (norm.includes('metatitle')) return 'meta_title';
+  if (norm.includes('metadesc') || norm.includes('metadescription')) return 'meta_description';
+  if (norm.includes('warning') || norm.includes('contentwarnings')) return 'content_warnings';
+  if (norm.includes('country')) return 'country';
+  if (norm.includes('language')) return 'original_language';
+  if (norm.includes('source') || norm.includes('originalsource')) return 'original_source';
+  if (norm.includes('featured')) return 'featured_type';
+
+  return undefined;
+}
+
 export default function BulkSeriesEditModal({
   isOpen,
   onClose,
@@ -512,12 +612,13 @@ export default function BulkSeriesEditModal({
           const fieldDef = AVAILABLE_FIELDS.find(f => f.key === key);
           const label = fieldDef?.label || key;
 
-          const oldVal = Array.isArray((s as any)[key]) 
-            ? ((s as any)[key] || []).join(', ') 
-            : String((s as any)[key] ?? '—');
+          const rawOld = (s as any)[key];
+          const oldVal = Array.isArray(rawOld) 
+            ? (rawOld.length > 0 ? rawOld.join(', ') : '—') 
+            : (rawOld !== null && rawOld !== undefined && rawOld !== '' ? String(rawOld) : '—');
           const newValDisplay = Array.isArray(finalVal) 
-            ? finalVal.join(', ') 
-            : String(finalVal ?? '—');
+            ? (finalVal.length > 0 ? finalVal.join(', ') : '—') 
+            : (finalVal !== null && finalVal !== undefined && finalVal !== '' ? String(finalVal) : '—');
 
           diffs.push({ field: key, label, oldVal, newVal: newValDisplay });
         });
@@ -537,37 +638,18 @@ export default function BulkSeriesEditModal({
 
     let dataRows = parsedRows;
 
-    // Detect header row if present
+    // Detect header row if present using robust header matcher
     const firstRow = parsedRows[0];
-    const headerKeywords = ['series', 'slug', 'title', 'synopsis', 'release year', 'studio', 'tags', 'japanese', 'description', 'romaji', 'status', 'episodes', 'air date'];
-    const hasHeader = firstRow.some((cell) => headerKeywords.some(kw => cell.toLowerCase().trim().includes(kw)));
-    
-    // Map column index to field key if header row exists
     const headerColMap = new Map<number, EditableFieldKey>();
+    firstRow.forEach((cell, colIdx) => {
+      const matchedKey = matchHeaderCellToFieldKey(cell);
+      if (matchedKey) {
+        headerColMap.set(colIdx, matchedKey);
+      }
+    });
+
+    const hasHeader = headerColMap.size >= 2;
     if (hasHeader) {
-      firstRow.forEach((cell, colIdx) => {
-        const norm = cell.toLowerCase().trim().replace(/[^a-z0-9]/g, '');
-        const matchedField = AVAILABLE_FIELDS.find((f) => {
-          const fKeyNorm = f.key.toLowerCase().replace(/[^a-z0-9]/g, '');
-          const fLabelNorm = f.label.toLowerCase().replace(/[^a-z0-9]/g, '');
-          return norm === fKeyNorm || norm === fLabelNorm;
-        });
-        if (matchedField) {
-          headerColMap.set(colIdx, matchedField.key);
-        } else if (norm === 'synopsis' || norm === 'summary' || norm === 'desc') {
-          headerColMap.set(colIdx, 'description');
-        } else if (norm === 'year') {
-          headerColMap.set(colIdx, 'release_year');
-        } else if (norm === 'firstair' || norm === 'firstairdate') {
-          headerColMap.set(colIdx, 'first_air_date');
-        } else if (norm === 'lastair' || norm === 'lastairdate') {
-          headerColMap.set(colIdx, 'last_air_date');
-        } else if (norm === 'episodes' || norm === 'episodecount') {
-          headerColMap.set(colIdx, 'episode_count_override');
-        } else if (norm === 'series' || norm === 'name') {
-          headerColMap.set(colIdx, 'title');
-        }
-      });
       dataRows = parsedRows.slice(1);
     }
 
@@ -613,6 +695,10 @@ export default function BulkSeriesEditModal({
               break;
             }
           }
+          // Robust Fallback: If this specific field was not mapped in header, but row length matches selected fields count, use positional index!
+          if (rawColVal === undefined && row.length === orderedSelectedFields.length) {
+            rawColVal = row[fIdx]?.trim();
+          }
         } else if (is17ColLayout) {
           const stdIdx = STANDARD_17_FIELDS.indexOf(key);
           if (stdIdx !== -1 && stdIdx < row.length) {
@@ -653,12 +739,13 @@ export default function BulkSeriesEditModal({
         const fieldDef = AVAILABLE_FIELDS.find(f => f.key === key);
         const label = fieldDef?.label || key;
 
-        const oldVal = Array.isArray((matched as any)[key]) 
-          ? ((matched as any)[key] || []).join(', ') 
-          : String((matched as any)[key] ?? '—');
-        const newValDisplay = Array.isArray(finalVal) 
-          ? finalVal.join(', ') 
-          : String(finalVal ?? '—');
+        const rawOld = (matched as any)[key];
+        const oldVal = Array.isArray(rawOld)
+          ? (rawOld.length > 0 ? rawOld.join(', ') : '—')
+          : (rawOld !== null && rawOld !== undefined && rawOld !== '' ? String(rawOld) : '—');
+        const newValDisplay = Array.isArray(finalVal)
+          ? (finalVal.length > 0 ? finalVal.join(', ') : '—')
+          : (finalVal !== null && finalVal !== undefined && finalVal !== '' ? String(finalVal) : '—');
 
         diffs.push({ field: key, label, oldVal, newVal: newValDisplay });
       });
