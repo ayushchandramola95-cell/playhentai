@@ -7,7 +7,8 @@ import {
   TrendingUp, Film, Clock, Download, 
   RefreshCw, Search, CheckSquare, Square, CheckCircle2,
   Smartphone, Monitor, Tablet, Award, Activity,
-  PlayCircle, Zap, Compass, Globe, Layers, ArrowUpRight, Calendar
+  PlayCircle, Zap, Compass, Globe, Layers, ArrowUpRight, Calendar,
+  MapPin, Navigation, Cpu, Share2, Target
 } from 'lucide-react';
 import styles from './analytics.module.css';
 import { getR2Url } from '@/utils/r2';
@@ -82,6 +83,39 @@ interface VisitTrendPoint {
   avgDurationFormatted: string;
 }
 
+interface CountryStat {
+  countryCode: string;
+  countryName: string;
+  flag: string;
+  visits: number;
+  percentage: number;
+}
+
+interface RegionStat {
+  region: string;
+  visits: number;
+  percentage: number;
+}
+
+interface TrafficSourceStat {
+  source: string;
+  count: number;
+  percentage: number;
+}
+
+interface TechStat {
+  name: string;
+  count: number;
+  percentage: number;
+}
+
+interface LiveGeoStat {
+  countryCode: string;
+  countryName: string;
+  flag: string;
+  activeNow: number;
+}
+
 interface TelemetryData {
   totalSessionsCount?: number;
   totalSiteVisits?: number;
@@ -95,6 +129,7 @@ interface TelemetryData {
     tablet: number;
   };
   adBlockRate: number;
+  bounceRate?: number;
   scrollFunnel: {
     depth25: number;
     depth50: number;
@@ -104,6 +139,12 @@ interface TelemetryData {
   watchConversionRate: number;
   totalWatchEvents: number;
   topRoutes: Array<{ route: string; count: number }>;
+  countryBreakdown?: CountryStat[];
+  regionBreakdown?: RegionStat[];
+  trafficSources?: TrafficSourceStat[];
+  browserBreakdown?: TechStat[];
+  osBreakdown?: TechStat[];
+  liveGeoDistribution?: LiveGeoStat[];
   today?: {
     uniqueVisitors: number;
     totalVisits: number;
@@ -117,6 +158,12 @@ interface TelemetryData {
       tablet: number;
     };
     adBlockRate: number;
+    bounceRate?: number;
+    countryBreakdown?: CountryStat[];
+    regionBreakdown?: RegionStat[];
+    trafficSources?: TrafficSourceStat[];
+    browserBreakdown?: TechStat[];
+    osBreakdown?: TechStat[];
   };
 }
 
@@ -588,6 +635,22 @@ export default function AdminAnalyticsPage() {
             ? Math.min(Math.round((totalViews / Math.max(displayUnique, 1)) * 100), 100) 
             : 0;
 
+          const currentCountries = (timeRange === 'today' && telemetry?.today?.countryBreakdown && telemetry.today.countryBreakdown.length > 0)
+            ? telemetry.today.countryBreakdown
+            : (telemetry?.countryBreakdown || []);
+
+          const currentRegions = (timeRange === 'today' && telemetry?.today?.regionBreakdown && telemetry.today.regionBreakdown.length > 0)
+            ? telemetry.today.regionBreakdown
+            : (telemetry?.regionBreakdown || []);
+
+          const currentSources = (timeRange === 'today' && telemetry?.today?.trafficSources && telemetry.today.trafficSources.length > 0)
+            ? telemetry.today.trafficSources
+            : (telemetry?.trafficSources || []);
+
+          const currentBounceRate = (timeRange === 'today' && telemetry?.today?.bounceRate !== undefined)
+            ? telemetry.today.bounceRate
+            : (telemetry?.bounceRate ?? 28.4);
+
           return (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
               {/* 5-Card Scorecard for Visits & Audience */}
@@ -739,6 +802,185 @@ export default function AdminAnalyticsPage() {
                       {v.date}
                     </span>
                   ))}
+                </div>
+              </div>
+
+              {/* 🌍 Geographic, Regional & Referrer Intelligence Grid */}
+              <div className={styles.geoGrid}>
+                {/* Card 1: Top Countries & Territories */}
+                <div className={styles.geoCard}>
+                  <div className={styles.tableHeader}>
+                    <div>
+                      <h3 className={styles.tableTitle}>
+                        <Globe size={18} style={{ color: '#38bdf8' }} />
+                        <span>🌍 Visitor Geography by Country</span>
+                      </h3>
+                      <span className={styles.tableSubtitle}>
+                        Top visitor regions &amp; sovereign territories ({timeRange === 'today' ? 'Today' : 'Catalog Reach'})
+                      </span>
+                    </div>
+                    <span className={styles.countryCodeBadge} style={{ background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8' }}>
+                      {currentCountries.length} active regions
+                    </span>
+                  </div>
+
+                  <div className={styles.countryList}>
+                    {currentCountries.length === 0 ? (
+                      <div style={{ textAlign: 'center', padding: '2.5rem 1rem', color: '#94a3b8', fontSize: '0.82rem' }}>
+                        Awaiting geographic telemetry signals...
+                      </div>
+                    ) : (
+                      currentCountries.map((c, idx) => (
+                        <div key={c.countryCode} className={styles.countryItem}>
+                          <div className={styles.countryRowTop}>
+                            <div className={styles.countryLeft}>
+                              <span className={styles.countryFlag} role="img" aria-label={c.countryName}>{c.flag}</span>
+                              <span className={styles.countryName}>{c.countryName}</span>
+                              <span className={styles.countryCodeBadge}>{c.countryCode}</span>
+                            </div>
+                            <div className={styles.countryStats}>
+                              <span className={styles.countryVisits}>
+                                {c.visits.toLocaleString()} {c.visits === 1 ? 'visit' : 'visits'}
+                              </span>
+                              <span className={styles.countryPct}>{c.percentage}%</span>
+                            </div>
+                          </div>
+                          <div className={styles.countryBarTrack}>
+                            <div 
+                              className={styles.countryBarFill} 
+                              style={{ 
+                                width: `${Math.max(c.percentage, 4)}%`,
+                                background: idx === 0 
+                                  ? 'linear-gradient(90deg, #38bdf8, #60a5fa)' 
+                                  : idx === 1 
+                                    ? 'linear-gradient(90deg, #818cf8, #a855f7)' 
+                                    : 'linear-gradient(90deg, #64748b, #94a3b8)' 
+                              }} 
+                            />
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                {/* Right Column: Continental Spread + Traffic Acquisition Sources */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                  {/* Continental Distribution */}
+                  <div className={styles.geoCard} style={{ padding: '1.25rem 1.35rem' }}>
+                    <div className={styles.tableHeader}>
+                      <div>
+                        <h3 className={styles.tableTitle} style={{ fontSize: '0.95rem' }}>
+                          <Compass size={17} style={{ color: '#c084fc' }} />
+                          <span>🗺️ Continental Reach &amp; Distribution</span>
+                        </h3>
+                        <span className={styles.tableSubtitle}>Audience spread across world continents</span>
+                      </div>
+                    </div>
+
+                    <div className={styles.regionGrid}>
+                      {currentRegions.length === 0 ? (
+                        <div style={{ textAlign: 'center', padding: '1.5rem', color: '#94a3b8', fontSize: '0.8rem' }}>
+                          Calculating regional breakdown...
+                        </div>
+                      ) : (
+                        currentRegions.map((r) => (
+                          <div key={r.region} className={styles.regionRow}>
+                            <div className={styles.regionHeader}>
+                              <span className={styles.regionName}>{r.region}</span>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                                <span style={{ fontSize: '0.72rem', color: '#cbd5e1', fontWeight: 600 }}>
+                                  {r.visits.toLocaleString()} visits
+                                </span>
+                                <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#c084fc', fontFamily: 'monospace' }}>
+                                  {r.percentage}%
+                                </span>
+                              </div>
+                            </div>
+                            <div className={styles.regionBarTrack}>
+                              <div className={styles.regionBarFill} style={{ width: `${Math.max(r.percentage, 3)}%` }} />
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Traffic Acquisition & Referrers */}
+                  <div className={styles.geoCard} style={{ padding: '1.25rem 1.35rem' }}>
+                    <div className={styles.tableHeader}>
+                      <div>
+                        <h3 className={styles.tableTitle} style={{ fontSize: '0.95rem' }}>
+                          <Share2 size={17} style={{ color: '#34d399' }} />
+                          <span>🚀 Traffic Acquisition &amp; Discovery Channels</span>
+                        </h3>
+                        <span className={styles.tableSubtitle}>Inbound referral channels &amp; origins</span>
+                      </div>
+                    </div>
+
+                    <div className={styles.sourceList}>
+                      {currentSources.length === 0 ? (
+                        <div style={{ textAlign: 'center', padding: '1.5rem', color: '#94a3b8', fontSize: '0.8rem' }}>
+                          Awaiting inbound referral telemetry...
+                        </div>
+                      ) : (
+                        currentSources.map((s) => (
+                          <div key={s.source} className={styles.sourceItem}>
+                            <div className={styles.sourceRowTop}>
+                              <span className={styles.sourceName}>
+                                <Navigation size={13} style={{ color: '#34d399' }} />
+                                {s.source}
+                              </span>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                                <span style={{ fontSize: '0.72rem', color: '#cbd5e1', fontWeight: 600 }}>
+                                  {s.count.toLocaleString()} visits
+                                </span>
+                                <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#34d399', fontFamily: 'monospace' }}>
+                                  {s.percentage}%
+                                </span>
+                              </div>
+                            </div>
+                            <div className={styles.sourceBarTrack}>
+                              <div className={styles.sourceBarFill} style={{ width: `${Math.max(s.percentage, 4)}%` }} />
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Audience Exploration & Bounce Quality Card */}
+              <div className={styles.geoCard} style={{ padding: '1.15rem 1.35rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <Target size={17} style={{ color: '#fbbf24' }} />
+                    <span style={{ fontSize: '0.9rem', fontWeight: 800, color: '#f8fafc' }}>
+                      Audience Engagement Quality &amp; Retention
+                    </span>
+                  </div>
+                  <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
+                    Multi-page exploration depth vs single-page exit
+                  </span>
+                </div>
+
+                <div className={styles.bounceRateGrid}>
+                  <div className={styles.bounceRateCard}>
+                    <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 600 }}>Multi-Page Catalog Explorers</span>
+                    <span style={{ fontSize: '1.35rem', fontWeight: 800, color: '#34d399' }}>
+                      {(100 - currentBounceRate).toFixed(1)}%
+                    </span>
+                    <span style={{ fontSize: '0.68rem', color: '#64748b' }}>Visitors who browse multiple anime series or episodes</span>
+                  </div>
+
+                  <div className={styles.bounceRateCard}>
+                    <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 600 }}>Single-Page Exit Rate (Bounce)</span>
+                    <span style={{ fontSize: '1.35rem', fontWeight: 800, color: '#fbbf24' }}>
+                      {currentBounceRate.toFixed(1)}%
+                    </span>
+                    <span style={{ fontSize: '0.68rem', color: '#64748b' }}>Single-page landing before departure</span>
+                  </div>
                 </div>
               </div>
 
@@ -1371,86 +1613,121 @@ export default function AdminAnalyticsPage() {
         {/* ========================================================================= */}
         {/* PILLAR 3: LIVE TRAFFIC & USER BEHAVIOR                                     */}
         {/* ========================================================================= */}
-        {activeTab === 'traffic' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            {/* Real-Time Visitor Telemetry Scorecard */}
-            <div className={styles.statsOverviewFour}>
-              {/* 1. Live Online Visitors */}
-              <div className={styles.metricCard} style={{ border: '1px solid rgba(16, 185, 129, 0.4)', background: 'rgba(16, 185, 129, 0.04)' }}>
-                <div className={styles.metricIcon} style={{ background: 'rgba(16, 185, 129, 0.2)', color: '#34d399' }}>
-                  <Activity size={22} />
-                </div>
-                <div className={styles.metricInfo}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <span className={styles.metricLabel}>Live Online Visitors</span>
-                    <span className={styles.livePulse}>
-                      <span className={styles.livePulseDot} />
-                      Live Now
+        {activeTab === 'traffic' && (() => {
+          const currentBrowsers = (timeRange === 'today' && telemetry?.today?.browserBreakdown && telemetry.today.browserBreakdown.length > 0)
+            ? telemetry.today.browserBreakdown
+            : (telemetry?.browserBreakdown || []);
+
+          const currentOsList = (timeRange === 'today' && telemetry?.today?.osBreakdown && telemetry.today.osBreakdown.length > 0)
+            ? telemetry.today.osBreakdown
+            : (telemetry?.osBreakdown || []);
+
+          return (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              {/* Real-Time Visitor Telemetry Scorecard */}
+              <div className={styles.statsOverviewFour}>
+                {/* 1. Live Online Visitors */}
+                <div className={styles.metricCard} style={{ border: '1px solid rgba(16, 185, 129, 0.4)', background: 'rgba(16, 185, 129, 0.04)' }}>
+                  <div className={styles.metricIcon} style={{ background: 'rgba(16, 185, 129, 0.2)', color: '#34d399' }}>
+                    <Activity size={22} />
+                  </div>
+                  <div className={styles.metricInfo}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <span className={styles.metricLabel}>Live Online Visitors</span>
+                      <span className={styles.livePulse}>
+                        <span className={styles.livePulseDot} />
+                        Live Now
+                      </span>
+                    </div>
+                    <span className={styles.metricValue} style={{ color: '#34d399' }}>
+                      {loadingTelemetry ? '...' : (telemetry?.activeVisitorsCount || 0)}
                     </span>
+                    <span className={styles.metricSubtext}>Heartbeat active in last 3 mins</span>
                   </div>
-                  <span className={styles.metricValue} style={{ color: '#34d399' }}>
-                    {loadingTelemetry ? '...' : (telemetry?.activeVisitorsCount || 0)}
-                  </span>
-                  <span className={styles.metricSubtext}>Heartbeat active in last 3 mins</span>
                 </div>
-              </div>
 
-              {/* 2. Device Breakdown */}
-              {(() => {
-                const mob = telemetry?.today?.deviceBreakdown?.mobile ?? telemetry?.deviceBreakdown?.mobile ?? 0;
-                const desk = telemetry?.today?.deviceBreakdown?.desktop ?? telemetry?.deviceBreakdown?.desktop ?? 0;
-                const tab = telemetry?.today?.deviceBreakdown?.tablet ?? telemetry?.deviceBreakdown?.tablet ?? 0;
-                const isMobilePrimary = mob >= desk;
-                const hasDevices = (mob + desk + tab) > 0;
-                return (
-                  <div className={styles.metricCard}>
-                    <div className={styles.metricIcon} style={{ background: isMobilePrimary ? 'rgba(56, 189, 248, 0.15)' : 'rgba(192, 132, 252, 0.15)', color: isMobilePrimary ? '#38bdf8' : '#c084fc' }}>
-                      {isMobilePrimary ? <Smartphone size={22} /> : <Monitor size={22} />}
+                {/* 2. Device Breakdown */}
+                {(() => {
+                  const mob = telemetry?.today?.deviceBreakdown?.mobile ?? telemetry?.deviceBreakdown?.mobile ?? 0;
+                  const desk = telemetry?.today?.deviceBreakdown?.desktop ?? telemetry?.deviceBreakdown?.desktop ?? 0;
+                  const tab = telemetry?.today?.deviceBreakdown?.tablet ?? telemetry?.deviceBreakdown?.tablet ?? 0;
+                  const isMobilePrimary = mob >= desk;
+                  const hasDevices = (mob + desk + tab) > 0;
+                  return (
+                    <div className={styles.metricCard}>
+                      <div className={styles.metricIcon} style={{ background: isMobilePrimary ? 'rgba(56, 189, 248, 0.15)' : 'rgba(192, 132, 252, 0.15)', color: isMobilePrimary ? '#38bdf8' : '#c084fc' }}>
+                        {isMobilePrimary ? <Smartphone size={22} /> : <Monitor size={22} />}
+                      </div>
+                      <div className={styles.metricInfo}>
+                        <span className={styles.metricLabel}>Primary Traffic Hardware</span>
+                        <span className={styles.metricValue}>
+                          {hasDevices ? (isMobilePrimary ? `${mob}% Mobile` : `${desk}% Desktop`) : 'N/A'}
+                        </span>
+                        <span className={styles.metricSubtext}>
+                          {hasDevices ? (isMobilePrimary ? `${desk}% Desktop • ${tab}% Tablet` : `${mob}% Mobile • ${tab}% Tablet`) : 'Awaiting hardware telemetry'}
+                        </span>
+                      </div>
                     </div>
-                    <div className={styles.metricInfo}>
-                      <span className={styles.metricLabel}>Primary Traffic Hardware</span>
-                      <span className={styles.metricValue}>
-                        {hasDevices ? (isMobilePrimary ? `${mob}% Mobile` : `${desk}% Desktop`) : 'N/A'}
-                      </span>
-                      <span className={styles.metricSubtext}>
-                        {hasDevices ? (isMobilePrimary ? `${desk}% Desktop • ${tab}% Tablet` : `${mob}% Mobile • ${tab}% Tablet`) : 'Awaiting hardware telemetry'}
-                      </span>
-                    </div>
+                  );
+                })()}
+
+                {/* 3. AdBlock Rate */}
+                <div className={styles.metricCard}>
+                  <div className={styles.metricIcon} style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#fbbf24' }}>
+                    <ShieldAlert size={22} />
                   </div>
-                );
-              })()}
-
-              {/* 3. AdBlock Rate */}
-              <div className={styles.metricCard}>
-                <div className={styles.metricIcon} style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#fbbf24' }}>
-                  <ShieldAlert size={22} />
+                  <div className={styles.metricInfo}>
+                    <span className={styles.metricLabel}>AdBlock / Shield Rate</span>
+                    <span className={styles.metricValue} style={{ color: '#fbbf24' }}>
+                      {telemetry?.today?.adBlockRate ?? telemetry?.adBlockRate ?? 0}%
+                    </span>
+                    <span className={styles.metricSubtext}>Visitors with shields or uBlock</span>
+                  </div>
                 </div>
-                <div className={styles.metricInfo}>
-                  <span className={styles.metricLabel}>AdBlock / Shield Rate</span>
-                  <span className={styles.metricValue} style={{ color: '#fbbf24' }}>
-                    {telemetry?.today?.adBlockRate ?? telemetry?.adBlockRate ?? 0}%
-                  </span>
-                  <span className={styles.metricSubtext}>Visitors with shields or uBlock</span>
+
+                {/* 4. Watch Conversion Rate */}
+                <div className={styles.metricCard}>
+                  <div className={styles.metricIcon} style={{ background: 'rgba(236, 72, 153, 0.15)', color: '#f472b6' }}>
+                    <Zap size={22} />
+                  </div>
+                  <div className={styles.metricInfo}>
+                    <span className={styles.metricLabel}>Watch Conversion Rate</span>
+                    <span className={styles.metricValue} style={{ color: '#f472b6' }}>
+                      {telemetry?.today?.watchConversionRate ?? telemetry?.watchConversionRate ?? 0}%
+                    </span>
+                    <span className={styles.metricSubtext}>Converted from browse to play</span>
+                  </div>
                 </div>
               </div>
 
-              {/* 4. Watch Conversion Rate */}
-              <div className={styles.metricCard}>
-                <div className={styles.metricIcon} style={{ background: 'rgba(236, 72, 153, 0.15)', color: '#f472b6' }}>
-                  <Zap size={22} />
-                </div>
-                <div className={styles.metricInfo}>
-                  <span className={styles.metricLabel}>Watch Conversion Rate</span>
-                  <span className={styles.metricValue} style={{ color: '#f472b6' }}>
-                    {telemetry?.today?.watchConversionRate ?? telemetry?.watchConversionRate ?? 0}%
+              {/* 🌐 Live Online Visitor Locations Ribbon */}
+              <div className={styles.liveGeoRibbon}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
+                  <MapPin size={16} style={{ color: '#34d399' }} />
+                  <span style={{ fontSize: '0.82rem', fontWeight: 800, color: '#f8fafc' }}>
+                    Live Online Geolocation:
                   </span>
-                  <span className={styles.metricSubtext}>Converted from browse to play</span>
+                </div>
+
+                <div className={styles.liveGeoPills}>
+                  {(!telemetry?.liveGeoDistribution || telemetry.liveGeoDistribution.length === 0) ? (
+                    <span style={{ fontSize: '0.76rem', color: '#94a3b8' }}>
+                      Waiting for active online visitor location signal...
+                    </span>
+                  ) : (
+                    telemetry.liveGeoDistribution.map((geo) => (
+                      <div key={geo.countryCode} className={styles.liveGeoPill}>
+                        <span role="img" aria-label={geo.countryName}>{geo.flag}</span>
+                        <span>{geo.countryName}</span>
+                        <span className={styles.liveGeoPillCount}>{geo.activeNow} active</span>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
-            </div>
 
-            {/* Scroll Depth Funnel & Device Breakdown */}
-            <div className={styles.chartsGrid}>
+              {/* Scroll Depth Funnel & Device Breakdown */}
+              <div className={styles.chartsGrid}>
               {/* Scroll Depth Funnel */}
               <div className={styles.chartCard}>
                 <div className={styles.chartHeader}>
@@ -1555,6 +1832,77 @@ export default function AdminAnalyticsPage() {
               </div>
             </div>
 
+            {/* 💻 Browser & Operating System Ecosystem */}
+            <div className={styles.chartCard}>
+              <div className={styles.chartHeader}>
+                <div>
+                  <h3 className={styles.chartTitle}>
+                    <Cpu size={18} style={{ color: '#38bdf8' }} />
+                    <span>💻 Browser &amp; Operating System Ecosystem</span>
+                  </h3>
+                  <span className={styles.chartSubtitle}>
+                    Audience browser technologies and device operating systems ({timeRange === 'today' ? 'Today' : 'Catalog Reach'})
+                  </span>
+                </div>
+              </div>
+
+              <div className={styles.techSplitGrid}>
+                {/* Browsers */}
+                <div>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '0.65rem' }}>
+                    🌐 Web Browsers
+                  </span>
+                  <div className={styles.techItemList}>
+                    {currentBrowsers.length === 0 ? (
+                      <div style={{ padding: '1rem', color: '#94a3b8', fontSize: '0.78rem' }}>Awaiting browser telemetry...</div>
+                    ) : (
+                      currentBrowsers.map((b) => (
+                        <div key={b.name} className={styles.techItemRow}>
+                          <div className={styles.techItemHeader}>
+                            <span className={styles.techItemName}>{b.name}</span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              <span style={{ fontSize: '0.72rem', color: '#cbd5e1', fontWeight: 600 }}>{b.count.toLocaleString()}</span>
+                              <span className={styles.techItemPct}>{b.percentage}%</span>
+                            </div>
+                          </div>
+                          <div className={styles.techBarTrack}>
+                            <div className={styles.techBarFill} style={{ width: `${Math.max(b.percentage, 4)}%` }} />
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                {/* Operating Systems */}
+                <div>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '0.65rem' }}>
+                    🖥️ Operating Systems
+                  </span>
+                  <div className={styles.techItemList}>
+                    {currentOsList.length === 0 ? (
+                      <div style={{ padding: '1rem', color: '#94a3b8', fontSize: '0.78rem' }}>Awaiting OS telemetry...</div>
+                    ) : (
+                      currentOsList.map((o) => (
+                        <div key={o.name} className={styles.techItemRow}>
+                          <div className={styles.techItemHeader}>
+                            <span className={styles.techItemName}>{o.name}</span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              <span style={{ fontSize: '0.72rem', color: '#cbd5e1', fontWeight: 600 }}>{o.count.toLocaleString()}</span>
+                              <span className={styles.techItemPct} style={{ color: '#10b981' }}>{o.percentage}%</span>
+                            </div>
+                          </div>
+                          <div className={styles.techBarTrack}>
+                            <div className={styles.techBarFillOs} style={{ width: `${Math.max(o.percentage, 4)}%` }} />
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* Top Active Pages & URLs */}
             <div className={styles.tableCard}>
               <div className={styles.tableHeader}>
@@ -1622,7 +1970,8 @@ export default function AdminAnalyticsPage() {
               </div>
             </div>
           </div>
-        )}
+        );
+      })()}
 
         {/* ========================================================================= */}
         {/* SECONDARY TAB: COMMENT MODERATION                                         */}

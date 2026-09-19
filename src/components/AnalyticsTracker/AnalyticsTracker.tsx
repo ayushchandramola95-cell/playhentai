@@ -61,6 +61,11 @@ export default function AnalyticsTracker() {
     }
     sessionId.current = storedSessionId;
 
+    // Capture entry referrer once per session
+    if (sessionStorage.getItem('ph_telemetry_referrer') === null && typeof document !== 'undefined') {
+      sessionStorage.setItem('ph_telemetry_referrer', document.referrer || '');
+    }
+
     // 2. Dual-Layer AdBlock Detection (DOM Bait Element + Network Reachability)
     const detectAdBlock = () => {
       let isBlocked = false;
@@ -176,6 +181,11 @@ export default function AnalyticsTracker() {
     const device = getDeviceType();
     const isWatching = pathname ? pathname.startsWith('/watch') : false;
 
+    const timezone = typeof Intl !== 'undefined' ? Intl.DateTimeFormat().resolvedOptions().timeZone : '';
+    const language = typeof navigator !== 'undefined' ? navigator.language : '';
+    const initialReferrer = typeof window !== 'undefined' ? (sessionStorage.getItem('ph_telemetry_referrer') || '') : '';
+    const screenRes = typeof window !== 'undefined' ? `${window.screen.width}x${window.screen.height}` : '';
+
     const payload = {
       sessionId: sessionId.current,
       route: pathname || '/',
@@ -185,6 +195,10 @@ export default function AnalyticsTracker() {
       hasAdBlocker: hasAdBlocker.current,
       hasWatchedVideo: isWatching,
       event,
+      timezone,
+      language,
+      referrer: initialReferrer,
+      screenRes,
     };
 
     try {

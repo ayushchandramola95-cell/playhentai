@@ -1371,6 +1371,387 @@
   letter-spacing: 0.04em;
 }
 
+/* ========================================================================= */
+/* GEOGRAPHIC, REGIONAL & REFERRER INTELLIGENCE                              */
+/* ========================================================================= */
+.geoGrid {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 1.5rem;
+}
 
+@media (max-width: 1024px) {
+  .geoGrid {
+    grid-template-columns: 1fr;
+  }
+}
 
+.geoCard {
+  background: #0d101b;
+  border: 1px solid #1f2538;
+  border-radius: 14px;
+  padding: 1.5rem;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
 
+.countryList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-height: 420px;
+  overflow-y: auto;
+  padding-right: 0.3rem;
+}
+
+.countryList::-webkit-scrollbar {
+  width: 5px;
+}
+.countryList::-webkit-scrollbar-track {
+  background: #0d101b;
+}
+.countryList::-webkit-scrollbar-thumb {
+  background: #23283b;
+  border-radius: 4px;
+}
+
+.countryItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  background: #080a12;
+  border: 1px solid #1a2033;
+  border-radius: 10px;
+  padding: 0.65rem 0.85rem;
+  transition: all 0.15s ease;
+}
+
+.countryItem:hover {
+  border-color: #38bdf8;
+  background: #0e1220;
+}
+
+.countryRowTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.countryLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-width: 0;
+}
+
+.countryFlag {
+  font-size: 1.35rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.countryName {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #f8fafc;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.countryCodeBadge {
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  background: #181d2e;
+  color: #94a3b8;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+}
+
+.countryStats {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-shrink: 0;
+}
+
+.countryVisits {
+  font-size: 0.75rem;
+  color: #cbd5e1;
+  font-weight: 600;
+}
+
+.countryPct {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #38bdf8;
+  font-family: monospace;
+  min-width: 42px;
+  text-align: right;
+}
+
+.countryBarTrack {
+  width: 100%;
+  height: 5px;
+  background: #151a2a;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.countryBarFill {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #38bdf8, #818cf8);
+  transition: width 0.4s ease;
+}
+
+/* Continental Regions */
+.regionGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.regionRow {
+  background: #080a12;
+  border: 1px solid #1a2033;
+  border-radius: 10px;
+  padding: 0.7rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  transition: all 0.15s ease;
+}
+
+.regionRow:hover {
+  border-color: #a855f7;
+  background: #0e1220;
+}
+
+.regionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.regionName {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.regionBarTrack {
+  width: 100%;
+  height: 6px;
+  background: #151a2a;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.regionBarFill {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #a855f7, #ec4899);
+  transition: width 0.4s ease;
+}
+
+/* Traffic Sources */
+.sourceList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.sourceItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  background: #080a12;
+  border: 1px solid #1a2033;
+  border-radius: 10px;
+  padding: 0.65rem 0.85rem;
+  transition: all 0.15s ease;
+}
+
+.sourceItem:hover {
+  border-color: #34d399;
+  background: #0e1220;
+}
+
+.sourceRowTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sourceName {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #f8fafc;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.sourceBarTrack {
+  width: 100%;
+  height: 5px;
+  background: #151a2a;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.sourceBarFill {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #10b981, #34d399);
+  transition: width 0.4s ease;
+}
+
+/* Live Geo Visitors Ribbon */
+.liveGeoRibbon {
+  background: #0a0e1a;
+  border: 1px solid #1d253b;
+  border-radius: 12px;
+  padding: 0.85rem 1.15rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.liveGeoPills {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.liveGeoPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: #121727;
+  border: 1px solid #232c45;
+  border-radius: 20px;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #e2e8f0;
+  transition: all 0.15s ease;
+}
+
+.liveGeoPill:hover {
+  border-color: #10b981;
+  background: #172033;
+}
+
+.liveGeoPillCount {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+  padding: 0.1rem 0.45rem;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+/* Browser & OS Split Cards */
+.techSplitGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+@media (max-width: 768px) {
+  .techSplitGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.techItemList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.techItemRow {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  background: #080a12;
+  border: 1px solid #1a2033;
+  padding: 0.6rem 0.85rem;
+  border-radius: 8px;
+  transition: all 0.15s ease;
+}
+
+.techItemRow:hover {
+  border-color: #38bdf8;
+  background: #0e1220;
+}
+
+.techItemHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.8rem;
+}
+
+.techItemName {
+  font-weight: 700;
+  color: #cbd5e1;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.techItemPct {
+  font-weight: 800;
+  font-family: monospace;
+  color: #38bdf8;
+}
+
+.techBarTrack {
+  width: 100%;
+  height: 5px;
+  background: #151a2a;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.techBarFill {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #38bdf8, #818cf8);
+  transition: width 0.3s ease;
+}
+
+.techBarFillOs {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #10b981, #06b6d4);
+  transition: width 0.3s ease;
+}
+
+/* Bounce Rate Card */
+.bounceRateGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.85rem;
+}
+
+.bounceRateCard {
+  background: #080a12;
+  border: 1px solid #1a2033;
+  border-radius: 10px;
+  padding: 0.95rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
