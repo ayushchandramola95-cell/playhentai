@@ -16,7 +16,9 @@ import {
   Trash2,
   ShieldCheck,
   RotateCcw,
-  Zap
+  Zap,
+  Layers,
+  ListOrdered
 } from 'lucide-react';
 import styles from './BulkSeriesEditModal.module.css';
 
@@ -449,6 +451,26 @@ export default function BulkSeriesEditModal({
     });
   };
 
+  // Dynamic TSV placeholder showing exact sequence for selected series
+  const textareaPlaceholder = useMemo(() => {
+    if (selectedSeriesArray.length > 0) {
+      const sampleLines = selectedSeriesArray.slice(0, 3).map((s, i) => {
+        const fieldSamples = orderedSelectedFields.map(f => {
+          if (f === 'title') return s.title;
+          if (f === 'release_year') return '2024';
+          if (f === 'studio') return 'PoJu';
+          if (f === 'tags') return 'Uncensored, 3D';
+          if (f === 'first_air_date') return '2024-01-15';
+          if (f === 'last_air_date') return '2024-02-20';
+          return `value_${f}`;
+        });
+        return `${fieldSamples.join('\t')}`;
+      });
+      return `Paste ${selectedSeriesArray.length} lines in sequence (Row 1 -> #1 ${selectedSeriesArray[0]?.title}, Row 2 -> #2, etc.):\n\n${sampleLines.join('\n')}${selectedSeriesArray.length > 3 ? '\n...' : ''}`;
+    }
+    return `Paste rows from Excel or TSV here...\nExample (1 line per series):\nShow Title 1\tSynopsis text...\t2024\tPoJu\tUncensored, 3D\t...\nShow Title 2\tSynopsis text...\t2023\tMillepensee\tFantasy\t...`;
+  }, [selectedSeriesArray, orderedSelectedFields]);
+
   // Parse TSV rows and compute diff updates
   const rawParsedUpdates = useMemo(() => {
     const updates: Array<{
@@ -515,11 +537,37 @@ export default function BulkSeriesEditModal({
 
     let dataRows = parsedRows;
 
-    // Check if first row is a header
+    // Detect header row if present
     const firstRow = parsedRows[0];
-    const headerKeywords = ['series', 'slug', 'title', 'synopsis', 'release year', 'studio', 'tags', 'japanese'];
-    const hasHeader = firstRow.some((cell) => headerKeywords.includes(cell.toLowerCase().trim()));
+    const headerKeywords = ['series', 'slug', 'title', 'synopsis', 'release year', 'studio', 'tags', 'japanese', 'description', 'romaji', 'status', 'episodes', 'air date'];
+    const hasHeader = firstRow.some((cell) => headerKeywords.some(kw => cell.toLowerCase().trim().includes(kw)));
+    
+    // Map column index to field key if header row exists
+    const headerColMap = new Map<number, EditableFieldKey>();
     if (hasHeader) {
+      firstRow.forEach((cell, colIdx) => {
+        const norm = cell.toLowerCase().trim().replace(/[^a-z0-9]/g, '');
+        const matchedField = AVAILABLE_FIELDS.find((f) => {
+          const fKeyNorm = f.key.toLowerCase().replace(/[^a-z0-9]/g, '');
+          const fLabelNorm = f.label.toLowerCase().replace(/[^a-z0-9]/g, '');
+          return norm === fKeyNorm || norm === fLabelNorm;
+        });
+        if (matchedField) {
+          headerColMap.set(colIdx, matchedField.key);
+        } else if (norm === 'synopsis' || norm === 'summary' || norm === 'desc') {
+          headerColMap.set(colIdx, 'description');
+        } else if (norm === 'year') {
+          headerColMap.set(colIdx, 'release_year');
+        } else if (norm === 'firstair' || norm === 'firstairdate') {
+          headerColMap.set(colIdx, 'first_air_date');
+        } else if (norm === 'lastair' || norm === 'lastairdate') {
+          headerColMap.set(colIdx, 'last_air_date');
+        } else if (norm === 'episodes' || norm === 'episodecount') {
+          headerColMap.set(colIdx, 'episode_count_override');
+        } else if (norm === 'series' || norm === 'name') {
+          headerColMap.set(colIdx, 'title');
+        }
+      });
       dataRows = parsedRows.slice(1);
     }
 
@@ -527,19 +575,21 @@ export default function BulkSeriesEditModal({
 
     // Process each row strictly mapping to orderedSelectedFields
     dataRows.forEach((row, rowIdx) => {
-      const col0 = row[0]?.trim() || '';
+      let matched: SeriesItem | undefined = undefined;
 
-      // Match strategy:
-      // 1. First check if col0 matches any series in seriesList by slug or title
-      let matched = seriesList.find((s) => 
-        s.slug.toLowerCase() === col0.toLowerCase() ||
-        s.title.toLowerCase() === col0.toLowerCase()
-      );
-
-      // 2. If not matched, but user checked series in Tab 1, map row position to selected series!
-      // (e.g. User checked 5 series, row 0 -> selected series 0, row 1 -> selected series 1, etc.)
-      if (!matched && selectedSeriesArray.length > 0 && rowIdx < selectedSeriesArray.length) {
-        matched = selectedSeriesArray[rowIdx];
+      // 1. STRICT SEQUENCE-FIRST STRATEGY:
+      // When series are selected in Tab 1, line rowIdx strictly maps to selectedSeriesArray[rowIdx] (Line 1 -> #1, Line 2 -> #2...)
+      if (selectedSeriesArray.length > 0) {
+        if (rowIdx < selectedSeriesArray.length) {
+          matched = selectedSeriesArray[rowIdx];
+        }
+      } else {
+        // Fallback: only if 0 series were selected in Tab 1, match by title/slug in col 0
+        const col0 = row[0]?.trim() || '';
+        matched = seriesList.find((s) => 
+          s.slug.toLowerCase() === col0.toLowerCase() ||
+          s.title.toLowerCase() === col0.toLowerCase()
+        );
       }
 
       if (!matched) return;
@@ -547,14 +597,33 @@ export default function BulkSeriesEditModal({
       const changes: Record<string, any> = {};
       const diffs: Array<{ field: string; label: string; oldVal: string; newVal: string }> = [];
 
-      // Determine column offset:
-      // If row has more columns than orderedSelectedFields AND orderedSelectedFields does not start with 'title',
-      // then col 0 was an extra series identifier. Otherwise, col 0 corresponds directly to field 0.
-      const hasPrefixIdentifier = row.length > orderedSelectedFields.length && orderedSelectedFields[0] !== 'title';
+      // Determine column extraction mode:
+      // A) Header map matched at least 2 fields
+      // B) Row has 16-18 columns (Full 17-standard spreadsheet layout)
+      // C) Row has exact match or prefix identifier
+      const is17ColLayout = row.length >= 16 && row.length <= 18;
 
       orderedSelectedFields.forEach((key, fIdx) => {
-        const colIdx = hasPrefixIdentifier ? fIdx + 1 : fIdx;
-        const rawColVal = row[colIdx]?.trim();
+        let rawColVal: string | undefined = undefined;
+
+        if (headerColMap.size >= 2) {
+          for (const [cIdx, mappedKey] of headerColMap.entries()) {
+            if (mappedKey === key && cIdx < row.length) {
+              rawColVal = row[cIdx]?.trim();
+              break;
+            }
+          }
+        } else if (is17ColLayout) {
+          const stdIdx = STANDARD_17_FIELDS.indexOf(key);
+          if (stdIdx !== -1 && stdIdx < row.length) {
+            rawColVal = row[stdIdx]?.trim();
+          }
+        } else {
+          // Standard mapping: check if row has an extra column 0 (e.g. title/slug) when key is not title
+          const hasPrefix = row.length > orderedSelectedFields.length && orderedSelectedFields[0] !== 'title';
+          const colIdx = hasPrefix ? fIdx + 1 : fIdx;
+          rawColVal = row[colIdx]?.trim();
+        }
 
         if (rawColVal === undefined || rawColVal === '') return;
 
@@ -572,7 +641,7 @@ export default function BulkSeriesEditModal({
         } else if (key === 'tags' || key === 'aliases' || key === 'content_warnings') {
           const arr = rawColVal.split(',').map((t) => t.trim()).filter(Boolean);
           if (key === 'tags' && tagUpdateMode === 'append') {
-            finalVal = Array.from(new Set([...(matched.tags || []), ...arr]));
+            finalVal = Array.from(new Set([...(matched!.tags || []), ...arr]));
           } else {
             finalVal = arr;
           }
@@ -805,6 +874,11 @@ export default function BulkSeriesEditModal({
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem', color: '#94a3b8' }}>
                 <div>
                   Showing {filteredSeries.length} shows • <strong style={{ color: '#f59e0b' }}>{selectedSeriesIds.size} selected</strong>
+                  {selectedSeriesIds.size > 0 && (
+                    <span style={{ marginLeft: '0.5rem', color: '#cbd5e1', fontSize: '0.74rem' }}>
+                      (Sequenced #1 to #{selectedSeriesIds.size} for line-wise TSV)
+                    </span>
+                  )}
                 </div>
                 <div style={{ display: 'flex', gap: '0.65rem' }}>
                   <button type="button" className={styles.secondaryBtn} onClick={selectAllFiltered} style={{ padding: '0.3rem 0.65rem', fontSize: '0.75rem' }}>
@@ -821,6 +895,10 @@ export default function BulkSeriesEditModal({
                 {filteredSeries.length > 0 ? (
                   filteredSeries.map((s) => {
                     const isChecked = selectedSeriesIds.has(s.id);
+                    const sequenceIndex = isChecked 
+                      ? selectedSeriesArray.findIndex((item) => item.id === s.id)
+                      : -1;
+
                     return (
                       <div
                         key={s.id}
@@ -828,6 +906,17 @@ export default function BulkSeriesEditModal({
                         onClick={() => toggleSelectSeries(s.id)}
                       >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                          {/* Sequence Badge / Empty slot */}
+                          {isChecked ? (
+                            <div className={styles.sequenceBadge} title={`Sequence #${sequenceIndex + 1} (Line ${sequenceIndex + 1} in TSV)`}>
+                              #{sequenceIndex + 1}
+                            </div>
+                          ) : (
+                            <div className={styles.sequenceEmpty} title="Not selected">
+                              —
+                            </div>
+                          )}
+
                           <div style={{
                             width: '18px',
                             height: '18px',
@@ -836,13 +925,28 @@ export default function BulkSeriesEditModal({
                             background: isChecked ? '#f59e0b' : 'transparent',
                             display: 'flex',
                             alignItems: 'center',
-                            justifyContent: 'center'
+                            justifyContent: 'center',
+                            flexShrink: 0
                           }}>
                             {isChecked && <Check size={12} color="#000" strokeWidth={3} />}
                           </div>
+
                           <div>
-                            <div style={{ fontWeight: 700, fontSize: '0.86rem', color: '#f8fafc' }}>
-                              {s.title}
+                            <div style={{ fontWeight: 700, fontSize: '0.86rem', color: '#f8fafc', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              <span>{s.title}</span>
+                              {isChecked && (
+                                <span style={{ 
+                                  fontSize: '0.72rem', 
+                                  color: '#f59e0b', 
+                                  fontWeight: 800,
+                                  background: 'rgba(245, 158, 11, 0.15)',
+                                  padding: '0.1rem 0.45rem',
+                                  borderRadius: '4px',
+                                  border: '1px solid rgba(245, 158, 11, 0.3)'
+                                }}>
+                                  Line {sequenceIndex + 1}
+                                </span>
+                              )}
                             </div>
                             <div style={{ fontSize: '0.74rem', color: '#64748b', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                               <span>/{s.slug}</span>
@@ -993,11 +1097,36 @@ export default function BulkSeriesEditModal({
               {/* MODE A: TSV PASTE */}
               {inputMode === 'tsv' ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  {/* Sequence Mapping Panel */}
+                  {selectedSeriesArray.length > 0 && (
+                    <div className={styles.sequencePanel}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.4rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', color: '#fcd34d', fontWeight: 800, fontSize: '0.82rem' }}>
+                          <ListOrdered size={16} />
+                          <span>Line-wise Sequence Mapping ({selectedSeriesArray.length} Series Selected):</span>
+                        </div>
+                        <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
+                          Row 1 of your pasted TSV = Line 1, Row 2 = Line 2, etc. (No title matching needed)
+                        </span>
+                      </div>
+                      <div className={styles.sequenceListScroll}>
+                        {selectedSeriesArray.map((s, idx) => (
+                          <div key={s.id} className={styles.sequenceTag}>
+                            <span style={{ color: '#f59e0b', fontWeight: 900 }}>Line {idx + 1}:</span>
+                            <span style={{ maxWidth: '240px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={s.title}>
+                              {s.title}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   <div className={styles.instructionsBox}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
                       <strong style={{ color: '#fcd34d' }}>
                         {selectedSeriesIds.size > 0 
-                          ? `Paste Rows for Your ${selectedSeriesIds.size} Selected Series:`
+                          ? `Paste ${selectedSeriesIds.size} Lines in Sequence for Your Selected Series:`
                           : 'Expected TSV Format (Tab-separated):'}
                       </strong>
                       <button
@@ -1023,7 +1152,7 @@ export default function BulkSeriesEditModal({
                     <code>{tsvExpectedHeader}</code>
                     <div style={{ marginTop: '0.4rem', fontSize: '0.75rem', color: '#94a3b8' }}>
                       {selectedSeriesIds.size > 0 
-                        ? `Tip: You selected ${selectedSeriesIds.size} series. You can paste ${selectedSeriesIds.size} lines in order, or lines starting with the series title/slug. In Step 3 Preview, you can freely remove dates or any other fields with 1-click!`
+                        ? `Tip: Line 1 will update Series #1 (${selectedSeriesArray[0]?.title}), Line 2 will update Series #2, and so on. You do not need to worry about exact titles!`
                         : 'Tip: You can copy directly from Excel or Google Sheets. Column 1 matches the series slug or title.'}
                     </div>
                   </div>
@@ -1054,7 +1183,7 @@ export default function BulkSeriesEditModal({
 
                   <textarea
                     className={styles.textareaField}
-                    placeholder={`Paste rows from Excel or TSV here...\nExample (1 line per series):\nShow Title 1\tSynopsis text...\t2024\tPoJu\tUncensored, 3D\t...\nShow Title 2\tSynopsis text...\t2023\tMillepensee\tFantasy\t...`}
+                    placeholder={textareaPlaceholder}
                     value={tsvText}
                     onChange={(e) => setTsvText(e.target.value)}
                   />
@@ -1208,13 +1337,28 @@ export default function BulkSeriesEditModal({
                       </tr>
                     </thead>
                     <tbody>
-                      {parsedUpdates.flatMap((update) => 
-                        update.diffs.map((diff, dIdx) => (
+                      {parsedUpdates.flatMap((update) => {
+                        const seqIdx = selectedSeriesArray.findIndex(s => s.id === update.series.id);
+                        return update.diffs.map((diff, dIdx) => (
                           <tr key={`${update.series.id}-${diff.field}-${dIdx}`}>
                             {dIdx === 0 && (
                               <td rowSpan={update.diffs.length} style={{ verticalAlign: 'top', fontWeight: 700 }}>
-                                <div>{update.series.title}</div>
-                                <code style={{ fontSize: '0.7rem', color: '#94a3b8' }}>/{update.series.slug}</code>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.2rem' }}>
+                                  {seqIdx >= 0 && (
+                                    <span className={styles.sequenceBadge} style={{ minWidth: '22px', height: '20px', fontSize: '0.68rem', padding: '0 4px' }} title={`Line ${seqIdx + 1} in TSV`}>
+                                      #{seqIdx + 1}
+                                    </span>
+                                  )}
+                                  <span>{update.series.title}</span>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.7rem', color: '#94a3b8' }}>
+                                  <code>/{update.series.slug}</code>
+                                  {seqIdx >= 0 && (
+                                    <span style={{ color: '#f59e0b', fontWeight: 800 }}>
+                                      (Line {seqIdx + 1})
+                                    </span>
+                                  )}
+                                </div>
                               </td>
                             )}
                             <td style={{ color: '#fcd34d', fontWeight: 600, minWidth: '130px' }}>{diff.label}</td>
@@ -1235,8 +1379,8 @@ export default function BulkSeriesEditModal({
                               </button>
                             </td>
                           </tr>
-                        ))
-                      )}
+                        ));
+                      })}
                     </tbody>
                   </table>
                 </div>
