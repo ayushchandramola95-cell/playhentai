@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Tv, Shield, ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
 import AdminNav from './AdminNav';
+import SyncCatalogButton from './SyncCatalogButton';
 import styles from './admin.module.css';
 
 interface AdminSidebarProps {
@@ -53,7 +54,8 @@ export default function AdminSidebar({ username }: AdminSidebarProps) {
 
       <AdminNav isCollapsed={isCollapsed} />
 
-      <div className={styles.sidebarFooter}>
+      <div className={styles.sidebarFooter} style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+        <SyncCatalogButton variant="compact" />
         <Link 
           href="/" 
           className={styles.backBtn}

@@ -157,52 +157,37 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: 'Missing series ID' }, { status: 400 });
     }
 
+    const updateObj: Record<string, any> = {};
+    const allowedFields = [
+      'title', 'slug', 'description', 'poster_image_key', 'cover_image_key', 'banner_image_key',
+      'tags', 'studio', 'release_year', 'is_published', 'alt_title_japanese', 'alt_title_romaji',
+      'alt_title_english', 'original_language', 'status', 'episode_count_override', 'runtime',
+      'age_rating', 'content_rating', 'country', 'aliases', 'featured_type', 'meta_title',
+      'meta_description', 'first_air_date', 'last_air_date', 'image_library', 'poster_position',
+      'cover_position', 'banner_position', 'original_source', 'content_warnings', 'about_text',
+      'about_data', 'faq_override'
+    ];
+
+    for (const field of allowedFields) {
+      if (payload[field] !== undefined) {
+        updateObj[field] = payload[field];
+      }
+    }
+
     const { data, error } = await adminSupabase
       .from('series')
-      .update({
-        title: payload.title,
-        slug: payload.slug,
-        description: payload.description,
-        poster_image_key: payload.poster_image_key,
-        cover_image_key: payload.cover_image_key,
-        banner_image_key: payload.banner_image_key,
-        tags: payload.tags,
-        studio: payload.studio,
-        release_year: payload.release_year,
-        is_published: payload.is_published,
-        alt_title_japanese: payload.alt_title_japanese,
-        alt_title_romaji: payload.alt_title_romaji,
-        alt_title_english: payload.alt_title_english,
-        original_language: payload.original_language,
-        status: payload.status,
-        episode_count_override: payload.episode_count_override,
-        runtime: payload.runtime,
-        age_rating: payload.age_rating,
-        content_rating: payload.content_rating,
-        country: payload.country,
-        aliases: payload.aliases,
-        featured_type: payload.featured_type,
-        meta_title: payload.meta_title,
-        meta_description: payload.meta_description,
-        first_air_date: payload.first_air_date,
-        last_air_date: payload.last_air_date,
-        image_library: payload.image_library,
-        poster_position: payload.poster_position,
-        cover_position: payload.cover_position,
-        banner_position: payload.banner_position,
-        original_source: payload.original_source,
-        content_warnings: payload.content_warnings,
-        about_text: payload.about_text,
-        about_data: payload.about_data,
-        faq_override: payload.faq_override
-      })
+      .update(updateObj)
       .eq('id', payload.id)
       .select()
       .single();
 
     if (error) throw error;
-    await syncTagsToCategories(payload.tags || [], adminSupabase);
-    await syncStudioToDatabase(payload.studio, adminSupabase);
+    if (payload.tags !== undefined && Array.isArray(payload.tags)) {
+      await syncTagsToCategories(payload.tags, adminSupabase);
+    }
+    if (payload.studio !== undefined && payload.studio) {
+      await syncStudioToDatabase(payload.studio, adminSupabase);
+    }
     try {
       await upsertLocalSeries(data);
     } catch (localErr) {

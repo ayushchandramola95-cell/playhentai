@@ -22,6 +22,7 @@ import { createAdminClient } from '@/utils/supabase/admin';
 import { getSeriesViewsMap } from '@/utils/views';
 import { getR2Url } from '@/utils/r2';
 import { getR2StorageStats } from '@/utils/r2Storage';
+import SyncCatalogButton from './SyncCatalogButton';
 import styles from './admin.module.css';
 
 export default async function AdminOverviewPage() {
@@ -140,7 +141,7 @@ export default async function AdminOverviewPage() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
       
       {/* Panel Header */}
-      <div className={styles.panelHeader} style={{ marginBottom: '0.2rem' }}>
+      <div className={styles.panelHeader} style={{ marginBottom: '0.2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h2 style={{ fontSize: '1.85rem', fontWeight: 850, letterSpacing: '-0.02em', margin: 0 }}>
             System Overview
@@ -149,6 +150,7 @@ export default async function AdminOverviewPage() {
             High-level metrics, storage analytics, system diagnostics, and content velocity.
           </p>
         </div>
+        <SyncCatalogButton />
       </div>
 
       {/* Section A: Comprehensive Catalog Health & Content Metrics */}

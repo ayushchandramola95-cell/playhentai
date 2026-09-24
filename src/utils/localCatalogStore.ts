@@ -50,74 +50,103 @@ function loadStoreFromDisk(): LocalCatalogData | null {
   return null;
 }
 
-/**
- * Connects to Supabase and pulls a fresh full snapshot into memory and local disk.
- * Called on first server bootstrap or manually via the admin resync button.
- */
-export async function syncLocalCatalogWithSupabase(): Promise<LocalCatalogData> {
+function getSupabaseClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ybtbdtgtryrxrhuchlkw.supabase.co';
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_HLX-SCL51o2H254WH-gN0Q_HPpNwKo5';
-  const supabase = createSupabaseClient(supabaseUrl, supabaseKey);
+  return createSupabaseClient(supabaseUrl, supabaseKey);
+}
 
-  console.log('[LocalStore] Syncing catalog with Supabase master...');
+let activeSyncPromise: Promise<LocalCatalogData> | null = null;
+const CATALOG_TTL_MS = 60 * 1000; // 60 seconds stale-while-revalidate window
 
-  try {
-    const [
-      { data: seriesData, error: sErr },
-      { data: seasonsData, error: seaErr },
-      { data: episodesData, error: epErr },
-      { data: collectionsData, error: colErr }
-    ] = await Promise.all([
-      supabase.from('series').select('*').order('created_at', { ascending: false }),
-      supabase.from('seasons').select('*').order('season_number', { ascending: true }),
-      supabase.from('episodes').select('*').order('episode_number', { ascending: true }),
-      supabase.from('collections').select('*')
-    ]);
-
-    if (sErr) console.warn('[LocalStore] Error fetching series:', sErr.message);
-    if (seaErr) console.warn('[LocalStore] Error fetching seasons:', seaErr.message);
-    if (epErr) console.warn('[LocalStore] Error fetching episodes:', epErr.message);
-    if (colErr) console.warn('[LocalStore] Error fetching collections:', colErr.message);
-
-    const snapshot: LocalCatalogData = {
-      lastSyncedAt: new Date().toISOString(),
-      series: seriesData || [],
-      seasons: seasonsData || [],
-      episodes: episodesData || [],
-      collections: collectionsData || []
-    };
-
-    memoryCatalog = snapshot;
-    writeStoreToDisk(snapshot);
-    console.log(`[LocalStore] Sync complete: ${snapshot.series.length} series, ${snapshot.episodes.length} episodes cached locally.`);
-    return snapshot;
-  } catch (err) {
-    console.error('[LocalStore] Fatal error syncing with Supabase:', err);
-    if (memoryCatalog) return memoryCatalog;
-    return {
-      lastSyncedAt: new Date().toISOString(),
-      series: [],
-      seasons: [],
-      episodes: [],
-      collections: []
-    };
+/**
+ * Connects to Supabase and pulls a fresh full snapshot into memory and local disk.
+ * Called on server bootstrap, background auto-refresh (TTL), or manually via admin UI.
+ */
+export async function syncLocalCatalogWithSupabase(): Promise<LocalCatalogData> {
+  if (activeSyncPromise) {
+    return activeSyncPromise;
   }
+
+  activeSyncPromise = (async () => {
+    const supabase = getSupabaseClient();
+    console.log('[LocalStore] Syncing catalog with Supabase master...');
+
+    try {
+      const [
+        { data: seriesData, error: sErr },
+        { data: seasonsData, error: seaErr },
+        { data: episodesData, error: epErr }
+      ] = await Promise.all([
+        supabase.from('series').select('*').order('created_at', { ascending: false }),
+        supabase.from('seasons').select('*').order('season_number', { ascending: true }),
+        supabase.from('episodes').select('*').order('episode_number', { ascending: true })
+      ]);
+
+      if (sErr) console.warn('[LocalStore] Error fetching series:', sErr.message);
+      if (seaErr) console.warn('[LocalStore] Error fetching seasons:', seaErr.message);
+      if (epErr) console.warn('[LocalStore] Error fetching episodes:', epErr.message);
+
+      const currentCollections = memoryCatalog?.collections || loadStoreFromDisk()?.collections || [];
+
+      const snapshot: LocalCatalogData = {
+        lastSyncedAt: new Date().toISOString(),
+        series: seriesData || [],
+        seasons: seasonsData || [],
+        episodes: episodesData || [],
+        collections: currentCollections
+      };
+
+      memoryCatalog = snapshot;
+      writeStoreToDisk(snapshot);
+      console.log(`[LocalStore] Sync complete: ${snapshot.series.length} series, ${snapshot.episodes.length} episodes cached locally.`);
+      return snapshot;
+    } catch (err) {
+      console.error('[LocalStore] Fatal error syncing with Supabase:', err);
+      if (memoryCatalog) return memoryCatalog;
+      const disk = loadStoreFromDisk();
+      if (disk) return disk;
+      return {
+        lastSyncedAt: new Date().toISOString(),
+        series: [],
+        seasons: [],
+        episodes: [],
+        collections: []
+      };
+    }
+  })().finally(() => {
+    activeSyncPromise = null;
+  });
+
+  return activeSyncPromise;
 }
 
 /**
  * Returns the current local catalog data.
  * If in memory, returns immediately (<0.1ms).
- * If on disk, reads into memory.
- * If not yet initialized, triggers initial sync with Supabase.
+ * If memory/disk data is older than CATALOG_TTL_MS (60s), triggers a background
+ * auto-sync with Supabase master so newly published content appears automatically.
  */
 export async function getLocalCatalog(): Promise<LocalCatalogData> {
   if (memoryCatalog && memoryCatalog.series && memoryCatalog.series.length > 0) {
+    const age = Date.now() - new Date(memoryCatalog.lastSyncedAt || 0).getTime();
+    if (age > CATALOG_TTL_MS) {
+      syncLocalCatalogWithSupabase().catch((err) =>
+        console.error('[LocalStore] Background auto-sync error:', err)
+      );
+    }
     return memoryCatalog;
   }
 
   const diskData = loadStoreFromDisk();
   if (diskData && diskData.series && diskData.series.length > 0) {
     memoryCatalog = diskData;
+    const age = Date.now() - new Date(diskData.lastSyncedAt || 0).getTime();
+    if (age > CATALOG_TTL_MS) {
+      syncLocalCatalogWithSupabase().catch((err) =>
+        console.error('[LocalStore] Background auto-sync error:', err)
+      );
+    }
     return memoryCatalog;
   }
 
@@ -289,10 +318,45 @@ export async function getLocalAllPublishedSeries(): Promise<any[]> {
  * Returns detailed series metadata with all seasons and episodes for /series/[slug].
  */
 export async function getLocalSeriesDetails(slug: string): Promise<{ dbSeries: any | null; dbSeasons: any[]; isDbEmpty: boolean }> {
-  const catalog = await getLocalCatalog();
+  let catalog = await getLocalCatalog();
   const viewsMap: Record<string, number> = await getSeriesViewsMap().catch(() => ({}));
 
-  const series = catalog.series.find(s => s.slug === slug && s.is_published !== false);
+  let series = catalog.series.find(s => s.slug === slug && s.is_published !== false);
+
+  // Cache miss fallback: if not in memory/disk catalog, query Supabase on-demand
+  if (!series) {
+    try {
+      const supabase = getSupabaseClient();
+      const { data: dbItem } = await supabase
+        .from('series')
+        .select('*')
+        .eq('slug', slug)
+        .eq('is_published', true)
+        .maybeSingle();
+
+      if (dbItem) {
+        series = dbItem;
+        await upsertLocalSeries(dbItem).catch(() => {});
+        const [{ data: dbSeasons }, { data: dbEps }] = await Promise.all([
+          supabase.from('seasons').select('*').eq('series_id', dbItem.id).eq('is_published', true).order('season_number', { ascending: true }),
+          supabase.from('episodes').select('*').order('episode_number', { ascending: true })
+        ]);
+        if (dbSeasons) {
+          for (const sn of dbSeasons) await upsertLocalSeason(sn).catch(() => {});
+        }
+        if (dbEps) {
+          const seasonIds = new Set((dbSeasons || []).map(sn => sn.id));
+          for (const ep of dbEps) {
+            if (seasonIds.has(ep.season_id)) await upsertLocalEpisode(ep).catch(() => {});
+          }
+        }
+        catalog = await getLocalCatalog();
+        syncLocalCatalogWithSupabase().catch(() => {});
+      }
+    } catch (dbErr) {
+      console.error('[LocalStore] Supabase fallback error for series slug:', slug, dbErr);
+    }
+  }
 
   if (!series) {
     if (catalog.series.length === 0) {
@@ -335,9 +399,10 @@ export async function getLocalSeriesDetails(slug: string): Promise<{ dbSeries: a
 /**
  * Resolves an episode for /watch/[episodeId].
  * Supports clean slugs like 'overflow-episode-1' or UUIDs or trailers.
+ * Includes on-demand Supabase query fallback on cache miss.
  */
 export async function getLocalResolvedEpisode(episodeId: string): Promise<any | null> {
-  const catalog = await getLocalCatalog();
+  let catalog = await getLocalCatalog();
 
   // 1. Check if it's a slug format: 'series-slug-episode-N'
   const match = episodeId.match(/^(.*?)-episode-(\d+)$/i);
@@ -345,13 +410,71 @@ export async function getLocalResolvedEpisode(episodeId: string): Promise<any | 
     const seriesSlug = match[1];
     const episodeNum = parseInt(match[2], 10);
 
-    const series = catalog.series.find(s => s.slug === seriesSlug && s.is_published !== false);
+    let series = catalog.series.find(s => s.slug === seriesSlug && s.is_published !== false);
+
+    // If series not in local cache, query Supabase on-demand
+    if (!series) {
+      try {
+        const supabase = getSupabaseClient();
+        const { data: dbItem } = await supabase
+          .from('series')
+          .select('*')
+          .eq('slug', seriesSlug)
+          .eq('is_published', true)
+          .maybeSingle();
+        if (dbItem) {
+          series = dbItem;
+          await upsertLocalSeries(dbItem).catch(() => {});
+          const [{ data: dbSeasons }, { data: dbEps }] = await Promise.all([
+            supabase.from('seasons').select('*').eq('series_id', dbItem.id).eq('is_published', true).order('season_number', { ascending: true }),
+            supabase.from('episodes').select('*').order('episode_number', { ascending: true })
+          ]);
+          if (dbSeasons) {
+            for (const sn of dbSeasons) await upsertLocalSeason(sn).catch(() => {});
+          }
+          if (dbEps) {
+            const seasonIds = new Set((dbSeasons || []).map(sn => sn.id));
+            for (const ep of dbEps) {
+              if (seasonIds.has(ep.season_id)) await upsertLocalEpisode(ep).catch(() => {});
+            }
+          }
+          catalog = await getLocalCatalog();
+          syncLocalCatalogWithSupabase().catch(() => {});
+        }
+      } catch (err) {
+        console.error('[LocalStore] Supabase fallback error for episode lookup:', episodeId, err);
+      }
+    }
+
     if (series) {
       const seasons = catalog.seasons.filter(sn => sn.series_id === series.id && sn.is_published !== false);
       const seasonIds = new Set(seasons.map(s => s.id));
-      const episodes = catalog.episodes.filter(e => seasonIds.has(e.season_id) && e.is_published !== false);
+      let episodes = catalog.episodes.filter(e => seasonIds.has(e.season_id) && e.is_published !== false);
 
-      const foundEp = episodes.find(e => e.episode_number === episodeNum);
+      let foundEp = episodes.find(e => e.episode_number === episodeNum);
+
+      // If episode number wasn't in local cache, query Supabase on-demand
+      if (!foundEp) {
+        try {
+          const supabase = getSupabaseClient();
+          const { data: dbEp } = await supabase
+            .from('episodes')
+            .select('*')
+            .in('season_id', Array.from(seasonIds))
+            .eq('episode_number', episodeNum)
+            .eq('is_published', true)
+            .maybeSingle();
+          if (dbEp) {
+            await upsertLocalEpisode(dbEp).catch(() => {});
+            catalog = await getLocalCatalog();
+            episodes = catalog.episodes.filter(e => seasonIds.has(e.season_id) && e.is_published !== false);
+            foundEp = dbEp;
+          }
+        } catch (epErr) {
+          console.error('[LocalStore] Supabase fallback error for episode number:', episodeNum, epErr);
+        }
+      }
+
       if (foundEp) {
         const parentSeason = seasons.find(s => s.id === foundEp.season_id);
         const siblingEps = episodes
@@ -372,7 +495,34 @@ export async function getLocalResolvedEpisode(episodeId: string): Promise<any | 
   }
 
   // 2. Check direct UUID match in episodes
-  const ep = catalog.episodes.find(e => e.id === episodeId && e.is_published !== false);
+  let ep = catalog.episodes.find(e => e.id === episodeId && e.is_published !== false);
+  if (!ep && !episodeId.startsWith('trailer-') && !episodeId.startsWith('mock-')) {
+    try {
+      const supabase = getSupabaseClient();
+      const { data: dbEp } = await supabase
+        .from('episodes')
+        .select('*, season:seasons(*, series:series(*))')
+        .eq('id', episodeId)
+        .eq('is_published', true)
+        .maybeSingle();
+
+      if (dbEp) {
+        ep = dbEp;
+        await upsertLocalEpisode(dbEp).catch(() => {});
+        if (dbEp.season) {
+          await upsertLocalSeason(dbEp.season).catch(() => {});
+          if (dbEp.season.series) {
+            await upsertLocalSeries(dbEp.season.series).catch(() => {});
+          }
+        }
+        catalog = await getLocalCatalog();
+        syncLocalCatalogWithSupabase().catch(() => {});
+      }
+    } catch (err) {
+      console.error('[LocalStore] Supabase fallback error for episode UUID:', episodeId, err);
+    }
+  }
+
   if (ep) {
     const parentSeason = catalog.seasons.find(s => s.id === ep.season_id);
     const series = parentSeason ? catalog.series.find(s => s.id === parentSeason.series_id) : null;
