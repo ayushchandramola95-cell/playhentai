@@ -6,9 +6,10 @@ import styles from './admin.module.css';
 
 interface SyncCatalogButtonProps {
   variant?: 'compact' | 'full';
+  isCollapsed?: boolean;
 }
 
-export default function SyncCatalogButton({ variant = 'full' }: SyncCatalogButtonProps) {
+export default function SyncCatalogButton({ variant = 'full', isCollapsed = false }: SyncCatalogButtonProps) {
   const [isSyncing, setIsSyncing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [syncStats, setSyncStats] = useState<{ seriesCount: number; episodesCount: number } | null>(null);
@@ -62,15 +63,16 @@ export default function SyncCatalogButton({ variant = 'full' }: SyncCatalogButto
           color: isSuccess ? '#4ade80' : '#f472b6',
           fontWeight: 700,
           transition: 'all 0.2s ease',
+          padding: isCollapsed ? '0.65rem 0.4rem' : '0.65rem 0.75rem',
         }}
-        title="Sync live catalog to public site"
+        title={isCollapsed ? (isSuccess ? 'Site Synced!' : isSyncing ? 'Syncing...' : 'Sync Live Catalog') : 'Sync live catalog to public site'}
       >
         {isSuccess ? (
-          <Check size={16} />
+          <Check size={16} style={{ flexShrink: 0 }} />
         ) : (
-          <RefreshCw size={16} className={isSyncing ? styles.spin : ''} />
+          <RefreshCw size={16} className={isSyncing ? styles.spin : ''} style={{ flexShrink: 0 }} />
         )}
-        <span>{isSuccess ? 'Site Synced!' : isSyncing ? 'Syncing...' : 'Sync Live Catalog'}</span>
+        {!isCollapsed && <span>{isSuccess ? 'Site Synced!' : isSyncing ? 'Syncing...' : 'Sync Live Catalog'}</span>}
       </button>
     );
   }

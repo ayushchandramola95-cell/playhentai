@@ -55,7 +55,7 @@ export default function AdminSidebar({ username }: AdminSidebarProps) {
       <AdminNav isCollapsed={isCollapsed} />
 
       <div className={styles.sidebarFooter} style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-        <SyncCatalogButton variant="compact" />
+        <SyncCatalogButton variant="compact" isCollapsed={isCollapsed} />
         <Link 
           href="/" 
           className={styles.backBtn}

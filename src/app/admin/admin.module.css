@@ -12,19 +12,41 @@
   display: flex;
   flex-direction: column;
   border-right: 1px solid var(--border);
-  padding: 2rem 1.5rem;
+  padding: 1.25rem 1rem;
   background: var(--surface);
   flex-shrink: 0;
   position: sticky;
   top: 0;
   height: 100vh;
+  max-height: 100vh;
   z-index: 10;
   transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1), padding 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+
+.sidebar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(236, 72, 153, 0.5);
 }
 
 .sidebarCollapsed {
   width: 76px;
-  padding: 1.5rem 0.6rem;
+  padding: 1.25rem 0.5rem;
 }
 
 .sidebarHeader {
@@ -32,15 +54,16 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
-  margin-bottom: 2rem;
+  margin-bottom: 1.25rem;
   color: var(--primary);
   transition: all 0.3s ease;
+  flex-shrink: 0;
 }
 
 .sidebarCollapsed .sidebarHeader {
   flex-direction: column;
   gap: 0.75rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
   align-items: center;
 }
 
@@ -90,18 +113,19 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.75rem 1rem;
+  padding: 0.6rem 0.85rem;
   border-radius: 12px;
   background: var(--surface-hover);
-  margin-bottom: 2rem;
+  margin-bottom: 1.25rem;
   border: 1px solid var(--border);
   transition: all 0.3s ease;
+  flex-shrink: 0;
 }
 
 .sidebarCollapsed .adminUser {
   justify-content: center;
-  padding: 0.75rem 0.5rem;
-  margin-bottom: 1.5rem;
+  padding: 0.6rem 0.4rem;
+  margin-bottom: 1rem;
 }
 
 .shieldIcon {
@@ -121,27 +145,52 @@
 .navMenu {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  flex-grow: 1;
+  gap: 0.35rem;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
+  margin-right: -4px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+
+.navMenu::-webkit-scrollbar {
+  width: 4px;
+}
+
+.navMenu::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.navMenu::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+
+.navMenu::-webkit-scrollbar-thumb:hover {
+  background: rgba(236, 72, 153, 0.5);
 }
 
 .navItem {
   display: flex;
   align-items: center;
-  gap: 0.8rem;
-  padding: 0.8rem 1rem;
+  gap: 0.75rem;
+  padding: 0.65rem 0.85rem;
   border-radius: 10px;
   color: var(--foreground-secondary);
   text-decoration: none;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   transition: all 0.2s ease;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .sidebarCollapsed .navItem {
   justify-content: center;
-  padding: 0.8rem 0.5rem;
+  padding: 0.65rem 0.4rem;
 }
 
 .navItem:hover {
@@ -165,7 +214,8 @@
 .sidebarFooter {
   margin-top: auto;
   border-top: 1px solid var(--border);
-  padding-top: 1.5rem;
+  padding-top: 1rem;
+  flex-shrink: 0;
 }
 
 .backBtn {
@@ -173,7 +223,7 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 0.75rem;
+  padding: 0.65rem 0.75rem;
   border-radius: 10px;
   background: var(--surface-hover);
   color: var(--foreground-primary);
@@ -186,7 +236,7 @@
 }
 
 .sidebarCollapsed .backBtn {
-  padding: 0.75rem 0.5rem;
+  padding: 0.65rem 0.4rem;
 }
 
 .backBtn:hover {
