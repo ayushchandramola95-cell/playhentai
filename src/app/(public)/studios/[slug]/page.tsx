@@ -1,11 +1,12 @@
 import React from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, Film, Star, Award, Calendar, MapPin } from 'lucide-react';
+import { ArrowLeft, Film, Star, Award, Calendar, MapPin, CheckCircle2, PlayCircle, ShieldCheck } from 'lucide-react';
 import { getStudioDetails } from '@/utils/studiosData';
 import { getR2Url } from '@/utils/r2';
 import SeriesCard from '@/components/SeriesCard/SeriesCard';
 import JsonLd from '@/components/JsonLd/JsonLd';
+import { isUncensoredSeries } from '@/utils/constants';
 import styles from './studios.module.css';
 
 interface StudioDetailPageProps {
@@ -182,6 +183,44 @@ export default async function StudioDetailPage({ params }: StudioDetailPageProps
           </div>
         </div>
       </div>
+
+      {/* Subfilter Nav Pills */}
+      {(() => {
+        const completedCount = studio.series.filter((s: any) => {
+          const st = (s.status || '').toLowerCase();
+          return st === 'completed' || st === 'finalized';
+        }).length;
+        const ongoingCount = studio.series.filter((s: any) => {
+          const st = (s.status || '').toLowerCase();
+          return st === 'ongoing' || st === 'releasing';
+        }).length;
+        const uncensoredCount = studio.series.filter((s: any) => isUncensoredSeries(s)).length;
+
+        return (
+          <nav className={styles.subfilterNav} aria-label="Studio release filters">
+            <Link href={`/studios/${slug}`} className={styles.subfilterPillActive}>
+              <Film size={14} />
+              <span>All Releases</span>
+              <span className={styles.subfilterCount}>{studio.series.length}</span>
+            </Link>
+            <Link href={`/studios/${slug}/completed`} className={styles.subfilterPill}>
+              <CheckCircle2 size={14} />
+              <span>Completed</span>
+              <span className={styles.subfilterCount}>{completedCount}</span>
+            </Link>
+            <Link href={`/studios/${slug}/ongoing`} className={styles.subfilterPill}>
+              <PlayCircle size={14} />
+              <span>Ongoing</span>
+              <span className={styles.subfilterCount}>{ongoingCount}</span>
+            </Link>
+            <Link href={`/studios/${slug}/uncensored`} className={styles.subfilterPill}>
+              <ShieldCheck size={14} />
+              <span>Uncensored</span>
+              <span className={styles.subfilterCount}>{uncensoredCount}</span>
+            </Link>
+          </nav>
+        );
+      })()}
 
       {/* Studio Releases Grid */}
       <section className={styles.releasesSection}>

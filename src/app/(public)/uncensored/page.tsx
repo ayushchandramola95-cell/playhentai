@@ -1,5 +1,6 @@
 import React, { Suspense } from 'react';
-import { ShieldCheck } from 'lucide-react';
+import Link from 'next/link';
+import { ShieldCheck, Calendar } from 'lucide-react';
 import { getLocalAllPublishedSeries } from '@/utils/localCatalogStore';
 import BrowseHub from '@/components/BrowseHub/BrowseHub';
 import JsonLd from '@/components/JsonLd/JsonLd';
@@ -80,6 +81,16 @@ export default async function UncensoredPage({ searchParams }: PageProps) {
   // Filter series using strict genre (category) & tag constraints
   const uncensoredSeries = activeSeries.filter(isUncensoredSeries);
 
+  // Distinct uncensored years for quick navigation
+  const yearSet = new Set<number>();
+  uncensoredSeries.forEach((s: any) => {
+    const y = s.release_year || s.releaseYear;
+    if (typeof y === 'number' && y > 1990 && y <= 2030) {
+      yearSet.add(y);
+    }
+  });
+  const availableYears = Array.from(yearSet).sort((a, b) => b - a);
+
   const breadcrumbJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
@@ -127,6 +138,24 @@ export default async function UncensoredPage({ searchParams }: PageProps) {
         <p className={styles.subtext}>
           Browse our collection of uncensored hentai anime with English subtitles, including complete series, new releases, and popular titles.
         </p>
+
+        {availableYears.length > 0 && (
+          <div className={styles.filterPillsRow} aria-label="Filter by release year">
+            <span className={styles.filterPillActive}>
+              All Years
+            </span>
+            {availableYears.map((yr) => (
+              <Link
+                key={yr}
+                href={`/uncensored/${yr}`}
+                className={styles.filterPill}
+              >
+                <Calendar size={12} />
+                <span>{yr}</span>
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Dedicated Tailored Uncensored Browse Hub */}

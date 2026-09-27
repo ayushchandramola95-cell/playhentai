@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next';
 import { unstable_cache } from 'next/cache';
 import { getLocalCatalog } from '@/utils/localCatalogStore';
 import { STUDIOS_METADATA } from '@/utils/studiosData';
-import { tagToSlug } from '@/utils/constants';
+import { tagToSlug, isUncensoredSeries } from '@/utils/constants';
 import { getR2Url } from '@/utils/r2';
 
 export const revalidate = 7200;
@@ -14,6 +14,7 @@ const getCachedSitemapData = unstable_cache(
     let dbPlaylists: any[] = [];
     let dbDistinctTags: string[] = [];
     let dbDistinctYears: number[] = [];
+    let dbDistinctUncensoredYears: number[] = [];
 
     try {
       const catalog = await getLocalCatalog();
@@ -21,12 +22,20 @@ const getCachedSitemapData = unstable_cache(
       dbSeries = publishedSeries;
 
       const yearSet = new Set<number>();
+      const uncensoredYearSet = new Set<number>();
+
       publishedSeries.forEach((s: any) => {
-        if (s.release_year && typeof s.release_year === 'number') {
-          yearSet.add(s.release_year);
+        const y = s.release_year;
+        if (y && typeof y === 'number') {
+          yearSet.add(y);
+          if (isUncensoredSeries(s)) {
+            uncensoredYearSet.add(y);
+          }
         }
       });
+
       dbDistinctYears = Array.from(yearSet);
+      dbDistinctUncensoredYears = Array.from(uncensoredYearSet);
 
       const seriesMap = new Map<string, any>();
       publishedSeries.forEach((s: any) => seriesMap.set(s.id, s));
@@ -87,16 +96,23 @@ const getCachedSitemapData = unstable_cache(
       console.error('Error gathering dynamic sitemap URLs from DB:', err);
     }
 
-    return { dbSeries, dbEpisodes, dbPlaylists, dbDistinctTags, dbDistinctYears };
+    return {
+      dbSeries,
+      dbEpisodes,
+      dbPlaylists,
+      dbDistinctTags,
+      dbDistinctYears,
+      dbDistinctUncensoredYears,
+    };
   },
-  ['sitemap-data-cache-v2'],
+  ['sitemap-data-cache-v3'],
   { revalidate: 7200, tags: ['sitemap_data', 'series_catalog', 'episodes_catalog'] }
 );
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
   
-  // 1. Core Public Indexable Static Pages (Excludes private user account and internal search URLs)
+  // 1. Core Public Indexable Static Pages
   const staticPages = [
     { url: `${baseUrl}`, lastModified: new Date(), changeFrequency: 'daily' as const, priority: 1.0 },
     { url: `${baseUrl}/categories`, lastModified: new Date(), changeFrequency: 'weekly' as const, priority: 0.8 },
@@ -121,12 +137,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/contact`, lastModified: new Date(), changeFrequency: 'monthly' as const, priority: 0.5 },
   ];
 
-  // 2. Category Pages
+  // 2. Category Pages & Dedicated Genre Landing Pages
   const genres = [
     'action', 'sci-fi', 'fantasy', 'adventure', 'drama', 'mystery', 
     'romance', 'comedy', 'supernatural', 'slice-of-life', 'harem', 
     'ecchi', 'hentai', 'uncensored', '3d', 'cgi'
   ];
+
   const categoryPages = genres.map(genre => ({
     url: `${baseUrl}/categories/${genre}`,
     lastModified: new Date(),
@@ -134,7 +151,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  const { dbSeries, dbEpisodes, dbPlaylists, dbDistinctTags, dbDistinctYears } = await getCachedSitemapData();
+  // Standalone Genre landing pages (/genres/[genre])
+  const genrePages = genres.map(genre => ({
+    url: `${baseUrl}/genres/${genre}`,
+    lastModified: new Date(),
+    changeFrequency: 'weekly' as const,
+    priority: 0.85,
+  }));
+
+  const {
+    dbSeries,
+    dbEpisodes,
+    dbPlaylists,
+    dbDistinctTags,
+    dbDistinctYears,
+    dbDistinctUncensoredYears,
+  } = await getCachedSitemapData();
 
   // Fallbacks if database catalog is empty
   const activeSeries = dbSeries.length > 0 ? dbSeries : [
@@ -176,12 +208,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   });
 
   // 5. Studio Pages (from STUDIOS_METADATA)
-  const studioDetailPages = STUDIOS_METADATA.map(studio => ({
-    url: `${baseUrl}/studios/${(studio as any).slug || studio.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
-    lastModified: new Date(),
-    changeFrequency: 'monthly' as const,
-    priority: 0.7,
-  }));
+  const studioDetailPages = STUDIOS_METADATA.map(studio => {
+    const slug = (studio as any).slug || studio.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    return {
+      url: `${baseUrl}/studios/${slug}`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.75,
+    };
+  });
 
   // 6. Year Pages
   const activeYears = dbDistinctYears.length > 0 ? dbDistinctYears : [2024, 2025, 2026];
@@ -192,7 +227,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  // 7. Tag Pages (Filter out tags that already have dedicated category pages to prevent keyword cannibalization)
+  // 7. Tag Pages
   const categorySlugs = new Set(genres.map(g => tagToSlug(g)));
   const tagPages = dbDistinctTags
     .filter(tag => !categorySlugs.has(tagToSlug(tag)))
@@ -211,14 +246,88 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.75,
   }));
 
+  // 9. Programmatic Genre Subfilter Pages (/genres/[genre]/[subfilter])
+  const topCombinationGenres = [
+    'action', 'fantasy', 'romance', 'sci-fi', 'drama', 'comedy',
+    'supernatural', 'harem', 'ecchi', 'adventure', 'uncensored', '3d'
+  ];
+  const recentYears = activeYears.filter((y) => y >= 2020).sort((a, b) => b - a);
+
+  const genreCombinationPages: MetadataRoute.Sitemap = [];
+  topCombinationGenres.forEach((genre) => {
+    // Status combinations
+    genreCombinationPages.push({
+      url: `${baseUrl}/genres/${genre}/completed`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.8,
+    });
+    genreCombinationPages.push({
+      url: `${baseUrl}/genres/${genre}/ongoing`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.8,
+    });
+
+    // Uncensored combination
+    if (genre !== 'uncensored') {
+      genreCombinationPages.push({
+        url: `${baseUrl}/genres/${genre}/uncensored`,
+        lastModified: new Date(),
+        changeFrequency: 'weekly' as const,
+        priority: 0.8,
+      });
+    }
+
+    // Year combinations (recent high-traffic release years)
+    recentYears.slice(0, 6).forEach((year) => {
+      genreCombinationPages.push({
+        url: `${baseUrl}/genres/${genre}/${year}`,
+        lastModified: new Date(),
+        changeFrequency: 'weekly' as const,
+        priority: 0.75,
+      });
+    });
+  });
+
+  // 10. Programmatic Uncensored Year Pages (/uncensored/[year])
+  const activeUncensoredYears = dbDistinctUncensoredYears.length > 0
+    ? dbDistinctUncensoredYears
+    : [2026, 2025, 2024, 2023, 2022, 2021, 2020];
+
+  const uncensoredYearPages = activeUncensoredYears.map((year) => ({
+    url: `${baseUrl}/uncensored/${year}`,
+    lastModified: new Date(),
+    changeFrequency: 'weekly' as const,
+    priority: 0.85,
+  }));
+
+  // 11. Programmatic Studio Status Pages (/studios/[slug]/completed, /ongoing, /uncensored)
+  const studioSubfilterPages: MetadataRoute.Sitemap = [];
+  STUDIOS_METADATA.forEach((studio) => {
+    const slug = (studio as any).slug || studio.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    ['completed', 'ongoing', 'uncensored'].forEach((status) => {
+      studioSubfilterPages.push({
+        url: `${baseUrl}/studios/${slug}/${status}`,
+        lastModified: new Date(),
+        changeFrequency: 'weekly' as const,
+        priority: 0.7,
+      });
+    });
+  });
+
   return [
     ...staticPages,
     ...categoryPages,
+    ...genrePages,
     ...seriesPages,
     ...episodePages,
     ...studioDetailPages,
     ...yearPages,
     ...tagPages,
     ...playlistPages,
+    ...genreCombinationPages,
+    ...uncensoredYearPages,
+    ...studioSubfilterPages,
   ];
 }
