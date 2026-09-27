@@ -85,6 +85,7 @@ export default function DownloadModal({
 
   const cleanSeries = seriesTitle.replace(/[^\w\s-]/g, '').trim().replace(/\s+/g, '_');
   const downloadFileName = `[PlayHentai]_${cleanSeries}_Ep${episode.episode_number}_1080p.mp4`;
+  const downloadApiUrl = `/api/download?url=${encodeURIComponent(videoUrl)}&filename=${encodeURIComponent(downloadFileName)}`;
 
   // Estimate file size based on duration (approx 2.5MB per minute at 1080p high bitrate)
   const estMinutes = episode.duration_seconds ? Math.ceil(episode.duration_seconds / 60) : 24;
@@ -93,12 +94,10 @@ export default function DownloadModal({
   const handleTriggerDownload = () => {
     setHasStartedDownload(true);
 
-    // Create anchor with download attribute
+    // Trigger download via same-origin streaming proxy
     const a = document.createElement('a');
-    a.href = videoUrl;
+    a.href = downloadApiUrl;
     a.download = downloadFileName;
-    a.target = '_blank';
-    a.rel = 'noopener noreferrer';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -257,14 +256,18 @@ export default function DownloadModal({
                     </div>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={handleTriggerDownload}
+                  <a
+                    href={downloadApiUrl}
+                    download={downloadFileName}
+                    onClick={() => {
+                      setHasStartedDownload(true);
+                      setTimeout(() => setHasStartedDownload(false), 4000);
+                    }}
                     className={styles.downloadFinalBtn}
                   >
                     <Download size={18} />
-                    <span>{hasStartedDownload ? 'Download Started!' : 'Download Episode (1080p HD MP4)'}</span>
-                  </button>
+                    <span>{hasStartedDownload ? 'Starting Download...' : 'Download Episode (1080p HD MP4)'}</span>
+                  </a>
                 </div>
               )}
             </>

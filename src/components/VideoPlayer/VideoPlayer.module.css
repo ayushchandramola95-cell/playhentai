@@ -159,45 +159,59 @@
 
 .hoverTimeTooltip {
   position: absolute;
-  bottom: 22px;
+  bottom: 28px;
   transform: translateX(-50%);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.35rem;
-  background: rgba(15, 23, 42, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
-  padding: 0.35rem 0.5rem;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.8), 0 0 12px rgba(236, 72, 153, 0.3);
+  gap: 0.4rem;
+  background: rgba(10, 14, 26, 0.96);
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  border-radius: 10px;
+  padding: 0.4rem;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.9), 0 0 16px rgba(236, 72, 153, 0.25);
   pointer-events: none;
-  z-index: 30;
+  z-index: 40;
   animation: fadeIn 0.15s ease-out;
 }
 
 .hoverThumbnailWrap {
-  width: 110px;
-  height: 62px;
-  border-radius: 6px;
+  width: 154px;
+  height: 86px;
+  border-radius: 7px;
   overflow: hidden;
   background: #000;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hoverThumbnailVideo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .hoverThumbnailImg {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  position: absolute;
+  inset: 0;
 }
 
 .hoverTimeText {
-  font-size: 0.76rem;
-  font-weight: 800;
+  font-size: 0.8rem;
+  font-weight: 850;
   color: #ffffff;
-  letter-spacing: 0.03em;
-  background: rgba(0, 0, 0, 0.4);
-  padding: 0.1rem 0.4rem;
-  border-radius: 4px;
+  letter-spacing: 0.04em;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 0.12rem 0.55rem;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .seekSlider {

@@ -108,6 +108,9 @@ export default function VideoPlayer({
   const [hoverTime, setHoverTime] = useState<number | null>(null);
   const [hoverPosPercent, setHoverPosPercent] = useState<number>(0);
   const progressBarRef = useRef<HTMLDivElement>(null);
+  const previewVideoRef = useRef<HTMLVideoElement>(null);
+  const lastPreviewSeekRef = useRef<number>(0);
+  const [previewFrameReady, setPreviewFrameReady] = useState(false);
 
   // Listen for custom seekToTime event (e.g. from clickable timestamp comments)
   useEffect(() => {
@@ -534,8 +537,20 @@ export default function VideoPlayer({
     const rect = progressBarRef.current.getBoundingClientRect();
     const clickX = e.clientX - rect.left;
     const pct = Math.max(0, Math.min(1, clickX / rect.width));
+    const targetTime = Math.max(0, Math.min(duration, pct * duration));
     setHoverPosPercent(pct * 100);
-    setHoverTime(pct * duration);
+    setHoverTime(targetTime);
+
+    // Throttle preview video frame seek to ~40ms for smooth hardware-accelerated scrubbing
+    const now = Date.now();
+    if (now - lastPreviewSeekRef.current > 40) {
+      lastPreviewSeekRef.current = now;
+      if (previewVideoRef.current && isFinite(targetTime)) {
+        try {
+          previewVideoRef.current.currentTime = targetTime;
+        } catch (_) {}
+      }
+    }
   };
 
   const handleProgressBarMouseLeave = () => {
@@ -751,9 +766,14 @@ export default function VideoPlayer({
   };
 
   const formatTime = (timeInSeconds: number) => {
-    if (isNaN(timeInSeconds)) return '00:00';
-    const minutes = Math.floor(timeInSeconds / 60);
-    const seconds = Math.floor(timeInSeconds % 60);
+    if (isNaN(timeInSeconds) || timeInSeconds < 0) return '00:00';
+    const totalSecs = Math.floor(timeInSeconds);
+    const hours = Math.floor(totalSecs / 3600);
+    const minutes = Math.floor((totalSecs % 3600) / 60);
+    const seconds = Math.floor(totalSecs % 60);
+    if (hours > 0) {
+      return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
     return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   };
 
@@ -960,17 +980,31 @@ export default function VideoPlayer({
               {hoverTime !== null && (
                 <div 
                   className={styles.hoverTimeTooltip}
-                  style={{ left: `${Math.max(6, Math.min(94, hoverPosPercent))}%` }}
+                  style={{ left: `${Math.max(8, Math.min(92, hoverPosPercent))}%` }}
                 >
-                  {posterUrl && (
-                    <div className={styles.hoverThumbnailWrap}>
+                  <div className={styles.hoverThumbnailWrap}>
+                    <video
+                      ref={previewVideoRef}
+                      src={videoUrl}
+                      className={styles.hoverThumbnailVideo}
+                      muted
+                      playsInline
+                      preload="auto"
+                      onSeeked={() => setPreviewFrameReady(true)}
+                    />
+                    {posterUrl && (
                       <img 
                         src={posterUrl} 
-                        alt="Seek preview" 
+                        alt="Seek preview fallback" 
                         className={styles.hoverThumbnailImg} 
+                        style={{
+                          opacity: previewFrameReady ? 0 : 1,
+                          transition: 'opacity 0.2s ease',
+                          pointerEvents: 'none'
+                        }}
                       />
-                    </div>
-                  )}
+                    )}
+                  </div>
                   <span className={styles.hoverTimeText}>{formatTime(hoverTime)}</span>
                 </div>
               )}
