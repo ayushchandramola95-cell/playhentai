@@ -104,6 +104,30 @@ export default function VideoPlayer({
   const [resumeTime, setResumeTime] = useState<number | null>(null);
   const [showResumePrompt, setShowResumePrompt] = useState(false);
 
+  // Hover seekbar scrub states
+  const [hoverTime, setHoverTime] = useState<number | null>(null);
+  const [hoverPosPercent, setHoverPosPercent] = useState<number>(0);
+  const progressBarRef = useRef<HTMLDivElement>(null);
+
+  // Listen for custom seekToTime event (e.g. from clickable timestamp comments)
+  useEffect(() => {
+    const handleCustomSeek = (e: any) => {
+      const targetTime = e.detail?.time;
+      if (typeof targetTime === 'number' && videoRef.current) {
+        const clamped = Math.max(0, Math.min(duration || 10000, targetTime));
+        videoRef.current.currentTime = clamped;
+        setCurrentTime(clamped);
+        setHasStartedPlaying(true);
+        videoRef.current.play().then(() => setIsPlaying(true)).catch(() => {});
+      }
+    };
+
+    window.addEventListener('seekToTime', handleCustomSeek as EventListener);
+    return () => {
+      window.removeEventListener('seekToTime', handleCustomSeek as EventListener);
+    };
+  }, [duration]);
+
   // Autoplay countdown state
   const [autoplayCountdown, setAutoplayCountdown] = useState<number | null>(null);
 
@@ -503,6 +527,19 @@ export default function VideoPlayer({
       videoRef.current.currentTime = time;
       setCurrentTime(time);
     }
+  };
+
+  const handleProgressBarMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!progressBarRef.current || !duration || duration <= 0) return;
+    const rect = progressBarRef.current.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const pct = Math.max(0, Math.min(1, clickX / rect.width));
+    setHoverPosPercent(pct * 100);
+    setHoverTime(pct * duration);
+  };
+
+  const handleProgressBarMouseLeave = () => {
+    setHoverTime(null);
   };
 
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -913,8 +950,30 @@ export default function VideoPlayer({
 
           {/* Bottom Panel */}
           <div className={styles.bottomControls}>
-            {/* Progress Slider (Seekbar) */}
-            <div className={styles.progressBarRow}>
+            {/* Progress Slider (Seekbar with Hover Thumbnail & Timestamp Preview) */}
+            <div 
+              ref={progressBarRef}
+              className={styles.progressBarRow}
+              onMouseMove={handleProgressBarMouseMove}
+              onMouseLeave={handleProgressBarMouseLeave}
+            >
+              {hoverTime !== null && (
+                <div 
+                  className={styles.hoverTimeTooltip}
+                  style={{ left: `${Math.max(6, Math.min(94, hoverPosPercent))}%` }}
+                >
+                  {posterUrl && (
+                    <div className={styles.hoverThumbnailWrap}>
+                      <img 
+                        src={posterUrl} 
+                        alt="Seek preview" 
+                        className={styles.hoverThumbnailImg} 
+                      />
+                    </div>
+                  )}
+                  <span className={styles.hoverTimeText}>{formatTime(hoverTime)}</span>
+                </div>
+              )}
               <input
                 type="range"
                 min={0}

@@ -7,7 +7,7 @@ import {
   Tv, Star, ShieldCheck, ChevronLeft, ChevronRight,
   Share2, AlertTriangle, Lightbulb, Check, X, LayoutGrid, List,
   Calendar, Clock, Film, ChevronDown, ChevronUp, Sparkles, Subtitles,
-  ThumbsUp, ThumbsDown, Eye, MessageSquare, Copy
+  ThumbsUp, ThumbsDown, Eye, MessageSquare, Copy, Download
 } from 'lucide-react';
 import { getR2Url } from '@/utils/r2';
 import { getEpisodeWatchUrl } from '@/utils/episodeUrl';
@@ -17,6 +17,7 @@ import SimilarTitles from '@/components/SimilarTitles/SimilarTitles';
 import RankedTabWidget from '@/components/RankedTabWidget/RankedTabWidget';
 import FavoriteToggle from '@/components/FavoriteToggle/FavoriteToggle';
 import RateSeriesButton from '@/components/RateSeriesButton/RateSeriesButton';
+import DownloadModal from '@/components/DownloadModal/DownloadModal';
 import styles from './watch.module.css';
 
 interface WatchPageClientProps {
@@ -72,6 +73,7 @@ export default function WatchPageClient({
 
   // Report Issue Modal state
   const [showReportModal, setShowReportModal] = useState<boolean>(false);
+  const [showDownloadModal, setShowDownloadModal] = useState<boolean>(false);
   const [selectedReportReason, setSelectedReportReason] = useState<string>(REPORT_REASONS[0]);
   const [reportNotes, setReportNotes] = useState<string>('');
   const [reportSubmitted, setReportSubmitted] = useState<boolean>(false);
@@ -673,6 +675,16 @@ export default function WatchPageClient({
         </div>
       )}
 
+      {/* Download Episode Modal with Ad & Turnstile Captcha */}
+      <DownloadModal
+        isOpen={showDownloadModal}
+        onClose={() => setShowDownloadModal(false)}
+        episode={activeEpisode}
+        seriesTitle={seriesTitle}
+        seriesSlug={seriesSlug}
+        videoUrl={getR2Url(activeEpisode.video_key, 'video')}
+      />
+
       {/* Breadcrumbs Section */}
       <div className={styles.breadcrumbs}>
         <Link href="/">Home</Link>
@@ -875,6 +887,18 @@ export default function WatchPageClient({
                       <span>Share</span>
                     </>
                   )}
+                </button>
+
+                {/* Download Episode (1080p MP4) */}
+                <button
+                  type="button"
+                  onClick={() => setShowDownloadModal(true)}
+                  className={`${styles.actionBtn} ${styles.actionBtnDownload}`}
+                  title="Download Episode (1080p Full HD MP4)"
+                  aria-label="Download Episode in 1080p"
+                >
+                  <Download size={15} />
+                  <span>Download</span>
                 </button>
 
                 {/* Direct Rating Button */}

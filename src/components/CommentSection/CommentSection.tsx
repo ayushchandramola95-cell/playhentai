@@ -199,6 +199,53 @@ export default function CommentSection({ episodeId }: CommentSectionProps) {
     return name.charAt(0).toUpperCase();
   };
 
+  const renderFormattedComment = (text: string) => {
+    // Match timestamps like 01:23, 1:23, 01:23:45, 1:23:45
+    const timestampRegex = /\b(?:(\d{1,2}):)?([0-5]?\d):([0-5]\d)\b/g;
+    const parts: (string | React.ReactNode)[] = [];
+    let lastIndex = 0;
+    let match: RegExpExecArray | null;
+
+    while ((match = timestampRegex.exec(text)) !== null) {
+      if (match.index > lastIndex) {
+        parts.push(text.substring(lastIndex, match.index));
+      }
+
+      const hours = match[1] ? parseInt(match[1], 10) : 0;
+      const minutes = parseInt(match[2], 10);
+      const seconds = parseInt(match[3], 10);
+      const totalSeconds = hours * 3600 + minutes * 60 + seconds;
+      const timeStr = match[0];
+
+      parts.push(
+        <button
+          key={`ts-${match.index}`}
+          type="button"
+          onClick={() => {
+            if (typeof window !== 'undefined') {
+              window.dispatchEvent(
+                new CustomEvent('seekToTime', { detail: { time: totalSeconds } })
+              );
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+          }}
+          className={styles.timestampBtn}
+          title={`Jump video to ${timeStr}`}
+        >
+          {timeStr}
+        </button>
+      );
+
+      lastIndex = timestampRegex.lastIndex;
+    }
+
+    if (lastIndex < text.length) {
+      parts.push(text.substring(lastIndex));
+    }
+
+    return parts;
+  };
+
   const sortedComments = [...comments].sort((a, b) => {
     if (sortBy === 'oldest') {
       return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
@@ -365,7 +412,7 @@ export default function CommentSection({ episodeId }: CommentSectionProps) {
                     <span className={styles.date}>{formatRelativeTime(c.created_at)}</span>
                   </div>
                   
-                  {c.content && <p className={styles.content}>{c.content}</p>}
+                  {c.content && <p className={styles.content}>{renderFormattedComment(c.content)}</p>}
 
                   {/* Inline GIF Attachment */}
                   {c.gif_url && (

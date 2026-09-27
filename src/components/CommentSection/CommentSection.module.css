@@ -375,6 +375,31 @@
   white-space: pre-wrap;
 }
 
+.timestampBtn {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(168, 85, 247, 0.15);
+  border: 1px solid rgba(168, 85, 247, 0.35);
+  color: #c084fc;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 750;
+  padding: 0.08rem 0.42rem;
+  border-radius: 6px;
+  cursor: pointer;
+  margin: 0 0.2rem;
+  transition: all 0.2s ease;
+  vertical-align: baseline;
+}
+
+.timestampBtn:hover {
+  background: rgba(168, 85, 247, 0.3);
+  border-color: #a855f7;
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(168, 85, 247, 0.35);
+}
+
 /* Comment GIF Container */
 .commentGifContainer {
   margin-top: 0.4rem;
