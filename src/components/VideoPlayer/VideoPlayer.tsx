@@ -111,6 +111,7 @@ export default function VideoPlayer({
   const previewVideoRef = useRef<HTMLVideoElement>(null);
   const isSeekingRef = useRef<boolean>(false);
   const pendingSeekRef = useRef<number | null>(null);
+  const lastSnappedSecRef = useRef<number>(-1);
   const [previewFrameReady, setPreviewFrameReady] = useState(false);
 
   // Listen for custom seekToTime event (e.g. from clickable timestamp comments)
@@ -558,20 +559,30 @@ export default function VideoPlayer({
     const clickX = e.clientX - rect.left;
     const pct = Math.max(0, Math.min(1, clickX / rect.width));
     const targetTime = Math.max(0, Math.min(duration, pct * duration));
+    
+    // Smooth 60fps tracking for tooltip position & cursor timestamp text
     setHoverPosPercent(pct * 100);
     setHoverTime(targetTime);
 
-    // If a seek is already in flight, queue the newest position to avoid decoder choking
+    // Quantize video seek to 4-second keyframe intervals (cuts redundant seeks by 80%)
+    const snappedTime = Math.floor(targetTime / 4) * 4;
+    if (snappedTime === lastSnappedSecRef.current) {
+      return; // Already displaying this keyframe window
+    }
+    lastSnappedSecRef.current = snappedTime;
+
+    // If a seek is already in flight, queue the newest keyframe
     if (isSeekingRef.current) {
-      pendingSeekRef.current = targetTime;
+      pendingSeekRef.current = snappedTime;
     } else {
-      executePreviewSeek(targetTime);
+      executePreviewSeek(snappedTime);
     }
   };
 
   const handleProgressBarMouseLeave = () => {
     setHoverTime(null);
     pendingSeekRef.current = null;
+    lastSnappedSecRef.current = -1;
   };
 
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
