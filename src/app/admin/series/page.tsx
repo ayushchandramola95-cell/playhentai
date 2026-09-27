@@ -312,6 +312,25 @@ export default function AdminSeriesPage() {
     setParsedPreview(null);
   };
 
+  // Automated Metadata Importer states
+  const [showImporterDrawer, setShowImporterDrawer] = useState(false);
+  const [importerQuery, setImporterQuery] = useState('');
+  const [importerSearching, setImporterSearching] = useState(false);
+  const [importerResults, setImporterResults] = useState<any[]>([]);
+  const [importerError, setImporterError] = useState<string | null>(null);
+  const [importingId, setImportingId] = useState<string | null>(null);
+  const [importSuccessMsg, setImportSuccessMsg] = useState<string | null>(null);
+  const [autoUploadToR2, setAutoUploadToR2] = useState(true);
+
+  const resetImporter = () => {
+    setShowImporterDrawer(false);
+    setImporterQuery('');
+    setImporterResults([]);
+    setImporterError(null);
+    setImportSuccessMsg(null);
+    setImportingId(null);
+  };
+
   const formatFieldLabel = (key: string): string => {
     const labels: Record<string, string> = {
       title: 'Series Title',
@@ -733,6 +752,121 @@ export default function AdminSeriesPage() {
       alert(`Error updating TSV: ${err.message}`);
     } finally {
       setSavingTsv(false);
+    }
+  };
+
+  // Automated Metadata Importer Handlers
+  const handleSearchMetadata = async () => {
+    const q = importerQuery.trim();
+    if (!q) return;
+    setImporterSearching(true);
+    setImporterError(null);
+    setImportSuccessMsg(null);
+
+    try {
+      const res = await fetch(`/api/admin/metadata-import?query=${encodeURIComponent(q)}`);
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to search metadata provider');
+      }
+      setImporterResults(data.results || []);
+      if (!data.results || data.results.length === 0) {
+        setImporterError(`No anime matches found for "${q}". Try an alternate title or Romaji spelling.`);
+      }
+    } catch (err: any) {
+      setImporterError(err.message || 'Error querying anime metadata.');
+    } finally {
+      setImporterSearching(false);
+    }
+  };
+
+  const handleApplyImportedMetadata = async (item: any) => {
+    setImportingId(item.id);
+    setImporterError(null);
+    setImportSuccessMsg(null);
+
+    try {
+      // 1. Basic Information
+      if (item.title) setTitle(item.title);
+      if (!editingId && item.slug) {
+        setSlug(item.slug);
+      }
+      if (item.description) setDescription(item.description);
+      if (item.studio) setStudio(item.studio);
+      if (item.release_year) setReleaseYear(Number(item.release_year));
+      if (item.status) setStatus(item.status);
+      if (item.alt_title_japanese) setAltTitleJapanese(item.alt_title_japanese);
+      if (item.alt_title_romaji) setAltTitleRomaji(item.alt_title_romaji);
+      if (item.alt_title_english) setAltTitleEnglish(item.alt_title_english);
+      if (item.episode_count) setEpisodeCountOverride(Number(item.episode_count));
+      if (item.runtime) setRuntime(Number(item.runtime));
+      if (item.first_air_date) setFirstAirDate(item.first_air_date);
+      if (item.last_air_date) setLastAirDate(item.last_air_date);
+
+      // 2. Tags & Aliases
+      if (item.tags && item.tags.length > 0) {
+        setTagsInput(item.tags.join(', '));
+      }
+      if (item.aliases && item.aliases.length > 0) {
+        setAliasesInput(item.aliases.join(', '));
+      }
+
+      // 3. Auto-fill SEO metadata
+      if (item.title) {
+        setMetaTitle(`${item.title} - Watch English Sub HD | Play Hentai`);
+        if (item.description) {
+          const cleanDesc = item.description.replace(/<[^>]*>?/gm, '').slice(0, 155).trim() + '...';
+          setMetaDescription(cleanDesc);
+        } else {
+          setMetaDescription(`Watch ${item.title} with English subtitles in HD. Stream all available episodes on Play Hentai.`);
+        }
+      }
+
+      // 4. Artwork & Covers
+      let finalPosterKey = item.poster_url || '';
+      let finalBannerKey = item.banner_url || '';
+
+      if (autoUploadToR2 && item.poster_url) {
+        try {
+          const uploadRes = await fetch('/api/admin/metadata-import', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              imageUrl: item.poster_url,
+              slug: item.slug || slug || 'series',
+              type: 'poster'
+            })
+          });
+          if (uploadRes.ok) {
+            const uploadData = await uploadRes.json();
+            if (uploadData.key) {
+              finalPosterKey = uploadData.key;
+            }
+          }
+        } catch (uploadErr) {
+          console.warn('R2 upload failed, retaining direct URL:', uploadErr);
+        }
+      }
+
+      if (finalPosterKey) {
+        setPosterKey(finalPosterKey);
+        setImageLibrary((prev) => {
+          const exists = prev.includes(finalPosterKey);
+          return exists ? prev : [finalPosterKey, ...prev];
+        });
+      }
+
+      if (finalBannerKey) {
+        setBannerKey(finalBannerKey);
+      }
+
+      setImportSuccessMsg(
+        `✓ Successfully imported metadata for "${item.title}"! All matching fields (Japanese Kanji title, Studio, Year, Tags, Artwork) have been populated. Review and edit before clicking Save.`
+      );
+    } catch (err: any) {
+      setImporterError(`Import failed: ${err.message || 'Unknown error'}`);
+    } finally {
+      setImportingId(null);
     }
   };
 
@@ -1376,6 +1510,7 @@ export default function AdminSeriesPage() {
     setLastAirDate('');
     setImageLibrary([]);
     resetTsvParser();
+    resetImporter();
     setIsModalOpen(false);
   };
 
@@ -1417,6 +1552,7 @@ export default function AdminSeriesPage() {
     setLastAirDate('');
     setImageLibrary([]);
     resetTsvParser();
+    resetImporter();
     setAutoDateNotice(null);
     setAutoYearNotice(null);
 
@@ -1468,6 +1604,11 @@ export default function AdminSeriesPage() {
     setLastAirDate(s.last_air_date ? s.last_air_date.substring(0, 10) : '');
     setImageLibrary(s.image_library || []);
     resetTsvParser();
+    setShowImporterDrawer(false);
+    setImporterQuery(s.title || '');
+    setImporterResults([]);
+    setImporterError(null);
+    setImportSuccessMsg(null);
     setAutoDateNotice(null);
     setAutoYearNotice(null);
     if (s.about_data?.tsv) {
@@ -2484,6 +2625,19 @@ export default function AdminSeriesPage() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
                 <button
                   type="button"
+                  onClick={() => {
+                    setShowImporterDrawer((prev) => !prev);
+                    if (!importerQuery && title) setImporterQuery(title);
+                  }}
+                  className={`${styles.modalTabBtn} ${showImporterDrawer ? styles.modalTabBtnActive : ''}`}
+                  style={!showImporterDrawer ? { borderColor: 'rgba(139, 92, 246, 0.4)', background: 'rgba(139, 92, 246, 0.12)', color: '#c4b5fd' } : undefined}
+                  title="Search AniList & Kitsu for 1-click series metadata import"
+                >
+                  <Sparkles size={14} />
+                  <span>{showImporterDrawer ? 'Close Importer' : '✨ Metadata Importer'}</span>
+                </button>
+                <button
+                  type="button"
                   onClick={() => setShowTsvDrawer((prev) => !prev)}
                   className={`${styles.modalTabBtn} ${showTsvDrawer ? styles.modalTabBtnActive : ''}`}
                   title="Quick-paste 17-column TSV metadata from ChatGPT or Google Sheets"
@@ -2612,6 +2766,346 @@ export default function AdminSeriesPage() {
               </div>
             )}
 
+            {/* Collapsible Automated Metadata Importer Drawer */}
+            {showImporterDrawer && (
+              <div style={{
+                background: 'linear-gradient(180deg, #151928 0%, #0f121d 100%)',
+                border: '1px solid rgba(139, 92, 246, 0.4)',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
+                borderRadius: '14px',
+                padding: '1.25rem',
+                marginBottom: '1.25rem',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '1rem',
+                flexShrink: 0
+              }}>
+                {/* Header Row */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.6rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                    <div style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: '8px',
+                      background: 'linear-gradient(135deg, #7c3aed 0%, #ec4899 100%)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#ffffff'
+                    }}>
+                      <Sparkles size={17} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '0.92rem', fontWeight: 800, color: '#f3f4f6', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <span>Automated Series Metadata Importer</span>
+                        <span style={{ fontSize: '0.68rem', padding: '0.15rem 0.5rem', borderRadius: '4px', background: 'rgba(139, 92, 246, 0.2)', color: '#c4b5fd', border: '1px solid rgba(139, 92, 246, 0.4)' }}>
+                          AniList GraphQL + Kitsu
+                        </span>
+                      </div>
+                      <div style={{ fontSize: '0.74rem', color: '#9ca3af' }}>
+                        Search Japanese adult anime database. 1-click populates native Kanji titles, studio, year, tags, and artwork.
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.76rem', color: '#cbd5e1', cursor: 'pointer' }}>
+                      <input
+                        type="checkbox"
+                        checked={autoUploadToR2}
+                        onChange={(e) => setAutoUploadToR2(e.target.checked)}
+                        style={{ accentColor: '#8b5cf6' }}
+                      />
+                      <span>Upload cover to Cloudflare R2</span>
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setShowImporterDrawer(false)}
+                      className={styles.cancelBtn}
+                      style={{ padding: '0.3rem 0.75rem', fontSize: '0.75rem' }}
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
+
+                {/* Search Bar */}
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <div style={{ position: 'relative', flex: 1 }}>
+                    <Search size={16} style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)', color: '#6b7280' }} />
+                    <input
+                      type="text"
+                      placeholder="Search by anime title or keyword (e.g., Overflow, Ane wa Yanmama, Bible Black)..."
+                      value={importerQuery}
+                      onChange={(e) => setImporterQuery(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleSearchMetadata();
+                        }
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '0.65rem 0.85rem 0.65rem 2.4rem',
+                        background: '#0c0f17',
+                        border: '1px solid #2d354b',
+                        borderRadius: '8px',
+                        color: '#ffffff',
+                        fontSize: '0.86rem',
+                        outline: 'none'
+                      }}
+                    />
+                    {importerQuery && (
+                      <button
+                        type="button"
+                        onClick={() => setImporterQuery('')}
+                        style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer' }}
+                      >
+                        <X size={15} />
+                      </button>
+                    )}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleSearchMetadata}
+                    disabled={importerSearching || !importerQuery.trim()}
+                    className={styles.saveBtn}
+                    style={{
+                      padding: '0.65rem 1.4rem',
+                      fontSize: '0.82rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.45rem',
+                      background: 'linear-gradient(135deg, #7c3aed 0%, #6366f1 100%)',
+                      boxShadow: '0 2px 10px rgba(124, 58, 237, 0.4)'
+                    }}
+                  >
+                    {importerSearching ? (
+                      <>
+                        <RefreshCw size={15} className={styles.spin} />
+                        <span>Searching...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Search size={15} />
+                        <span>Search Database</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {/* Success Notification */}
+                {importSuccessMsg && (
+                  <div style={{
+                    background: 'rgba(16, 185, 129, 0.12)',
+                    border: '1px solid rgba(16, 185, 129, 0.35)',
+                    borderRadius: '8px',
+                    padding: '0.65rem 0.9rem',
+                    color: '#6ee7b7',
+                    fontSize: '0.78rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '0.5rem'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                      <CheckCircle2 size={16} />
+                      <span>{importSuccessMsg}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setImportSuccessMsg(null)}
+                      style={{ background: 'none', border: 'none', color: '#6ee7b7', cursor: 'pointer' }}
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                )}
+
+                {/* Error Banner */}
+                {importerError && (
+                  <div style={{
+                    background: 'rgba(239, 68, 68, 0.12)',
+                    border: '1px solid rgba(239, 68, 68, 0.35)',
+                    borderRadius: '8px',
+                    padding: '0.6rem 0.9rem',
+                    color: '#fca5a5',
+                    fontSize: '0.78rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.4rem'
+                  }}>
+                    <AlertCircle size={16} />
+                    <span>{importerError}</span>
+                  </div>
+                )}
+
+                {/* Results List */}
+                {importerResults.length > 0 && (
+                  <div style={{
+                    maxHeight: '340px',
+                    overflowY: 'auto',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.75rem',
+                    paddingRight: '0.3rem'
+                  }}>
+                    <div style={{ fontSize: '0.76rem', color: '#94a3b8', fontWeight: 600 }}>
+                      Found {importerResults.length} matching anime titles. Select one to auto-fill the form:
+                    </div>
+                    {importerResults.map((item) => (
+                      <div
+                        key={item.id}
+                        style={{
+                          background: '#0d111a',
+                          border: '1px solid #1f2538',
+                          borderRadius: '10px',
+                          padding: '0.85rem',
+                          display: 'flex',
+                          gap: '1rem',
+                          alignItems: 'flex-start',
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        {/* Poster Thumbnail */}
+                        {item.poster_url ? (
+                          <img
+                            src={item.poster_url}
+                            alt={item.title}
+                            style={{
+                              width: '68px',
+                              height: '96px',
+                              objectFit: 'cover',
+                              borderRadius: '6px',
+                              border: '1px solid #2d354b',
+                              flexShrink: 0
+                            }}
+                          />
+                        ) : (
+                          <div style={{
+                            width: '68px',
+                            height: '96px',
+                            borderRadius: '6px',
+                            background: '#1a1f2e',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: '#64748b',
+                            flexShrink: 0
+                          }}>
+                            <ImageIcon size={22} />
+                          </div>
+                        )}
+
+                        {/* Title & Metadata Details */}
+                        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                            <span style={{ fontWeight: 700, fontSize: '0.92rem', color: '#ffffff' }}>
+                              {item.title}
+                            </span>
+                            {item.alt_title_japanese && (
+                              <span style={{ fontSize: '0.75rem', color: '#a78bfa', background: 'rgba(167, 139, 250, 0.12)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>
+                                {item.alt_title_japanese}
+                              </span>
+                            )}
+                            {item.format && (
+                              <span style={{ fontSize: '0.68rem', padding: '0.1rem 0.35rem', borderRadius: '3px', background: '#222738', color: '#94a3b8' }}>
+                                {item.format}
+                              </span>
+                            )}
+                            {item.release_year && (
+                              <span style={{ fontSize: '0.68rem', padding: '0.1rem 0.35rem', borderRadius: '3px', background: '#222738', color: '#94a3b8' }}>
+                                {item.release_year}
+                              </span>
+                            )}
+                            {item.episode_count && (
+                              <span style={{ fontSize: '0.68rem', padding: '0.1rem 0.35rem', borderRadius: '3px', background: '#222738', color: '#94a3b8' }}>
+                                {item.episode_count} eps
+                              </span>
+                            )}
+                            {item.runtime && (
+                              <span style={{ fontSize: '0.68rem', padding: '0.1rem 0.35rem', borderRadius: '3px', background: '#222738', color: '#94a3b8' }}>
+                                {item.runtime}m
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Studio & Airing Status */}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', fontSize: '0.74rem', color: '#94a3b8' }}>
+                            {item.studio && (
+                              <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: '#cbd5e1' }}>
+                                <Building size={13} style={{ color: '#8b5cf6' }} />
+                                <span>Studio: <strong>{item.studio}</strong></span>
+                              </span>
+                            )}
+                            <span style={{ textTransform: 'capitalize' }}>
+                              Status: <strong style={{ color: item.status === 'completed' ? '#10b981' : '#f59e0b' }}>{item.status}</strong>
+                            </span>
+                            {item.source && (
+                              <span style={{ color: '#64748b' }}>via {item.source}</span>
+                            )}
+                          </div>
+
+                          {/* Tags preview */}
+                          {item.tags && item.tags.length > 0 && (
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem', marginTop: '0.2rem' }}>
+                              {item.tags.slice(0, 7).map((t: string) => (
+                                <span key={t} style={{ fontSize: '0.68rem', background: '#181e2e', border: '1px solid #262e45', padding: '0.1rem 0.35rem', borderRadius: '3px', color: '#94a3b8' }}>
+                                  {t}
+                                </span>
+                              ))}
+                              {item.tags.length > 7 && (
+                                <span style={{ fontSize: '0.68rem', color: '#64748b' }}>+{item.tags.length - 7} more</span>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Description preview */}
+                          {item.description && (
+                            <div style={{ fontSize: '0.73rem', color: '#6b7280', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', lineHeight: 1.4 }}>
+                              {item.description}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Action Button */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', flexShrink: 0 }}>
+                          <button
+                            type="button"
+                            onClick={() => handleApplyImportedMetadata(item)}
+                            disabled={importingId === item.id}
+                            className={styles.saveBtn}
+                            style={{
+                              padding: '0.45rem 1rem',
+                              fontSize: '0.76rem',
+                              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.35rem',
+                              whiteSpace: 'nowrap'
+                            }}
+                          >
+                            {importingId === item.id ? (
+                              <>
+                                <RefreshCw size={13} className={styles.spin} />
+                                <span>Importing...</span>
+                              </>
+                            ) : (
+                              <>
+                                <Zap size={13} />
+                                <span>Import Metadata</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Modal Navigation Tabs Bar */}
             <div className={styles.modalNavTabs}>
               <button
@@ -2674,7 +3168,35 @@ export default function AdminSeriesPage() {
                         {/* Title */}
                         <div className={styles.formGroup}>
                           <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span>Series Title *</span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              <span>Series Title *</span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setShowImporterDrawer(true);
+                                  if (title.trim()) {
+                                    setImporterQuery(title.trim());
+                                  }
+                                }}
+                                style={{
+                                  background: 'rgba(139, 92, 246, 0.15)',
+                                  border: '1px solid rgba(139, 92, 246, 0.4)',
+                                  color: '#c4b5fd',
+                                  padding: '0.15rem 0.5rem',
+                                  borderRadius: '4px',
+                                  fontSize: '0.7rem',
+                                  fontWeight: 700,
+                                  cursor: 'pointer',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '0.25rem'
+                                }}
+                                title="Search AniList database with this title"
+                              >
+                                <Sparkles size={11} />
+                                <span>✨ Auto-Fill Anime Info</span>
+                              </button>
+                            </div>
                             <span style={{ fontSize: '0.72rem', color: 'var(--foreground-muted)' }}>Main Display Name</span>
                           </label>
                           <input
