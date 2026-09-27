@@ -155,11 +155,16 @@
 .progressBarRow {
   width: 100%;
   position: relative;
+  padding: 10px 0;
+  margin: -10px 0 0 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
 }
 
 .hoverTimeTooltip {
   position: absolute;
-  bottom: 28px;
+  bottom: 30px;
   transform: translateX(-50%);
   display: flex;
   flex-direction: column;
@@ -172,7 +177,28 @@
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.9), 0 0 16px rgba(236, 72, 153, 0.25);
   pointer-events: none;
   z-index: 40;
-  animation: fadeIn 0.15s ease-out;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.12s ease-out, visibility 0.12s ease-out;
+  will-change: left;
+}
+
+.hoverTimeTooltip::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 6px solid rgba(10, 14, 26, 0.96);
+}
+
+.hoverTooltipVisible {
+  opacity: 1;
+  visibility: visible;
 }
 
 .hoverThumbnailWrap {

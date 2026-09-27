@@ -109,7 +109,8 @@ export default function VideoPlayer({
   const [hoverPosPercent, setHoverPosPercent] = useState<number>(0);
   const progressBarRef = useRef<HTMLDivElement>(null);
   const previewVideoRef = useRef<HTMLVideoElement>(null);
-  const lastPreviewSeekRef = useRef<number>(0);
+  const isSeekingRef = useRef<boolean>(false);
+  const pendingSeekRef = useRef<number | null>(null);
   const [previewFrameReady, setPreviewFrameReady] = useState(false);
 
   // Listen for custom seekToTime event (e.g. from clickable timestamp comments)
@@ -532,6 +533,25 @@ export default function VideoPlayer({
     }
   };
 
+  const executePreviewSeek = (targetSec: number) => {
+    const video = previewVideoRef.current;
+    if (!video || !isFinite(targetSec)) {
+      isSeekingRef.current = false;
+      return;
+    }
+    isSeekingRef.current = true;
+    try {
+      // Use hardware-accelerated keyframe snap (fastSeek) if supported for instant scrub
+      if (typeof (video as any).fastSeek === 'function') {
+        (video as any).fastSeek(targetSec);
+      } else {
+        video.currentTime = targetSec;
+      }
+    } catch (_) {
+      isSeekingRef.current = false;
+    }
+  };
+
   const handleProgressBarMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!progressBarRef.current || !duration || duration <= 0) return;
     const rect = progressBarRef.current.getBoundingClientRect();
@@ -541,20 +561,17 @@ export default function VideoPlayer({
     setHoverPosPercent(pct * 100);
     setHoverTime(targetTime);
 
-    // Throttle preview video frame seek to ~40ms for smooth hardware-accelerated scrubbing
-    const now = Date.now();
-    if (now - lastPreviewSeekRef.current > 40) {
-      lastPreviewSeekRef.current = now;
-      if (previewVideoRef.current && isFinite(targetTime)) {
-        try {
-          previewVideoRef.current.currentTime = targetTime;
-        } catch (_) {}
-      }
+    // If a seek is already in flight, queue the newest position to avoid decoder choking
+    if (isSeekingRef.current) {
+      pendingSeekRef.current = targetTime;
+    } else {
+      executePreviewSeek(targetTime);
     }
   };
 
   const handleProgressBarMouseLeave = () => {
     setHoverTime(null);
+    pendingSeekRef.current = null;
   };
 
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -977,37 +994,44 @@ export default function VideoPlayer({
               onMouseMove={handleProgressBarMouseMove}
               onMouseLeave={handleProgressBarMouseLeave}
             >
-              {hoverTime !== null && (
-                <div 
-                  className={styles.hoverTimeTooltip}
-                  style={{ left: `${Math.max(8, Math.min(92, hoverPosPercent))}%` }}
-                >
-                  <div className={styles.hoverThumbnailWrap}>
-                    <video
-                      ref={previewVideoRef}
-                      src={videoUrl}
-                      className={styles.hoverThumbnailVideo}
-                      muted
-                      playsInline
-                      preload="auto"
-                      onSeeked={() => setPreviewFrameReady(true)}
+              {/* Persistent Hover Preview Tooltip (never unmounts to preserve hardware decoding cache) */}
+              <div 
+                className={`${styles.hoverTimeTooltip} ${hoverTime !== null ? styles.hoverTooltipVisible : ''}`}
+                style={{ left: `${Math.max(8, Math.min(92, hoverPosPercent))}%` }}
+              >
+                <div className={styles.hoverThumbnailWrap}>
+                  <video
+                    ref={previewVideoRef}
+                    src={videoUrl}
+                    className={styles.hoverThumbnailVideo}
+                    muted
+                    playsInline
+                    preload="auto"
+                    onSeeked={() => {
+                      setPreviewFrameReady(true);
+                      isSeekingRef.current = false;
+                      if (pendingSeekRef.current !== null) {
+                        const nextTarget = pendingSeekRef.current;
+                        pendingSeekRef.current = null;
+                        executePreviewSeek(nextTarget);
+                      }
+                    }}
+                  />
+                  {posterUrl && (
+                    <img 
+                      src={posterUrl} 
+                      alt="Seek preview fallback" 
+                      className={styles.hoverThumbnailImg} 
+                      style={{
+                        opacity: previewFrameReady ? 0 : 1,
+                        transition: 'opacity 0.2s ease',
+                        pointerEvents: 'none'
+                      }}
                     />
-                    {posterUrl && (
-                      <img 
-                        src={posterUrl} 
-                        alt="Seek preview fallback" 
-                        className={styles.hoverThumbnailImg} 
-                        style={{
-                          opacity: previewFrameReady ? 0 : 1,
-                          transition: 'opacity 0.2s ease',
-                          pointerEvents: 'none'
-                        }}
-                      />
-                    )}
-                  </div>
-                  <span className={styles.hoverTimeText}>{formatTime(hoverTime)}</span>
+                  )}
                 </div>
-              )}
+                <span className={styles.hoverTimeText}>{formatTime(hoverTime ?? 0)}</span>
+              </div>
               <input
                 type="range"
                 min={0}
