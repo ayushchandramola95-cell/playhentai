@@ -1,5 +1,5 @@
 {
-  "lastSyncedAt": "2026-09-27T18:59:06.683Z",
+  "lastSyncedAt": "2026-09-27T19:32:06.550Z",
   "series": [
     {
       "id": "82a1aea7-0898-4066-b24b-d790f51467ea",
@@ -6920,9 +6920,9 @@
       "title": "Kozukuri Ninkatsu Bu!",
       "slug": "kozukuri-ninkatsu-bu",
       "description": "A state-supported Fertility Club organizes activities related to pregnancy and reproduction. An otherwise ordinary boy is selected by two female classmates as their partner, putting him at the center of the club's unusual activities.",
-      "poster_image_key": null,
-      "cover_image_key": null,
-      "banner_image_key": null,
+      "poster_image_key": "uploads/1790537176011-7110237.webp",
+      "cover_image_key": "uploads/1790537176011-7110237.webp",
+      "banner_image_key": "uploads/1790537176011-7110237.webp",
       "tags": [
         "Female Teacher",
         "Gyaru",
@@ -6954,7 +6954,9 @@
       "meta_description": null,
       "first_air_date": "2023-11-10T00:00:00+00:00",
       "last_air_date": "2025-02-21T00:00:00+00:00",
-      "image_library": [],
+      "image_library": [
+        "uploads/1790537176011-7110237.webp"
+      ],
       "poster_position": "50% 50%",
       "cover_position": "50% 50%",
       "banner_position": "50% 50%",
@@ -6979,9 +6981,9 @@
       "title": "Kunoichi ********den Ajisai",
       "slug": "kunoichi-ryoujokuden-ajisai",
       "description": "Ajisai is a kunoichi investigating a series of mysterious disappearances. Her investigation leads her into a heavily guarded mansion, where a mistake results in her capture and leaves her struggling to escape from the people holding her prisoner.",
-      "poster_image_key": null,
-      "cover_image_key": null,
-      "banner_image_key": null,
+      "poster_image_key": "uploads/1790536534062-5267528.jpg.webp",
+      "cover_image_key": "uploads/1790536534062-5267528.jpg.webp",
+      "banner_image_key": "uploads/1790536534062-5267528.jpg.webp",
       "tags": [
         "Adventure",
         "Ahegao",
@@ -7020,7 +7022,9 @@
       "meta_description": null,
       "first_air_date": "2023-07-28T00:00:00+00:00",
       "last_air_date": "2023-09-29T00:00:00+00:00",
-      "image_library": [],
+      "image_library": [
+        "uploads/1790536534062-5267528.jpg.webp"
+      ],
       "poster_position": "50% 50%",
       "cover_position": "50% 50%",
       "banner_position": "50% 50%",

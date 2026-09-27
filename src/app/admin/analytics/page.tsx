@@ -99,6 +99,7 @@ interface RegionStat {
 
 interface TrafficSourceStat {
   source: string;
+  category?: 'direct' | 'search' | 'social' | 'referral' | string;
   count: number;
   percentage: number;
 }
@@ -1622,6 +1623,18 @@ export default function AdminAnalyticsPage() {
             ? telemetry.today.osBreakdown
             : (telemetry?.osBreakdown || []);
 
+          const currentCountries = (timeRange === 'today' && telemetry?.today?.countryBreakdown && telemetry.today.countryBreakdown.length > 0)
+            ? telemetry.today.countryBreakdown
+            : (telemetry?.countryBreakdown || []);
+
+          const currentRegions = (timeRange === 'today' && telemetry?.today?.regionBreakdown && telemetry.today.regionBreakdown.length > 0)
+            ? telemetry.today.regionBreakdown
+            : (telemetry?.regionBreakdown || []);
+
+          const currentTrafficSources = (timeRange === 'today' && telemetry?.today?.trafficSources && telemetry.today.trafficSources.length > 0)
+            ? telemetry.today.trafficSources
+            : (telemetry?.trafficSources || []);
+
           return (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
               {/* Real-Time Visitor Telemetry Scorecard */}
@@ -1723,6 +1736,188 @@ export default function AdminAnalyticsPage() {
                       </div>
                     ))
                   )}
+                </div>
+              </div>
+
+              {/* 🌍 Geo-Analytics & Top Countries Tracker */}
+              <div className={styles.geoGrid}>
+                {/* 1. Top Countries Ranked Table */}
+                <div className={styles.tableCard} style={{ margin: 0 }}>
+                  <div className={styles.tableHeader}>
+                    <div>
+                      <h3 className={styles.tableTitle}>
+                        <Globe size={18} style={{ color: '#38bdf8' }} />
+                        <span>🌍 Top Origin Countries</span>
+                      </h3>
+                      <span className={styles.tableSubtitle}>
+                        Ranked geographic distribution of visitors ({timeRange === 'today' ? 'Today' : 'Catalog Reach'})
+                      </span>
+                    </div>
+                    <span className={styles.metricBadgeBlue}>
+                      {currentCountries.length} Countries Resolved
+                    </span>
+                  </div>
+
+                  <div className={styles.dailyTableWrapper}>
+                    <table className={styles.dailyTable}>
+                      <thead>
+                        <tr>
+                          <th>Rank</th>
+                          <th>Country</th>
+                          <th>Code</th>
+                          <th>Region</th>
+                          <th>Volume</th>
+                          <th>Share</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {currentCountries.length === 0 ? (
+                          <tr>
+                            <td colSpan={6} style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8' }}>
+                              Awaiting geographic visitor telemetry...
+                            </td>
+                          </tr>
+                        ) : (
+                          currentCountries.map((c, idx) => (
+                            <tr key={c.countryCode}>
+                              <td>
+                                <span className={`${styles.rankBadge} ${idx === 0 ? styles.rankBadgeGold : idx === 1 ? styles.rankBadgeSilver : idx === 2 ? styles.rankBadgeBronze : ''}`}>
+                                  #{idx + 1}
+                                </span>
+                              </td>
+                              <td>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem' }}>
+                                  <span style={{ fontSize: '1.25rem', lineHeight: 1 }} role="img" aria-label={c.countryName}>
+                                    {c.flag}
+                                  </span>
+                                  <span style={{ fontWeight: 700, color: '#f8fafc' }}>
+                                    {c.countryName}
+                                  </span>
+                                </div>
+                              </td>
+                              <td>
+                                <span className={styles.countryCodeBadge}>{c.countryCode}</span>
+                              </td>
+                              <td>
+                                <span className={styles.regionBadge}>{(c as any).region || 'International'}</span>
+                              </td>
+                              <td>
+                                <span style={{ fontWeight: 700, color: '#e2e8f0', fontSize: '0.82rem' }}>
+                                  {c.visits.toLocaleString()} visits
+                                </span>
+                              </td>
+                              <td>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem' }}>
+                                  <div style={{ width: '85px', height: '6px', background: '#1c2234', borderRadius: '3px', overflow: 'hidden' }}>
+                                    <div className={styles.countryBarFill} style={{ width: `${Math.max(c.percentage, 4)}%` }} />
+                                  </div>
+                                  <span style={{ fontSize: '0.78rem', color: '#38bdf8', fontWeight: 800, minWidth: '32px' }}>
+                                    {c.percentage}%
+                                  </span>
+                                </div>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* 2. Regional Audience Share & Traffic Acquisition */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                  {/* Continental Regional Distribution */}
+                  <div className={styles.chartCard} style={{ margin: 0 }}>
+                    <div className={styles.chartHeader}>
+                      <div>
+                        <h3 className={styles.chartTitle}>
+                          <Navigation size={18} style={{ color: '#c084fc' }} />
+                          <span>🌐 Continental Region Split</span>
+                        </h3>
+                        <span className={styles.chartSubtitle}>Audience distribution across world regions</span>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                      {currentRegions.length === 0 ? (
+                        <div style={{ padding: '1rem', color: '#94a3b8', fontSize: '0.78rem' }}>Awaiting regional data...</div>
+                      ) : (
+                        currentRegions.map((reg) => (
+                          <div key={reg.region} className={styles.funnelRow}>
+                            <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#f8fafc', width: '130px' }}>
+                              {reg.region}
+                            </span>
+                            <div className={styles.funnelBarTrack}>
+                              <div
+                                className={styles.funnelBarFill}
+                                style={{
+                                  width: `${Math.max(reg.percentage, 4)}%`,
+                                  background: 'linear-gradient(90deg, #8b5cf6, #d946ef)'
+                                }}
+                              />
+                            </div>
+                            <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#d946ef', width: '45px', textAlign: 'right' }}>
+                              {reg.percentage}%
+                            </span>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Traffic Acquisition Channels */}
+                  <div className={styles.chartCard} style={{ margin: 0 }}>
+                    <div className={styles.chartHeader}>
+                      <div>
+                        <h3 className={styles.chartTitle}>
+                          <Share2 size={18} style={{ color: '#10b981' }} />
+                          <span>🎯 Traffic Acquisition Sources</span>
+                        </h3>
+                        <span className={styles.chartSubtitle}>Discovery channels and inbound referrer origin</span>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                      {currentTrafficSources.length === 0 ? (
+                        <div style={{ padding: '1rem', color: '#94a3b8', fontSize: '0.78rem' }}>Awaiting traffic sources...</div>
+                      ) : (
+                        currentTrafficSources.map((src) => {
+                          const catColor = src.category === 'search' ? '#38bdf8' : src.category === 'social' ? '#ec4899' : src.category === 'referral' ? '#fbbf24' : '#10b981';
+                          return (
+                            <div key={src.source} className={styles.techItemRow} style={{ padding: '0.5rem 0' }}>
+                              <div className={styles.techItemHeader}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                  <span className={styles.techItemName}>{src.source}</span>
+                                  <span
+                                    className={styles.sourceCategoryBadge}
+                                    style={{
+                                      background: `${catColor}20`,
+                                      color: catColor,
+                                      border: `1px solid ${catColor}40`
+                                    }}
+                                  >
+                                    {src.category}
+                                  </span>
+                                </div>
+                                <span className={styles.techItemPct} style={{ color: catColor }}>
+                                  {src.percentage}%
+                                </span>
+                              </div>
+                              <div className={styles.techBarTrack}>
+                                <div
+                                  className={styles.techBarFill}
+                                  style={{
+                                    width: `${Math.max(src.percentage, 4)}%`,
+                                    background: catColor
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
 

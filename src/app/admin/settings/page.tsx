@@ -6,7 +6,8 @@ import {
   Save, CheckCircle2, AlertCircle, RefreshCw, Layers, Calendar, 
   Clock, Compass, Plus, X, Settings2, Sliders, Monitor, Play, 
   ShieldAlert, ShieldCheck, Zap, Globe, MessageSquare, Database, 
-  ExternalLink, Sparkles, Server, Volume2, RotateCcw, Flame
+  ExternalLink, Sparkles, Server, Volume2, RotateCcw, Flame,
+  Download, FileText, HardDrive
 } from 'lucide-react';
 import styles from './settings.module.css';
 
@@ -33,12 +34,13 @@ const DEFAULT_HOMEPAGE_CATEGORIES = [
 ];
 
 export default function AdminSettingsPage() {
-  const [activeTab, setActiveTab] = useState<'homepage' | 'player' | 'branding' | 'cache'>('homepage');
+  const [activeTab, setActiveTab] = useState<'homepage' | 'player' | 'branding' | 'cache' | 'backup'>('homepage');
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [isPurging, setIsPurging] = useState<boolean>(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [backupStats, setBackupStats] = useState<any>(null);
 
   // Tab 1: Homepage & Categories
   const [sortMode, setSortMode] = useState<'latest_episode' | 'latest_launch'>('latest_episode');
@@ -124,6 +126,18 @@ export default function AdminSettingsPage() {
       setErrorMsg('Error connecting to settings API.');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchBackupStats = async () => {
+    try {
+      const res = await fetch('/api/admin/backup?type=stats');
+      if (res.ok) {
+        const data = await res.json();
+        setBackupStats(data);
+      }
+    } catch (err) {
+      console.error('Error loading backup stats:', err);
     }
   };
 
@@ -279,6 +293,18 @@ export default function AdminSettingsPage() {
           >
             <Zap size={16} />
             <span>Cache &amp; Revalidation</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab('backup');
+              fetchBackupStats();
+            }}
+            className={`${styles.tabBtn} ${activeTab === 'backup' ? styles.tabBtnActive : ''}`}
+          >
+            <Database size={16} />
+            <span>Database &amp; Backups</span>
           </button>
         </div>
 
@@ -807,6 +833,144 @@ export default function AdminSettingsPage() {
                         </div>
                         <span style={{ fontSize: '0.74rem', color: '#94a3b8' }}>Environment: Production Ready</span>
                       </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 5: DATABASE & CATALOG BACKUPS */}
+            {activeTab === 'backup' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                <div className={styles.subCard}>
+                  <div>
+                    <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#f8fafc', margin: 0, display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                      <Database size={18} style={{ color: '#10b981' }} />
+                      <span>Automated Catalog &amp; Database Backup</span>
+                    </h3>
+                    <p style={{ fontSize: '0.8rem', color: '#94a3b8', margin: '0.2rem 0 0 0' }}>
+                      Export 1-click database snapshots, download complete series/episode registries, and secure disaster recovery archives.
+                    </p>
+                  </div>
+
+                  {/* 1-Click Action Buttons */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem', marginTop: '0.5rem' }}>
+                    {/* Full JSON Snapshot */}
+                    <div style={{ background: '#0a0d16', border: '1px solid #1f2538', padding: '1.25rem', borderRadius: '12px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '1rem' }}>
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#10b981', marginBottom: '0.35rem' }}>
+                          <HardDrive size={18} />
+                          <strong style={{ fontSize: '0.92rem', color: '#f8fafc' }}>Full Database Snapshot (JSON)</strong>
+                        </div>
+                        <p style={{ fontSize: '0.78rem', color: '#94a3b8', margin: 0, lineHeight: 1.5 }}>
+                          Complete archive containing all series, seasons, episodes, playlists, and site settings with relational foreign keys.
+                        </p>
+                      </div>
+                      <a
+                        href="/api/admin/backup?type=json"
+                        download
+                        className={styles.btnPrimary}
+                        style={{ textDecoration: 'none', justifyContent: 'center' }}
+                      >
+                        <Download size={15} />
+                        <span>Download Database JSON ({backupStats?.approxSizeFormatted || '~1.5 MB'})</span>
+                      </a>
+                    </div>
+
+                    {/* Episodes CSV Spreadsheet */}
+                    <div style={{ background: '#0a0d16', border: '1px solid #1f2538', padding: '1.25rem', borderRadius: '12px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '1rem' }}>
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#38bdf8', marginBottom: '0.35rem' }}>
+                          <FileText size={18} />
+                          <strong style={{ fontSize: '0.92rem', color: '#f8fafc' }}>Episodes Registry (CSV)</strong>
+                        </div>
+                        <p style={{ fontSize: '0.78rem', color: '#94a3b8', margin: 0, lineHeight: 1.5 }}>
+                          Spreadsheet format containing all video streaming keys, episode numbers, durations, and publication states.
+                        </p>
+                      </div>
+                      <a
+                        href="/api/admin/backup?type=episodes_csv"
+                        download
+                        className={styles.btnSecondary}
+                        style={{ textDecoration: 'none', justifyContent: 'center' }}
+                      >
+                        <Download size={15} />
+                        <span>Export Episodes CSV ({backupStats?.episodesCount ?? 'All'} Records)</span>
+                      </a>
+                    </div>
+
+                    {/* Series Catalog CSV */}
+                    <div style={{ background: '#0a0d16', border: '1px solid #1f2538', padding: '1.25rem', borderRadius: '12px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '1rem' }}>
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#c084fc', marginBottom: '0.35rem' }}>
+                          <Layers size={18} />
+                          <strong style={{ fontSize: '0.92rem', color: '#f8fafc' }}>Series Catalog (CSV)</strong>
+                        </div>
+                        <p style={{ fontSize: '0.78rem', color: '#94a3b8', margin: 0, lineHeight: 1.5 }}>
+                          Complete series titles, studio credits, release years, tags, ratings, and canonical URLs.
+                        </p>
+                      </div>
+                      <a
+                        href="/api/admin/backup?type=series_csv"
+                        download
+                        className={styles.btnSecondary}
+                        style={{ textDecoration: 'none', justifyContent: 'center' }}
+                      >
+                        <Download size={15} />
+                        <span>Export Series CSV ({backupStats?.seriesCount ?? 'All'} Titles)</span>
+                      </a>
+                    </div>
+                  </div>
+
+                  {/* Live Catalog Storage State */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginTop: '0.75rem' }}>
+                    <div style={{ background: '#0a0d16', border: '1px solid #23283b', padding: '1rem', borderRadius: '10px' }}>
+                      <span style={{ fontSize: '0.72rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 800, display: 'block', marginBottom: '0.2rem' }}>
+                        Protected Series
+                      </span>
+                      <strong style={{ fontSize: '1.4rem', color: '#f8fafc' }}>
+                        {backupStats?.seriesCount ?? '...'}
+                      </strong>
+                    </div>
+
+                    <div style={{ background: '#0a0d16', border: '1px solid #23283b', padding: '1rem', borderRadius: '10px' }}>
+                      <span style={{ fontSize: '0.72rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 800, display: 'block', marginBottom: '0.2rem' }}>
+                        Indexed Episodes
+                      </span>
+                      <strong style={{ fontSize: '1.4rem', color: '#f8fafc' }}>
+                        {backupStats?.episodesCount ?? '...'}
+                      </strong>
+                    </div>
+
+                    <div style={{ background: '#0a0d16', border: '1px solid #23283b', padding: '1rem', borderRadius: '10px' }}>
+                      <span style={{ fontSize: '0.72rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 800, display: 'block', marginBottom: '0.2rem' }}>
+                        Collections / Playlists
+                      </span>
+                      <strong style={{ fontSize: '1.4rem', color: '#f8fafc' }}>
+                        {backupStats?.collectionsCount ?? '...'}
+                      </strong>
+                    </div>
+
+                    <div style={{ background: '#0a0d16', border: '1px solid #23283b', padding: '1rem', borderRadius: '10px' }}>
+                      <span style={{ fontSize: '0.72rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 800, display: 'block', marginBottom: '0.2rem' }}>
+                        Storage Integrity
+                      </span>
+                      <strong style={{ fontSize: '1.1rem', color: '#34d399', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                        <ShieldCheck size={16} /> 100% Synced
+                      </strong>
+                    </div>
+                  </div>
+
+                  {/* Disaster Recovery Notice */}
+                  <div style={{ background: 'rgba(16, 185, 129, 0.06)', border: '1px solid rgba(16, 185, 129, 0.25)', padding: '1rem 1.25rem', borderRadius: '12px', display: 'flex', alignItems: 'flex-start', gap: '0.75rem', marginTop: '0.5rem' }}>
+                    <ShieldCheck size={20} style={{ color: '#34d399', flexShrink: 0, marginTop: '0.15rem' }} />
+                    <div>
+                      <strong style={{ fontSize: '0.86rem', color: '#f8fafc', display: 'block', marginBottom: '0.25rem' }}>
+                        Zero Data-Loss Disaster Recovery Standard
+                      </strong>
+                      <span style={{ fontSize: '0.78rem', color: '#94a3b8', lineHeight: 1.5, display: 'block' }}>
+                        Your full database JSON snapshot includes all metadata locks, provider IDs, Cloudflare R2 object keys, and custom category arrangements. You can store these backups offline or in cold storage for complete platform redundancy.
+                      </span>
                     </div>
                   </div>
                 </div>

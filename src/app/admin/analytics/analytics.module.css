@@ -1755,3 +1755,54 @@
   flex-direction: column;
   gap: 0.25rem;
 }
+
+/* Geo-Analytics & Top Countries Tracker */
+.geoGrid {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: 1.5rem;
+}
+
+@media (max-width: 1200px) {
+  .geoGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.countryCodeBadge {
+  background: #151b2e;
+  border: 1px solid #242d4a;
+  color: #94a3b8;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 0.12rem 0.45rem;
+  border-radius: 4px;
+  letter-spacing: 0.04em;
+}
+
+.countryBarFill {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #10b981, #38bdf8);
+  transition: width 0.3s ease;
+}
+
+.regionBadge {
+  background: rgba(168, 85, 247, 0.12);
+  border: 1px solid rgba(168, 85, 247, 0.25);
+  color: #c084fc;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 6px;
+}
+
+.sourceCategoryBadge {
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+}
+

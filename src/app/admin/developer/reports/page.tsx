@@ -6,7 +6,7 @@ import {
   AlertTriangle, CheckCircle2, XCircle, RefreshCw,
   Search, Filter, ExternalLink, Trash2, Check,
   Clock, ShieldAlert, ArrowUpDown, Download,
-  Film, Eye, AlertCircle, FileText, CheckCheck
+  Film, Eye, AlertCircle, FileText, CheckCheck, Activity
 } from 'lucide-react';
 import styles from './reports.module.css';
 
@@ -170,6 +170,15 @@ export default function DeveloperReportsPage() {
         </div>
 
         <div className={styles.headerActions}>
+          <Link
+            href="/admin/developer/diagnostics"
+            className={styles.refreshBtn}
+            style={{ textDecoration: 'none', background: 'rgba(56, 189, 248, 0.15)', borderColor: '#38bdf8', color: '#38bdf8' }}
+            title="Launch Automated Diagnostic Scanner"
+          >
+            <Activity size={16} />
+            <span>Diagnostic Scanner</span>
+          </Link>
           <button
             type="button"
             onClick={fetchReports}
