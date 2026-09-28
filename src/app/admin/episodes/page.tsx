@@ -216,6 +216,28 @@ export default function AdminEpisodesPage() {
   const [savedThumbnails, setSavedThumbnails] = useState<string[]>([]);
   const [hasDraft, setHasDraft] = useState(false);
 
+  // Automated Episode Metadata Importer states
+  const [showEpImporterDrawer, setShowEpImporterDrawer] = useState(false);
+  const [epImporterQuery, setEpImporterQuery] = useState('');
+  const [epImporterSearching, setEpImporterSearching] = useState(false);
+  const [epImporterData, setEpImporterData] = useState<any | null>(null);
+  const [epImporterSchedule, setEpImporterSchedule] = useState<any[]>([]);
+  const [epImporterError, setEpImporterError] = useState<string | null>(null);
+  const [epImportSuccessMsg, setEpImportSuccessMsg] = useState<string | null>(null);
+  const [epAutoUploadR2, setEpAutoUploadR2] = useState(true);
+  const [isApplyingEpMetadata, setIsApplyingEpMetadata] = useState(false);
+
+  const resetEpImporter = () => {
+    setShowEpImporterDrawer(false);
+    setEpImporterQuery('');
+    setEpImporterSearching(false);
+    setEpImporterData(null);
+    setEpImporterSchedule([]);
+    setEpImporterError(null);
+    setEpImportSuccessMsg(null);
+    setIsApplyingEpMetadata(false);
+  };
+
   // Batch Upload Modal states
   interface UploadBatch {
     id: string;
@@ -510,6 +532,7 @@ export default function AdminEpisodesPage() {
   const handleCloseModal = () => {
     localStorage.removeItem('episode_form_draft');
     setHasDraft(false);
+    resetEpImporter();
     setIsModalOpen(false);
   };
 
@@ -677,6 +700,7 @@ export default function AdminEpisodesPage() {
     
     setIsPublished(false);
     setError(null);
+    resetEpImporter();
 
     setIsModalOpen(true);
   };
@@ -709,6 +733,7 @@ export default function AdminEpisodesPage() {
     
     setIsPublished(ep.is_published);
     setError(null);
+    resetEpImporter();
 
     setIsModalOpen(true);
   };
@@ -718,6 +743,119 @@ export default function AdminEpisodesPage() {
     setFormSeriesId(seriesIdVal);
     const relevantSeasons = seasonsList.filter(s => s.series_id === seriesIdVal);
     setFormSeasonId(relevantSeasons[0]?.id || '');
+  };
+
+  // Automated Episode Metadata Importer Handlers
+  const handleFetchEpisodeMetadata = async (overrideQuery?: string, overrideEpNum?: number) => {
+    const activeSeriesObj = seriesList.find(s => s.id === formSeriesId);
+    const q = (overrideQuery || epImporterQuery || activeSeriesObj?.title || '').trim();
+    const epNum = overrideEpNum !== undefined ? overrideEpNum : episodeNumber;
+
+    if (!q) {
+      setEpImporterError('Please enter an anime title to search.');
+      return;
+    }
+
+    setEpImporterSearching(true);
+    setEpImporterError(null);
+    setEpImportSuccessMsg(null);
+
+    try {
+      const res = await fetch(`/api/admin/metadata-import?query=${encodeURIComponent(q)}&episodeNumber=${epNum}`);
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to fetch episode metadata');
+      }
+
+      if (!data.results || data.results.length === 0) {
+        setEpImporterError(`No anime matching "${q}" was found on AniList.`);
+        setEpImporterData(null);
+        setEpImporterSchedule([]);
+        return;
+      }
+
+      setEpImporterData(data.episode || null);
+      setEpImporterSchedule(data.all_episodes || []);
+
+      if (data.episode) {
+        setEpImportSuccessMsg(`Found official metadata for ${data.episode.series_title || q} (Episode ${epNum})! Review below and click "1-Click Apply to Episode".`);
+      }
+    } catch (err: any) {
+      setEpImporterError(err.message || 'Error querying episode metadata.');
+    } finally {
+      setEpImporterSearching(false);
+    }
+  };
+
+  const handleApplyEpisodeMetadata = async (targetEp?: any) => {
+    const epToApply = targetEp || epImporterData;
+    if (!epToApply) return;
+
+    setIsApplyingEpMetadata(true);
+    setEpImporterError(null);
+
+    try {
+      // 1. Scheduled Air / Release Date
+      if (epToApply.air_date_local) {
+        setReleaseDate(epToApply.air_date_local);
+      } else if (epToApply.air_date) {
+        setReleaseDate(`${epToApply.air_date}T00:00`);
+      }
+
+      // 2. Episode Title
+      if (epToApply.title) {
+        setTitle(epToApply.title);
+      }
+
+      // 3. Episode Synopsis / Description
+      if (epToApply.description) {
+        setDescription(epToApply.description);
+      }
+
+      // 4. Duration Seconds
+      if (epToApply.duration_seconds && (!durationSeconds || durationSeconds === 1440 || durationSeconds === 0)) {
+        setDurationSeconds(epToApply.duration_seconds);
+      }
+
+      // 5. Thumbnail Image
+      if (epToApply.thumbnail_url) {
+        let finalThumbKey = epToApply.thumbnail_url;
+
+        if (epAutoUploadR2) {
+          try {
+            const uploadRes = await fetch('/api/admin/metadata-import', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                imageUrl: epToApply.thumbnail_url,
+                slug: `${epToApply.series_title || 'ep'}-ep${epToApply.episode_number || episodeNumber}`,
+                type: 'thumbnail'
+              })
+            });
+            if (uploadRes.ok) {
+              const uploadData = await uploadRes.json();
+              if (uploadData.key) {
+                finalThumbKey = uploadData.key;
+              }
+            }
+          } catch (uploadErr) {
+            console.warn('R2 upload failed, keeping direct thumbnail URL:', uploadErr);
+          }
+        }
+
+        setThumbnailKey(finalThumbKey);
+        setSavedThumbnails(prev => [finalThumbKey, ...prev.filter(k => k !== finalThumbKey)]);
+      }
+
+      setEpImportSuccessMsg(
+        `✓ Successfully applied Episode ${epToApply.episode_number || episodeNumber} metadata! Air Date: ${epToApply.air_date || 'Set'}, Duration: ${epToApply.duration_minutes || Math.round((epToApply.duration_seconds || 1440) / 60)}m, Thumbnail & Synopsis applied.`
+      );
+    } catch (err: any) {
+      setEpImporterError(`Failed to apply metadata: ${err.message || 'Unknown error'}`);
+    } finally {
+      setIsApplyingEpMetadata(false);
+    }
   };
 
 
@@ -3067,14 +3205,47 @@ export default function AdminEpisodesPage() {
                       </span>
                     </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={handleCloseModal}
-                    className={styles.expandToggleBtn}
-                    title="Close modal"
-                  >
-                    <X size={18} />
-                  </button>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowEpImporterDrawer(prev => !prev);
+                        if (!epImporterQuery) {
+                          const activeSeriesObj = seriesList.find(s => s.id === formSeriesId);
+                          if (activeSeriesObj?.title) {
+                            setEpImporterQuery(activeSeriesObj.title);
+                            handleFetchEpisodeMetadata(activeSeriesObj.title);
+                          }
+                        }
+                      }}
+                      style={{
+                        background: showEpImporterDrawer ? 'linear-gradient(135deg, #7c3aed 0%, #6366f1 100%)' : 'rgba(139, 92, 246, 0.15)',
+                        border: '1px solid rgba(139, 92, 246, 0.4)',
+                        color: '#ffffff',
+                        padding: '0.4rem 0.85rem',
+                        borderRadius: '8px',
+                        fontSize: '0.78rem',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.4rem',
+                        transition: 'all 0.15s ease'
+                      }}
+                      title="Auto-fetch release date, synopsis, duration, and thumbnail from AniList database"
+                    >
+                      <Sparkles size={14} />
+                      <span>{showEpImporterDrawer ? 'Close Importer' : '✨ Auto-Fill Episode'}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleCloseModal}
+                      className={styles.expandToggleBtn}
+                      title="Close modal"
+                    >
+                      <X size={18} />
+                    </button>
+                  </div>
                 </div>
               );
             })()}
@@ -3085,6 +3256,304 @@ export default function AdminEpisodesPage() {
                   <div className={styles.errorAlert}>
                     <AlertCircle size={16} />
                     <span>{error}</span>
+                  </div>
+                )}
+
+                {/* Collapsible Automated Episode Metadata Importer Drawer */}
+                {showEpImporterDrawer && (
+                  <div style={{
+                    background: 'linear-gradient(180deg, #151928 0%, #0f121d 100%)',
+                    border: '1px solid rgba(139, 92, 246, 0.4)',
+                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
+                    borderRadius: '12px',
+                    padding: '1.1rem',
+                    marginBottom: '1.25rem',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.85rem'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <div style={{ width: '28px', height: '28px', borderRadius: '6px', background: 'linear-gradient(135deg, #7c3aed 0%, #ec4899 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+                          <Sparkles size={15} />
+                        </div>
+                        <div>
+                          <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#f3f4f6', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                            <span>Automated Episode Metadata Importer</span>
+                            <span style={{ fontSize: '0.66rem', padding: '0.1rem 0.4rem', borderRadius: '4px', background: 'rgba(139, 92, 246, 0.2)', color: '#c4b5fd', border: '1px solid rgba(139, 92, 246, 0.35)' }}>
+                              Episode #{episodeNumber}
+                            </span>
+                          </div>
+                          <div style={{ fontSize: '0.72rem', color: '#9ca3af' }}>
+                            Auto-fetches official airing date, suggested title (OVA / Episode), runtime, synopsis, and thumbnail.
+                          </div>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.74rem', color: '#cbd5e1', cursor: 'pointer' }}>
+                          <input
+                            type="checkbox"
+                            checked={epAutoUploadR2}
+                            onChange={(e) => setEpAutoUploadR2(e.target.checked)}
+                            style={{ accentColor: '#8b5cf6' }}
+                          />
+                          <span>Save thumbnail to Cloudflare R2</span>
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => setShowEpImporterDrawer(false)}
+                          className={styles.cancelBtn}
+                          style={{ padding: '0.25rem 0.65rem', fontSize: '0.72rem' }}
+                        >
+                          Close
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Search Input Bar */}
+                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                      <div style={{ position: 'relative', flex: 1 }}>
+                        <Search size={15} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#6b7280' }} />
+                        <input
+                          type="text"
+                          placeholder="Anime title to lookup on AniList..."
+                          value={epImporterQuery}
+                          onChange={(e) => setEpImporterQuery(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              handleFetchEpisodeMetadata();
+                            }
+                          }}
+                          style={{
+                            width: '100%',
+                            padding: '0.55rem 0.75rem 0.55rem 2.2rem',
+                            background: '#0c0f17',
+                            border: '1px solid #2d354b',
+                            borderRadius: '8px',
+                            color: '#ffffff',
+                            fontSize: '0.84rem',
+                            outline: 'none'
+                          }}
+                        />
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => handleFetchEpisodeMetadata()}
+                        disabled={epImporterSearching || !epImporterQuery.trim()}
+                        className={styles.saveBtn}
+                        style={{
+                          padding: '0.55rem 1.15rem',
+                          fontSize: '0.8rem',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.4rem',
+                          background: 'linear-gradient(135deg, #7c3aed 0%, #6366f1 100%)'
+                        }}
+                      >
+                        {epImporterSearching ? (
+                          <>
+                            <RotateCcw size={14} className={styles.spin} />
+                            <span>Fetching...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Search size={14} />
+                            <span>Fetch Episode #{episodeNumber}</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+
+                    {/* Success / Notification */}
+                    {epImportSuccessMsg && (
+                      <div style={{
+                        background: 'rgba(16, 185, 129, 0.12)',
+                        border: '1px solid rgba(16, 185, 129, 0.35)',
+                        borderRadius: '8px',
+                        padding: '0.55rem 0.85rem',
+                        color: '#6ee7b7',
+                        fontSize: '0.76rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '0.4rem'
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                          <CheckCircle2 size={15} />
+                          <span>{epImportSuccessMsg}</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setEpImportSuccessMsg(null)}
+                          style={{ background: 'none', border: 'none', color: '#6ee7b7', cursor: 'pointer' }}
+                        >
+                          <X size={13} />
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Error Banner */}
+                    {epImporterError && (
+                      <div style={{
+                        background: 'rgba(239, 68, 68, 0.12)',
+                        border: '1px solid rgba(239, 68, 68, 0.35)',
+                        borderRadius: '8px',
+                        padding: '0.55rem 0.85rem',
+                        color: '#fca5a5',
+                        fontSize: '0.76rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.4rem'
+                      }}>
+                        <AlertCircle size={15} />
+                        <span>{epImporterError}</span>
+                      </div>
+                    )}
+
+                    {/* Found Episode Preview Card */}
+                    {epImporterData && (
+                      <div style={{
+                        background: '#0d111a',
+                        border: '1px solid #1f2538',
+                        borderRadius: '10px',
+                        padding: '0.85rem',
+                        display: 'flex',
+                        gap: '1rem',
+                        alignItems: 'flex-start'
+                      }}>
+                        {/* Thumbnail Preview */}
+                        {epImporterData.thumbnail_url ? (
+                          <img
+                            src={epImporterData.thumbnail_url}
+                            alt={epImporterData.title}
+                            style={{
+                              width: '110px',
+                              height: '62px',
+                              objectFit: 'cover',
+                              borderRadius: '6px',
+                              border: '1px solid #2d354b',
+                              flexShrink: 0
+                            }}
+                          />
+                        ) : (
+                          <div style={{
+                            width: '110px',
+                            height: '62px',
+                            borderRadius: '6px',
+                            background: '#1a1f2e',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: '#64748b',
+                            flexShrink: 0
+                          }}>
+                            <ImageIcon size={20} />
+                          </div>
+                        )}
+
+                        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', flexWrap: 'wrap' }}>
+                            <span style={{ fontWeight: 700, fontSize: '0.9rem', color: '#ffffff' }}>
+                              {epImporterData.title}
+                            </span>
+                            <span style={{ fontSize: '0.7rem', padding: '0.1rem 0.4rem', borderRadius: '4px', background: 'rgba(168, 85, 247, 0.2)', color: '#c4b5fd', border: '1px solid rgba(168, 85, 247, 0.35)', fontWeight: 700 }}>
+                              {epImporterData.format}
+                            </span>
+                            {epImporterData.air_date && (
+                              <span style={{ fontSize: '0.72rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                                <Clock size={12} />
+                                <span>Air Date: {epImporterData.air_date}</span>
+                              </span>
+                            )}
+                            <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>
+                              Duration: {epImporterData.duration_minutes || Math.round((epImporterData.duration_seconds || 1440) / 60)}m
+                            </span>
+                          </div>
+
+                          <div style={{ fontSize: '0.74rem', color: '#9ca3af' }}>
+                            Series: <strong style={{ color: '#e2e8f0' }}>{epImporterData.series_title}</strong> {epImporterData.series_japanese_title ? `(${epImporterData.series_japanese_title})` : ''}
+                          </div>
+
+                          {epImporterData.description && (
+                            <div style={{ fontSize: '0.72rem', color: '#6b7280', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', lineHeight: 1.4 }}>
+                              {epImporterData.description}
+                            </div>
+                          )}
+                        </div>
+
+                        <div style={{ flexShrink: 0 }}>
+                          <button
+                            type="button"
+                            onClick={() => handleApplyEpisodeMetadata()}
+                            disabled={isApplyingEpMetadata}
+                            className={styles.saveBtn}
+                            style={{
+                              padding: '0.45rem 1rem',
+                              fontSize: '0.76rem',
+                              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.35rem',
+                              whiteSpace: 'nowrap'
+                            }}
+                          >
+                            {isApplyingEpMetadata ? (
+                              <>
+                                <RotateCcw size={13} className={styles.spin} />
+                                <span>Applying...</span>
+                              </>
+                            ) : (
+                              <>
+                                <Zap size={13} />
+                                <span>1-Click Apply to Episode</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Other Episodes in Schedule Preview */}
+                    {epImporterSchedule.length > 1 && (
+                      <div style={{ marginTop: '0.3rem', borderTop: '1px solid #1f2538', paddingTop: '0.6rem' }}>
+                        <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginBottom: '0.4rem', fontWeight: 600 }}>
+                          Other Episodes in Series Schedule ({epImporterSchedule.length} total):
+                        </div>
+                        <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', maxHeight: '110px', overflowY: 'auto' }}>
+                          {epImporterSchedule.map((sEp) => (
+                            <button
+                              key={sEp.episode}
+                              type="button"
+                              onClick={() => {
+                                setEpisodeNumber(sEp.episode);
+                                handleApplyEpisodeMetadata(sEp);
+                              }}
+                              style={{
+                                background: episodeNumber === sEp.episode ? '#7c3aed' : '#141824',
+                                color: episodeNumber === sEp.episode ? '#ffffff' : '#cbd5e1',
+                                border: episodeNumber === sEp.episode ? '1px solid #8b5cf6' : '1px solid #232a3f',
+                                borderRadius: '6px',
+                                padding: '0.25rem 0.6rem',
+                                fontSize: '0.72rem',
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '0.3rem'
+                              }}
+                              title={`Switch to Ep ${sEp.episode} (${sEp.air_date})`}
+                            >
+                              <span>{sEp.title}</span>
+                              <span style={{ fontSize: '0.66rem', color: episodeNumber === sEp.episode ? '#e9d5ff' : '#94a3b8' }}>
+                                {sEp.air_date}
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -3291,46 +3760,77 @@ export default function AdminEpisodesPage() {
                     }}
                   />
 
-                  {/* Quick Air Date Presets */}
-                  <div className={styles.quickPresetsRow}>
-                    <span style={{ fontSize: '0.7rem', color: 'var(--foreground-muted)', fontWeight: 700 }}>Presets (12:00 AM):</span>
-                    <button
-                      type="button"
-                      onClick={() => setQuickReleaseDate('today')}
-                      className={styles.quickPillBtn}
-                    >
-                      ⚡ Today
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setQuickReleaseDate('yesterday')}
-                      className={styles.quickPillBtn}
-                    >
-                      ⚡ Yesterday
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setQuickReleaseDate('week_ago')}
-                      className={styles.quickPillBtn}
-                    >
-                      ⚡ 1 Week Ago
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setQuickReleaseDate('month_ago')}
-                      className={styles.quickPillBtn}
-                    >
-                      ⚡ 1 Month Ago
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setQuickReleaseDate('next_week')}
-                      className={styles.quickPillBtn}
-                    >
-                      ⚡ Next Week
-                    </button>
+                    {/* Quick Air Date Presets */}
+                    <div className={styles.quickPresetsRow}>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--foreground-muted)', fontWeight: 700 }}>Presets:</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowEpImporterDrawer(true);
+                          handleFetchEpisodeMetadata();
+                        }}
+                        className={styles.quickPillBtn}
+                        style={{ background: 'rgba(139, 92, 246, 0.2)', borderColor: 'rgba(139, 92, 246, 0.45)', color: '#c4b5fd', fontWeight: 800 }}
+                        title="Auto-fetch official air date from AniList"
+                      >
+                        <Sparkles size={12} />
+                        <span>✨ Air Date from AniList</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setQuickReleaseDate('today')}
+                        className={styles.quickPillBtn}
+                      >
+                        ⚡ Today
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setQuickReleaseDate('yesterday')}
+                        className={styles.quickPillBtn}
+                      >
+                        ⚡ Yesterday
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setQuickReleaseDate('week_ago')}
+                        className={styles.quickPillBtn}
+                      >
+                        ⚡ 1 Week Ago
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setQuickReleaseDate('month_ago')}
+                        className={styles.quickPillBtn}
+                      >
+                        ⚡ 1 Month Ago
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setQuickReleaseDate('next_week')}
+                        className={styles.quickPillBtn}
+                      >
+                        ⚡ Next Week
+                      </button>
+                    </div>
                   </div>
-                </div>
+
+                  {/* Episode Synopsis / Description */}
+                  <div className={styles.formGroup}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <label>Episode Synopsis / Description</label>
+                      <span style={{ fontSize: '0.72rem', color: 'var(--foreground-muted)' }}>
+                        Plot summary or notes for Episode #{episodeNumber}
+                      </span>
+                    </div>
+                    <textarea
+                      rows={3}
+                      className={styles.inputField}
+                      placeholder="Enter episode synopsis, plot overview, or key highlights..."
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      style={{ resize: 'vertical', minHeight: '75px', lineHeight: 1.5, fontFamily: 'inherit' }}
+                    />
+                  </div>
 
                 {/* Status & Options Row */}
                 <div className={styles.formRow} style={{ alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid #1f2438', paddingTop: '1rem' }}>

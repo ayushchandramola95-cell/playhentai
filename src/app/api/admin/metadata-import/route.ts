@@ -7,6 +7,17 @@ import { getR2Url } from '@/utils/r2';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+export interface EpisodeScheduleItem {
+  episode: number;
+  title: string;
+  air_date: string;
+  air_date_local: string;
+  duration_seconds: number;
+  duration_minutes: number;
+  thumbnail_url?: string;
+  synopsis?: string;
+}
+
 interface FormattedMetadataResult {
   id: string;
   source: 'anilist' | 'kitsu';
@@ -28,7 +39,11 @@ interface FormattedMetadataResult {
   tags: string[];
   aliases: string[];
   is_adult: boolean;
-  format: string;
+  format: string; // OVA, ONA, TV, MOVIE, SPECIAL
+  original_source: string; // Manga, Visual Novel / Eroge, Light Novel, Original Anime, Doujinshi, etc.
+  country: string; // Japan
+  suggested_season_title: string; // 'OVAs' for OVA/ONA, 'Movies' for MOVIE, 'Specials' for SPECIAL, 'Season 1' for TV
+  episodes_schedule: EpisodeScheduleItem[];
 }
 
 function cleanHtmlDescription(raw: string | null | undefined): string {
@@ -83,13 +98,39 @@ function matchStudio(rawStudioName: string | undefined): string {
   return clean;
 }
 
-function matchTags(genres: string[] = [], tags: { name: string; rank?: number }[] = []): string[] {
+function mapOriginalSource(rawSource: string | null | undefined): string {
+  if (!rawSource) return '';
+  const s = rawSource.toUpperCase();
+  if (s.includes('MANGA') || s === 'WEB_MANGA' || s === 'COMIC') return 'Manga';
+  if (s.includes('VISUAL_NOVEL') || s.includes('EROGE')) return 'Visual Novel / Eroge';
+  if (s.includes('LIGHT_NOVEL') || s.includes('NOVEL')) return 'Light Novel';
+  if (s.includes('ORIGINAL')) return 'Original Anime';
+  if (s.includes('DOUJINSHI')) return 'Doujinshi';
+  if (s.includes('GAME')) return 'Video Game';
+  if (s.includes('OTHER')) return 'Other';
+  return rawSource;
+}
+
+function getSuggestedSeasonTitle(format: string): string {
+  const f = (format || '').toUpperCase();
+  if (f === 'OVA' || f === 'ONA') return 'OVAs';
+  if (f === 'MOVIE') return 'Movies';
+  if (f === 'SPECIAL') return 'Specials';
+  return 'Season 1';
+}
+
+function matchTags(genres: string[] = [], tags: { name: string; rank?: number }[] = [], format = ''): string[] {
   const result = new Set<string>();
 
-  // Add high-ranking tags (rank >= 40)
-  const sortedTags = [...tags].sort((a, b) => (b.rank || 0) - (a.rank || 0));
-  
-  // First check official GENRES list for exact or partial matches
+  // If format is OVA or ONA, ensure OVA is included
+  const f = format.toUpperCase();
+  if (f === 'OVA' || f === 'ONA') {
+    result.add('OVA');
+  } else if (f === 'MOVIE') {
+    result.add('Movie');
+  }
+
+  // Add official GENRES matches
   for (const g of genres) {
     const foundGenre = GENRES.find(cg => cg.toLowerCase() === g.toLowerCase());
     if (foundGenre) {
@@ -99,9 +140,9 @@ function matchTags(genres: string[] = [], tags: { name: string; rank?: number }[
     }
   }
 
+  const sortedTags = [...tags].sort((a, b) => (b.rank || 0) - (a.rank || 0));
   for (const t of sortedTags) {
     const tName = t.name.trim();
-    // Exclude generic low-value tags
     const excluded = ['primarily teen cast', 'primarily adult cast', 'male protagonist', 'nudity'];
     if (excluded.includes(tName.toLowerCase())) continue;
 
@@ -116,6 +157,72 @@ function matchTags(genres: string[] = [], tags: { name: string; rank?: number }[
   return Array.from(result);
 }
 
+function buildEpisodeSchedule(
+  episodesCount: number,
+  format: string,
+  durationMinutes: number,
+  startDateStr: string,
+  endDateStr: string,
+  airingNodes: { episode: number; airingAt: number }[] = [],
+  bannerUrl = '',
+  coverUrl = '',
+  seriesSynopsis = ''
+): EpisodeScheduleItem[] {
+  const total = Math.max(episodesCount, airingNodes.length, 1);
+  const items: EpisodeScheduleItem[] = [];
+  const f = (format || '').toUpperCase();
+
+  for (let epNum = 1; epNum <= total; epNum++) {
+    const scheduled = airingNodes.find(n => n.episode === epNum);
+    let airDate = '';
+
+    if (scheduled?.airingAt) {
+      airDate = new Date(scheduled.airingAt * 1000).toISOString().split('T')[0];
+    } else if (epNum === 1 && startDateStr) {
+      airDate = startDateStr;
+    } else if (epNum === total && endDateStr) {
+      airDate = endDateStr;
+    } else if (startDateStr && endDateStr && total > 1) {
+      // Linearly interpolate between startDate and endDate
+      const startMs = new Date(startDateStr).getTime();
+      const endMs = new Date(endDateStr).getTime();
+      if (!isNaN(startMs) && !isNaN(endMs) && endMs > startMs) {
+        const step = (endMs - startMs) / (total - 1);
+        const interpolated = new Date(startMs + step * (epNum - 1));
+        airDate = interpolated.toISOString().split('T')[0];
+      } else {
+        airDate = startDateStr;
+      }
+    } else {
+      airDate = startDateStr || '';
+    }
+
+    const airDateLocal = airDate ? `${airDate}T00:00` : '';
+
+    let epTitle = `Episode ${epNum}`;
+    if (f === 'OVA' || f === 'ONA') {
+      epTitle = `OVA ${epNum}`;
+    } else if (f === 'SPECIAL') {
+      epTitle = `Special ${epNum}`;
+    } else if (f === 'MOVIE') {
+      epTitle = total === 1 ? 'Movie' : `Part ${epNum}`;
+    }
+
+    items.push({
+      episode: epNum,
+      title: epTitle,
+      air_date: airDate,
+      air_date_local: airDateLocal,
+      duration_minutes: durationMinutes || 24,
+      duration_seconds: (durationMinutes || 24) * 60,
+      thumbnail_url: bannerUrl || coverUrl || '',
+      synopsis: seriesSynopsis ? `${seriesSynopsis.slice(0, 180)}...` : ''
+    });
+  }
+
+  return items;
+}
+
 // -------------------------------------------------------------
 // GET: Query AniList (with Kitsu fallback) for anime metadata
 // -------------------------------------------------------------
@@ -124,7 +231,9 @@ export async function GET(request: Request) {
     await verifyAdmin();
 
     const { searchParams } = new URL(request.url);
-    const query = searchParams.get('query')?.trim();
+    const query = searchParams.get('query')?.trim() || searchParams.get('seriesTitle')?.trim();
+    const episodeNumberParam = searchParams.get('episodeNumber');
+    const targetEpNum = episodeNumberParam ? parseInt(episodeNumberParam, 10) : null;
 
     if (!query) {
       return NextResponse.json({ results: [] });
@@ -146,6 +255,8 @@ export async function GET(request: Request) {
             seasonYear
             status
             format
+            source
+            countryOfOrigin
             episodes
             duration
             startDate { year month day }
@@ -154,6 +265,7 @@ export async function GET(request: Request) {
               extraLarge
               large
               medium
+              color
             }
             bannerImage
             studios {
@@ -166,6 +278,12 @@ export async function GET(request: Request) {
             tags {
               name
               rank
+            }
+            airingSchedule(perPage: 50) {
+              nodes {
+                episode
+                airingAt
+              }
             }
           }
         }
@@ -197,13 +315,34 @@ export async function GET(request: Request) {
           const rawTitle = item.title?.romaji || item.title?.english || item.title?.native || query;
           const matchedStudio = matchStudio(item.studios?.nodes?.[0]?.name);
           const releaseYear = item.seasonYear || item.startDate?.year || '';
-          
+          const format = item.format || 'OVA';
+          const originalSource = mapOriginalSource(item.source);
+          const country = item.countryOfOrigin === 'JP' ? 'Japan' : (item.countryOfOrigin || 'Japan');
+          const suggestedSeasonTitle = getSuggestedSeasonTitle(format);
+
           let mappedStatus: 'completed' | 'ongoing' | 'upcoming' = 'ongoing';
           if (item.status === 'FINISHED') mappedStatus = 'completed';
           else if (item.status === 'NOT_YET_RELEASED') mappedStatus = 'upcoming';
 
-          const tags = matchTags(item.genres, item.tags);
+          const tags = matchTags(item.genres, item.tags, format);
           const aliases = Array.isArray(item.synonyms) ? item.synonyms.filter(Boolean) : [];
+          const startDateStr = formatDate(item.startDate?.year, item.startDate?.month, item.startDate?.day);
+          const endDateStr = formatDate(item.endDate?.year, item.endDate?.month, item.endDate?.day);
+          const bannerUrl = item.bannerImage || '';
+          const posterUrl = item.coverImage?.extraLarge || item.coverImage?.large || item.coverImage?.medium || '';
+          const cleanedDesc = cleanHtmlDescription(item.description);
+
+          const episodesSchedule = buildEpisodeSchedule(
+            item.episodes || 1,
+            format,
+            item.duration || 24,
+            startDateStr,
+            endDateStr,
+            item.airingSchedule?.nodes || [],
+            bannerUrl,
+            posterUrl,
+            cleanedDesc
+          );
 
           return {
             id: String(item.id),
@@ -213,20 +352,24 @@ export async function GET(request: Request) {
             alt_title_japanese: item.title?.native || '',
             alt_title_romaji: item.title?.romaji || '',
             alt_title_english: item.title?.english || '',
-            description: cleanHtmlDescription(item.description),
+            description: cleanedDesc,
             studio: matchedStudio,
             release_year: releaseYear,
             status: mappedStatus,
             episode_count: item.episodes || '',
             runtime: item.duration || '',
-            first_air_date: formatDate(item.startDate?.year, item.startDate?.month, item.startDate?.day),
-            last_air_date: formatDate(item.endDate?.year, item.endDate?.month, item.endDate?.day),
-            poster_url: item.coverImage?.extraLarge || item.coverImage?.large || item.coverImage?.medium || '',
-            banner_url: item.bannerImage || '',
+            first_air_date: startDateStr,
+            last_air_date: endDateStr,
+            poster_url: posterUrl,
+            banner_url: bannerUrl,
             tags,
             aliases,
             is_adult: !!item.isAdult,
-            format: item.format || 'OVA'
+            format,
+            original_source: originalSource,
+            country,
+            suggested_season_title: suggestedSeasonTitle,
+            episodes_schedule: episodesSchedule
           };
         });
       }
@@ -251,6 +394,8 @@ export async function GET(request: Request) {
             const attr = item.attributes || {};
             const title = attr.canonicalTitle || attr.titles?.en_jp || attr.titles?.en || query;
             const releaseYear = attr.startDate ? Number(attr.startDate.split('-')[0]) : '';
+            const format = attr.subtype?.toUpperCase() || 'OVA';
+            const suggestedSeasonTitle = getSuggestedSeasonTitle(format);
             
             let mappedStatus: 'completed' | 'ongoing' | 'upcoming' = 'ongoing';
             if (attr.status === 'finished') mappedStatus = 'completed';
@@ -262,6 +407,22 @@ export async function GET(request: Request) {
               aliases.push(...attr.abbreviatedTitles);
             }
 
+            const posterUrl = attr.posterImage?.original || attr.posterImage?.large || '';
+            const bannerUrl = attr.coverImage?.original || attr.coverImage?.large || '';
+            const cleanedDesc = cleanHtmlDescription(attr.synopsis);
+
+            const episodesSchedule = buildEpisodeSchedule(
+              attr.episodeCount || 1,
+              format,
+              attr.episodeLength || 24,
+              attr.startDate || '',
+              attr.endDate || '',
+              [],
+              bannerUrl,
+              posterUrl,
+              cleanedDesc
+            );
+
             return {
               id: String(item.id),
               source: 'kitsu',
@@ -270,7 +431,7 @@ export async function GET(request: Request) {
               alt_title_japanese: attr.titles?.ja_jp || '',
               alt_title_romaji: attr.titles?.en_jp || '',
               alt_title_english: attr.titles?.en || attr.titles?.en_us || '',
-              description: cleanHtmlDescription(attr.synopsis),
+              description: cleanedDesc,
               studio: '',
               release_year: releaseYear,
               status: mappedStatus,
@@ -278,12 +439,16 @@ export async function GET(request: Request) {
               runtime: attr.episodeLength || '',
               first_air_date: attr.startDate || '',
               last_air_date: attr.endDate || '',
-              poster_url: attr.posterImage?.original || attr.posterImage?.large || '',
-              banner_url: attr.coverImage?.original || attr.coverImage?.large || '',
-              tags: ['Hentai'],
+              poster_url: posterUrl,
+              banner_url: bannerUrl,
+              tags: ['Hentai', format === 'OVA' ? 'OVA' : ''],
               aliases,
               is_adult: attr.ageRating === 'R18',
-              format: attr.subtype?.toUpperCase() || 'OVA'
+              format,
+              original_source: 'Anime',
+              country: 'Japan',
+              suggested_season_title: suggestedSeasonTitle,
+              episodes_schedule: episodesSchedule
             };
           });
         }
@@ -292,7 +457,53 @@ export async function GET(request: Request) {
       }
     }
 
-    return NextResponse.json({ results });
+    // 3. If targetEpNum is requested, find and format specific episode metadata
+    let targetedEpisode: any = null;
+    let allEpisodesForTarget: EpisodeScheduleItem[] = [];
+
+    if (targetEpNum !== null && results.length > 0) {
+      const topMatch = results[0];
+      allEpisodesForTarget = topMatch.episodes_schedule || [];
+      const foundEp = allEpisodesForTarget.find(e => e.episode === targetEpNum);
+
+      if (foundEp) {
+        targetedEpisode = {
+          series_title: topMatch.title,
+          series_japanese_title: topMatch.alt_title_japanese,
+          format: topMatch.format,
+          episode_number: foundEp.episode,
+          title: foundEp.title,
+          air_date: foundEp.air_date,
+          air_date_local: foundEp.air_date_local,
+          duration_seconds: foundEp.duration_seconds,
+          duration_minutes: foundEp.duration_minutes,
+          thumbnail_url: foundEp.thumbnail_url,
+          description: foundEp.synopsis || topMatch.description
+        };
+      } else {
+        // Fallback for an episode beyond the schedule
+        const f = topMatch.format.toUpperCase();
+        targetedEpisode = {
+          series_title: topMatch.title,
+          series_japanese_title: topMatch.alt_title_japanese,
+          format: topMatch.format,
+          episode_number: targetEpNum,
+          title: (f === 'OVA' || f === 'ONA') ? `OVA ${targetEpNum}` : `Episode ${targetEpNum}`,
+          air_date: topMatch.first_air_date,
+          air_date_local: topMatch.first_air_date ? `${topMatch.first_air_date}T00:00` : '',
+          duration_seconds: ((topMatch.runtime ? Number(topMatch.runtime) : 24) * 60),
+          duration_minutes: topMatch.runtime ? Number(topMatch.runtime) : 24,
+          thumbnail_url: topMatch.banner_url || topMatch.poster_url,
+          description: topMatch.description
+        };
+      }
+    }
+
+    return NextResponse.json({
+      results,
+      episode: targetedEpisode,
+      all_episodes: allEpisodesForTarget
+    });
   } catch (err: any) {
     console.error('Metadata import GET error:', err);
     const status = err.message === 'Unauthorized' ? 401 : err.message === 'Forbidden' ? 403 : 500;
@@ -301,7 +512,7 @@ export async function GET(request: Request) {
 }
 
 // -------------------------------------------------------------
-// POST: Download remote poster/banner and save to Cloudflare R2
+// POST: Download remote poster/banner/thumbnail and save to Cloudflare R2
 // -------------------------------------------------------------
 export async function POST(request: Request) {
   try {
@@ -338,7 +549,6 @@ export async function POST(request: Request) {
     });
 
     if (!imgResponse.ok) {
-      // Return direct URL if download failed
       return NextResponse.json({
         key: imageUrl,
         url: imageUrl,
@@ -351,13 +561,12 @@ export async function POST(request: Request) {
     const rawContentType = imgResponse.headers.get('content-type') || 'image/jpeg';
     const contentType = rawContentType.split(';')[0].trim();
 
-    // Determine extension
     let ext = 'jpg';
     if (contentType.includes('png')) ext = 'png';
     else if (contentType.includes('webp')) ext = 'webp';
     else if (contentType.includes('gif')) ext = 'gif';
 
-    const safeSlug = slug ? slugify(slug).slice(0, 40) : 'series';
+    const safeSlug = slug ? slugify(slug).slice(0, 40) : 'asset';
     const key = `uploads/imported-${type}-${safeSlug}-${Date.now()}.${ext}`;
 
     const s3 = new S3Client({
@@ -383,9 +592,8 @@ export async function POST(request: Request) {
     });
   } catch (err: any) {
     console.error('Metadata import upload error:', err);
-    // Even if R2 upload fails, do not block the admin workflow!
     return NextResponse.json({
-      key: request ? '' : '',
+      key: '',
       error: err.message || 'Image upload failed',
       fallback: true
     }, { status: 200 });

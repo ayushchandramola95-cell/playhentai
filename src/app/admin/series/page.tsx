@@ -321,6 +321,7 @@ export default function AdminSeriesPage() {
   const [importingId, setImportingId] = useState<string | null>(null);
   const [importSuccessMsg, setImportSuccessMsg] = useState<string | null>(null);
   const [autoUploadToR2, setAutoUploadToR2] = useState(true);
+  const [seasonTitle, setSeasonTitle] = useState('Season 1');
 
   const resetImporter = () => {
     setShowImporterDrawer(false);
@@ -803,7 +804,26 @@ export default function AdminSeriesPage() {
       if (item.first_air_date) setFirstAirDate(item.first_air_date);
       if (item.last_air_date) setLastAirDate(item.last_air_date);
 
-      // 2. Tags & Aliases
+      // 2. Season Title & Format Preset
+      if (item.suggested_season_title) {
+        setSeasonTitle(item.suggested_season_title);
+      } else if (item.format === 'OVA' || item.format === 'ONA') {
+        setSeasonTitle('OVAs');
+      } else if (item.format === 'MOVIE') {
+        setSeasonTitle('Movies');
+      } else if (item.format === 'SPECIAL') {
+        setSeasonTitle('Specials');
+      }
+
+      // 3. Additional Metadata Fields
+      if (item.original_source) setOriginalSource(item.original_source);
+      if (item.country) setCountry(item.country);
+      if (item.is_adult) {
+        setAgeRating('18+');
+        setContentRating('explicit');
+      }
+
+      // 4. Tags & Aliases
       if (item.tags && item.tags.length > 0) {
         setTagsInput(item.tags.join(', '));
       }
@@ -1553,6 +1573,7 @@ export default function AdminSeriesPage() {
     setImageLibrary([]);
     resetTsvParser();
     resetImporter();
+    setSeasonTitle('Season 1');
     setAutoDateNotice(null);
     setAutoYearNotice(null);
 
@@ -1611,6 +1632,18 @@ export default function AdminSeriesPage() {
     setImportSuccessMsg(null);
     setAutoDateNotice(null);
     setAutoYearNotice(null);
+    setSeasonTitle('Season 1');
+
+    // Fetch existing season title for this series
+    fetch(`/api/admin/seasons?series_id=${s.id}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.seasons && data.seasons.length > 0) {
+          setSeasonTitle(data.seasons[0].title || 'Season 1');
+        }
+      })
+      .catch(() => {});
+
     if (s.about_data?.tsv) {
       setTsvInput(s.about_data.tsv);
     }
@@ -1855,6 +1888,8 @@ export default function AdminSeriesPage() {
       poster_position: (editingId ? seriesList.find((s) => s.id === editingId)?.poster_position : null) || '50% 50%',
       cover_position: (editingId ? seriesList.find((s) => s.id === editingId)?.cover_position : null) || '50% 50%',
       banner_position: (editingId ? seriesList.find((s) => s.id === editingId)?.banner_position : null) || '50% 50%',
+      initial_season_title: seasonTitle,
+      update_initial_season_title: seasonTitle,
       metadata_locks: {},
       metadata_provenance: {},
       metadata_versions: [],
@@ -3010,8 +3045,13 @@ export default function AdminSeriesPage() {
                               </span>
                             )}
                             {item.format && (
-                              <span style={{ fontSize: '0.68rem', padding: '0.1rem 0.35rem', borderRadius: '3px', background: '#222738', color: '#94a3b8' }}>
-                                {item.format}
+                              <span style={{ fontSize: '0.68rem', padding: '0.12rem 0.45rem', borderRadius: '4px', background: item.format === 'OVA' || item.format === 'ONA' ? 'rgba(168, 85, 247, 0.2)' : '#222738', color: item.format === 'OVA' || item.format === 'ONA' ? '#c4b5fd' : '#94a3b8', border: item.format === 'OVA' || item.format === 'ONA' ? '1px solid rgba(168, 85, 247, 0.4)' : '1px solid transparent', fontWeight: 700 }}>
+                                {item.format} • {item.suggested_season_title || (item.format === 'OVA' || item.format === 'ONA' ? 'OVAs' : 'Season 1')}
+                              </span>
+                            )}
+                            {item.original_source && (
+                              <span style={{ fontSize: '0.68rem', padding: '0.1rem 0.35rem', borderRadius: '3px', background: '#1c2235', color: '#93c5fd' }}>
+                                {item.original_source}
                               </span>
                             )}
                             {item.release_year && (
@@ -3232,6 +3272,68 @@ export default function AdminSeriesPage() {
                             onChange={(e) => setSlug(e.target.value)}
                             style={{ fontFamily: 'monospace', color: '#a7f3d0' }}
                           />
+                        </div>
+                      </div>
+
+                      {/* Season / Format Preset Row */}
+                      <div style={{
+                        background: '#131722',
+                        border: '1px solid #23283b',
+                        borderRadius: '12px',
+                        padding: '0.85rem 1rem',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.5rem'
+                      }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.4rem' }}>
+                          <span style={{ fontSize: '0.78rem', color: '#ffffff', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                            <Zap size={14} style={{ color: '#a855f7' }} />
+                            <span>⚡ Quick Title Presets (1-Click Fill):</span>
+                            <span style={{ fontSize: '0.7rem', color: '#c4b5fd', background: 'rgba(168, 85, 247, 0.15)', padding: '0.1rem 0.45rem', borderRadius: '4px', border: '1px solid rgba(168, 85, 247, 0.3)' }}>
+                              Current: {seasonTitle}
+                            </span>
+                          </span>
+                          <span style={{ fontSize: '0.72rem', color: 'var(--foreground-muted)' }}>
+                            Click preset to auto-fill title input (e.g. OVAs for standalone OVA/ONA)
+                          </span>
+                        </div>
+                        <div style={{ display: 'flex', gap: '0.45rem', flexWrap: 'wrap' }}>
+                          {['Season 1', 'OVAs', 'Specials', 'Movies', 'Director’s Cut', 'Side Stories'].map((preset) => (
+                            <button
+                              key={preset}
+                              type="button"
+                              onClick={() => {
+                                setSeasonTitle(preset);
+                                if (preset === 'OVAs') {
+                                  const currentTags = tagsInput.split(',').map(t => t.trim()).filter(Boolean);
+                                  if (!currentTags.some(t => t.toLowerCase() === 'ova')) {
+                                    currentTags.push('OVA');
+                                    setTagsInput(currentTags.join(', '));
+                                  }
+                                } else if (preset === 'Movies') {
+                                  const currentTags = tagsInput.split(',').map(t => t.trim()).filter(Boolean);
+                                  if (!currentTags.some(t => t.toLowerCase() === 'movie')) {
+                                    currentTags.push('Movie');
+                                    setTagsInput(currentTags.join(', '));
+                                  }
+                                }
+                              }}
+                              style={{
+                                background: seasonTitle === preset ? '#7c3aed' : '#181c2b',
+                                color: seasonTitle === preset ? '#ffffff' : 'var(--foreground-secondary)',
+                                border: seasonTitle === preset ? '1px solid #8b5cf6' : '1px solid #282e44',
+                                padding: '0.35rem 0.8rem',
+                                borderRadius: '6px',
+                                fontSize: '0.78rem',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                transition: 'all 0.15s ease'
+                              }}
+                              title={`Set season/format to "${preset}"`}
+                            >
+                              {preset}
+                            </button>
+                          ))}
                         </div>
                       </div>
 

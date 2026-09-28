@@ -118,17 +118,21 @@ export async function POST(request: Request) {
 
     if (error) throw error;
 
-    // Automatically create Season 1 for this new series
+    // Automatically create initial season for this new series
+    const initialSeasonTitle = payload.initial_season_title || payload.season_title || (payload.tags?.some((t: string) => t.toLowerCase() === 'ova' || t.toLowerCase() === 'ona') ? 'OVAs' : 'Season 1');
     try {
-      await adminSupabase.from('seasons').insert({
+      const { data: newSeason } = await adminSupabase.from('seasons').insert({
         series_id: data.id,
         season_number: 1,
-        title: 'Season 1',
+        title: initialSeasonTitle,
         is_published: true,
         created_at: new Date().toISOString()
-      });
+      }).select().single();
+      if (newSeason) {
+        await upsertLocalSeason(newSeason);
+      }
     } catch (seasonErr) {
-      console.error('Failed to auto-create Season 1 for series:', seasonErr);
+      console.error('Failed to auto-create initial season for series:', seasonErr);
     }
 
     await syncTagsToCategories(payload.tags || [], adminSupabase);
@@ -182,6 +186,34 @@ export async function PUT(request: Request) {
       .single();
 
     if (error) throw error;
+
+    if (payload.update_initial_season_title) {
+      try {
+        const { data: firstSeason } = await adminSupabase
+          .from('seasons')
+          .select('*')
+          .eq('series_id', payload.id)
+          .order('season_number', { ascending: true })
+          .limit(1)
+          .maybeSingle();
+
+        if (firstSeason && firstSeason.title !== payload.update_initial_season_title) {
+          const { data: updatedSeason } = await adminSupabase
+            .from('seasons')
+            .update({ title: payload.update_initial_season_title })
+            .eq('id', firstSeason.id)
+            .select()
+            .single();
+
+          if (updatedSeason) {
+            await upsertLocalSeason(updatedSeason);
+          }
+        }
+      } catch (seasonErr) {
+        console.warn('Failed to update season title:', seasonErr);
+      }
+    }
+
     if (payload.tags !== undefined && Array.isArray(payload.tags)) {
       await syncTagsToCategories(payload.tags, adminSupabase);
     }
