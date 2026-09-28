@@ -5955,11 +5955,36 @@ export default function AdminEpisodesPage() {
         <div className={styles.modalOverlay} onClick={() => !batchApplying && setIsBatchAutoFillOpen(false)}>
           <div 
             className={styles.modalContent} 
-            style={{ maxWidth: '960px', width: '95%', maxHeight: '92vh', display: 'flex', flexDirection: 'column', padding: '1.5rem' }}
+            style={{ 
+              maxWidth: '960px', 
+              width: '95%', 
+              height: '88vh',
+              maxHeight: '88vh', 
+              display: 'flex', 
+              flexDirection: 'column', 
+              padding: 0,
+              overflow: 'hidden',
+              background: '#0d0f17',
+              border: '1px solid #23283b',
+              borderRadius: '20px'
+            }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Modal Header */}
-            <div className={styles.modalHeader} style={{ marginBottom: '1.25rem', paddingBottom: '0.9rem', borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
+            {/* Modal Header (Pinned) */}
+            <div 
+              className={styles.modalHeader} 
+              style={{ 
+                flexShrink: 0,
+                padding: '1.1rem 1.5rem', 
+                borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+                background: '#131722',
+                borderTopLeftRadius: '20px',
+                borderTopRightRadius: '20px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between'
+              }}
+            >
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
                 <div style={{
                   width: '42px',
@@ -6002,8 +6027,18 @@ export default function AdminEpisodesPage() {
               </button>
             </div>
 
-            {/* Scrollable Modal Content */}
-            <div style={{ flex: 1, overflowY: 'auto', paddingRight: '0.3rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+            {/* Scrollable Modal Content (Fully functional with mouse wheel & trackpad) */}
+            <div 
+              style={{ 
+                flex: 1, 
+                minHeight: 0,
+                overflowY: 'auto', 
+                padding: '1.35rem 1.5rem', 
+                display: 'flex', 
+                flexDirection: 'column', 
+                gap: '1.25rem' 
+              }}
+            >
               
               {/* Search Bar */}
               <div style={{
@@ -6379,7 +6414,7 @@ export default function AdminEpisodesPage() {
                     </span>
                   </div>
 
-                  <div style={{ maxHeight: '280px', overflowY: 'auto' }}>
+                  <div style={{ width: '100%', overflowX: 'auto' }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.76rem' }}>
                       <thead>
                         <tr style={{ background: 'rgba(255, 255, 255, 0.02)', borderBottom: '1px solid rgba(255, 255, 255, 0.06)', color: 'var(--foreground-muted)' }}>
@@ -6462,8 +6497,24 @@ export default function AdminEpisodesPage() {
 
             </div>
 
-            {/* Modal Actions Footer */}
-            <div className={styles.modalActions} style={{ marginTop: '1.25rem', paddingTop: '0.9rem', borderTop: '1px solid rgba(255, 255, 255, 0.08)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            {/* Modal Actions Footer (Pinned) */}
+            <div 
+              className={styles.modalActions} 
+              style={{ 
+                flexShrink: 0,
+                margin: 0,
+                padding: '1rem 1.5rem', 
+                borderTop: '1px solid rgba(255, 255, 255, 0.08)', 
+                background: '#131722',
+                borderBottomLeftRadius: '20px',
+                borderBottomRightRadius: '20px',
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'space-between',
+                gap: '1rem',
+                flexWrap: 'wrap'
+              }}
+            >
               <div style={{ fontSize: '0.78rem', color: 'var(--foreground-muted)' }}>
                 {selectedBatchMatch ? (
                   <span>
