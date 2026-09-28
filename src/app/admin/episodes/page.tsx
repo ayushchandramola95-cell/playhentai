@@ -8,7 +8,7 @@ import {
   ExternalLink, Play, CheckCircle2, ChevronDown, ChevronUp, ChevronsLeft,
   ChevronLeft, ChevronRight, ChevronsRight, LayoutGrid, Table as TableIcon,
   Copy, Check, Layers, Sparkles, FolderOpen, Download, Sliders, RotateCcw,
-  Sun, Contrast, Eye, CheckCheck, Zap
+  Sun, Contrast, Eye, CheckCheck, Zap, Calendar, ArrowRight
 } from 'lucide-react';
 import FileUploader from '@/components/FileUploader/FileUploader';
 import { getR2Url } from '@/utils/r2';
@@ -237,6 +237,27 @@ export default function AdminEpisodesPage() {
     setEpImportSuccessMsg(null);
     setIsApplyingEpMetadata(false);
   };
+
+  // Batch Series Episode Metadata Auto-Fill States
+  const [isBatchAutoFillOpen, setIsBatchAutoFillOpen] = useState(false);
+  const [batchTargetSeries, setBatchTargetSeries] = useState<Series | null>(null);
+  const [batchTargetEpisodes, setBatchTargetEpisodes] = useState<Episode[]>([]);
+  const [batchQuery, setBatchQuery] = useState('');
+  const [batchSearching, setBatchSearching] = useState(false);
+  const [batchSearchResults, setBatchSearchResults] = useState<any[]>([]);
+  const [selectedBatchMatch, setSelectedBatchMatch] = useState<any | null>(null);
+  const [batchApplying, setBatchApplying] = useState(false);
+  const [batchError, setBatchError] = useState<string | null>(null);
+  const [batchSuccessMsg, setBatchSuccessMsg] = useState<string | null>(null);
+
+  // Field toggles for batch auto-fill
+  const [batchOptAirDate, setBatchOptAirDate] = useState(true);
+  const [batchOptTitles, setBatchOptTitles] = useState(true);
+  const [batchOptSynopsis, setBatchOptSynopsis] = useState(true);
+  const [batchOptDuration, setBatchOptDuration] = useState(true);
+  const [batchOptThumbnails, setBatchOptThumbnails] = useState(false);
+  const [batchUploadThumbsR2, setBatchUploadThumbsR2] = useState(true);
+  const [batchPublishMode, setBatchPublishMode] = useState<'keep' | 'publish' | 'draft'>('keep');
 
   // Batch Upload Modal states
   interface UploadBatch {
@@ -858,7 +879,174 @@ export default function AdminEpisodesPage() {
     }
   };
 
+  // Batch Auto-Fill Handlers for Series Episodes
+  const handleOpenBatchAutoFill = (series: Series, episodes: Episode[]) => {
+    setBatchTargetSeries(series);
+    const sorted = [...episodes].sort((a, b) => a.episode_number - b.episode_number);
+    setBatchTargetEpisodes(sorted);
+    setBatchQuery(series.title);
+    setBatchSearchResults([]);
+    setSelectedBatchMatch(null);
+    setBatchError(null);
+    setBatchSuccessMsg(null);
+    setIsBatchAutoFillOpen(true);
 
+    handleSearchBatchMetadata(series.title);
+  };
+
+  const handleSearchBatchMetadata = async (queryText?: string) => {
+    const q = (queryText !== undefined ? queryText : batchQuery).trim();
+    if (!q) {
+      setBatchError('Please enter a series title to search.');
+      return;
+    }
+
+    setBatchSearching(true);
+    setBatchError(null);
+    setBatchSuccessMsg(null);
+
+    try {
+      const res = await fetch(`/api/admin/metadata-import?query=${encodeURIComponent(q)}`);
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to search anime metadata');
+      }
+
+      const results = data.results || [];
+      setBatchSearchResults(results);
+
+      if (results.length > 0) {
+        setSelectedBatchMatch(results[0]);
+      } else {
+        setSelectedBatchMatch(null);
+        setBatchError(`No anime matches found for "${q}". Try editing the title.`);
+      }
+    } catch (err: any) {
+      setBatchError(err.message || 'Error querying database');
+    } finally {
+      setBatchSearching(false);
+    }
+  };
+
+  const handleApplyBatchEpisodeMetadata = async () => {
+    if (!selectedBatchMatch || batchTargetEpisodes.length === 0) return;
+
+    setBatchApplying(true);
+    setBatchError(null);
+    setBatchSuccessMsg(null);
+
+    try {
+      let finalThumbKey: string | null = null;
+
+      // If thumbnail update is requested and R2 upload is enabled
+      if (batchOptThumbnails) {
+        const rawThumbUrl = selectedBatchMatch.banner_url || selectedBatchMatch.poster_url;
+        if (rawThumbUrl) {
+          finalThumbKey = rawThumbUrl;
+          if (batchUploadThumbsR2) {
+            try {
+              const uploadRes = await fetch('/api/admin/metadata-import', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  imageUrl: rawThumbUrl,
+                  slug: `${selectedBatchMatch.slug || batchTargetSeries?.slug || 'series'}-thumb`,
+                  type: 'thumbnail'
+                })
+              });
+              if (uploadRes.ok) {
+                const uploadData = await uploadRes.json();
+                if (uploadData.key) {
+                  finalThumbKey = uploadData.key;
+                }
+              }
+            } catch (r2Err) {
+              console.warn('Batch thumbnail R2 upload failed, keeping direct URL:', r2Err);
+            }
+          }
+        }
+      }
+
+      const f = (selectedBatchMatch.format || '').toUpperCase();
+      const titlePrefix = (f === 'OVA' || f === 'ONA') ? 'OVA' : (f === 'SPECIAL') ? 'Special' : (f === 'MOVIE') ? 'Part' : 'Episode';
+      const schedule = selectedBatchMatch.episodes_schedule || [];
+
+      const items = batchTargetEpisodes.map(ep => {
+        const sItem = schedule.find((s: any) => s.episode === ep.episode_number);
+        const changes: Record<string, any> = {};
+
+        // 1. Release / Air Date
+        if (batchOptAirDate) {
+          const rawDate = sItem?.air_date_local || (sItem?.air_date ? `${sItem.air_date}T00:00` : null);
+          if (rawDate) {
+            changes.release_date = new Date(rawDate).toISOString();
+          } else if (selectedBatchMatch.first_air_date) {
+            changes.release_date = new Date(`${selectedBatchMatch.first_air_date}T00:00`).toISOString();
+          }
+        }
+
+        // 2. Episode Title
+        if (batchOptTitles) {
+          changes.title = sItem?.title || `${titlePrefix} ${ep.episode_number}`;
+        }
+
+        // 3. Synopsis / Description
+        if (batchOptSynopsis) {
+          changes.description = sItem?.synopsis || selectedBatchMatch.description || ep.description || '';
+        }
+
+        // 4. Duration
+        if (batchOptDuration) {
+          const durSec = sItem?.duration_seconds || (selectedBatchMatch.runtime ? Number(selectedBatchMatch.runtime) * 60 : ep.duration_seconds || 1440);
+          changes.duration_seconds = durSec;
+        }
+
+        // 5. Thumbnails
+        if (batchOptThumbnails && finalThumbKey) {
+          changes.thumbnail_key = finalThumbKey;
+        }
+
+        // 6. Publish status
+        if (batchPublishMode === 'publish') {
+          changes.is_published = true;
+        } else if (batchPublishMode === 'draft') {
+          changes.is_published = false;
+        }
+
+        return {
+          id: ep.id,
+          changes
+        };
+      });
+
+      const patchRes = await fetch('/api/admin/episodes', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items })
+      });
+
+      const patchData = await patchRes.json();
+      if (!patchRes.ok) {
+        throw new Error(patchData.error || 'Failed to apply batch episode metadata');
+      }
+
+      // Update local state so UI updates instantly without full refresh
+      const updatedMap = new Map<string, Episode>((patchData.episodes || []).map((e: any) => [e.id, e as Episode]));
+      setEpisodesList(prev => prev.map(ep => updatedMap.get(ep.id) || ep));
+
+      setSuccessMsg(
+        `✓ Successfully auto-filled metadata for ${patchData.updatedCount || items.length} episodes of "${batchTargetSeries?.title || selectedBatchMatch.title}"!`
+      );
+
+      // Close modal
+      setIsBatchAutoFillOpen(false);
+    } catch (err: any) {
+      setBatchError(err.message || 'Error updating episodes');
+    } finally {
+      setBatchApplying(false);
+    }
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -2747,6 +2935,25 @@ export default function AdminEpisodesPage() {
 
                       {/* Header Actions */}
                       <div className={styles.seriesHeaderActions} onClick={(e) => e.stopPropagation()}>
+                        <button
+                          type="button"
+                          onClick={() => handleOpenBatchAutoFill(series, seriesEpisodes)}
+                          disabled={seriesEpisodes.length === 0}
+                          className={styles.actionPillBtn}
+                          style={{
+                            background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.25) 0%, rgba(59, 130, 246, 0.2) 100%)',
+                            color: '#c4b5fd',
+                            border: '1px solid rgba(139, 92, 246, 0.45)',
+                            boxShadow: '0 2px 8px rgba(139, 92, 246, 0.15)',
+                            cursor: seriesEpisodes.length === 0 ? 'not-allowed' : 'pointer',
+                            opacity: seriesEpisodes.length === 0 ? 0.5 : 1
+                          }}
+                          title={seriesEpisodes.length === 0 ? "No episodes to auto-fill" : "Auto-fill official air dates, titles, duration, and synopsis for all episodes in this show"}
+                        >
+                          <Sparkles size={13} style={{ color: '#a78bfa' }} />
+                          <span>Auto-Fill All</span>
+                        </button>
+
                         <button
                           type="button"
                           onClick={() => handleOpenBatchCreate(series.id, seriesSeasons[0]?.id)}
@@ -5742,6 +5949,573 @@ export default function AdminEpisodesPage() {
           </div>
         );
       })}
+
+      {/* BATCH EPISODE METADATA AUTO-FILL MODAL */}
+      {isBatchAutoFillOpen && (
+        <div className={styles.modalOverlay} onClick={() => !batchApplying && setIsBatchAutoFillOpen(false)}>
+          <div 
+            className={styles.modalContent} 
+            style={{ maxWidth: '960px', width: '95%', maxHeight: '92vh', display: 'flex', flexDirection: 'column', padding: '1.5rem' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className={styles.modalHeader} style={{ marginBottom: '1.25rem', paddingBottom: '0.9rem', borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+                <div style={{
+                  width: '42px',
+                  height: '42px',
+                  borderRadius: '10px',
+                  background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.25) 0%, rgba(59, 130, 246, 0.25) 100%)',
+                  border: '1px solid rgba(139, 92, 246, 0.4)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#c4b5fd',
+                  flexShrink: 0
+                }}>
+                  <Sparkles size={20} />
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: '#f3f4f6' }}>
+                    1-Click Auto-Fill Series Episodes
+                  </h3>
+                  <div style={{ fontSize: '0.78rem', color: 'var(--foreground-muted)', marginTop: '0.2rem', display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+                    <span style={{ color: 'var(--foreground-primary)', fontWeight: 700 }}>
+                      {batchTargetSeries?.title || 'Selected Show'}
+                    </span>
+                    <span>•</span>
+                    <span style={{ color: '#c4b5fd', fontWeight: 700 }}>
+                      {batchTargetEpisodes.length} Episodes queued
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => !batchApplying && setIsBatchAutoFillOpen(false)}
+                disabled={batchApplying}
+                className={styles.expandToggleBtn}
+                title="Close modal"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Scrollable Modal Content */}
+            <div style={{ flex: 1, overflowY: 'auto', paddingRight: '0.3rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              
+              {/* Search Bar */}
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.03)',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                borderRadius: '12px',
+                padding: '0.9rem 1rem'
+              }}>
+                <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#e5e7eb', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span>Search Anime Registry (AniList / Kitsu):</span>
+                  <span style={{ fontSize: '0.7rem', color: 'var(--foreground-muted)' }}>
+                    Type romaji, english, or kanji title
+                  </span>
+                </div>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <div style={{ position: 'relative', flex: 1 }}>
+                    <input
+                      type="text"
+                      value={batchQuery}
+                      onChange={(e) => setBatchQuery(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleSearchBatchMetadata();
+                        }
+                      }}
+                      placeholder="e.g. 1LDK + JK Ikinari Doukyo? Micchaku!? Hatsu Ecchi!? or Overflow"
+                      className={styles.inputField}
+                      style={{ width: '100%', paddingLeft: '2.2rem', fontSize: '0.85rem' }}
+                    />
+                    <Search size={14} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--foreground-muted)' }} />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleSearchBatchMetadata()}
+                    disabled={batchSearching || !batchQuery.trim()}
+                    className={styles.saveBtn}
+                    style={{
+                      padding: '0 1.2rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.4rem',
+                      fontSize: '0.8rem',
+                      background: 'var(--primary)'
+                    }}
+                  >
+                    {batchSearching ? (
+                      <>
+                        <RotateCcw size={14} className={styles.spin} />
+                        <span>Searching...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles size={14} />
+                        <span>Search</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {/* Multiple Matches Candidate Selector */}
+                {batchSearchResults.length > 1 && (
+                  <div style={{ marginTop: '0.85rem', paddingTop: '0.75rem', borderTop: '1px solid rgba(255, 255, 255, 0.06)' }}>
+                    <div style={{ fontSize: '0.72rem', color: 'var(--foreground-muted)', marginBottom: '0.4rem' }}>
+                      Found {batchSearchResults.length} matches — select one:
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.3rem' }}>
+                      {batchSearchResults.map((m) => {
+                        const isSelected = selectedBatchMatch?.id === m.id;
+                        return (
+                          <button
+                            key={m.id}
+                            type="button"
+                            onClick={() => setSelectedBatchMatch(m)}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.5rem',
+                              padding: '0.35rem 0.65rem',
+                              borderRadius: '8px',
+                              background: isSelected ? 'rgba(139, 92, 246, 0.25)' : 'rgba(255, 255, 255, 0.04)',
+                              border: isSelected ? '1px solid #8b5cf6' : '1px solid rgba(255, 255, 255, 0.08)',
+                              color: isSelected ? '#ffffff' : 'var(--foreground-secondary)',
+                              cursor: 'pointer',
+                              fontSize: '0.75rem',
+                              whiteSpace: 'nowrap',
+                              flexShrink: 0,
+                              transition: 'all 0.15s ease'
+                            }}
+                          >
+                            <span style={{ fontWeight: isSelected ? 800 : 600 }}>{m.title}</span>
+                            <span style={{ fontSize: '0.66rem', color: '#c4b5fd', background: 'rgba(139, 92, 246, 0.2)', padding: '0.05rem 0.35rem', borderRadius: '4px' }}>
+                              {m.format || 'OVA'} • {m.release_year || ''}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Error Alert */}
+              {batchError && (
+                <div style={{
+                  background: 'rgba(239, 68, 68, 0.12)',
+                  border: '1px solid rgba(239, 68, 68, 0.3)',
+                  padding: '0.75rem 1rem',
+                  borderRadius: '10px',
+                  color: '#f87171',
+                  fontSize: '0.8rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}>
+                  <AlertCircle size={16} />
+                  <span>{batchError}</span>
+                </div>
+              )}
+
+              {/* Matched Anime Overview Card */}
+              {selectedBatchMatch && (
+                <div style={{
+                  background: 'linear-gradient(135deg, rgba(26, 30, 47, 0.95) 0%, rgba(20, 24, 38, 0.95) 100%)',
+                  border: '1px solid rgba(139, 92, 246, 0.3)',
+                  borderRadius: '12px',
+                  padding: '1rem',
+                  display: 'flex',
+                  gap: '1rem',
+                  alignItems: 'flex-start',
+                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)'
+                }}>
+                  {/* Poster Thumbnail */}
+                  <div style={{
+                    width: '64px',
+                    height: '90px',
+                    borderRadius: '8px',
+                    overflow: 'hidden',
+                    background: '#131722',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    flexShrink: 0
+                  }}>
+                    {selectedBatchMatch.poster_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={selectedBatchMatch.poster_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--foreground-muted)' }}>
+                        <Film size={20} />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Metadata Info */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      <h4 style={{ margin: 0, fontSize: '0.98rem', fontWeight: 800, color: '#ffffff' }}>
+                        {selectedBatchMatch.title}
+                      </h4>
+                      <span style={{
+                        padding: '0.1rem 0.5rem',
+                        borderRadius: '4px',
+                        fontSize: '0.68rem',
+                        fontWeight: 700,
+                        background: 'rgba(139, 92, 246, 0.25)',
+                        color: '#c4b5fd',
+                        border: '1px solid rgba(139, 92, 246, 0.4)'
+                      }}>
+                        {selectedBatchMatch.format || 'OVA'}
+                      </span>
+                      {selectedBatchMatch.studio && (
+                        <span style={{ fontSize: '0.75rem', color: 'var(--foreground-muted)' }}>
+                          • {selectedBatchMatch.studio}
+                        </span>
+                      )}
+                    </div>
+
+                    {selectedBatchMatch.alt_title_japanese && (
+                      <div style={{ fontSize: '0.78rem', color: 'var(--foreground-secondary)', marginTop: '0.2rem' }}>
+                        {selectedBatchMatch.alt_title_japanese}
+                      </div>
+                    )}
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '0.4rem', fontSize: '0.74rem', color: 'var(--foreground-muted)', flexWrap: 'wrap' }}>
+                      <span>📅 Release: <b style={{ color: '#e5e7eb' }}>{selectedBatchMatch.first_air_date || selectedBatchMatch.release_year || 'Unknown'}</b></span>
+                      <span>⏱️ Runtime: <b style={{ color: '#e5e7eb' }}>{selectedBatchMatch.runtime || 24} min/ep</b></span>
+                      <span>📺 Schedule: <b style={{ color: '#10b981' }}>{selectedBatchMatch.episodes_schedule?.length || 0} Episodes cataloged</b></span>
+                    </div>
+
+                    {selectedBatchMatch.description && (
+                      <div style={{
+                        fontSize: '0.74rem',
+                        color: 'var(--foreground-muted)',
+                        marginTop: '0.45rem',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                        lineHeight: 1.45
+                      }}>
+                        {selectedBatchMatch.description}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* What to Auto-Fill Configuration Options */}
+              {selectedBatchMatch && (
+                <div style={{
+                  background: 'rgba(255, 255, 255, 0.02)',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  borderRadius: '12px',
+                  padding: '1rem'
+                }}>
+                  <div style={{ fontSize: '0.8rem', fontWeight: 800, color: '#f3f4f6', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <Sliders size={14} style={{ color: 'var(--primary)' }} />
+                    <span>Select Fields to Auto-Fill for All {batchTargetEpisodes.length} Episodes:</span>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.75rem' }}>
+                    
+                    {/* Air Dates Toggle */}
+                    <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', cursor: 'pointer', fontSize: '0.78rem', color: '#e5e7eb' }}>
+                      <input
+                        type="checkbox"
+                        checked={batchOptAirDate}
+                        onChange={(e) => setBatchOptAirDate(e.target.checked)}
+                        style={{ marginTop: '0.15rem' }}
+                      />
+                      <div>
+                        <div style={{ fontWeight: 700, color: '#ffffff' }}>Release / Air Dates</div>
+                        <div style={{ fontSize: '0.7rem', color: 'var(--foreground-muted)' }}>
+                          Sync exact broadcast timestamps from official schedule
+                        </div>
+                      </div>
+                    </label>
+
+                    {/* Titles Toggle */}
+                    <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', cursor: 'pointer', fontSize: '0.78rem', color: '#e5e7eb' }}>
+                      <input
+                        type="checkbox"
+                        checked={batchOptTitles}
+                        onChange={(e) => setBatchOptTitles(e.target.checked)}
+                        style={{ marginTop: '0.15rem' }}
+                      />
+                      <div>
+                        <div style={{ fontWeight: 700, color: '#ffffff' }}>Episode Titles</div>
+                        <div style={{ fontSize: '0.7rem', color: 'var(--foreground-muted)' }}>
+                          Format as &quot;{selectedBatchMatch.format === 'OVA' ? 'OVA 1, OVA 2' : 'Episode 1, Episode 2'}&quot;
+                        </div>
+                      </div>
+                    </label>
+
+                    {/* Duration Toggle */}
+                    <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', cursor: 'pointer', fontSize: '0.78rem', color: '#e5e7eb' }}>
+                      <input
+                        type="checkbox"
+                        checked={batchOptDuration}
+                        onChange={(e) => setBatchOptDuration(e.target.checked)}
+                        style={{ marginTop: '0.15rem' }}
+                      />
+                      <div>
+                        <div style={{ fontWeight: 700, color: '#ffffff' }}>Runtime Duration</div>
+                        <div style={{ fontSize: '0.7rem', color: 'var(--foreground-muted)' }}>
+                          Sync duration ({selectedBatchMatch.runtime || 24} min) across all
+                        </div>
+                      </div>
+                    </label>
+
+                    {/* Synopsis Toggle */}
+                    <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', cursor: 'pointer', fontSize: '0.78rem', color: '#e5e7eb' }}>
+                      <input
+                        type="checkbox"
+                        checked={batchOptSynopsis}
+                        onChange={(e) => setBatchOptSynopsis(e.target.checked)}
+                        style={{ marginTop: '0.15rem' }}
+                      />
+                      <div>
+                        <div style={{ fontWeight: 700, color: '#ffffff' }}>Synopsis / Description</div>
+                        <div style={{ fontSize: '0.7rem', color: 'var(--foreground-muted)' }}>
+                          Fill clean synopsis text for each episode
+                        </div>
+                      </div>
+                    </label>
+
+                    {/* Thumbnails Toggle */}
+                    <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', cursor: 'pointer', fontSize: '0.78rem', color: '#e5e7eb' }}>
+                      <input
+                        type="checkbox"
+                        checked={batchOptThumbnails}
+                        onChange={(e) => setBatchOptThumbnails(e.target.checked)}
+                        style={{ marginTop: '0.15rem' }}
+                      />
+                      <div>
+                        <div style={{ fontWeight: 700, color: '#ffffff' }}>Replace Thumbnails</div>
+                        <div style={{ fontSize: '0.7rem', color: 'var(--foreground-muted)' }}>
+                          {batchOptThumbnails ? 'Upload & replace with official artwork' : 'Keep existing captured video thumbnails (Recommended)'}
+                        </div>
+                      </div>
+                    </label>
+
+                  </div>
+
+                  {/* Thumbnail R2 option if enabled */}
+                  {batchOptThumbnails && (
+                    <div style={{ marginTop: '0.75rem', paddingTop: '0.6rem', borderTop: '1px solid rgba(255, 255, 255, 0.06)' }}>
+                      <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.74rem', color: '#c4b5fd' }}>
+                        <input
+                          type="checkbox"
+                          checked={batchUploadThumbsR2}
+                          onChange={(e) => setBatchUploadThumbsR2(e.target.checked)}
+                        />
+                        <span>Upload official thumbnail artwork to private Cloudflare R2 bucket</span>
+                      </label>
+                    </div>
+                  )}
+
+                  {/* Publish Status Selection */}
+                  <div style={{ marginTop: '0.85rem', paddingTop: '0.75rem', borderTop: '1px solid rgba(255, 255, 255, 0.06)', display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: '0.76rem', fontWeight: 700, color: '#d1d5db' }}>Publish Status:</span>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      {[
+                        { id: 'keep', label: 'Keep Current Status' },
+                        { id: 'publish', label: 'Set All Live (Published)' },
+                        { id: 'draft', label: 'Set All Draft' }
+                      ].map((opt) => (
+                        <button
+                          key={opt.id}
+                          type="button"
+                          onClick={() => setBatchPublishMode(opt.id as any)}
+                          style={{
+                            padding: '0.25rem 0.65rem',
+                            borderRadius: '6px',
+                            fontSize: '0.72rem',
+                            fontWeight: batchPublishMode === opt.id ? 800 : 500,
+                            background: batchPublishMode === opt.id ? 'var(--primary)' : 'rgba(255, 255, 255, 0.05)',
+                            color: batchPublishMode === opt.id ? '#ffffff' : 'var(--foreground-secondary)',
+                            border: '1px solid',
+                            borderColor: batchPublishMode === opt.id ? 'var(--primary)' : 'rgba(255, 255, 255, 0.1)',
+                            cursor: 'pointer',
+                            transition: 'all 0.15s ease'
+                          }}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Side-by-Side Comparison Preview Table */}
+              {selectedBatchMatch && (
+                <div style={{
+                  background: 'rgba(0, 0, 0, 0.25)',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  borderRadius: '12px',
+                  overflow: 'hidden'
+                }}>
+                  <div style={{
+                    padding: '0.75rem 1rem',
+                    background: 'rgba(255, 255, 255, 0.03)',
+                    borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between'
+                  }}>
+                    <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#e5e7eb' }}>
+                      Preview: Episodes in Database vs New Auto-Filled Metadata
+                    </span>
+                    <span style={{ fontSize: '0.72rem', color: '#10b981', fontWeight: 700 }}>
+                      {batchTargetEpisodes.length} Episodes will be updated
+                    </span>
+                  </div>
+
+                  <div style={{ maxHeight: '280px', overflowY: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.76rem' }}>
+                      <thead>
+                        <tr style={{ background: 'rgba(255, 255, 255, 0.02)', borderBottom: '1px solid rgba(255, 255, 255, 0.06)', color: 'var(--foreground-muted)' }}>
+                          <th style={{ padding: '0.6rem 0.8rem', textAlign: 'left', width: '60px' }}>Ep #</th>
+                          <th style={{ padding: '0.6rem 0.8rem', textAlign: 'left' }}>Current in Database</th>
+                          <th style={{ padding: '0.6rem 0.8rem', textAlign: 'center', width: '30px' }}></th>
+                          <th style={{ padding: '0.6rem 0.8rem', textAlign: 'left' }}>New Auto-Filled Metadata</th>
+                          <th style={{ padding: '0.6rem 0.8rem', textAlign: 'right', width: '110px' }}>Schedule Match</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {batchTargetEpisodes.map((ep) => {
+                          const schedule = selectedBatchMatch.episodes_schedule || [];
+                          const sItem = schedule.find((s: any) => s.episode === ep.episode_number);
+                          const f = (selectedBatchMatch.format || '').toUpperCase();
+                          const titlePrefix = (f === 'OVA' || f === 'ONA') ? 'OVA' : (f === 'SPECIAL') ? 'Special' : (f === 'MOVIE') ? 'Part' : 'Episode';
+                          const newTitle = sItem?.title || `${titlePrefix} ${ep.episode_number}`;
+                          const newAirDate = sItem?.air_date || selectedBatchMatch.first_air_date || 'N/A';
+                          const newDurMin = sItem?.duration_minutes || selectedBatchMatch.runtime || 24;
+
+                          const currentAiredStr = ep.release_date ? new Date(ep.release_date).toLocaleDateString() : 'None';
+
+                          return (
+                            <tr key={ep.id} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)' }}>
+                              <td style={{ padding: '0.6rem 0.8rem' }}>
+                                <span style={{
+                                  padding: '0.15rem 0.45rem',
+                                  borderRadius: '4px',
+                                  background: 'rgba(139, 92, 246, 0.2)',
+                                  color: '#c4b5fd',
+                                  fontWeight: 800,
+                                  fontSize: '0.72rem'
+                                }}>
+                                  Ep {ep.episode_number}
+                                </span>
+                              </td>
+
+                              <td style={{ padding: '0.6rem 0.8rem' }}>
+                                <div style={{ fontWeight: 600, color: 'var(--foreground-muted)' }}>
+                                  {ep.title}
+                                </div>
+                                <div style={{ fontSize: '0.7rem', color: '#9ca3af', marginTop: '0.1rem' }}>
+                                  Aired: {currentAiredStr} • {Math.round((ep.duration_seconds || 1440) / 60)} min
+                                </div>
+                              </td>
+
+                              <td style={{ padding: '0.6rem 0.8rem', textAlign: 'center', color: 'var(--primary)' }}>
+                                <ArrowRight size={13} />
+                              </td>
+
+                              <td style={{ padding: '0.6rem 0.8rem' }}>
+                                <div style={{ fontWeight: 700, color: '#a78bfa' }}>
+                                  {batchOptTitles ? newTitle : ep.title}
+                                </div>
+                                <div style={{ fontSize: '0.7rem', color: '#34d399', marginTop: '0.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                  <span>📅 {batchOptAirDate ? newAirDate : currentAiredStr}</span>
+                                  <span>⏱️ {batchOptDuration ? `${newDurMin} min` : `${Math.round((ep.duration_seconds || 1440) / 60)} min`}</span>
+                                </div>
+                              </td>
+
+                              <td style={{ padding: '0.6rem 0.8rem', textAlign: 'right' }}>
+                                {sItem?.air_date ? (
+                                  <span style={{ fontSize: '0.68rem', color: '#10b981', fontWeight: 700, background: 'rgba(16, 185, 129, 0.15)', padding: '0.15rem 0.45rem', borderRadius: '4px', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
+                                    ✓ Exact Schedule
+                                  </span>
+                                ) : (
+                                  <span style={{ fontSize: '0.68rem', color: '#c4b5fd', background: 'rgba(139, 92, 246, 0.15)', padding: '0.15rem 0.45rem', borderRadius: '4px' }}>
+                                    Extrapolated
+                                  </span>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+            </div>
+
+            {/* Modal Actions Footer */}
+            <div className={styles.modalActions} style={{ marginTop: '1.25rem', paddingTop: '0.9rem', borderTop: '1px solid rgba(255, 255, 255, 0.08)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ fontSize: '0.78rem', color: 'var(--foreground-muted)' }}>
+                {selectedBatchMatch ? (
+                  <span>
+                    Ready to update <b>{batchTargetEpisodes.length}</b> episodes with verified metadata.
+                  </span>
+                ) : (
+                  <span>Search and pick an anime above to auto-fill metadata.</span>
+                )}
+              </div>
+
+              <div style={{ display: 'flex', gap: '0.6rem' }}>
+                <button
+                  type="button"
+                  onClick={() => !batchApplying && setIsBatchAutoFillOpen(false)}
+                  disabled={batchApplying}
+                  className={styles.cancelBtn}
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleApplyBatchEpisodeMetadata}
+                  disabled={batchApplying || !selectedBatchMatch || batchTargetEpisodes.length === 0}
+                  className={styles.saveBtn}
+                  style={{
+                    background: 'linear-gradient(135deg, #7c3aed 0%, #6366f1 100%)',
+                    padding: '0.55rem 1.4rem',
+                    boxShadow: '0 4px 15px rgba(124, 58, 237, 0.35)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem'
+                  }}
+                >
+                  {batchApplying ? (
+                    <>
+                      <RotateCcw size={15} className={styles.spin} />
+                      <span>Updating {batchTargetEpisodes.length} Episodes...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles size={15} />
+                      <span>1-Click Apply to All ({batchTargetEpisodes.length}) Episodes</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      )}
 
       {/* DYNAMIC LIGHTBOX MODAL FOR ZOOM PREVIEWS */}
       {zoomImageUrl && (

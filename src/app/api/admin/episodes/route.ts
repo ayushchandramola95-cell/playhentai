@@ -264,3 +264,76 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: err.message || 'Server Error' }, { status });
   }
 }
+
+export async function PATCH(request: Request) {
+  try {
+    await verifyAdmin();
+    const adminSupabase = createAdminClient();
+    const body = await request.json();
+
+    const items: Array<{ id: string; changes: Record<string, any> }> = Array.isArray(body.items) ? body.items : [];
+
+    if (items.length === 0) {
+      return NextResponse.json({ error: 'No episode updates provided' }, { status: 400 });
+    }
+
+    const allowedFields = [
+      'title', 'description', 'duration_seconds', 'release_date',
+      'thumbnail_key', 'thumbnail_options', 'is_published', 'episode_number', 'video_key', 'season_id'
+    ];
+
+    const updatedEpisodes: any[] = [];
+    const seasonIdsToSync = new Set<string>();
+
+    for (const item of items) {
+      if (!item.id) continue;
+      const sanitized: Record<string, any> = {};
+      for (const key of Object.keys(item.changes || {})) {
+        if (allowedFields.includes(key)) {
+          sanitized[key] = item.changes[key];
+        }
+      }
+
+      if (Object.keys(sanitized).length === 0) continue;
+
+      const { data, error } = await adminSupabase
+        .from('episodes')
+        .update(sanitized)
+        .eq('id', item.id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error(`Failed to update episode ${item.id}:`, error);
+        continue;
+      }
+
+      if (data) {
+        updatedEpisodes.push(data);
+        if (data.season_id) seasonIdsToSync.add(data.season_id);
+        try {
+          await upsertLocalEpisode(data);
+        } catch (localErr) {
+          console.warn('Local store batch update fallback:', localErr);
+        }
+      }
+    }
+
+    // Auto-sync series average runtime for all touched seasons
+    for (const seasonId of seasonIdsToSync) {
+      await syncSeriesAverageRuntime(seasonId, adminSupabase);
+    }
+
+    revalidateAllCatalogTags();
+
+    return NextResponse.json({
+      success: true,
+      updatedCount: updatedEpisodes.length,
+      episodes: updatedEpisodes
+    });
+  } catch (err: any) {
+    console.error('Batch episode update error:', err);
+    const status = err.message === 'Unauthorized' ? 401 : err.message === 'Forbidden' ? 403 : 500;
+    return NextResponse.json({ error: err.message || 'Server Error' }, { status });
+  }
+}
