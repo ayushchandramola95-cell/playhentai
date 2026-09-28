@@ -5958,31 +5958,34 @@ export default function AdminEpisodesPage() {
             style={{ 
               maxWidth: '960px', 
               width: '95%', 
-              height: '88vh',
-              maxHeight: '88vh', 
-              display: 'flex', 
-              flexDirection: 'column', 
+              maxHeight: '90vh', 
+              overflowY: 'auto', 
+              position: 'relative',
               padding: 0,
-              overflow: 'hidden',
               background: '#0d0f17',
               border: '1px solid #23283b',
-              borderRadius: '20px'
+              borderRadius: '20px',
+              scrollbarWidth: 'thin',
+              scrollbarColor: '#8b5cf6 rgba(255, 255, 255, 0.08)'
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Modal Header (Pinned) */}
+            {/* Modal Header (Sticky at top) */}
             <div 
               className={styles.modalHeader} 
               style={{ 
-                flexShrink: 0,
+                position: 'sticky',
+                top: 0,
+                zIndex: 30,
                 padding: '1.1rem 1.5rem', 
                 borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
                 background: '#131722',
-                borderTopLeftRadius: '20px',
-                borderTopRightRadius: '20px',
+                borderTopLeftRadius: '19px',
+                borderTopRightRadius: '19px',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'space-between'
+                justifyContent: 'space-between',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.4)'
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
@@ -6027,12 +6030,9 @@ export default function AdminEpisodesPage() {
               </button>
             </div>
 
-            {/* Scrollable Modal Content (Fully functional with mouse wheel & trackpad) */}
+            {/* Modal Body (Natural scroll flow inside modalContent) */}
             <div 
               style={{ 
-                flex: 1, 
-                minHeight: 0,
-                overflowY: 'auto', 
                 padding: '1.35rem 1.5rem', 
                 display: 'flex', 
                 flexDirection: 'column', 
@@ -6497,22 +6497,25 @@ export default function AdminEpisodesPage() {
 
             </div>
 
-            {/* Modal Actions Footer (Pinned) */}
+            {/* Modal Actions Footer (Sticky at bottom) */}
             <div 
               className={styles.modalActions} 
               style={{ 
-                flexShrink: 0,
+                position: 'sticky',
+                bottom: 0,
+                zIndex: 30,
                 margin: 0,
                 padding: '1rem 1.5rem', 
                 borderTop: '1px solid rgba(255, 255, 255, 0.08)', 
                 background: '#131722',
-                borderBottomLeftRadius: '20px',
-                borderBottomRightRadius: '20px',
+                borderBottomLeftRadius: '19px',
+                borderBottomRightRadius: '19px',
                 display: 'flex', 
                 alignItems: 'center', 
                 justifyContent: 'space-between',
                 gap: '1rem',
-                flexWrap: 'wrap'
+                flexWrap: 'wrap',
+                boxShadow: '0 -8px 25px rgba(0, 0, 0, 0.6)'
               }}
             >
               <div style={{ fontSize: '0.78rem', color: 'var(--foreground-muted)' }}>
