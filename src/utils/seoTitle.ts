@@ -23,3 +23,24 @@ export function buildSeoTitle(
 
   return `${cleanMain}${suffixPart}${brandSuffix}`;
 }
+
+/**
+ * Utility for formatting SEO meta descriptions.
+ * Bing Webmaster Tools strictly requires meta descriptions to be between 25 and 160 characters.
+ * Descriptions over 160 characters trigger the error:
+ * "Meta Description too long or too short".
+ * This helper guarantees the description stays strictly between 25 and 155 characters.
+ */
+export function buildSeoDescription(text: string, maxLen: number = 155): string {
+  const clean = text.replace(/\s+/g, ' ').trim();
+  if (clean.length <= maxLen) {
+    return clean;
+  }
+  const truncated = clean.slice(0, maxLen - 3);
+  const lastSpace = truncated.lastIndexOf(' ');
+  if (lastSpace > 100) {
+    return `${truncated.slice(0, lastSpace).trim()}...`;
+  }
+  return `${truncated.trim()}...`;
+}
+

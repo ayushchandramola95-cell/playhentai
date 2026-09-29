@@ -10,7 +10,7 @@ import { getSeriesViewsMap } from '@/utils/views';
 import { parseEpisodeSlug, getEpisodeWatchUrl } from '@/utils/episodeUrl';
 import WatchPageClient from './WatchPageClient';
 import JsonLd from '@/components/JsonLd/JsonLd';
-import { buildSeoTitle } from '@/utils/seoTitle';
+import { buildSeoTitle, buildSeoDescription } from '@/utils/seoTitle';
 import styles from './watch.module.css';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
@@ -124,14 +124,14 @@ export async function generateMetadata({ params }: WatchPageProps): Promise<Meta
       const customEpDesc = ep.description?.trim();
 
       if (customEpDesc) {
-        description = customEpDesc;
+        description = buildSeoDescription(customEpDesc);
       } else if (seriesSynopsis) {
-        const shortSynopsis = seriesSynopsis.length > 180 ? `${seriesSynopsis.slice(0, 175).trim()}...` : seriesSynopsis;
-        description = `${shortSynopsis} Stream ${resolved.seriesTitle}${seasonQualifier} ${epLabel} in full 1080p HD with English subtitles online free on Play Hentai.`;
+        const shortSynopsis = seriesSynopsis.length > 90 ? `${seriesSynopsis.slice(0, 85).trim()}...` : seriesSynopsis;
+        description = buildSeoDescription(`${shortSynopsis} Stream ${resolved.seriesTitle}${seasonQualifier} ${epLabel} in full 1080p HD free on Play Hentai.`);
       } else if (isUncensored) {
-        description = `Watch ${resolved.seriesTitle}${seasonQualifier} ${epLabel} uncensored in HD with English subtitles. Stream the hentai anime episode for free on Play Hentai.`;
+        description = buildSeoDescription(`Watch ${resolved.seriesTitle}${seasonQualifier} ${epLabel} uncensored in HD with English subs free on Play Hentai.`);
       } else {
-        description = `Watch ${resolved.seriesTitle}${seasonQualifier} ${epLabel} online in HD with English subtitles. Stream the hentai anime episode for free on Play Hentai.`;
+        description = buildSeoDescription(`Watch ${resolved.seriesTitle}${seasonQualifier} ${epLabel} online in HD with English subs free on Play Hentai.`);
       }
 
       thumbnail = ep.thumbnail_key || ep.thumbnail || '';

@@ -28,15 +28,17 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ybtbdtgtryr
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_HLX-SCL51o2H254WH-gN0Q_HPpNwKo5';
 const publicSupabaseClient = createSupabaseClient(supabaseUrl, supabaseAnonKey);
 
+const HOME_DESCRIPTION = 'Watch hentai anime online free in 1080p HD on Play Hentai. Stream uncensored series and episodes with English subtitles, new releases, and popular titles.';
+
 export const metadata = {
   title: 'Play Hentai – Watch Hentai Anime Online Free in HD',
-  description: 'Watch hentai anime online free in HD on Play Hentai. Stream uncensored hentai series and episodes with English subtitles, discover new releases, and explore popular titles by genre and studio.',
+  description: HOME_DESCRIPTION,
   alternates: {
     canonical: '/',
   },
   openGraph: {
     title: 'Play Hentai – Watch Hentai Anime Online Free in HD',
-    description: 'Watch hentai anime online free in HD on Play Hentai. Stream uncensored hentai series and episodes with English subtitles, discover new releases, and explore popular titles by genre and studio.',
+    description: HOME_DESCRIPTION,
     url: SITE_URL,
     siteName: 'Play Hentai',
     locale: 'en_US',
@@ -54,7 +56,7 @@ export const metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Play Hentai – Watch Hentai Anime Online Free in HD',
-    description: 'Watch hentai anime online free in HD on Play Hentai. Stream uncensored hentai series and episodes with English subtitles, discover new releases, and explore popular titles by genre and studio.',
+    description: HOME_DESCRIPTION,
     images: [`${SITE_URL}/og-banner.png`],
   },
 };
