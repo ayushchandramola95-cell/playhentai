@@ -16,6 +16,7 @@ import {
   Minimize2,
   ExternalLink,
   Eye,
+  EyeOff,
   Play,
   Tv,
   ImageIcon,
@@ -37,7 +38,10 @@ import {
   ShieldCheck,
   Zap,
   Copy,
-  Info
+  Info,
+  Camera,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import FileUploader from '@/components/FileUploader/FileUploader';
@@ -45,6 +49,7 @@ import { GENRES, STUDIOS, RELEASE_YEARS } from '@/utils/constants';
 import { getR2Url } from '@/utils/r2';
 import BulkSeriesModal from '@/components/BulkSeriesModal/BulkSeriesModal';
 import BulkSeriesEditModal from '@/components/BulkSeriesEditModal/BulkSeriesEditModal';
+import ImageTagExtractorModal from '@/components/ImageTagExtractorModal/ImageTagExtractorModal';
 import styles from '../admin.module.css';
 
 interface Series {
@@ -134,14 +139,27 @@ export default function AdminSeriesPage() {
 
 
 
-  // Modal form states
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSeriesModalFullscreen, setIsSeriesModalFullscreen] = useState(true);
+  const [showLivePreview, setShowLivePreview] = useState(true);
+  const [isImporterCollapsed, setIsImporterCollapsed] = useState(false);
   const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
   const [isBulkEditModalOpen, setIsBulkEditModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [modalTab, setModalTab] = useState<'general' | 'genres' | 'specs' | 'about_faq' | 'seo' | 'tsv'>('general');
   const [showTsvDrawer, setShowTsvDrawer] = useState(false);
+  const [isTagExtractorOpen, setIsTagExtractorOpen] = useState(false);
   const [title, setTitle] = useState('');
+
+  const toggleSeriesModalFullscreen = () => {
+    setIsSeriesModalFullscreen(prev => {
+      const next = !prev;
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('admin_series_modal_fullscreen', String(next));
+      }
+      return next;
+    });
+  };
   const [slug, setSlug] = useState('');
   const [description, setDescription] = useState('');
   const [posterKey, setPosterKey] = useState('');
@@ -152,6 +170,29 @@ export default function AdminSeriesPage() {
   const [releaseYear, setReleaseYear] = useState<number | ''>('');
   const [isPublished, setIsPublished] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  // Apply tags & studios extracted from screenshot with smart deduplication
+  const handleApplyExtractedTags = (genres: string[], studios: string[], mode: 'append' | 'replace') => {
+    if (mode === 'replace') {
+      if (genres.length > 0) setTagsInput(genres.join(', '));
+      if (studios.length > 0) setStudio(studios.join(', '));
+    } else {
+      if (genres.length > 0) {
+        const existingTags = tagsInput.split(',').map(t => t.trim()).filter(Boolean);
+        const existingLower = new Set(existingTags.map(t => t.toLowerCase()));
+        const toAdd = genres.filter(g => !existingLower.has(g.toLowerCase()));
+        const merged = [...existingTags, ...toAdd];
+        setTagsInput(merged.join(', '));
+      }
+      if (studios.length > 0) {
+        const existingStudios = studio.split(',').map(s => s.trim()).filter(Boolean);
+        const existingLower = new Set(existingStudios.map(s => s.toLowerCase()));
+        const toAdd = studios.filter(s => !existingLower.has(s.toLowerCase()));
+        const merged = [...existingStudios, ...toAdd];
+        setStudio(merged.join(', '));
+      }
+    }
+  };
 
   // Smart Fill Helpers
   const handleAutoSlug = () => {
@@ -255,8 +296,12 @@ export default function AdminSeriesPage() {
         if (activeId) {
           setActiveKeyId(activeId);
         }
+        const fsPref = localStorage.getItem('admin_series_modal_fullscreen');
+        if (fsPref !== null) {
+          setIsSeriesModalFullscreen(fsPref === 'true');
+        }
       } catch (e) {
-        console.error('Failed to load Gemini keys from localStorage:', e);
+        console.error('Failed to load settings from localStorage:', e);
       }
     }
   }, []);
@@ -883,6 +928,8 @@ export default function AdminSeriesPage() {
       setImportSuccessMsg(
         `✓ Successfully imported metadata for "${item.title}"! All matching fields (Japanese Kanji title, Studio, Year, Tags, Artwork) have been populated. Review and edit before clicking Save.`
       );
+      // Auto-collapse importer drawer so the form below is immediately visible and spacious
+      setIsImporterCollapsed(true);
     } catch (err: any) {
       setImporterError(`Import failed: ${err.message || 'Unknown error'}`);
     } finally {
@@ -2062,6 +2109,29 @@ export default function AdminSeriesPage() {
             <Layers size={16} />
             <span>Bulk Quick Add</span>
           </button>
+          <button
+            type="button"
+            onClick={() => setIsTagExtractorOpen(true)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.45rem',
+              padding: '0.6rem 1.1rem',
+              background: 'rgba(236, 72, 153, 0.12)',
+              border: '1px solid rgba(236, 72, 153, 0.35)',
+              borderRadius: '8px',
+              color: '#f472b6',
+              fontWeight: 700,
+              fontSize: '0.85rem',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              boxShadow: '0 2px 8px rgba(236, 72, 153, 0.15)'
+            }}
+            title="Scan & extract genres and studios from screenshots with AI"
+          >
+            <Camera size={16} />
+            <span>Image Tag Extractor</span>
+          </button>
           <button onClick={handleOpenCreate} className={styles.createBtn}>
             <Plus size={16} />
             <span>Add Series</span>
@@ -2620,11 +2690,16 @@ export default function AdminSeriesPage() {
 
       {/* CRUD Modal */}
       {isModalOpen && (
-        <div className={styles.modalOverlay}>
-          <div className={`${styles.modalContent} ${styles.modalFullscreen}`}>
+        <div 
+          className={`${styles.modalOverlay} ${isSeriesModalFullscreen ? styles.modalOverlayFullscreen : ''}`}
+          style={isSeriesModalFullscreen ? { padding: 0, zIndex: 99999 } : {}}
+        >
+          <div 
+            className={`${styles.modalContent} ${styles.modalFullscreen} ${isSeriesModalFullscreen ? styles.modalTrueFullscreen : ''}`}
+          >
             {/* Modal Header */}
-            <div className={styles.modalHeader} style={{ marginBottom: '0.8rem', paddingBottom: '0.8rem', borderBottom: '1px solid #23283b' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+            <div className={styles.modalHeader} style={{ marginBottom: '0.65rem', paddingBottom: '0.65rem', borderBottom: '1px solid #23283b', flexShrink: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', flexWrap: 'wrap' }}>
                 <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, color: 'var(--foreground-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <Wand2 size={20} style={{ color: 'var(--primary)' }} />
                   <span>{editingId ? `Edit Series: ${title || 'Untitled'}` : 'Add New Series to Catalog'}</span>
@@ -2657,7 +2732,7 @@ export default function AdminSeriesPage() {
                 </button>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                 <button
                   type="button"
                   onClick={() => {
@@ -2670,6 +2745,16 @@ export default function AdminSeriesPage() {
                 >
                   <Sparkles size={14} />
                   <span>{showImporterDrawer ? 'Close Importer' : '✨ Metadata Importer'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsTagExtractorOpen(true)}
+                  className={styles.modalTabBtn}
+                  style={{ borderColor: 'rgba(236, 72, 153, 0.4)', background: 'rgba(236, 72, 153, 0.12)', color: '#f472b6' }}
+                  title="Extract genres and studios from screenshots with AI"
+                >
+                  <Camera size={14} />
+                  <span>📷 Scan Tags from Images</span>
                 </button>
                 <button
                   type="button"
@@ -2688,6 +2773,16 @@ export default function AdminSeriesPage() {
                 >
                   <Key size={14} />
                   <span>AI Keys ({customKeys.length})</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={toggleSeriesModalFullscreen}
+                  className={styles.modalTabBtn}
+                  style={isSeriesModalFullscreen ? { borderColor: 'rgba(139, 92, 246, 0.5)', background: 'rgba(139, 92, 246, 0.15)', color: '#c4b5fd' } : undefined}
+                  title={isSeriesModalFullscreen ? "Exit Fullscreen (Windowed mode)" : "Expand to Fullscreen"}
+                >
+                  {isSeriesModalFullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+                  <span>{isSeriesModalFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}</span>
                 </button>
                 <button
                   type="button"
@@ -2843,7 +2938,7 @@ export default function AdminSeriesPage() {
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
                     <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.76rem', color: '#cbd5e1', cursor: 'pointer' }}>
                       <input
                         type="checkbox"
@@ -2855,6 +2950,16 @@ export default function AdminSeriesPage() {
                     </label>
                     <button
                       type="button"
+                      onClick={() => setIsImporterCollapsed((prev) => !prev)}
+                      className={styles.cancelBtn}
+                      style={{ padding: '0.3rem 0.75rem', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+                      title={isImporterCollapsed ? "Expand Importer" : "Minimize Importer"}
+                    >
+                      {isImporterCollapsed ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                      <span>{isImporterCollapsed ? 'Expand' : 'Minimize'}</span>
+                    </button>
+                    <button
+                      type="button"
                       onClick={() => setShowImporterDrawer(false)}
                       className={styles.cancelBtn}
                       style={{ padding: '0.3rem 0.75rem', fontSize: '0.75rem' }}
@@ -2864,284 +2969,329 @@ export default function AdminSeriesPage() {
                   </div>
                 </div>
 
-                {/* Search Bar */}
-                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                  <div style={{ position: 'relative', flex: 1 }}>
-                    <Search size={16} style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)', color: '#6b7280' }} />
-                    <input
-                      type="text"
-                      placeholder="Search by anime title or keyword (e.g., Overflow, Ane wa Yanmama, Bible Black)..."
-                      value={importerQuery}
-                      onChange={(e) => setImporterQuery(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          handleSearchMetadata();
-                        }
-                      }}
-                      style={{
-                        width: '100%',
-                        padding: '0.65rem 0.85rem 0.65rem 2.4rem',
-                        background: '#0c0f17',
-                        border: '1px solid #2d354b',
-                        borderRadius: '8px',
-                        color: '#ffffff',
-                        fontSize: '0.86rem',
-                        outline: 'none'
-                      }}
-                    />
-                    {importerQuery && (
-                      <button
-                        type="button"
-                        onClick={() => setImporterQuery('')}
-                        style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer' }}
-                      >
-                        <X size={15} />
-                      </button>
-                    )}
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={handleSearchMetadata}
-                    disabled={importerSearching || !importerQuery.trim()}
-                    className={styles.saveBtn}
+                {isImporterCollapsed ? (
+                  <div
+                    onClick={() => setIsImporterCollapsed(false)}
                     style={{
-                      padding: '0.65rem 1.4rem',
-                      fontSize: '0.82rem',
+                      background: 'rgba(139, 92, 246, 0.08)',
+                      border: '1px dashed rgba(139, 92, 246, 0.35)',
+                      borderRadius: '8px',
+                      padding: '0.5rem 0.9rem',
+                      fontSize: '0.78rem',
+                      color: '#c4b5fd',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '0.45rem',
-                      background: 'linear-gradient(135deg, #7c3aed 0%, #6366f1 100%)',
-                      boxShadow: '0 2px 10px rgba(124, 58, 237, 0.4)'
+                      justifyContent: 'space-between',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease'
                     }}
                   >
-                    {importerSearching ? (
-                      <>
-                        <RefreshCw size={15} className={styles.spin} />
-                        <span>Searching...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Search size={15} />
-                        <span>Search Database</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-
-                {/* Success Notification */}
-                {importSuccessMsg && (
-                  <div style={{
-                    background: 'rgba(16, 185, 129, 0.12)',
-                    border: '1px solid rgba(16, 185, 129, 0.35)',
-                    borderRadius: '8px',
-                    padding: '0.65rem 0.9rem',
-                    color: '#6ee7b7',
-                    fontSize: '0.78rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    gap: '0.5rem'
-                  }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-                      <CheckCircle2 size={16} />
-                      <span>{importSuccessMsg}</span>
+                      <Sparkles size={14} style={{ color: '#a78bfa' }} />
+                      <span><strong>Metadata Importer Minimized</strong> — Form fields are fully visible below. Click to expand search & results.</span>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => setImportSuccessMsg(null)}
-                      style={{ background: 'none', border: 'none', color: '#6ee7b7', cursor: 'pointer' }}
-                    >
-                      <X size={14} />
-                    </button>
+                    <span style={{ fontWeight: 800, textDecoration: 'underline' }}>Expand Importer ↓</span>
                   </div>
-                )}
-
-                {/* Error Banner */}
-                {importerError && (
-                  <div style={{
-                    background: 'rgba(239, 68, 68, 0.12)',
-                    border: '1px solid rgba(239, 68, 68, 0.35)',
-                    borderRadius: '8px',
-                    padding: '0.6rem 0.9rem',
-                    color: '#fca5a5',
-                    fontSize: '0.78rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.4rem'
-                  }}>
-                    <AlertCircle size={16} />
-                    <span>{importerError}</span>
-                  </div>
-                )}
-
-                {/* Results List */}
-                {importerResults.length > 0 && (
-                  <div style={{
-                    maxHeight: '340px',
-                    overflowY: 'auto',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '0.75rem',
-                    paddingRight: '0.3rem'
-                  }}>
-                    <div style={{ fontSize: '0.76rem', color: '#94a3b8', fontWeight: 600 }}>
-                      Found {importerResults.length} matching anime titles. Select one to auto-fill the form:
-                    </div>
-                    {importerResults.map((item) => (
-                      <div
-                        key={item.id}
-                        style={{
-                          background: '#0d111a',
-                          border: '1px solid #1f2538',
-                          borderRadius: '10px',
-                          padding: '0.85rem',
-                          display: 'flex',
-                          gap: '1rem',
-                          alignItems: 'flex-start',
-                          transition: 'all 0.15s ease'
-                        }}
-                      >
-                        {/* Poster Thumbnail */}
-                        {item.poster_url ? (
-                          <img
-                            src={item.poster_url}
-                            alt={item.title}
-                            style={{
-                              width: '68px',
-                              height: '96px',
-                              objectFit: 'cover',
-                              borderRadius: '6px',
-                              border: '1px solid #2d354b',
-                              flexShrink: 0
-                            }}
-                          />
-                        ) : (
-                          <div style={{
-                            width: '68px',
-                            height: '96px',
-                            borderRadius: '6px',
-                            background: '#1a1f2e',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: '#64748b',
-                            flexShrink: 0
-                          }}>
-                            <ImageIcon size={22} />
-                          </div>
-                        )}
-
-                        {/* Title & Metadata Details */}
-                        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                            <span style={{ fontWeight: 700, fontSize: '0.92rem', color: '#ffffff' }}>
-                              {item.title}
-                            </span>
-                            {item.alt_title_japanese && (
-                              <span style={{ fontSize: '0.75rem', color: '#a78bfa', background: 'rgba(167, 139, 250, 0.12)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>
-                                {item.alt_title_japanese}
-                              </span>
-                            )}
-                            {item.format && (
-                              <span style={{ fontSize: '0.68rem', padding: '0.12rem 0.45rem', borderRadius: '4px', background: item.format === 'OVA' || item.format === 'ONA' ? 'rgba(168, 85, 247, 0.2)' : '#222738', color: item.format === 'OVA' || item.format === 'ONA' ? '#c4b5fd' : '#94a3b8', border: item.format === 'OVA' || item.format === 'ONA' ? '1px solid rgba(168, 85, 247, 0.4)' : '1px solid transparent', fontWeight: 700 }}>
-                                {item.format} • {item.suggested_season_title || (item.format === 'OVA' || item.format === 'ONA' ? 'OVAs' : 'Season 1')}
-                              </span>
-                            )}
-                            {item.original_source && (
-                              <span style={{ fontSize: '0.68rem', padding: '0.1rem 0.35rem', borderRadius: '3px', background: '#1c2235', color: '#93c5fd' }}>
-                                {item.original_source}
-                              </span>
-                            )}
-                            {item.release_year && (
-                              <span style={{ fontSize: '0.68rem', padding: '0.1rem 0.35rem', borderRadius: '3px', background: '#222738', color: '#94a3b8' }}>
-                                {item.release_year}
-                              </span>
-                            )}
-                            {item.episode_count && (
-                              <span style={{ fontSize: '0.68rem', padding: '0.1rem 0.35rem', borderRadius: '3px', background: '#222738', color: '#94a3b8' }}>
-                                {item.episode_count} eps
-                              </span>
-                            )}
-                            {item.runtime && (
-                              <span style={{ fontSize: '0.68rem', padding: '0.1rem 0.35rem', borderRadius: '3px', background: '#222738', color: '#94a3b8' }}>
-                                {item.runtime}m
-                              </span>
-                            )}
-                          </div>
-
-                          {/* Studio & Airing Status */}
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', fontSize: '0.74rem', color: '#94a3b8' }}>
-                            {item.studio && (
-                              <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: '#cbd5e1' }}>
-                                <Building size={13} style={{ color: '#8b5cf6' }} />
-                                <span>Studio: <strong>{item.studio}</strong></span>
-                              </span>
-                            )}
-                            <span style={{ textTransform: 'capitalize' }}>
-                              Status: <strong style={{ color: item.status === 'completed' ? '#10b981' : '#f59e0b' }}>{item.status}</strong>
-                            </span>
-                            {item.source && (
-                              <span style={{ color: '#64748b' }}>via {item.source}</span>
-                            )}
-                          </div>
-
-                          {/* Tags preview */}
-                          {item.tags && item.tags.length > 0 && (
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem', marginTop: '0.2rem' }}>
-                              {item.tags.slice(0, 7).map((t: string) => (
-                                <span key={t} style={{ fontSize: '0.68rem', background: '#181e2e', border: '1px solid #262e45', padding: '0.1rem 0.35rem', borderRadius: '3px', color: '#94a3b8' }}>
-                                  {t}
-                                </span>
-                              ))}
-                              {item.tags.length > 7 && (
-                                <span style={{ fontSize: '0.68rem', color: '#64748b' }}>+{item.tags.length - 7} more</span>
-                              )}
-                            </div>
-                          )}
-
-                          {/* Description preview */}
-                          {item.description && (
-                            <div style={{ fontSize: '0.73rem', color: '#6b7280', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', lineHeight: 1.4 }}>
-                              {item.description}
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Action Button */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', flexShrink: 0 }}>
+                ) : (
+                  <>
+                    {/* Search Bar */}
+                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                      <div style={{ position: 'relative', flex: 1 }}>
+                        <Search size={16} style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)', color: '#6b7280' }} />
+                        <input
+                          type="text"
+                          placeholder="Search by anime title or keyword (e.g., Overflow, Ane wa Yanmama, Bible Black)..."
+                          value={importerQuery}
+                          onChange={(e) => setImporterQuery(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              handleSearchMetadata();
+                            }
+                          }}
+                          style={{
+                            width: '100%',
+                            padding: '0.65rem 0.85rem 0.65rem 2.4rem',
+                            background: '#0c0f17',
+                            border: '1px solid #2d354b',
+                            borderRadius: '8px',
+                            color: '#ffffff',
+                            fontSize: '0.86rem',
+                            outline: 'none'
+                          }}
+                        />
+                        {importerQuery && (
                           <button
                             type="button"
-                            onClick={() => handleApplyImportedMetadata(item)}
-                            disabled={importingId === item.id}
-                            className={styles.saveBtn}
+                            onClick={() => setImporterQuery('')}
+                            style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer' }}
+                          >
+                            <X size={15} />
+                          </button>
+                        )}
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={handleSearchMetadata}
+                        disabled={importerSearching || !importerQuery.trim()}
+                        className={styles.saveBtn}
+                        style={{
+                          padding: '0.65rem 1.4rem',
+                          fontSize: '0.82rem',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.45rem',
+                          background: 'linear-gradient(135deg, #7c3aed 0%, #6366f1 100%)',
+                          boxShadow: '0 2px 10px rgba(124, 58, 237, 0.4)'
+                        }}
+                      >
+                        {importerSearching ? (
+                          <>
+                            <RefreshCw size={15} className={styles.spin} />
+                            <span>Searching...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Search size={15} />
+                            <span>Search Database</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+
+                    {/* Success Notification */}
+                    {importSuccessMsg && (
+                      <div style={{
+                        background: 'rgba(16, 185, 129, 0.12)',
+                        border: '1px solid rgba(16, 185, 129, 0.35)',
+                        borderRadius: '8px',
+                        padding: '0.65rem 0.9rem',
+                        color: '#6ee7b7',
+                        fontSize: '0.78rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '0.5rem'
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                          <CheckCircle2 size={16} />
+                          <span>{importSuccessMsg}</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <button
+                            type="button"
+                            onClick={() => setIsImporterCollapsed(true)}
                             style={{
-                              padding: '0.45rem 1rem',
-                              fontSize: '0.76rem',
-                              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '0.35rem',
-                              whiteSpace: 'nowrap'
+                              background: 'rgba(16, 185, 129, 0.25)',
+                              border: '1px solid rgba(16, 185, 129, 0.45)',
+                              color: '#6ee7b7',
+                              borderRadius: '4px',
+                              padding: '0.15rem 0.55rem',
+                              fontSize: '0.72rem',
+                              cursor: 'pointer',
+                              fontWeight: 700
                             }}
                           >
-                            {importingId === item.id ? (
-                              <>
-                                <RefreshCw size={13} className={styles.spin} />
-                                <span>Importing...</span>
-                              </>
-                            ) : (
-                              <>
-                                <Zap size={13} />
-                                <span>Import Metadata</span>
-                              </>
-                            )}
+                            Minimize Importer ↑
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setImportSuccessMsg(null)}
+                            style={{ background: 'none', border: 'none', color: '#6ee7b7', cursor: 'pointer' }}
+                          >
+                            <X size={14} />
                           </button>
                         </div>
                       </div>
-                    ))}
-                  </div>
+                    )}
+
+                    {/* Error Banner */}
+                    {importerError && (
+                      <div style={{
+                        background: 'rgba(239, 68, 68, 0.12)',
+                        border: '1px solid rgba(239, 68, 68, 0.35)',
+                        borderRadius: '8px',
+                        padding: '0.6rem 0.9rem',
+                        color: '#fca5a5',
+                        fontSize: '0.78rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.4rem'
+                      }}>
+                        <AlertCircle size={16} />
+                        <span>{importerError}</span>
+                      </div>
+                    )}
+
+                    {/* Results List */}
+                    {importerResults.length > 0 && (
+                      <div style={{
+                        maxHeight: isSeriesModalFullscreen ? '220px' : '160px',
+                        overflowY: 'auto',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.75rem',
+                        paddingRight: '0.3rem'
+                      }}>
+                        <div style={{ fontSize: '0.76rem', color: '#94a3b8', fontWeight: 600 }}>
+                          Found {importerResults.length} matching anime titles. Select one to auto-fill the form:
+                        </div>
+                        {importerResults.map((item) => (
+                          <div
+                            key={item.id}
+                            style={{
+                              background: '#0d111a',
+                              border: '1px solid #1f2538',
+                              borderRadius: '10px',
+                              padding: '0.85rem',
+                              display: 'flex',
+                              gap: '1rem',
+                              alignItems: 'flex-start',
+                              transition: 'all 0.15s ease'
+                            }}
+                          >
+                            {/* Poster Thumbnail */}
+                            {item.poster_url ? (
+                              <img
+                                src={item.poster_url}
+                                alt={item.title}
+                                style={{
+                                  width: '68px',
+                                  height: '96px',
+                                  objectFit: 'cover',
+                                  borderRadius: '6px',
+                                  border: '1px solid #2d354b',
+                                  flexShrink: 0
+                                }}
+                              />
+                            ) : (
+                              <div style={{
+                                width: '68px',
+                                height: '96px',
+                                borderRadius: '6px',
+                                background: '#1a1f2e',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: '#64748b',
+                                flexShrink: 0
+                              }}>
+                                <ImageIcon size={22} />
+                              </div>
+                            )}
+
+                            {/* Title & Metadata Details */}
+                            <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                <span style={{ fontWeight: 700, fontSize: '0.92rem', color: '#ffffff' }}>
+                                  {item.title}
+                                </span>
+                                {item.alt_title_japanese && (
+                                  <span style={{ fontSize: '0.75rem', color: '#a78bfa', background: 'rgba(167, 139, 250, 0.12)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>
+                                    {item.alt_title_japanese}
+                                  </span>
+                                )}
+                                {item.format && (
+                                  <span style={{ fontSize: '0.68rem', padding: '0.12rem 0.45rem', borderRadius: '4px', background: item.format === 'OVA' || item.format === 'ONA' ? 'rgba(168, 85, 247, 0.2)' : '#222738', color: item.format === 'OVA' || item.format === 'ONA' ? '#c4b5fd' : '#94a3b8', border: item.format === 'OVA' || item.format === 'ONA' ? '1px solid rgba(168, 85, 247, 0.4)' : '1px solid transparent', fontWeight: 700 }}>
+                                    {item.format} • {item.suggested_season_title || (item.format === 'OVA' || item.format === 'ONA' ? 'OVAs' : 'Season 1')}
+                                  </span>
+                                )}
+                                {item.original_source && (
+                                  <span style={{ fontSize: '0.68rem', padding: '0.1rem 0.35rem', borderRadius: '3px', background: '#1c2235', color: '#93c5fd' }}>
+                                    {item.original_source}
+                                  </span>
+                                )}
+                                {item.release_year && (
+                                  <span style={{ fontSize: '0.68rem', padding: '0.1rem 0.35rem', borderRadius: '3px', background: '#222738', color: '#94a3b8' }}>
+                                    {item.release_year}
+                                  </span>
+                                )}
+                                {item.episode_count && (
+                                  <span style={{ fontSize: '0.68rem', padding: '0.1rem 0.35rem', borderRadius: '3px', background: '#222738', color: '#94a3b8' }}>
+                                    {item.episode_count} eps
+                                  </span>
+                                )}
+                                {item.runtime && (
+                                  <span style={{ fontSize: '0.68rem', padding: '0.1rem 0.35rem', borderRadius: '3px', background: '#222738', color: '#94a3b8' }}>
+                                    {item.runtime}m
+                                  </span>
+                                )}
+                              </div>
+
+                              {/* Studio & Airing Status */}
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', fontSize: '0.74rem', color: '#94a3b8' }}>
+                                {item.studio && (
+                                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: '#cbd5e1' }}>
+                                    <Building size={13} style={{ color: '#8b5cf6' }} />
+                                    <span>Studio: <strong>{item.studio}</strong></span>
+                                  </span>
+                                )}
+                                <span style={{ textTransform: 'capitalize' }}>
+                                  Status: <strong style={{ color: item.status === 'completed' ? '#10b981' : '#f59e0b' }}>{item.status}</strong>
+                                </span>
+                                {item.source && (
+                                  <span style={{ color: '#64748b' }}>via {item.source}</span>
+                                )}
+                              </div>
+
+                              {/* Tags preview */}
+                              {item.tags && item.tags.length > 0 && (
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem', marginTop: '0.2rem' }}>
+                                  {item.tags.slice(0, 7).map((t: string) => (
+                                    <span key={t} style={{ fontSize: '0.68rem', background: '#181e2e', border: '1px solid #262e45', padding: '0.1rem 0.35rem', borderRadius: '3px', color: '#94a3b8' }}>
+                                      {t}
+                                    </span>
+                                  ))}
+                                  {item.tags.length > 7 && (
+                                    <span style={{ fontSize: '0.68rem', color: '#64748b' }}>+{item.tags.length - 7} more</span>
+                                  )}
+                                </div>
+                              )}
+
+                              {/* Description preview */}
+                              {item.description && (
+                                <div style={{ fontSize: '0.73rem', color: '#6b7280', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', lineHeight: 1.4 }}>
+                                  {item.description}
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Action Button */}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', flexShrink: 0 }}>
+                              <button
+                                type="button"
+                                onClick={() => handleApplyImportedMetadata(item)}
+                                disabled={importingId === item.id}
+                                className={styles.saveBtn}
+                                style={{
+                                  padding: '0.45rem 1rem',
+                                  fontSize: '0.76rem',
+                                  background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '0.35rem',
+                                  whiteSpace: 'nowrap'
+                                }}
+                              >
+                                {importingId === item.id ? (
+                                  <>
+                                    <RefreshCw size={13} className={styles.spin} />
+                                    <span>Importing...</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Zap size={13} />
+                                    <span>Import Metadata</span>
+                                  </>
+                                )}
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             )}
@@ -3192,11 +3342,24 @@ export default function AdminSeriesPage() {
                 <Globe size={15} />
                 <span>5. SEO & Google SERP</span>
               </button>
+
+              <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowLivePreview((prev) => !prev)}
+                  className={styles.modalTabBtn}
+                  style={!showLivePreview ? { background: 'rgba(239, 68, 68, 0.12)', borderColor: 'rgba(239, 68, 68, 0.35)', color: '#fca5a5' } : undefined}
+                  title="Toggle live card preview to give full width to form editor"
+                >
+                  {showLivePreview ? <EyeOff size={14} /> : <Eye size={14} />}
+                  <span>{showLivePreview ? 'Hide Live Preview' : 'Show Live Preview'}</span>
+                </button>
+              </div>
             </div>
 
             {/* Main Studio Form */}
             <form id="series-crud-form" onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflow: 'hidden' }}>
-              <div className={styles.modalWorkspaceLayout}>
+              <div className={`${styles.modalWorkspaceLayout} ${!showLivePreview ? styles.modalWorkspaceLayoutFullWidth : ''}`}>
                 
                 {/* Left Pane: Active Tab Editor */}
                 <div className={styles.modalEditorPane}>
@@ -3457,7 +3620,30 @@ export default function AdminSeriesPage() {
                         </div>
 
                         <div className={styles.formGroup}>
-                          <label>Production Studios (comma-separated)</label>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
+                            <label style={{ margin: 0 }}>Production Studios (comma-separated)</label>
+                            <button
+                              type="button"
+                              onClick={() => setIsTagExtractorOpen(true)}
+                              style={{
+                                background: 'rgba(16, 185, 129, 0.12)',
+                                border: '1px solid rgba(16, 185, 129, 0.35)',
+                                color: '#6ee7b7',
+                                padding: '0.15rem 0.5rem',
+                                borderRadius: '4px',
+                                fontSize: '0.7rem',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '0.3rem'
+                              }}
+                              title="Extract studios & genres from screenshot"
+                            >
+                              <Camera size={11} />
+                              <span>📷 Scan from Screenshot</span>
+                            </button>
+                          </div>
                           <input
                             type="text"
                             className={styles.inputField}
@@ -3512,7 +3698,16 @@ export default function AdminSeriesPage() {
                       <div className={styles.formGroup}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
                           <label style={{ margin: 0 }}>Tags / Genres (comma-separated)</label>
-                          <div style={{ display: 'flex', gap: '0.5rem' }}>
+                          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                            <button
+                              type="button"
+                              onClick={() => setIsTagExtractorOpen(true)}
+                              style={{ background: 'rgba(236, 72, 153, 0.15)', border: '1px solid rgba(236, 72, 153, 0.4)', color: '#f472b6', padding: '0.2rem 0.6rem', borderRadius: '4px', fontSize: '0.72rem', fontWeight: 800, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
+                              title="Extract genres and studios from screenshots with AI"
+                            >
+                              <Camera size={12} />
+                              <span>📷 Scan from Screenshot</span>
+                            </button>
                             <button
                               type="button"
                               onClick={handleToggleDubbedTag}
@@ -3980,7 +4175,8 @@ export default function AdminSeriesPage() {
                 </div>
 
                 {/* Right Pane: Live Series Card & Completeness Inspector */}
-                <div className={styles.modalPreviewPane} style={{ borderLeft: '1px solid #23283b' }}>
+                {showLivePreview && (
+                  <div className={styles.modalPreviewPane} style={{ borderLeft: '1px solid #23283b' }}>
                   <span style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--primary)', letterSpacing: '0.05em', display: 'block' }}>
                     Live Series Card Preview
                   </span>
@@ -4113,11 +4309,24 @@ export default function AdminSeriesPage() {
                     </button>
                   </div>
                 </div>
+              )}
 
               </div>
 
               {/* Locked Footer Actions */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #23283b', paddingTop: '0.9rem', marginTop: 'auto', flexShrink: 0 }}>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                borderTop: '1px solid #23283b',
+                paddingTop: '0.85rem',
+                paddingBottom: '0.35rem',
+                background: '#0d0f17',
+                boxShadow: '0 -10px 25px rgba(0, 0, 0, 0.5)',
+                marginTop: 'auto',
+                flexShrink: 0,
+                zIndex: 20
+              }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
                   <div className={styles.checkboxRow} style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.55rem' }}>
                     <input
@@ -5310,6 +5519,15 @@ export default function AdminSeriesPage() {
         onSuccess={() => {
           fetchSeries();
         }}
+      />
+
+      {/* Image Tag & Studio Extractor Modal */}
+      <ImageTagExtractorModal
+        isOpen={isTagExtractorOpen}
+        onClose={() => setIsTagExtractorOpen(false)}
+        onApply={handleApplyExtractedTags}
+        currentGenres={tagsInput}
+        currentStudios={studio}
       />
 
     </div>
