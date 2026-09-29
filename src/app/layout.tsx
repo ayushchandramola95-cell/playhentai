@@ -102,6 +102,10 @@ export async function generateMetadata(): Promise<Metadata> {
         'max-snippet': -1,
       },
     },
+    other: {
+      'rating': 'adult',
+      'RATING': 'RTA-5042-1996-1400-1579-RTA',
+    },
   };
 }
 

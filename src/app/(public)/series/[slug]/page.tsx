@@ -19,6 +19,7 @@ import Image from 'next/image';
 import { Star, Eye, ChevronRight, Sparkles } from 'lucide-react';
 import { getR2Url } from '@/utils/r2';
 import { getEpisodeWatchUrl } from '@/utils/episodeUrl';
+import { buildSeoTitle } from '@/utils/seoTitle';
 import styles from './series.module.css';
 
 import { MOCK_SERIES, MOCK_EPISODES, MOCK_SERIES_DETAILS } from '@/utils/mockData';
@@ -105,19 +106,12 @@ export async function generateMetadata({ params }: SeriesPageProps): Promise<Met
         data.tags?.some((t: string) => t.toLowerCase() === 'uncensored');
       const tagLabel = isUncensored ? 'Uncensored Hentai Anime' : 'Hentai Anime';
 
-      // Dynamic Title System (Targeting high-volume user search queries)
+      // Dynamic Title System (Strictly <= 60 chars for SEO / Bing compliance)
       if (data.meta_title) {
         title = data.meta_title;
       } else {
-        const englishTitle = data.alt_title_english;
-        let titleText = data.title;
-        if (englishTitle && englishTitle !== data.title) {
-          const combined = `${data.title} (${englishTitle})`;
-          if (combined.length <= 50) {
-            titleText = combined;
-          }
-        }
-        title = `Watch ${titleText} — ${tagLabel} Online Free in HD | Play Hentai`;
+        const uncensoredSuffix = isUncensored ? '(Uncensored)' : '';
+        title = buildSeoTitle(`Watch ${data.title}`, uncensoredSuffix);
       }
 
       // Description Template (Strict Uncensored Check & Synopsis Integration)
@@ -143,15 +137,8 @@ export async function generateMetadata({ params }: SeriesPageProps): Promise<Met
         mock.tags?.some((t: string) => t.toLowerCase() === 'uncensored');
       const tagLabel = isUncensored ? 'Uncensored Hentai Anime' : 'Hentai Anime';
 
-      const englishTitle = mock.alt_title_english;
-      let titleText = mock.title;
-      if (englishTitle && englishTitle !== mock.title) {
-        const combined = `${mock.title} (${englishTitle})`;
-        if (combined.length <= 50) {
-          titleText = combined;
-        }
-      }
-      title = `Watch ${titleText} — ${tagLabel} Online Free in HD | Play Hentai`;
+      const uncensoredSuffix = isUncensored ? '(Uncensored)' : '';
+      title = buildSeoTitle(`Watch ${mock.title}`, uncensoredSuffix);
 
       if (mock.description && mock.description.trim().length >= 20) {
         const cleanSynopsis = mock.description.trim().replace(/\s+/g, ' ');

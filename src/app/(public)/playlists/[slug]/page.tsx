@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: PlaylistDetailPageProps) {
     };
   }
 
-  const title = `${collection.name} — Curated Hentai Playlist | Play Hentai`;
+  const title = `${collection.name} — Hentai Playlist | Play Hentai`;
   
   // Revised dynamic description fallback strategy from Screenshot 5
   const rawDesc = collection.description || '';

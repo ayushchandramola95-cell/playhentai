@@ -30,8 +30,10 @@ export async function GET() {
     );
     const { data: series } = await supabase
       .from('series')
-      .select('slug, seasons(episodes(id, episode_number, is_published, video_key))')
-      .eq('is_published', true);
+      .select('slug, updated_at, seasons(episodes(id, episode_number, is_published, video_key, updated_at))')
+      .eq('is_published', true)
+      .order('updated_at', { ascending: false })
+      .limit(10);
 
     if (series && series.length > 0) {
       series.forEach((s: any) => {

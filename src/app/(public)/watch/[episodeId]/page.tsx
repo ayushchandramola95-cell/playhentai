@@ -10,6 +10,7 @@ import { getSeriesViewsMap } from '@/utils/views';
 import { parseEpisodeSlug, getEpisodeWatchUrl } from '@/utils/episodeUrl';
 import WatchPageClient from './WatchPageClient';
 import JsonLd from '@/components/JsonLd/JsonLd';
+import { buildSeoTitle } from '@/utils/seoTitle';
 import styles from './watch.module.css';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
@@ -116,7 +117,8 @@ export async function generateMetadata({ params }: WatchPageProps): Promise<Meta
         series.content_rating?.toLowerCase() === 'uncensored' ||
         series.tags?.some((t: string) => t.toLowerCase() === 'uncensored');
       
-      title = `Watch ${titleText}${seasonQualifier} ${epLabel} ${isUncensored ? 'Uncensored ' : ''}English Subbed Online Free HD | Play Hentai`;
+      const uncensoredSuffix = isUncensored ? '(Uncensored)' : '';
+      title = buildSeoTitle(`Watch ${titleText}${seasonQualifier} ${epLabel}`, uncensoredSuffix);
 
       const seriesSynopsis = series.description?.trim() || '';
       const customEpDesc = ep.description?.trim();

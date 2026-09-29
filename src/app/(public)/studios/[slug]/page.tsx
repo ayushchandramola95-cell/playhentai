@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: StudioDetailPageProps) {
   const studio = await getStudioDetails(slug);
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
   const canonicalUrl = `${siteUrl}/studios/${slug}`;
-  const title = studio ? `${studio.name} Hentai Anime Series & Releases | Play Hentai` : 'Studio Not Found | Play Hentai';
+  const title = studio ? `${studio.name} Hentai Anime | Play Hentai` : 'Studio Not Found | Play Hentai';
   const description = studio?.bio || 'Animation studio production profile, ratings, and series releases catalog on Play Hentai.';
   
   const topSeriesImg = studio?.series?.[0]?.cover_image_key || studio?.series?.[0]?.poster_image_key;

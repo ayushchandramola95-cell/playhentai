@@ -9,13 +9,13 @@ export const revalidate = 120;
 
 export async function generateMetadata() {
   return {
-    title: 'Hentai Production Studios Directory — 118+ Studios | Play Hentai',
+    title: 'Hentai Animation Studios Directory | Play Hentai',
     description: 'Browse 118+ hentai animation production studios, releases, stats, ratings, and series catalogs on Play Hentai.',
     alternates: {
       canonical: '/studios',
     },
     openGraph: {
-      title: 'Hentai Production Studios Directory — 118+ Studios | Play Hentai',
+      title: 'Hentai Animation Studios Directory | Play Hentai',
       description: 'Browse 118+ hentai animation production studios, releases, stats, ratings, and series catalogs on Play Hentai.',
       url: `${SITE_URL}/studios`,
       siteName: 'Play Hentai',

@@ -76,17 +76,17 @@ export async function generateMetadata({ params, searchParams }: ProgrammaticGen
   const { page } = await searchParams;
   const parsed = parseRouteFilter(genre, subfilter);
 
-  let title = `${parsed.formattedGenre} Anime (${parsed.formattedSubfilter}) — Watch Online | Play Hentai`;
+  let title = `${parsed.formattedGenre} (${parsed.formattedSubfilter}) Anime | Play Hentai`;
   let description = `Browse and stream ${parsed.formattedGenre} hentai anime series filtered by ${parsed.formattedSubfilter} in full 1080p HD with English subtitles free on Play Hentai.`;
 
   if (parsed.isYear) {
-    title = `Best ${parsed.formattedGenre} Hentai Anime (${parsed.formattedSubfilter}) — Watch Online | Play Hentai`;
+    title = `${parsed.formattedSubfilter} ${parsed.formattedGenre} Hentai | Play Hentai`;
     description = `Watch the best ${parsed.formattedGenre} hentai anime series released in ${parsed.formattedSubfilter}. Stream full episodes in 1080p HD on Play Hentai.`;
   } else if (parsed.isStatus) {
-    title = `${parsed.formattedSubfilter} ${parsed.formattedGenre} Hentai Anime — Full Series Stream | Play Hentai`;
+    title = `${parsed.formattedSubfilter} ${parsed.formattedGenre} Hentai | Play Hentai`;
     description = `Binge watch all ${parsed.formattedSubfilter.toLowerCase()} ${parsed.formattedGenre} hentai anime series with all episodes available online in HD on Play Hentai.`;
   } else if (parsed.isUncensored) {
-    title = `Uncensored ${parsed.formattedGenre} Hentai Anime — 1080p HD Online | Play Hentai`;
+    title = `Uncensored ${parsed.formattedGenre} Hentai | Play Hentai`;
     description = `Watch 100% uncensored ${parsed.formattedGenre} hentai anime series in high definition on Play Hentai.`;
   }
 

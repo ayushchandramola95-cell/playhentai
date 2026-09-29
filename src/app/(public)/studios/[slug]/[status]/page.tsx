@@ -59,20 +59,20 @@ export async function generateMetadata({ params }: StudioStatusPageProps) {
     };
   }
 
-  let title = `${studio.name} (${parsed.label}) Hentai Anime Releases | Play Hentai`;
+  let title = `${studio.name} (${parsed.label}) | Play Hentai`;
   let description = `Stream ${parsed.label.toLowerCase()} hentai anime series and OVAs produced by ${studio.name} in full 1080p HD with English subtitles free on Play Hentai.`;
 
   if (parsed.isCompleted) {
-    title = `${studio.name} Completed Hentai Anime Series — Watch Online | Play Hentai`;
+    title = `${studio.name} Completed Hentai | Play Hentai`;
     description = `Watch all completed anime series and OVAs produced by ${studio.name}. Binge watch full episodes in 1080p HD on Play Hentai.`;
   } else if (parsed.isOngoing) {
-    title = `${studio.name} Ongoing Hentai Anime Releases — Watch Online | Play Hentai`;
+    title = `${studio.name} Ongoing Hentai | Play Hentai`;
     description = `Watch ongoing and currently releasing anime series produced by ${studio.name}. Catch the newest episodes in HD on Play Hentai.`;
   } else if (parsed.isUncensored) {
-    title = `Uncensored ${studio.name} Hentai Anime Releases — 1080p HD | Play Hentai`;
+    title = `Uncensored ${studio.name} Hentai | Play Hentai`;
     description = `Stream 100% uncensored anime series produced by ${studio.name} in high definition with English subtitles on Play Hentai.`;
   } else if (parsed.isYear) {
-    title = `${studio.name} Anime Releases (${parsed.label}) — Watch Online | Play Hentai`;
+    title = `${studio.name} (${parsed.label}) Hentai | Play Hentai`;
     description = `Browse and stream all anime releases from ${studio.name} published in ${parsed.label} in HD on Play Hentai.`;
   }
 
