@@ -976,13 +976,16 @@ export default function AdminEpisodesPage() {
         const sItem = schedule.find((s: any) => s.episode === ep.episode_number);
         const changes: Record<string, any> = {};
 
-        // 1. Release / Air Date
+        // 1. Release / Air Date (Anchor at noon UTC to prevent any timezone rollback)
         if (batchOptAirDate) {
-          const rawDate = sItem?.air_date_local || (sItem?.air_date ? `${sItem.air_date}T00:00` : null);
-          if (rawDate) {
-            changes.release_date = new Date(rawDate).toISOString();
-          } else if (selectedBatchMatch.first_air_date) {
-            changes.release_date = new Date(`${selectedBatchMatch.first_air_date}T00:00`).toISOString();
+          const targetDateStr = sItem?.air_date || (sItem?.air_date_local ? sItem.air_date_local.split('T')[0] : null) || selectedBatchMatch.first_air_date;
+          if (targetDateStr) {
+            const match = String(targetDateStr).match(/^(\d{4})-(\d{2})-(\d{2})/);
+            if (match) {
+              changes.release_date = `${match[1]}-${match[2]}-${match[3]}T12:00:00.000Z`;
+            } else {
+              changes.release_date = new Date(targetDateStr).toISOString();
+            }
           }
         }
 
@@ -1064,7 +1067,7 @@ export default function AdminEpisodesPage() {
 
     const matchDate = (releaseDate || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
     const finalReleaseDate = matchDate 
-      ? `${matchDate[1]}-${matchDate[2]}-${matchDate[3]}T00:00:00.000Z` 
+      ? `${matchDate[1]}-${matchDate[2]}-${matchDate[3]}T12:00:00.000Z` 
       : new Date().toISOString();
 
     const payload = {
@@ -1187,6 +1190,22 @@ export default function AdminEpisodesPage() {
     const month = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}T00:00`;
+  };
+
+  /**
+   * Formats an episode's release_date for display without timezone shifting
+   */
+  const formatAiredDateDisplay = (dateVal?: string | null): string => {
+    if (!dateVal) return 'N/A';
+    const match = String(dateVal).match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (match) {
+      return `${Number(match[2])}/${Number(match[3])}/${match[1]}`;
+    }
+    try {
+      const d = new Date(dateVal);
+      if (!isNaN(d.getTime())) return d.toLocaleDateString();
+    } catch {}
+    return String(dateVal);
   };
 
   const setQuickReleaseDate = (preset: 'today' | 'yesterday' | 'week_ago' | 'month_ago' | 'next_week') => {
@@ -1549,7 +1568,7 @@ export default function AdminEpisodesPage() {
         const releaseDateStr = bf.releaseDate || calculateItemReleaseDate(freshBatch.baseReleaseDate, freshBatch.schedulingType, i);
         const match = (releaseDateStr || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
         const finalReleaseDate = match 
-          ? `${match[1]}-${match[2]}-${match[3]}T00:00:00.000Z` 
+          ? `${match[1]}-${match[2]}-${match[3]}T12:00:00.000Z` 
           : new Date().toISOString();
 
         const cleanTitle = bf.title.replace(/^\[Preview\]\s*/i, '').replace(/^\[Trailer\]\s*/i, '');
@@ -3065,7 +3084,7 @@ export default function AdminEpisodesPage() {
                                       )}
 
                                       <span>•</span>
-                                      <span>Aired {ep.release_date ? new Date(ep.release_date).toLocaleDateString() : 'N/A'}</span>
+                                      <span>Aired {formatAiredDateDisplay(ep.release_date)}</span>
                                     </div>
                                   </div>
                                 </div>
@@ -3213,7 +3232,7 @@ export default function AdminEpisodesPage() {
                           </button>
                         </td>
                         <td style={{ fontSize: '0.78rem', color: 'var(--foreground-muted)' }}>
-                          {ep.release_date ? new Date(ep.release_date).toLocaleDateString() : 'N/A'}
+                          {formatAiredDateDisplay(ep.release_date)}
                         </td>
                         <td style={{ textAlign: 'right' }}>
                           <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'flex-end' }}>
@@ -6435,7 +6454,7 @@ export default function AdminEpisodesPage() {
                           const newAirDate = sItem?.air_date || selectedBatchMatch.first_air_date || 'N/A';
                           const newDurMin = sItem?.duration_minutes || selectedBatchMatch.runtime || 24;
 
-                          const currentAiredStr = ep.release_date ? new Date(ep.release_date).toLocaleDateString() : 'None';
+                          const currentAiredStr = ep.release_date ? formatAiredDateDisplay(ep.release_date) : 'None';
 
                           return (
                             <tr key={ep.id} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)' }}>

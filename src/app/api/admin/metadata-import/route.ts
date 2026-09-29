@@ -157,6 +157,26 @@ function matchTags(genres: string[] = [], tags: { name: string; rank?: number }[
   return Array.from(result);
 }
 
+function formatAiringAtToDateStr(epochSeconds: number): string {
+  try {
+    // AniList episode airing schedules are keyed in Japan Standard Time (JST, UTC+9).
+    // Converting directly to UTC via toISOString() subtracts 9 hours and shifts the date
+    // to the previous day. Using en-CA with Asia/Tokyo ensures standard YYYY-MM-DD format
+    // matching the official Japanese release calendar date.
+    const d = new Date(epochSeconds * 1000);
+    return new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Tokyo',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    }).format(d);
+  } catch {
+    // Fallback: add 9 hours (JST offset) and format ISO date
+    const jstMs = epochSeconds * 1000 + (9 * 60 * 60 * 1000);
+    return new Date(jstMs).toISOString().split('T')[0];
+  }
+}
+
 function buildEpisodeSchedule(
   episodesCount: number,
   format: string,
@@ -177,15 +197,15 @@ function buildEpisodeSchedule(
     let airDate = '';
 
     if (scheduled?.airingAt) {
-      airDate = new Date(scheduled.airingAt * 1000).toISOString().split('T')[0];
+      airDate = formatAiringAtToDateStr(scheduled.airingAt);
     } else if (epNum === 1 && startDateStr) {
       airDate = startDateStr;
     } else if (epNum === total && endDateStr) {
       airDate = endDateStr;
     } else if (startDateStr && endDateStr && total > 1) {
-      // Linearly interpolate between startDate and endDate
-      const startMs = new Date(startDateStr).getTime();
-      const endMs = new Date(endDateStr).getTime();
+      // Linearly interpolate between startDate and endDate at noon UTC to prevent boundary shift
+      const startMs = new Date(`${startDateStr}T12:00:00Z`).getTime();
+      const endMs = new Date(`${endDateStr}T12:00:00Z`).getTime();
       if (!isNaN(startMs) && !isNaN(endMs) && endMs > startMs) {
         const step = (endMs - startMs) / (total - 1);
         const interpolated = new Date(startMs + step * (epNum - 1));
