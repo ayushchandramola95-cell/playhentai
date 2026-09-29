@@ -1022,6 +1022,17 @@ export default function AdminSeriesPage() {
   const [lightboxKey, setLightboxKey] = useState<string | null>(null);
   const [activeCropRole, setActiveCropRole] = useState<'poster' | 'cover' | 'banner' | null>(null);
 
+  // Lock background body from scrolling when any modal is open
+  useEffect(() => {
+    if (isModalOpen || isBulkModalOpen || isBulkEditModalOpen || isKeyModalOpen || isTagExtractorOpen || mediaModalOpen) {
+      const prevOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = prevOverflow;
+      };
+    }
+  }, [isModalOpen, isBulkModalOpen, isBulkEditModalOpen, isKeyModalOpen, isTagExtractorOpen, mediaModalOpen]);
+
   // Episode Thumbnail Picker state for Manage Media Modal
   const [episodeThumbnails, setEpisodeThumbnails] = useState<{ episodeNumber: number; title: string; key: string }[]>([]);
   const [loadingEpisodeThumbs, setLoadingEpisodeThumbs] = useState(false);
@@ -2698,7 +2709,17 @@ export default function AdminSeriesPage() {
             className={`${styles.modalContent} ${styles.modalFullscreen} ${isSeriesModalFullscreen ? styles.modalTrueFullscreen : ''}`}
           >
             {/* Modal Header */}
-            <div className={styles.modalHeader} style={{ marginBottom: '0.65rem', paddingBottom: '0.65rem', borderBottom: '1px solid #23283b', flexShrink: 0 }}>
+            <div className={styles.modalHeader} style={{
+              position: 'sticky',
+              top: 0,
+              zIndex: 60,
+              background: '#0d0f17',
+              paddingTop: '0.25rem',
+              paddingBottom: '0.65rem',
+              marginBottom: '0.85rem',
+              borderBottom: '1px solid #23283b',
+              flexShrink: 0
+            }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', flexWrap: 'wrap' }}>
                 <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, color: 'var(--foreground-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <Wand2 size={20} style={{ color: 'var(--primary)' }} />
@@ -3358,7 +3379,7 @@ export default function AdminSeriesPage() {
             </div>
 
             {/* Main Studio Form */}
-            <form id="series-crud-form" onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflow: 'hidden' }}>
+            <form id="series-crud-form" onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
               <div className={`${styles.modalWorkspaceLayout} ${!showLivePreview ? styles.modalWorkspaceLayoutFullWidth : ''}`}>
                 
                 {/* Left Pane: Active Tab Editor */}
@@ -4315,17 +4336,19 @@ export default function AdminSeriesPage() {
 
               {/* Locked Footer Actions */}
               <div style={{
+                position: 'sticky',
+                bottom: 0,
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
                 borderTop: '1px solid #23283b',
                 paddingTop: '0.85rem',
-                paddingBottom: '0.35rem',
+                paddingBottom: '0.65rem',
                 background: '#0d0f17',
-                boxShadow: '0 -10px 25px rgba(0, 0, 0, 0.5)',
-                marginTop: 'auto',
+                boxShadow: '0 -15px 30px rgba(0, 0, 0, 0.8)',
+                marginTop: '2.5rem',
                 flexShrink: 0,
-                zIndex: 20
+                zIndex: 60
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
                   <div className={styles.checkboxRow} style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.55rem' }}>
