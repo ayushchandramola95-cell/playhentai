@@ -66,7 +66,7 @@ const getCachedTrendingSeriesData = async (timeframe: '7d' | '30d' | 'all') => {
     if (all && all.length > 0) {
       const seriesList = all.map(s => ({
         ...s,
-        views: viewsMap[s.id] || 0
+        views: viewsMap[s.id] !== undefined ? viewsMap[s.id] : (s.views || 0)
       }));
       return { seriesList, isDbEmpty: false };
     }

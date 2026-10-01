@@ -117,8 +117,8 @@ export async function generateMetadata({ params }: WatchPageProps): Promise<Meta
         series.content_rating?.toLowerCase() === 'uncensored' ||
         series.tags?.some((t: string) => t.toLowerCase() === 'uncensored');
       
-      const uncensoredSuffix = isUncensored ? '(Uncensored)' : '';
-      title = buildSeoTitle(`Watch ${titleText}${seasonQualifier} ${epLabel}`, uncensoredSuffix);
+      const titleSuffix = isUncensored ? '(Uncensored, Eng Sub)' : '(Eng Sub)';
+      title = buildSeoTitle(`Watch ${titleText}${seasonQualifier} ${epLabel}`, titleSuffix);
 
       const seriesSynopsis = series.description?.trim() || '';
       const customEpDesc = ep.description?.trim();

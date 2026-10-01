@@ -69,7 +69,10 @@ const getCachedRandomizerSeries = async () => {
 
 export default async function RandomPage() {
   const { dbSeries, isDbEmpty } = await getCachedRandomizerSeries();
-  const seriesList = isDbEmpty ? MOCK_SERIES : dbSeries;
+  const rawList = isDbEmpty ? MOCK_SERIES : dbSeries;
+  const seriesList = rawList.filter(
+    (s: any) => (s.status || '').toLowerCase() !== 'upcoming' && !s.is_upcoming
+  );
 
   const breadcrumbJsonLd = {
     '@context': 'https://schema.org',

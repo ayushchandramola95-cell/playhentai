@@ -176,58 +176,45 @@ body {
   animation: pulse-glow-reverse 8s infinite alternate;
 }
 
-@media (max-width: 768px) {
-  .ambient-glow,
-  .ambient-glow-2 {
-    display: none !important;
-  }
+/* Ambient Glow (Disabled for clean matte flat-modern aesthetic) */
+.ambient-glow,
+.ambient-glow-2 {
+  display: none !important;
 }
 
-/* Premium Animations */
-@keyframes pulse-glow {
-  0% {
-    transform: translate(0, 0) scale(1);
-  }
-  100% {
-    transform: translate(50px, 30px) scale(1.1);
-  }
-}
-
-@keyframes pulse-glow-reverse {
-  0% {
-    transform: translate(0, 0) scale(1.1);
-  }
-  100% {
-    transform: translate(-30px, -50px) scale(0.9);
-  }
-}
-
-/* Glassmorphism Class Utilities */
+/* Glassmorphism / Surface Class Utilities (Refined to Deep Matte) */
 .glass {
-  background: var(--glass-bg);
-  backdrop-filter: blur(16px) saturate(180%);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
-  border: 1px solid var(--glass-border);
+  background: var(--surface);
+  border: 1px solid var(--border);
 }
 
+/* 3D Book Interactive Card Hover Effect */
 .card-hover {
-  transition: transform 0.25s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.25s ease, border-color 0.25s ease;
+  transform-style: preserve-3d;
+  transform-origin: left center;
+  transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, box-shadow 0.32s ease;
+  will-change: transform;
 }
 
 .card-hover:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
-  border-color: var(--primary);
+  transform: translateY(-6px) rotateY(-7deg) rotateX(2deg) scale(1.025);
+  border-color: rgba(var(--primary-rgb), 0.7) !important;
+  box-shadow: 
+    inset 2px 0 6px rgba(255, 255, 255, 0.12),
+    -10px 14px 28px rgba(0, 0, 0, 0.75),
+    -2px 0 8px rgba(0, 0, 0, 0.5),
+    0 0 18px rgba(var(--primary-rgb), 0.35) !important;
+  z-index: 15;
 }
 
 .card-hover:active {
-  transform: scale(0.975) translateY(-2px);
-  transition-duration: 0.08s;
+  transform: translateY(-2px) rotateY(-3deg) scale(0.99);
+  opacity: 0.95;
 }
 
 button:active:not(:disabled) {
-  transform: scale(0.96);
-  transition: transform 0.08s ease;
+  opacity: 0.88;
+  transition: opacity 0.06s ease;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -168,26 +168,6 @@ export default function DownloadModal({
           ) : (
             /* CASE 2: USER IS LOGGED IN */
             <>
-              {/* Sponsored Ad Unit */}
-              <div className={styles.adContainer}>
-                <span className={styles.adLabel}>Sponsored Advertisement</span>
-                <a 
-                  href="https://playhentai.live" 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className={styles.adBannerBox}
-                >
-                  <div className={styles.adPromoTitle}>
-                    <Sparkles size={16} color="#f472b6" />
-                    <span>PlayHentai VIP Cloud Mirrors</span>
-                  </div>
-                  <span className={styles.adPromoSubtitle}>
-                    Enjoy lightning-fast 60FPS uncensored anime streams with zero popups and zero buffering.
-                  </span>
-                  <span className={styles.adPromoTag}>Sponsored • Ultra HD Direct CDN</span>
-                </a>
-              </div>
-
               {/* Cloudflare Turnstile Bot Verification Card */}
               <div className={styles.turnstileCard}>
                 <div className={styles.turnstileLeft}>

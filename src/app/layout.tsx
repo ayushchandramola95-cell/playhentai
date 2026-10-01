@@ -28,7 +28,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live'),
     title: {
-      default: "Play Hentai – Watch Hentai Anime Online Free in HD",
+      default: "Play Hentai – Watch Free Hentai Anime Online in HD (Eng Sub)",
       template: "%s"
     },
     description: "Watch hentai anime online free in 1080p HD on Play Hentai. Stream uncensored series and episodes with English subtitles, new releases, and popular titles.",
@@ -47,7 +47,7 @@ export async function generateMetadata(): Promise<Metadata> {
     creator: "Play Hentai",
     publisher: "Play Hentai",
     openGraph: {
-      title: "Play Hentai – Watch Hentai Anime Online Free in HD",
+      title: "Play Hentai – Watch Free Hentai Anime Online in HD (Eng Sub)",
       description: "Watch hentai anime online free in 1080p HD on Play Hentai. Stream uncensored series and episodes with English subtitles, new releases, and popular titles.",
       url: "https://playhentai.live",
       siteName: "Play Hentai",
@@ -58,14 +58,14 @@ export async function generateMetadata(): Promise<Metadata> {
           url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live'}/og-banner.png`,
           width: 1200,
           height: 630,
-          alt: "Play Hentai – Watch Hentai Anime Online Free in HD",
+          alt: "Play Hentai – Watch Free Hentai Anime Online in HD (Eng Sub)",
           type: "image/png",
         },
       ],
     },
     twitter: {
       card: "summary_large_image",
-      title: "Play Hentai – Watch Hentai Anime Online Free in HD",
+      title: "Play Hentai – Watch Free Hentai Anime Online in HD (Eng Sub)",
       description: "Watch hentai anime online free in 1080p HD on Play Hentai. Stream uncensored series and episodes with English subtitles, new releases, and popular titles.",
       images: [`${process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live'}/og-banner.png`],
     },
@@ -109,32 +109,6 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-function getAdsSettings(): { settings: Record<string, boolean>; disabledZones: string[] } {
-  const settings = {
-    block_banners: false,
-    block_popunder: false,
-    block_instant_message: false,
-    block_in_page_push: false,
-  };
-  let disabledZones: string[] = [];
-  try {
-    const data = getSiteSettings();
-    if (data.ads_block_banners === 'true') settings.block_banners = true;
-    if (data.ads_block_popunder === 'true') settings.block_popunder = true;
-    if (data.ads_block_instant_message === 'true') settings.block_instant_message = true;
-    if (data.ads_block_in_page_push === 'true') settings.block_in_page_push = true;
-    if (data.ads_disabled_zones) {
-      try {
-        const parsed = typeof data.ads_disabled_zones === 'string' ? JSON.parse(data.ads_disabled_zones) : data.ads_disabled_zones;
-        if (Array.isArray(parsed)) disabledZones = parsed;
-      } catch (e) {}
-    }
-  } catch (err) {
-    console.error('Error reading settings for ads layout:', err);
-  }
-  return { settings, disabledZones };
-}
-
 import AnalyticsTracker from "@/components/AnalyticsTracker/AnalyticsTracker";
 
 function getSiteAnalytics(): { ga4Id?: string; cfToken?: string } {
@@ -153,7 +127,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { settings: ads, disabledZones } = getAdsSettings();
   const analytics = getSiteAnalytics();
 
   const jsonLd = {

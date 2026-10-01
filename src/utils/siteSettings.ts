@@ -5,6 +5,8 @@ export interface SiteSettings {
   latest_series_sort_mode?: string;
   hero_banner_source?: string;
   hero_banner_slide_count?: string;
+  hero_banner_mode?: string;
+  hero_banner_episode_filter?: string;
   homepage_explore_categories?: string;
   global_seo_keywords?: string;
   ads_block_banners?: string;

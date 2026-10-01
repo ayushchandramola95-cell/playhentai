@@ -1,0 +1,5019 @@
+{
+  "enabled": true,
+  "mode": "boosted",
+  "generatedAt": "2026-09-30T19:09:52.540Z",
+  "settings": {
+    "minEpisodeViews": 10000,
+    "maxEpisodeViews": 300000,
+    "minRating": 7.8,
+    "maxRating": 9.7
+  },
+  "series": {
+    "82a1aea7-0898-4066-b24b-d790f51467ea": {
+      "views": 530950,
+      "rating": 9.2
+    },
+    "cac5260a-7225-4289-91be-9bca5a4d51d6": {
+      "views": 471500,
+      "rating": 8.7
+    },
+    "e68f52dc-2260-476f-9a36-874d2f8656d3": {
+      "views": 483400,
+      "rating": 8.6
+    },
+    "e5f646d9-cae4-4bc0-a748-e4cd12be717d": {
+      "views": 325300,
+      "rating": 8.3
+    },
+    "47106747-babf-4e86-bb10-a84c6fa67a13": {
+      "views": 193500,
+      "rating": 8.4
+    },
+    "29fcd5ba-7e87-4f9d-9056-55211b36a910": {
+      "views": 121750,
+      "rating": 8.6
+    },
+    "c93da695-c67e-4b03-a086-19b371a39a49": {
+      "views": 710650,
+      "rating": 8.7
+    },
+    "5971eea9-a4e9-4418-9f08-a72d8b5f1a4c": {
+      "views": 51750,
+      "rating": 8.4
+    },
+    "24f21d9c-06ab-452a-bf61-8b3b1a6582e9": {
+      "views": 648650,
+      "rating": 8.7
+    },
+    "b86bda49-fe1b-49d8-a3dd-00ba0b20d7ef": {
+      "views": 163450,
+      "rating": 8.6
+    },
+    "3bb44200-6174-4556-93e5-8371893c7a67": {
+      "views": 81250,
+      "rating": 7.9
+    },
+    "00d6cdf9-2500-4dac-8f05-0f49e8736b2c": {
+      "views": 271750,
+      "rating": 9
+    },
+    "f39cfff4-5f84-459f-844d-1139792fe219": {
+      "views": 556850,
+      "rating": 8.2
+    },
+    "39905632-f9db-4105-ab4d-473e57f6c50f": {
+      "views": 516550,
+      "rating": 8.8
+    },
+    "39e822fd-49bf-483f-bfa3-db9d478e8fdd": {
+      "views": 231450,
+      "rating": 8.7
+    },
+    "6e4cbff4-3bed-4a2a-99e6-cdbf5ae40c8e": {
+      "views": 417650,
+      "rating": 7.9
+    },
+    "2b822c8b-a633-4561-96ea-0f9e90acf39d": {
+      "views": 457850,
+      "rating": 8.6
+    },
+    "8b4a123b-df7c-43a5-b134-6cb72d34b441": {
+      "views": 512100,
+      "rating": 8.3
+    },
+    "4469b250-5ea4-4627-b6bc-83590e428ca6": {
+      "views": 198250,
+      "rating": 8.9
+    },
+    "11b9150d-8ca4-4550-8abb-78a89ca254da": {
+      "views": 113800,
+      "rating": 8.3
+    },
+    "5104749e-de70-4dc5-8e8f-e3fcb428667f": {
+      "views": 266700,
+      "rating": 7.8
+    },
+    "ae859b39-f276-43a7-ab79-cc89152d8c12": {
+      "views": 1559800,
+      "rating": 9
+    },
+    "fdf61ef3-d04a-4a0b-a655-07d6e2e403b5": {
+      "views": 306500,
+      "rating": 8.8
+    },
+    "5c979178-8d56-4425-b5eb-6f199523a9bc": {
+      "views": 120350,
+      "rating": 8.6
+    },
+    "7360f0c1-3a18-48b0-bbbb-a5c151dd3792": {
+      "views": 310650,
+      "rating": 9.4
+    },
+    "b667e36d-4e95-460e-bb0c-8d6c23e1382b": {
+      "views": 578900,
+      "rating": 8.8
+    },
+    "c367b55b-fc0c-4f03-b733-f5c7269108b3": {
+      "views": 451800,
+      "rating": 8.8
+    },
+    "e5bd0e89-b6bd-4529-bc03-07526cc632be": {
+      "views": 108750,
+      "rating": 8
+    },
+    "9ba71b1d-6db1-44a0-acc4-e599a020797a": {
+      "views": 471150,
+      "rating": 8.2
+    },
+    "e39af3ad-2602-4c78-9973-a5148ae8cc58": {
+      "views": 181550,
+      "rating": 7.9
+    },
+    "1e922110-e842-49b7-9ce1-1a47ab5a7139": {
+      "views": 167450,
+      "rating": 8.8
+    },
+    "948c907a-96fa-43da-a7c6-6765aecbb960": {
+      "views": 621800,
+      "rating": 8.7
+    },
+    "fe8f24ce-f6f3-44c9-ae72-286a3f0eaf95": {
+      "views": 136150,
+      "rating": 8.2
+    },
+    "e10515d4-5c88-481d-b62e-ff6788875b26": {
+      "views": 1566300,
+      "rating": 9.1
+    },
+    "5e2dc595-a07c-45d6-8622-7bd7a0ffc3df": {
+      "views": 108750,
+      "rating": 8.6
+    },
+    "ddda2ffb-dda2-45f9-bb53-80ce069ef031": {
+      "views": 574400,
+      "rating": 9.2
+    },
+    "535d1434-6ab6-4b94-b52b-4fa573944058": {
+      "views": 563400,
+      "rating": 8.4
+    },
+    "f1206a04-4c11-456a-8ad5-390fa665e3ed": {
+      "views": 227600,
+      "rating": 8.9
+    },
+    "32433840-068a-4501-a7f3-feb3e9827bd1": {
+      "views": 995900,
+      "rating": 8.9
+    },
+    "ccbdd1a9-6d18-438b-8dc6-4d6b6f4994b7": {
+      "views": 332800,
+      "rating": 8.6
+    },
+    "b06766ad-3632-4609-bc64-c3cff84a0ed1": {
+      "views": 77750,
+      "rating": 7.9
+    },
+    "943fc835-f33a-41bf-845d-3fa46d766230": {
+      "views": 527550,
+      "rating": 8.6
+    },
+    "c18cd57e-3e3f-431d-aed1-aab64c041989": {
+      "views": 273750,
+      "rating": 8.2
+    },
+    "9f4c1eda-f3fb-4275-861f-9739a18c904d": {
+      "views": 371250,
+      "rating": 8.2
+    },
+    "5cfe72bd-5efe-41b7-b3c4-eb46cfeef1eb": {
+      "views": 191650,
+      "rating": 8.6
+    },
+    "9f77612f-1953-414c-8806-9110b01f1afc": {
+      "views": 415150,
+      "rating": 9.3
+    },
+    "5bd5382b-c314-43d1-9ac1-5407dba01cf4": {
+      "views": 110300,
+      "rating": 8.6
+    },
+    "1308a23d-481b-4f4e-a7b1-b6b9fbfb3935": {
+      "views": 509700,
+      "rating": 8.7
+    },
+    "6f5ef79f-5abd-4869-a3c3-70c52ec664a3": {
+      "views": 230450,
+      "rating": 8.1
+    },
+    "331f5f79-acb7-4fc9-a271-b71b449b5c26": {
+      "views": 261600,
+      "rating": 9.6
+    },
+    "d3803402-0e1a-4daf-bc1d-6e376c9be168": {
+      "views": 100650,
+      "rating": 8.7
+    },
+    "a4744e26-3bb2-47f6-be23-291e4d4c7ac7": {
+      "views": 67650,
+      "rating": 9.6
+    },
+    "2db364e5-4017-4d00-bade-a41a59f69ebb": {
+      "views": 291700,
+      "rating": 8.1
+    },
+    "f97d408d-e027-49cc-bf82-15d8c9376ff4": {
+      "views": 225000,
+      "rating": 8.7
+    },
+    "ccd86731-2a01-445f-bd57-2179530fc28b": {
+      "views": 252700,
+      "rating": 8.2
+    },
+    "ef474110-0686-4fda-8d7b-d7213ddab985": {
+      "views": 170850,
+      "rating": 9.4
+    },
+    "feea9e4a-fc15-4d17-8c39-0c5f7d9551de": {
+      "views": 297400,
+      "rating": 9.3
+    },
+    "e301d290-94ae-45c3-8f58-37942633c263": {
+      "views": 52150,
+      "rating": 8
+    },
+    "721136c6-1a0b-4f1f-83e9-28c5dab38625": {
+      "views": 198200,
+      "rating": 8.9
+    },
+    "024322a0-e3ac-4f65-a007-20bcee55f515": {
+      "views": 238150,
+      "rating": 8.1
+    },
+    "f97b1aed-60e6-4a53-b48e-c2558d962f23": {
+      "views": 273450,
+      "rating": 8.3
+    },
+    "1efcc0a3-a819-42f3-abbc-cef3115445b4": {
+      "views": 296500,
+      "rating": 7.9
+    },
+    "37a2a5ad-5cff-4d96-885c-66b27b866ce3": {
+      "views": 224850,
+      "rating": 8.6
+    },
+    "f1cb94e2-21f9-4254-a0f7-64cf534ec2d1": {
+      "views": 297600,
+      "rating": 8.8
+    },
+    "2cd4d149-af57-4814-b994-2ccdb2f58298": {
+      "views": 109500,
+      "rating": 8.8
+    },
+    "d16857a6-aaef-47ef-aaf6-29fc18c13225": {
+      "views": 304050,
+      "rating": 8.6
+    },
+    "facd6567-4889-412d-bc60-587e7e4f66b7": {
+      "views": 285000,
+      "rating": 9.4
+    },
+    "bdae4253-db22-4771-a7c5-5cfa0224d692": {
+      "views": 202700,
+      "rating": 7.8
+    },
+    "48eb8cf3-bf53-4d07-adff-42237cbe6032": {
+      "views": 198900,
+      "rating": 7.9
+    },
+    "a77df4c9-a3bc-4569-a03f-eaed6ad9f10a": {
+      "views": 268450,
+      "rating": 9.5
+    },
+    "a739515b-0571-4ec0-a967-299b645c00f3": {
+      "views": 254000,
+      "rating": 8.5
+    },
+    "647eb25a-f14d-45e1-8a12-c27ee8d9dacb": {
+      "views": 157100,
+      "rating": 8.2
+    },
+    "a0888398-b437-471f-bfab-f10dcb07a279": {
+      "views": 152250,
+      "rating": 8.3
+    },
+    "9caaae15-3d64-4d4f-9715-d2f195c21b42": {
+      "views": 475500,
+      "rating": 8.6
+    },
+    "09f2fcd8-e146-461f-9595-7ebe2dfce1af": {
+      "views": 456200,
+      "rating": 9.3
+    },
+    "95e631fc-46e6-49ee-931b-acff2c43a5b4": {
+      "views": 263800,
+      "rating": 8.9
+    },
+    "64c38fab-6da6-4cf6-a984-833dbdcdcf94": {
+      "views": 212600,
+      "rating": 9.1
+    },
+    "209fee82-2296-4997-a4be-503a9ac0ab27": {
+      "views": 421400,
+      "rating": 8.1
+    },
+    "f4f4119a-059f-46c9-9f79-7526e26d298e": {
+      "views": 135200,
+      "rating": 8.5
+    },
+    "6c21d65f-2bf1-466f-8ecb-c9e7a042cadd": {
+      "views": 251450,
+      "rating": 9
+    },
+    "26adc7d6-0809-4efe-8531-7acfaea96e02": {
+      "views": 840550,
+      "rating": 9
+    },
+    "a301437f-f2ed-46bd-b8ea-7f94440325cb": {
+      "views": 58600,
+      "rating": 9
+    },
+    "2060d87a-cb17-4cbf-b9be-cf3d159cea1e": {
+      "views": 239350,
+      "rating": 8
+    },
+    "dd1c7009-da88-4527-ac6b-aa64d7578420": {
+      "views": 587350,
+      "rating": 8.9
+    },
+    "cbde0739-ba59-42c8-b067-8c66e4619c44": {
+      "views": 155150,
+      "rating": 8.1
+    },
+    "f63cd3e8-dc6b-4463-b2c8-846ffc55dd87": {
+      "views": 46650,
+      "rating": 8.9
+    },
+    "f1aeeaa1-a086-4146-ab98-bdbc7bd75abd": {
+      "views": 537750,
+      "rating": 8.7
+    },
+    "7b498bd6-1255-4921-8dae-1e3513ec9f94": {
+      "views": 316550,
+      "rating": 8.7
+    },
+    "90feea06-89f8-4a49-9060-cfc54f897a44": {
+      "views": 558600,
+      "rating": 8.7
+    },
+    "026fd4b7-d391-430f-88c6-e5ef57fcb136": {
+      "views": 61600,
+      "rating": 8.7
+    },
+    "379ab8d7-da68-450b-b575-fcf82f9e33de": {
+      "views": 327600,
+      "rating": 9
+    },
+    "d5b8755a-ddeb-45d6-ad19-66f5a5d4cb77": {
+      "views": 808400,
+      "rating": 8.6
+    },
+    "efb0c3e5-4418-405e-b758-ac50561f6c37": {
+      "views": 177300,
+      "rating": 8.6
+    },
+    "6f45e3ce-db2f-4953-914d-e6a4286ca37a": {
+      "views": 208250,
+      "rating": 8.8
+    },
+    "ffa25444-8166-40bc-88cb-5b014bb90d6d": {
+      "views": 455650,
+      "rating": 8.2
+    },
+    "6531ad5c-5d47-4506-b573-dba39fe21456": {
+      "views": 504800,
+      "rating": 8.6
+    },
+    "4aa741dc-bd4b-4610-94f8-95b701a462ed": {
+      "views": 974150,
+      "rating": 9.1
+    },
+    "62b4bd68-2dd8-4149-b843-e599fd253252": {
+      "views": 315450,
+      "rating": 9
+    },
+    "31ef80d2-5d37-4b61-9c80-75c6ad58c125": {
+      "views": 116950,
+      "rating": 8.4
+    },
+    "abf862c0-b5b8-4b25-9220-508cad2b0643": {
+      "views": 403950,
+      "rating": 8.7
+    },
+    "c820b88c-ed0c-41b9-8676-df4b279ea01e": {
+      "views": 346350,
+      "rating": 9.1
+    },
+    "3f81a51d-f722-4914-84b1-e8bee6cb177d": {
+      "views": 85950,
+      "rating": 8.7
+    },
+    "0fdcb79e-9c01-483b-938b-6e936f9292e5": {
+      "views": 538900,
+      "rating": 9.5
+    },
+    "203cbc22-7244-4d7e-b491-20960c7416ac": {
+      "views": 157150,
+      "rating": 8.8
+    },
+    "616f893e-a8e4-4e8e-a58d-2d1bc5e28bee": {
+      "views": 363100,
+      "rating": 9.5
+    },
+    "bce4880d-a672-49ac-ad5d-9d555cda2ffa": {
+      "views": 56550,
+      "rating": 9.3
+    },
+    "815d1eaf-92dd-482e-82b0-5ccdb44000a6": {
+      "views": 976450,
+      "rating": 8.2
+    },
+    "f9ecf0c4-ecaa-44c5-bf43-71094d12ec06": {
+      "views": 81350,
+      "rating": 9.2
+    },
+    "c7e9480e-0df6-4e2f-9593-893a89d01679": {
+      "views": 337200,
+      "rating": 8.8
+    },
+    "cdd42458-2f43-495c-9244-40d39759fca9": {
+      "views": 422050,
+      "rating": 9.2
+    },
+    "54075dcc-5ab0-4107-9321-5de8a9fc86cf": {
+      "views": 913550,
+      "rating": 8.9
+    },
+    "ea5e4aae-4b13-4200-838f-3e998d117f1b": {
+      "views": 203300,
+      "rating": 8.4
+    },
+    "e5ea9eda-e985-4d95-b6d7-96c914cdd0f4": {
+      "views": 240500,
+      "rating": 8.5
+    },
+    "1af72f37-c013-4bdf-aa0e-22a143b6de53": {
+      "views": 1803900,
+      "rating": 8.7
+    },
+    "648d4fc6-f76e-47a9-ab23-e3c12cb98161": {
+      "views": 129700,
+      "rating": 9.7
+    },
+    "9b4f5f07-f965-45ea-96e4-791763ad2213": {
+      "views": 52800,
+      "rating": 9.5
+    },
+    "c0edae4e-76cc-4438-9d65-a51bc2ade71f": {
+      "views": 150400,
+      "rating": 9.2
+    },
+    "781e3612-0828-459b-9da3-f4420ff42758": {
+      "views": 276000,
+      "rating": 9.7
+    },
+    "77effa57-e5b8-4bf3-9ec1-8185c891496f": {
+      "views": 52400,
+      "rating": 8.2
+    },
+    "63d9f1ed-74f5-430e-9102-0dcff3f9f72c": {
+      "views": 90150,
+      "rating": 8.2
+    },
+    "6427c01b-9015-45b6-bdd2-2d72709cf9ae": {
+      "views": 40500,
+      "rating": 8.2
+    },
+    "490e8ad3-9817-4a8d-879e-c448e5cb8eaf": {
+      "views": 229350,
+      "rating": 9.1
+    },
+    "60ada729-c22d-4782-b75f-b8b0f1adeda7": {
+      "views": 128450,
+      "rating": 7.8
+    },
+    "9123c17f-0e55-4431-abe0-309bebf03f7a": {
+      "views": 157600,
+      "rating": 7.9
+    },
+    "ebfb9790-9b8b-40e9-a4e8-9e155a294478": {
+      "views": 267450,
+      "rating": 8.6
+    },
+    "ce8a974c-c2a9-45c7-bbd5-4f0ade11bd70": {
+      "views": 160100,
+      "rating": 9
+    },
+    "ffa31eed-d09d-49aa-9426-85e44157a880": {
+      "views": 222650,
+      "rating": 8.9
+    },
+    "00294c3c-809b-4912-b4ae-8eb28a421cae": {
+      "views": 39700,
+      "rating": 7.9
+    },
+    "43f40b28-63f2-403e-b05c-af28133f33e7": {
+      "views": 294550,
+      "rating": 9
+    },
+    "eacf81d5-491a-405a-b6c6-22f9d7775136": {
+      "views": 223400,
+      "rating": 8.8
+    },
+    "812266cb-8026-4da0-9fa9-7d7af3a192a8": {
+      "views": 313350,
+      "rating": 9.3
+    },
+    "f20b386a-830f-4f25-8861-4d99c41dc749": {
+      "views": 883900,
+      "rating": 9.1
+    },
+    "f58f8c59-5964-46df-bfd5-3240cf4fe12e": {
+      "views": 120950,
+      "rating": 8.5
+    },
+    "940f8b7a-edae-44e8-a233-f9f5fed1d9a4": {
+      "views": 571250,
+      "rating": 9.3
+    },
+    "fd5af786-c6f4-4e2b-b788-3ac562af316f": {
+      "views": 365050,
+      "rating": 9.1
+    },
+    "367cfc69-cf47-407f-a5c8-01739200ed63": {
+      "views": 242400,
+      "rating": 9.2
+    },
+    "32b11cdd-d224-4760-9ab5-cd85798cb193": {
+      "views": 858950,
+      "rating": 8.7
+    },
+    "76e4728f-7ba2-4540-873c-7341263f6ebb": {
+      "views": 1371600,
+      "rating": 8.8
+    },
+    "09dbfedd-526c-47f2-b44a-a43ff45da0b3": {
+      "views": 167300,
+      "rating": 9.1
+    },
+    "31d3f4d5-ab92-4ca6-95fe-466c9beb1b88": {
+      "views": 147400,
+      "rating": 8.9
+    },
+    "ac4909ca-944d-4841-9212-295525d7aee7": {
+      "views": 567350,
+      "rating": 9.1
+    },
+    "f0ed0dbc-48e3-4451-b68f-38977d12f820": {
+      "views": 237500,
+      "rating": 8.5
+    },
+    "e117a0db-fcf2-420a-8c49-cf07446df491": {
+      "views": 327600,
+      "rating": 9
+    },
+    "516721c9-4650-4949-8b5f-da1c5807e1d5": {
+      "views": 131450,
+      "rating": 8.6
+    },
+    "c01d3788-d6e6-4df7-a599-0d0365c4fba0": {
+      "views": 77100,
+      "rating": 8.8
+    },
+    "c6a2a390-8937-4bf6-b55c-b50942a7b755": {
+      "views": 421700,
+      "rating": 9.1
+    },
+    "d32e2909-c755-410f-8c01-84b8ac5c28f1": {
+      "views": 966700,
+      "rating": 9
+    },
+    "780d429d-c1f4-4eae-87c4-d5e57c603e08": {
+      "views": 251650,
+      "rating": 8.7
+    },
+    "fb899352-662e-4d4b-92ea-1e316a5f514e": {
+      "views": 222150,
+      "rating": 8.3
+    },
+    "65b6117e-dae6-418b-a004-9081040319ea": {
+      "views": 149700,
+      "rating": 8.6
+    },
+    "9faf5c90-a96a-482a-b8ad-b554931189f1": {
+      "views": 295050,
+      "rating": 8.9
+    },
+    "d8a30553-694e-4d83-bc82-bdfcd9fbec1a": {
+      "views": 262800,
+      "rating": 8.8
+    },
+    "c29683be-beaf-4651-a256-07f66384f6f3": {
+      "views": 68650,
+      "rating": 9
+    },
+    "08133711-8a67-4d99-a570-3c6c6bdd10cd": {
+      "views": 541650,
+      "rating": 8.1
+    },
+    "981a8cee-bbe2-4660-9092-28c34000b2d9": {
+      "views": 577650,
+      "rating": 8.7
+    },
+    "71bcc913-e0dc-44b4-8897-9838575359c7": {
+      "views": 409750,
+      "rating": 8.3
+    },
+    "6d0c379b-1c23-45ca-8764-4221b4b58a45": {
+      "views": 575200,
+      "rating": 8.9
+    },
+    "7bc399e5-c72c-4430-a86e-dcb49467c43f": {
+      "views": 578650,
+      "rating": 9
+    },
+    "c2693f98-32b8-4d89-9cce-6c9cef67c343": {
+      "views": 70800,
+      "rating": 8.2
+    },
+    "dd49d1af-e738-47c9-a7b9-df2de33790eb": {
+      "views": 148850,
+      "rating": 8.6
+    },
+    "a91d5021-fedc-40f6-8079-e40ecac930c5": {
+      "views": 202350,
+      "rating": 8.8
+    },
+    "1ea057ab-b3f0-4fc3-bb92-dc9e4ff56afb": {
+      "views": 140900,
+      "rating": 8.8
+    },
+    "39a8fd95-ad41-458d-a945-b1a3190bad41": {
+      "views": 269550,
+      "rating": 9.4
+    },
+    "50bdc348-af2e-42bc-8466-8369d4f7894f": {
+      "views": 511350,
+      "rating": 8.3
+    },
+    "d4eb76ba-f78b-47b7-9060-d509ec471afe": {
+      "views": 1032550,
+      "rating": 8.9
+    },
+    "dd669fac-99f0-4823-909e-9dd0ac9f29d2": {
+      "views": 343700,
+      "rating": 8.8
+    },
+    "9e5e0d5f-3d8a-4770-9341-b8f528502621": {
+      "views": 302550,
+      "rating": 8.8
+    },
+    "d9fe2f30-8b02-4cd4-bf3a-67bdcf1b954a": {
+      "views": 881900,
+      "rating": 8.6
+    },
+    "f6f92153-d5b0-49c2-94e3-13ff5b297e25": {
+      "views": 290100,
+      "rating": 8.5
+    },
+    "18481429-cff9-48f5-98c1-d879fd34752e": {
+      "views": 356250,
+      "rating": 8.9
+    },
+    "47b24da8-2aed-4a1b-842b-01f4842e7921": {
+      "views": 532700,
+      "rating": 9
+    },
+    "4dffa145-c5ef-497c-aa82-1370246c489d": {
+      "views": 216200,
+      "rating": 9.1
+    },
+    "e45c08a9-394e-4344-9e52-93dc81052bae": {
+      "views": 452000,
+      "rating": 8.9
+    },
+    "1d0b8e30-95ae-4fd6-8be7-c9f58f913603": {
+      "views": 42600,
+      "rating": 8.8
+    },
+    "715de6ac-9f1e-4fca-a16a-265026a0d8e9": {
+      "views": 462000,
+      "rating": 8.9
+    },
+    "b89a83be-e1b1-41db-bc2b-8519ced18b89": {
+      "views": 897300,
+      "rating": 8.9
+    },
+    "8be64cff-6e39-4000-aacc-f117b887a068": {
+      "views": 791250,
+      "rating": 9.2
+    },
+    "cf88ebe7-0303-40c6-80be-7dd31e777ad0": {
+      "views": 972950,
+      "rating": 9
+    },
+    "fee227a7-f171-46d2-a88f-1fb6eea3c51f": {
+      "views": 240100,
+      "rating": 8.8
+    },
+    "05dd6c47-116d-4e43-84dc-9079c7767e10": {
+      "views": 386950,
+      "rating": 9.5
+    },
+    "5ba4ae46-0c77-492f-9325-e9fbddc54a6d": {
+      "views": 118850,
+      "rating": 9
+    },
+    "262ea510-a8ac-4057-881d-7e1ac63d1147": {
+      "views": 227300,
+      "rating": 9.2
+    },
+    "9280fa89-ce47-4b12-a33f-063ea1016fd5": {
+      "views": 276200,
+      "rating": 9
+    },
+    "5b72bbab-d7cb-4dbb-aa2f-16b14815b273": {
+      "views": 285550,
+      "rating": 9.4
+    },
+    "cb51434a-4bf0-4c73-8445-166d80f0e0cf": {
+      "views": 574750,
+      "rating": 8.6
+    },
+    "aedcaba2-4c6d-4cc8-b044-cd1b314236b0": {
+      "views": 38950,
+      "rating": 8.1
+    },
+    "6793c17d-099a-43da-873e-ea7661cc9289": {
+      "views": 281550,
+      "rating": 8.2
+    },
+    "32160106-d3a2-48c5-9985-7c0de2747633": {
+      "views": 81200,
+      "rating": 8.4
+    },
+    "e133831c-3ca8-418b-9b16-ceb12c3a01b4": {
+      "views": 113150,
+      "rating": 9.3
+    },
+    "bbb03e3e-7306-41f6-a8da-6068300cbc5a": {
+      "views": 142600,
+      "rating": 8.3
+    },
+    "9b0e08e9-64d0-4028-a5d2-81d969b99c35": {
+      "views": 80600,
+      "rating": 9.7
+    },
+    "f5f6c9fb-58db-48f2-8213-131f688f19a2": {
+      "views": 220500,
+      "rating": 8.1
+    },
+    "846da4bf-53ad-4e74-9030-71eb2feeb105": {
+      "views": 305850,
+      "rating": 8.7
+    },
+    "644f4d1e-8fc1-4df3-b7fb-bdea020b16bf": {
+      "views": 443250,
+      "rating": 9
+    },
+    "09d27ed3-fe0c-45c1-812b-4ec4a3b0db9d": {
+      "views": 509300,
+      "rating": 8.6
+    },
+    "31acff9c-b56b-443a-a7f6-d59bf0f52fcc": {
+      "views": 47700,
+      "rating": 8.6
+    },
+    "f0127820-6da4-4e0c-a0e7-b1519cd3af59": {
+      "views": 997700,
+      "rating": 8.8
+    },
+    "57f6d564-7d8e-4759-87f3-9a396612f307": {
+      "views": 50250,
+      "rating": 8.1
+    },
+    "02b8d3d7-5f8e-40a4-81dd-368b89a31651": {
+      "views": 121900,
+      "rating": 8.5
+    },
+    "d92c26cd-e729-4bbf-95b0-528b4a80d7b9": {
+      "views": 674750,
+      "rating": 8.8
+    },
+    "0864cb3e-c162-4d40-9ec2-b21bdbc01087": {
+      "views": 1020600,
+      "rating": 8.7
+    },
+    "b074577c-14d5-4e5c-b4dd-e97ea73cffca": {
+      "views": 930050,
+      "rating": 8.9
+    },
+    "42eaea01-db28-4eff-8321-1fc1d13e3a0d": {
+      "views": 188300,
+      "rating": 8.9
+    },
+    "5f28ce17-e9a7-4f93-a5be-c32d08134b69": {
+      "views": 791150,
+      "rating": 8.7
+    },
+    "55658d5f-6e8a-4ef2-82f4-b493dd4bed91": {
+      "views": 101900,
+      "rating": 9.1
+    },
+    "b2f97024-570c-43d0-b563-5ac3f8760e64": {
+      "views": 240800,
+      "rating": 9
+    },
+    "5fc66658-bc8f-4156-8190-0879852ff9de": {
+      "views": 44400,
+      "rating": 8.6
+    },
+    "abaf0329-6fb4-4c25-8838-2e645cb2d633": {
+      "views": 1096750,
+      "rating": 8.9
+    },
+    "a70b1562-4f75-4ccc-8b5b-67f406e5291d": {
+      "views": 463550,
+      "rating": 8.6
+    },
+    "84c68ef3-395f-427f-a641-80b057423694": {
+      "views": 189700,
+      "rating": 8.2
+    },
+    "57104841-9ddd-469c-a4c4-ae07ced1e9b3": {
+      "views": 605500,
+      "rating": 8.9
+    },
+    "c73aa7a0-dc7c-45d9-8125-877b9fb81219": {
+      "views": 1050050,
+      "rating": 9.2
+    },
+    "2a6d3caf-2f3b-4423-a419-7b0cecbe0811": {
+      "views": 61050,
+      "rating": 8.3
+    },
+    "7fd3e255-01b0-4a88-8e2c-4b35d55cdbeb": {
+      "views": 552950,
+      "rating": 9.1
+    },
+    "7c2ce117-ef48-46e4-9d68-6ebd819d8188": {
+      "views": 139350,
+      "rating": 8.8
+    },
+    "3683be7f-b5fc-4fd8-9075-755a06517152": {
+      "views": 128850,
+      "rating": 8.6
+    },
+    "b4f80d8f-13d6-4bb2-87b2-49b5a67572bc": {
+      "views": 30150,
+      "rating": 9
+    },
+    "9214e77f-fb02-4bf2-8b22-bf80a8f393bd": {
+      "views": 454000,
+      "rating": 8.3
+    },
+    "6b149bc1-bd0f-4a09-a9dc-e60472b33e3e": {
+      "views": 256650,
+      "rating": 9.5
+    },
+    "edda37c0-c62f-40a2-ae44-97c46fb3a1de": {
+      "views": 257800,
+      "rating": 8.9
+    },
+    "26ccad87-c3cc-448f-81c6-345014248ad6": {
+      "views": 697600,
+      "rating": 8.9
+    },
+    "94c8eb6e-beaf-41bb-ab13-f423257d9633": {
+      "views": 328150,
+      "rating": 9
+    },
+    "bb3248ee-10b2-429b-a7b8-38225da1c7de": {
+      "views": 362900,
+      "rating": 8.5
+    },
+    "4b67b6ee-8447-414f-8a1e-3f1b25e534ed": {
+      "views": 131600,
+      "rating": 7.8
+    },
+    "7f780f10-85a1-4ad4-955c-5910ba1623d2": {
+      "views": 961200,
+      "rating": 9.2
+    },
+    "7036bc62-0f52-4c75-bef7-02a9b15367a2": {
+      "views": 350850,
+      "rating": 9.3
+    },
+    "a5e6fc38-6324-45d9-86ea-e539526abdfe": {
+      "views": 201900,
+      "rating": 9.3
+    },
+    "871e3b8c-4ecb-4037-8cd7-d9c312f974d3": {
+      "views": 440950,
+      "rating": 8.3
+    },
+    "e9ce408b-1aab-44ea-9aa4-513923122601": {
+      "views": 363750,
+      "rating": 8
+    },
+    "8880ecb2-05a7-4e05-9ab9-79d3e3c86f59": {
+      "views": 375350,
+      "rating": 8.7
+    },
+    "3f87ab7f-aa48-45e8-9452-130e602ba0fa": {
+      "views": 230000,
+      "rating": 9.3
+    },
+    "8c24f70a-bdeb-4b56-93e9-7874bf1a0770": {
+      "views": 190300,
+      "rating": 9.4
+    },
+    "839ec80a-c216-4ae7-8ba3-388677fe6a23": {
+      "views": 194100,
+      "rating": 8
+    },
+    "3c3f9185-72ab-4a21-a202-2a604b08cc90": {
+      "views": 312250,
+      "rating": 8.7
+    },
+    "0424bf79-602e-42d0-b36a-1e7238bfc4fc": {
+      "views": 219000,
+      "rating": 8.6
+    },
+    "8b22ebd2-fb0e-4ebe-a658-3f7082cc745b": {
+      "views": 639800,
+      "rating": 8.7
+    },
+    "2d854e31-4532-4f50-8c3d-f5e5a02f58b1": {
+      "views": 520900,
+      "rating": 8.6
+    },
+    "2ed4fe57-c01b-4811-a127-d35a17cb1b10": {
+      "views": 80000,
+      "rating": 8.6
+    },
+    "e3cce1c0-b303-4ae5-8275-60791197f53e": {
+      "views": 569750,
+      "rating": 9.3
+    },
+    "04f24ad6-8506-4ece-ad36-fbcc5cdd46a7": {
+      "views": 116450,
+      "rating": 9.6
+    },
+    "013ca5e2-7206-40f9-a453-39744bda2204": {
+      "views": 307800,
+      "rating": 8.1
+    },
+    "492da217-a373-4a93-aae6-1ad893f1f95b": {
+      "views": 243500,
+      "rating": 9.4
+    },
+    "ea64c613-474d-4d6d-aa52-2d9d1e6c232f": {
+      "views": 39950,
+      "rating": 8.1
+    },
+    "c171e8c9-a8c7-48db-bab1-28740fce12a8": {
+      "views": 285450,
+      "rating": 8.3
+    },
+    "f0e82687-c3a0-4d55-9ab8-9cade45958ee": {
+      "views": 95550,
+      "rating": 8.6
+    },
+    "7cf52261-75e9-4ecd-8da7-45857caf4225": {
+      "views": 58050,
+      "rating": 8.3
+    },
+    "00826604-32aa-4039-824c-07c07cfd016c": {
+      "views": 304100,
+      "rating": 9
+    },
+    "310d6209-3144-4cf6-82a9-68e45355379f": {
+      "views": 424150,
+      "rating": 8.7
+    },
+    "fa434de6-cd96-460d-b005-1df6b4da9030": {
+      "views": 539300,
+      "rating": 8.6
+    },
+    "1d375ff8-0956-440a-b04f-020ffe2d1f6b": {
+      "views": 52950,
+      "rating": 8.8
+    },
+    "496b3373-3ace-4d46-8b90-55c3fa9caaa5": {
+      "views": 301900,
+      "rating": 8.9
+    },
+    "3711c2f0-7ab5-431e-ac9b-54b5b556b8dd": {
+      "views": 397350,
+      "rating": 9.6
+    },
+    "1b8ca956-00a6-4748-94fc-baaf66f6d5d3": {
+      "views": 764500,
+      "rating": 9
+    },
+    "e1c73a8b-c1c9-4b8d-b3bd-0685a9154563": {
+      "views": 120500,
+      "rating": 9.1
+    },
+    "ab4c385d-fb9b-48cf-86f9-d7bbd33c2d23": {
+      "views": 1066900,
+      "rating": 8.9
+    },
+    "17ada15a-3cdd-4a39-b151-79833d56dec4": {
+      "views": 223200,
+      "rating": 9.4
+    },
+    "96393aca-88b0-4448-b723-538af15f0b9d": {
+      "views": 227500,
+      "rating": 8.6
+    },
+    "ccb9c7b1-8eae-4d66-ba67-ff5655871de5": {
+      "views": 564600,
+      "rating": 9.5
+    },
+    "f727ee00-68b9-406b-9408-5925a8e6879e": {
+      "views": 219400,
+      "rating": 9.1
+    },
+    "d76cd4e8-4ad5-462a-b4e2-617ace3f185a": {
+      "views": 363700,
+      "rating": 8.6
+    },
+    "b0dbb69d-388f-42f2-ac9d-adb05222b09d": {
+      "views": 114250,
+      "rating": 9
+    },
+    "d6b2fc6e-fb76-4357-8970-ca339793026c": {
+      "views": 523100,
+      "rating": 8
+    },
+    "dea19f10-8925-4172-aeca-52ec99c933d2": {
+      "views": 340150,
+      "rating": 8.7
+    },
+    "836fa49e-2f34-4b6f-a32d-322a7d793ac0": {
+      "views": 173750,
+      "rating": 8.3
+    },
+    "394977c6-f12b-4e22-aa56-c38d46f36966": {
+      "views": 726000,
+      "rating": 9
+    },
+    "ff5c333e-0296-4279-bb4b-4faf589497fc": {
+      "views": 119900,
+      "rating": 8.5
+    },
+    "c37dece2-0812-4dee-ac63-8ea5a6d9526a": {
+      "views": 472950,
+      "rating": 8.4
+    },
+    "e97a3a9f-6885-4b22-9006-174e365b6237": {
+      "views": 540500,
+      "rating": 9.4
+    },
+    "109d79d8-e46c-423c-9e14-e240c9d041bf": {
+      "views": 212450,
+      "rating": 8.8
+    },
+    "7b55acac-c1be-46bc-acc6-41ebc34f3724": {
+      "views": 135950,
+      "rating": 9.7
+    },
+    "357ed130-958f-4047-a22f-e79528ba6be9": {
+      "views": 61750,
+      "rating": 8.7
+    },
+    "57191084-2938-483f-944e-c27bd9b8a459": {
+      "views": 118000,
+      "rating": 7.8
+    },
+    "71be3e05-d51e-4f1f-994b-6418c76b869e": {
+      "views": 304600,
+      "rating": 8.7
+    },
+    "b8a3d26c-b95d-4b83-bda1-7e24d7be3c49": {
+      "views": 227150,
+      "rating": 8.6
+    },
+    "e216077b-014d-4cca-b695-a6bde396db69": {
+      "views": 56100,
+      "rating": 8.2
+    },
+    "572b64d9-e300-4abf-a0b4-d739c82cb593": {
+      "views": 112400,
+      "rating": 7.8
+    },
+    "907f27ae-013a-462b-b54c-8ce901120f0d": {
+      "views": 162250,
+      "rating": 9
+    },
+    "9ad7ebcc-abb5-4334-b7d0-06505e3c9022": {
+      "views": 292550,
+      "rating": 8.5
+    },
+    "efdc49c9-49b8-4621-8ea7-5b3ec382fe82": {
+      "views": 22050,
+      "rating": 9.1
+    },
+    "f207bce6-abff-4068-a9c2-3d9b72218c77": {
+      "views": 164850,
+      "rating": 9.5
+    },
+    "16d4b93e-e434-4e88-93c2-e562202197d2": {
+      "views": 135000,
+      "rating": 8.3
+    },
+    "94ef0d6e-2672-4daf-9721-bb2fd6daadd5": {
+      "views": 142400,
+      "rating": 8.1
+    },
+    "0331b4e4-6206-4d57-b9b1-00e9d808c7e3": {
+      "views": 209400,
+      "rating": 8.7
+    },
+    "5d5917e6-e12e-416a-8a57-75e70c6f8780": {
+      "views": 303600,
+      "rating": 8.8
+    },
+    "dc4588dc-5f94-4566-82e5-30336d82836c": {
+      "views": 45150,
+      "rating": 9.4
+    },
+    "995c6ec8-9bb3-40c3-892c-5f01d67b52b7": {
+      "views": 254650,
+      "rating": 8.6
+    },
+    "29eb08b6-8878-48e9-a012-412c812ef599": {
+      "views": 73000,
+      "rating": 9.3
+    },
+    "208f13c4-968d-475c-9749-d19d083958cc": {
+      "views": 156100,
+      "rating": 8.8
+    },
+    "8f74fe49-d9ae-4632-ace0-db90700e3b9c": {
+      "views": 265550,
+      "rating": 9.2
+    },
+    "cb90b8f9-1085-4b2b-976b-f6fb984bbda2": {
+      "views": 81900,
+      "rating": 9.6
+    },
+    "9d3448e9-c471-4f1f-979a-1b81665285cf": {
+      "views": 30550,
+      "rating": 9
+    },
+    "037b80bb-2f4e-4001-a773-a683382fa3e2": {
+      "views": 78750,
+      "rating": 8.8
+    },
+    "5e6a172e-494e-4c59-bf99-62564c22a1d4": {
+      "views": 143200,
+      "rating": 9.5
+    },
+    "93b41f4d-edd8-409f-9c8e-c669614a0eb9": {
+      "views": 58650,
+      "rating": 8.8
+    },
+    "14b6b3c6-1aa6-48bc-9992-6729f53611c1": {
+      "views": 242850,
+      "rating": 8.5
+    },
+    "7bd8da46-aefe-4c88-82d1-2def41abb1d1": {
+      "views": 343200,
+      "rating": 8.6
+    },
+    "36d8db64-3f86-4615-8d1d-22b44908c702": {
+      "views": 686900,
+      "rating": 9.1
+    },
+    "51cff446-dcc9-4a49-859d-ad369c230304": {
+      "views": 169850,
+      "rating": 8.8
+    },
+    "cae8a3fb-5e02-4a19-b7c8-751726adaed9": {
+      "views": 458850,
+      "rating": 8.1
+    },
+    "16c0dd48-b09f-4a1d-b9ab-3d5094b25178": {
+      "views": 276100,
+      "rating": 8
+    },
+    "9a619a41-828a-40b3-8d43-00455a0b36eb": {
+      "views": 182400,
+      "rating": 8.6
+    },
+    "40b35b7a-12db-4729-98bf-e515f21fcd78": {
+      "views": 286250,
+      "rating": 9.3
+    },
+    "e74f149f-123e-48d0-8d2c-c9d949d4b298": {
+      "views": 203000,
+      "rating": 9.6
+    },
+    "9f3d18fb-a75e-4f35-b218-ed4813963831": {
+      "views": 150850,
+      "rating": 8.3
+    },
+    "daf6475f-04ec-494a-8969-a5fa128dcc6f": {
+      "views": 441050,
+      "rating": 8.5
+    },
+    "2fd1600f-99e5-4283-9849-d9fd3da556e8": {
+      "views": 256100,
+      "rating": 8.7
+    },
+    "ee63ca8f-9e31-48ed-8da5-0f18803532a2": {
+      "views": 116150,
+      "rating": 9.3
+    },
+    "36695fa1-623e-4e9a-b95d-f45fd8295184": {
+      "views": 56500,
+      "rating": 8.1
+    },
+    "4cc88ab3-e0f7-4982-a435-7a7565da43f9": {
+      "views": 99850,
+      "rating": 8.5
+    },
+    "26f7c171-6087-4c87-a1ca-9890f5d59937": {
+      "views": 166250,
+      "rating": 8.3
+    },
+    "acf7f14f-5428-4712-9048-962c346d97d1": {
+      "views": 237700,
+      "rating": 9.4
+    },
+    "7c96163f-bf7b-4434-9d2b-e9cbdbd0dc26": {
+      "views": 492550,
+      "rating": 8.8
+    },
+    "c0ad03e1-ca22-4025-bddb-f18ff9661f6f": {
+      "views": 27450,
+      "rating": 9.4
+    },
+    "068815ab-dfdf-423e-a4d6-747cf0a3fe2e": {
+      "views": 174950,
+      "rating": 9.4
+    },
+    "695ae122-cdaf-488e-ae47-71be3df6da69": {
+      "views": 145050,
+      "rating": 9.2
+    },
+    "4a012511-3777-4fdf-a82e-31b334039194": {
+      "views": 193250,
+      "rating": 8.3
+    },
+    "34977255-7019-4fcf-86bd-936aeacade7d": {
+      "views": 239650,
+      "rating": 7.9
+    },
+    "57f5cf3a-9bbc-48f1-a7da-b67a048ddb91": {
+      "views": 470900,
+      "rating": 9.4
+    },
+    "6cb082dd-4e1c-4980-9c7d-59c5c94023d1": {
+      "views": 319050,
+      "rating": 9.4
+    },
+    "38d53275-056c-4e91-8513-c35735dcbc23": {
+      "views": 150900,
+      "rating": 9.1
+    },
+    "7e788921-8eee-48bc-a1f5-f208cadff669": {
+      "views": 386400,
+      "rating": 8.7
+    },
+    "d1fdd80d-b476-4f72-92c5-7d3f9f7d4fec": {
+      "views": 321750,
+      "rating": 8.1
+    },
+    "7f6a2a54-63a4-459f-a43a-cd0688d0b235": {
+      "views": 346450,
+      "rating": 8.4
+    },
+    "b48971c7-93f6-4fb1-8efa-4879571b9bfd": {
+      "views": 327200,
+      "rating": 9.6
+    },
+    "827c1be7-fd8e-4361-b1f2-8c99e04e8487": {
+      "views": 363200,
+      "rating": 9.1
+    },
+    "bef34884-f504-4724-b229-bba57e13d179": {
+      "views": 273300,
+      "rating": 9
+    },
+    "f2d9316c-b7eb-4e0f-a3bc-210d687b4f9d": {
+      "views": 167850,
+      "rating": 8.7
+    },
+    "17bc0648-c5e6-4b03-b16d-cd664e3ec9a0": {
+      "views": 530150,
+      "rating": 8.6
+    },
+    "a3133dbc-7908-4b5c-bedc-6dec7447ac91": {
+      "views": 530050,
+      "rating": 8.8
+    },
+    "5c1f13ad-1e07-4038-93ec-49f4eea92e3c": {
+      "views": 174100,
+      "rating": 8.6
+    },
+    "3b371ae6-3bee-4f8a-ae4b-302990eb6eb3": {
+      "views": 264050,
+      "rating": 7.8
+    },
+    "febb280e-e900-43b3-a6e5-d6b7129e425d": {
+      "views": 245650,
+      "rating": 8.3
+    },
+    "fa352925-d9d9-4efb-8b90-80a7c3e4efd3": {
+      "views": 1544100,
+      "rating": 8.7
+    },
+    "6025377d-d945-4755-acf1-cce30ad45e13": {
+      "views": 1835250,
+      "rating": 8.6
+    },
+    "53711463-5868-44d8-881e-bbceb7d6c76b": {
+      "views": 1241450,
+      "rating": 8.5
+    },
+    "c072b17a-3cd4-4cdf-9b43-6878ac162ccd": {
+      "views": 1036550,
+      "rating": 8.7
+    },
+    "5e0bf80e-35b2-4e82-a204-1468ccd0fcb1": {
+      "views": 444800,
+      "rating": 8.6
+    },
+    "5ec7f39b-f970-4ac5-9067-a2ec472af616": {
+      "views": 2311100,
+      "rating": 8.7
+    },
+    "6056bbdc-41f3-4215-a3ce-6464dcc5b0d4": {
+      "views": 1985300,
+      "rating": 8.7
+    },
+    "809f145b-5d66-4bff-8370-70b119d50572": {
+      "views": 527700,
+      "rating": 8.7
+    },
+    "742d212e-bd89-4f9e-86c4-56c7ae8fc63e": {
+      "views": 813800,
+      "rating": 8.5
+    },
+    "7d85fd0a-106d-4e68-a9b8-de06bed9d65e": {
+      "views": 38650,
+      "rating": 8.9
+    },
+    "a06482f5-7c44-40d0-bf1c-e98efbe8302f": {
+      "views": 0,
+      "rating": 8.8
+    },
+    "78b1aac4-de37-4412-a1db-e8ed3f78d836": {
+      "views": 0,
+      "rating": 9.4
+    },
+    "ac186f9d-261a-4233-9cde-db1f88fb05e9": {
+      "views": 0,
+      "rating": 9.2
+    },
+    "d0e4fa25-097d-4efd-8d64-0f4559b1b809": {
+      "views": 0,
+      "rating": 9.1
+    },
+    "d5a14cf9-6569-43c9-bfe6-3cf03a7e7ad3": {
+      "views": 382750,
+      "rating": 8.7
+    },
+    "adab4b1c-7f8a-4b03-8a21-61b8d1434e20": {
+      "views": 363650,
+      "rating": 8.2
+    },
+    "50435844-8fdb-4a46-aba5-dfa6e8011763": {
+      "views": 0,
+      "rating": 8.1
+    },
+    "a173227e-b283-4ba7-aa68-6d90317de673": {
+      "views": 0,
+      "rating": 8.6
+    },
+    "e97e2bd4-eda7-4f01-b435-2a9e3fc78058": {
+      "views": 85700,
+      "rating": 8.4
+    },
+    "54efacc8-94e1-4e32-b51c-b89ad62c26d3": {
+      "views": 136850,
+      "rating": 9.6
+    },
+    "7f12cf95-74b5-4a5f-a698-feb1fcbd6393": {
+      "views": 165350,
+      "rating": 8.8
+    },
+    "3dbb5d6d-a4b6-4c8a-9263-1b7baf92987d": {
+      "views": 101300,
+      "rating": 7.8
+    },
+    "35d06694-ad7d-4700-9709-652bbcb95f2e": {
+      "views": 144850,
+      "rating": 8.6
+    },
+    "884f5f42-6f3e-49c4-87f5-6ecf45ec947a": {
+      "views": 72800,
+      "rating": 9
+    },
+    "e0d57cee-fd8c-4d6e-a3f1-0326ce9ec544": {
+      "views": 98550,
+      "rating": 9.7
+    },
+    "3f9f3fe4-02a5-4852-a281-4d578ed54417": {
+      "views": 295550,
+      "rating": 8.6
+    },
+    "e927be7f-5ddf-46a6-84d4-199b8c51f5de": {
+      "views": 188400,
+      "rating": 8.2
+    },
+    "316f40bc-5cf8-44fe-bdba-dd4050d78dd3": {
+      "views": 132450,
+      "rating": 9.4
+    },
+    "e8943a2c-237c-4b45-9f81-d461cede7ab4": {
+      "views": 483050,
+      "rating": 8.4
+    },
+    "0115e147-1d05-4203-aa63-978630951dbb": {
+      "views": 206950,
+      "rating": 9.2
+    },
+    "e6aac33c-51cc-45f5-a02c-5c3743adbe8b": {
+      "views": 212500,
+      "rating": 8.7
+    },
+    "e7ec6519-ce65-4353-976f-4d56b5f4eed3": {
+      "views": 176950,
+      "rating": 9.1
+    },
+    "aa68d9bb-4c83-47cc-930c-deafbf1eb207": {
+      "views": 102650,
+      "rating": 8.4
+    },
+    "8cf59a9e-b6b1-4ba6-a157-de0eb933696a": {
+      "views": 363500,
+      "rating": 8.9
+    },
+    "3e2488a9-dfed-4895-9d7e-79cd9bee0e53": {
+      "views": 293900,
+      "rating": 8.9
+    },
+    "b5a417cc-2a71-42ef-b01d-ea462a78de96": {
+      "views": 134400,
+      "rating": 9
+    },
+    "7d1cc239-3987-42a2-a0cb-6281be419e01": {
+      "views": 76550,
+      "rating": 8.9
+    },
+    "71c8851f-f632-4a1c-8353-4d843d0f78bb": {
+      "views": 122300,
+      "rating": 7.9
+    },
+    "29dc07b3-c804-4b5f-9cc6-7c1549b9a12f": {
+      "views": 270200,
+      "rating": 9.1
+    },
+    "a7f9437a-36d1-4589-aafa-8da8caa25127": {
+      "views": 304750,
+      "rating": 8.9
+    },
+    "936eae6c-ffc7-42f3-b5f8-95814ad04b06": {
+      "views": 54200,
+      "rating": 8.8
+    },
+    "ab8873ca-c35c-4c22-87c1-59daf82a2ebd": {
+      "views": 366100,
+      "rating": 9
+    },
+    "4ec540b9-6860-4b4a-8305-85bbbcec87e6": {
+      "views": 236400,
+      "rating": 9.3
+    },
+    "628e0cf4-628a-4f7d-aef0-c24f367e8ef4": {
+      "views": 285050,
+      "rating": 8.9
+    },
+    "eb2f235c-db00-46ec-af19-786f78a33417": {
+      "views": 413900,
+      "rating": 8.7
+    }
+  },
+  "episodes": {
+    "db3b7146-4e97-4d47-b414-e3fb9b4865c7": {
+      "views": 273400,
+      "rating": 9.5
+    },
+    "7d398753-38d8-4fc1-8951-1a98ff7241fe": {
+      "views": 257550,
+      "rating": 8.9
+    },
+    "e2bcfdd4-f891-44b4-b455-4b5546aa81fe": {
+      "views": 250100,
+      "rating": 8.6
+    },
+    "7e7313dc-b8f4-4541-aada-09a976e65af5": {
+      "views": 221400,
+      "rating": 8.8
+    },
+    "a267725e-e817-45d7-bfe5-a163543a37cb": {
+      "views": 251900,
+      "rating": 9.3
+    },
+    "812cf510-8b4b-45fa-9008-fb94928bdd18": {
+      "views": 231500,
+      "rating": 7.8
+    },
+    "88ddae87-b3cb-4742-a5b2-2506af3da000": {
+      "views": 90650,
+      "rating": 8.3
+    },
+    "92a51a2e-c9fc-4b74-8c83-637293860b3d": {
+      "views": 84600,
+      "rating": 8.3
+    },
+    "b0776084-7a91-4b30-90fd-f83f74d58d73": {
+      "views": 73450,
+      "rating": 8
+    },
+    "9d44f318-3be1-49ba-a668-169ee1ba7109": {
+      "views": 76600,
+      "rating": 8.5
+    },
+    "2652a641-3d1c-4380-b8db-0fb79493bd07": {
+      "views": 193500,
+      "rating": 8.4
+    },
+    "1c743ae7-6025-4e0d-892f-88da11dd7f4e": {
+      "views": 121750,
+      "rating": 8.6
+    },
+    "4cf8fe0b-561d-474c-b4fe-5d873f13f5bc": {
+      "views": 144600,
+      "rating": 8
+    },
+    "b52dcd17-1910-4c69-8217-c38c7b384344": {
+      "views": 132750,
+      "rating": 9.1
+    },
+    "95c0d361-cebc-4228-8107-e87aa841bd3c": {
+      "views": 129000,
+      "rating": 9.5
+    },
+    "ef32761b-f8e4-44f2-aaa9-892c90911315": {
+      "views": 100400,
+      "rating": 8.7
+    },
+    "bc9e927a-e6a5-42c5-a7d5-30bfc9b544c2": {
+      "views": 87250,
+      "rating": 8.5
+    },
+    "0df36470-33e5-4bf0-8292-c68e1f482265": {
+      "views": 116650,
+      "rating": 8.1
+    },
+    "2007b326-d871-4ba2-be3c-97b23a7b6f50": {
+      "views": 51750,
+      "rating": 8.4
+    },
+    "65bbfb19-2889-4b28-a621-1c96afd95902": {
+      "views": 235250,
+      "rating": 9.7
+    },
+    "c06d5c8d-9b97-447c-8893-b47ccdb6dd28": {
+      "views": 218300,
+      "rating": 8.3
+    },
+    "615fe873-85e3-4dcd-b0f2-a78bed854698": {
+      "views": 195100,
+      "rating": 8.1
+    },
+    "f40ae22f-798a-4270-b0a1-7fe8b12b615e": {
+      "views": 163450,
+      "rating": 8.6
+    },
+    "cd50b76a-a465-4f5e-a686-b2d9c63d7584": {
+      "views": 81250,
+      "rating": 7.9
+    },
+    "6bdeec25-c8ab-4dd5-ba79-6bcc0c8780f3": {
+      "views": 140100,
+      "rating": 9.1
+    },
+    "fc947bff-28b5-4fb0-920b-48839a578507": {
+      "views": 131650,
+      "rating": 8.8
+    },
+    "95df6e91-fb7c-4184-ba71-35d9cb86f2d3": {
+      "views": 285000,
+      "rating": 8.3
+    },
+    "75a386a3-d2c3-4226-ab2a-8969452eb7e2": {
+      "views": 271850,
+      "rating": 8.1
+    },
+    "7908e8cc-b89e-4853-94ea-c6d549aa12db": {
+      "views": 273550,
+      "rating": 8
+    },
+    "468855fe-0575-47ea-bd83-066cde74b603": {
+      "views": 243000,
+      "rating": 9.5
+    },
+    "5c24acb0-11d2-4058-80cb-dde9ff4906c9": {
+      "views": 66650,
+      "rating": 8.8
+    },
+    "78690d63-464c-4f47-8624-3ffe52d6b052": {
+      "views": 59150,
+      "rating": 8.3
+    },
+    "fd25c99a-58dd-445a-8f13-fedb1da09ca3": {
+      "views": 59150,
+      "rating": 9.4
+    },
+    "ae09833b-769b-4e1f-b999-863edd9f2fa0": {
+      "views": 46500,
+      "rating": 8.4
+    },
+    "35ec85ca-6fbc-4c60-b147-2ae3d336b1dc": {
+      "views": 220950,
+      "rating": 7.9
+    },
+    "12acf060-13e4-4377-b6fb-fe27c14f1ac9": {
+      "views": 196700,
+      "rating": 7.8
+    },
+    "4087f91b-b964-406a-9afc-8a982b545972": {
+      "views": 236300,
+      "rating": 9
+    },
+    "d295e511-745f-4620-8f27-e025812d7330": {
+      "views": 221550,
+      "rating": 8.2
+    },
+    "c9d3d495-b937-4ccb-8d45-97a538d806d5": {
+      "views": 264250,
+      "rating": 7.9
+    },
+    "224928ee-2e51-493e-b8fa-5ba82be8c262": {
+      "views": 247850,
+      "rating": 8.6
+    },
+    "f24bce82-7939-441e-a153-1c23e213c7b1": {
+      "views": 58150,
+      "rating": 9.5
+    },
+    "93ef7ced-6c8a-4b3c-ad84-b0afecf553c0": {
+      "views": 51550,
+      "rating": 9.5
+    },
+    "1734cb57-ea27-4c6b-83ea-80daa7866979": {
+      "views": 48450,
+      "rating": 8.6
+    },
+    "5735fe6b-f0ca-4287-84aa-b8c6c4211e4e": {
+      "views": 40100,
+      "rating": 7.8
+    },
+    "fd2e79f2-5644-4656-b3cf-e0c5644d36ff": {
+      "views": 113800,
+      "rating": 8.3
+    },
+    "dd16c7ce-5fa4-4cad-8f50-38f0c717f976": {
+      "views": 266700,
+      "rating": 7.8
+    },
+    "8dcf8785-b427-4712-82e5-ea7749b9a5c2": {
+      "views": 257000,
+      "rating": 9.7
+    },
+    "15e83d46-8460-45ba-a593-bd0c3db2b363": {
+      "views": 233950,
+      "rating": 9.6
+    },
+    "d1352cfc-acbe-4c10-a62b-163f2e8d641a": {
+      "views": 235450,
+      "rating": 8.1
+    },
+    "0f879e73-bda8-49b0-b8fb-e68933237f7f": {
+      "views": 209150,
+      "rating": 8.2
+    },
+    "0018d396-e315-48bf-8a27-7e2016d5e00f": {
+      "views": 158900,
+      "rating": 9.1
+    },
+    "904a10fc-776d-4dbc-8bab-f40f9bfcdcea": {
+      "views": 143550,
+      "rating": 8.4
+    },
+    "e95233e4-8ae0-4c49-99f1-1f24670ee8da": {
+      "views": 193000,
+      "rating": 9.6
+    },
+    "29251929-717c-46ac-b61f-79d25a684d6c": {
+      "views": 128800,
+      "rating": 9.1
+    },
+    "7be71b2d-a772-4862-b2bf-5b4484595a0d": {
+      "views": 161950,
+      "rating": 8
+    },
+    "7fa1f4bd-ff48-4346-8d20-9d538728edf7": {
+      "views": 144550,
+      "rating": 9.5
+    },
+    "80c32bab-ce7c-44f0-ac01-baa9b0795195": {
+      "views": 33250,
+      "rating": 8.5
+    },
+    "f1566903-c4ed-4462-a993-8db8133177f3": {
+      "views": 30600,
+      "rating": 8.6
+    },
+    "f26cdd3c-075c-4436-b953-bd9d3f4585f9": {
+      "views": 28100,
+      "rating": 8.5
+    },
+    "cfc1867e-d4f6-4c05-b511-032c4e8b2302": {
+      "views": 28400,
+      "rating": 8.9
+    },
+    "2a248b59-b1b2-4bda-a3ba-0c8bbfe3f850": {
+      "views": 162450,
+      "rating": 9.3
+    },
+    "287eaa54-40b3-4559-b8d5-58310c407a63": {
+      "views": 148200,
+      "rating": 9.4
+    },
+    "ce035814-3b06-4fd1-911c-ce1c5bf09236": {
+      "views": 296500,
+      "rating": 7.9
+    },
+    "c46c40c7-2faa-465f-8720-f1d4bc7a47a3": {
+      "views": 282400,
+      "rating": 9.6
+    },
+    "f84e6d41-aeed-46f7-8c34-a7ebaa7afbbd": {
+      "views": 230850,
+      "rating": 9.2
+    },
+    "a374d56f-8509-4f09-ba3d-5b65d7ca3e95": {
+      "views": 220950,
+      "rating": 8.3
+    },
+    "86d6bd72-3f5c-4615-a02f-c323cad1c2a9": {
+      "views": 57050,
+      "rating": 8.1
+    },
+    "bf9c9f6e-5289-445d-b533-600fc04d02ac": {
+      "views": 51700,
+      "rating": 7.8
+    },
+    "7266d7e2-b62e-4663-9a33-fdc8a02305cc": {
+      "views": 249000,
+      "rating": 8.1
+    },
+    "5d4fb8db-4e02-4790-8c5f-56841706f549": {
+      "views": 222150,
+      "rating": 8.3
+    },
+    "1622cd97-72f2-406c-83a2-60a8f0d4f6af": {
+      "views": 181550,
+      "rating": 7.9
+    },
+    "827745ec-cf93-44cd-aa13-6c2930ce3be3": {
+      "views": 48750,
+      "rating": 9.1
+    },
+    "d74c076f-a3f9-415c-955d-984099b80062": {
+      "views": 45300,
+      "rating": 9.7
+    },
+    "d74d290f-4a50-4fd5-ba93-3a3a7a091268": {
+      "views": 39050,
+      "rating": 8
+    },
+    "80d62ccb-9105-43ff-9dbb-9bcfc03943b3": {
+      "views": 34350,
+      "rating": 8.2
+    },
+    "5d07790b-5be0-4769-b577-a1f3aacd290e": {
+      "views": 173000,
+      "rating": 8.8
+    },
+    "feb62d7e-b2b1-4e9d-9e5a-735bb079b3c0": {
+      "views": 164850,
+      "rating": 7.9
+    },
+    "c57a2cfb-44db-41e1-a80d-4d0e8834f334": {
+      "views": 141700,
+      "rating": 9.3
+    },
+    "574bae16-2618-4669-a166-a11319fc7cd6": {
+      "views": 142250,
+      "rating": 8.9
+    },
+    "d64aba6b-e482-4aa7-a84c-8a1c57f5b3f6": {
+      "views": 136150,
+      "rating": 8.2
+    },
+    "19b92457-7451-4b65-bac2-cffe763534c5": {
+      "views": 268050,
+      "rating": 9.2
+    },
+    "f617db50-d438-4693-8d25-37d7c2c63dab": {
+      "views": 243950,
+      "rating": 8.8
+    },
+    "4c4f2aa8-9ce2-4bbb-ab7c-0375f7c57155": {
+      "views": 225850,
+      "rating": 9.3
+    },
+    "c3a7df13-b4db-45b4-8a77-bb2a994586f3": {
+      "views": 186200,
+      "rating": 8.9
+    },
+    "e1f99d76-f81a-47ed-b5cc-3b8127ad4b0d": {
+      "views": 176050,
+      "rating": 9.2
+    },
+    "77a80399-da32-4ecd-b0d9-cab5c60466fe": {
+      "views": 152250,
+      "rating": 8.3
+    },
+    "a1312b54-f697-4cef-b138-714c900d5e5b": {
+      "views": 156100,
+      "rating": 9.5
+    },
+    "137adcae-42d6-41b3-8827-7d6abc53782d": {
+      "views": 157850,
+      "rating": 9.3
+    },
+    "cd1ae4d5-e57e-4c55-a559-2f9f08d533c1": {
+      "views": 31200,
+      "rating": 7.8
+    },
+    "db00b8b3-c09b-4c11-abfa-de3553f9d47f": {
+      "views": 28550,
+      "rating": 9.3
+    },
+    "1bad33ed-dbae-487e-befb-36680592fbd9": {
+      "views": 26600,
+      "rating": 9.1
+    },
+    "d51b5d5f-d02e-44d4-8957-d2f28e2c9b85": {
+      "views": 22400,
+      "rating": 8.1
+    },
+    "36b093ab-ac83-4eb5-bb4c-9d0f63c4992f": {
+      "views": 297100,
+      "rating": 8.8
+    },
+    "021e58cf-efa8-4c12-8c7d-7584cda08232": {
+      "views": 277300,
+      "rating": 9.5
+    },
+    "d93fa11d-0760-43f2-b06f-fbbc12be0e22": {
+      "views": 292700,
+      "rating": 8.7
+    },
+    "dc8834da-ce27-499a-b3cc-1c04420ed230": {
+      "views": 270700,
+      "rating": 8
+    },
+    "99fcf3ba-1264-4bfe-807f-03473351f94e": {
+      "views": 120300,
+      "rating": 9.3
+    },
+    "80a33eaf-4000-40cf-afed-aab94c40a48b": {
+      "views": 107300,
+      "rating": 8.4
+    },
+    "f6a00190-3338-4db7-bf87-2c7e404b75ef": {
+      "views": 198800,
+      "rating": 8.3
+    },
+    "f1a32243-853c-4296-8802-3434855f97b3": {
+      "views": 181350,
+      "rating": 9.2
+    },
+    "628ee0b9-b91d-45a8-9606-5e3fec586eeb": {
+      "views": 162750,
+      "rating": 8.6
+    },
+    "7f742b54-8746-4b33-a129-5fe8cabb9ca8": {
+      "views": 172000,
+      "rating": 8.6
+    },
+    "9147db7a-5e4e-4fd4-8687-c88eeb98a595": {
+      "views": 121400,
+      "rating": 9.3
+    },
+    "5ec18bf5-b30a-4e3b-9d23-2322521ae615": {
+      "views": 159600,
+      "rating": 9.2
+    },
+    "4ce0f254-1ccc-472b-bed4-c2f976c2ec54": {
+      "views": 172850,
+      "rating": 9.1
+    },
+    "d1571ef0-86a1-4a71-bdbb-7685dcbd9309": {
+      "views": 159950,
+      "rating": 8.1
+    },
+    "337eeaef-e240-4448-97c3-a827e0cae076": {
+      "views": 77750,
+      "rating": 7.9
+    },
+    "12ca12e7-c33f-4ab6-bc43-e4fe5cefe969": {
+      "views": 72100,
+      "rating": 8.8
+    },
+    "b615427c-7996-47bb-8560-32e3119aa3e8": {
+      "views": 65300,
+      "rating": 8.8
+    },
+    "29047e42-1a19-44be-a1e8-2b46737858ab": {
+      "views": 65600,
+      "rating": 9.3
+    },
+    "f360d0f1-7de4-4e2a-98d8-487c5a436e90": {
+      "views": 51000,
+      "rating": 8.1
+    },
+    "d392dedf-fa80-41e3-ba8d-2d1eafd29dcd": {
+      "views": 46350,
+      "rating": 8.8
+    },
+    "24e4c006-64c6-46d5-a0cf-9fdd151d7319": {
+      "views": 55400,
+      "rating": 8.5
+    },
+    "a40dfb4c-521a-4c0a-8178-110f02cb5400": {
+      "views": 33600,
+      "rating": 8.2
+    },
+    "8531acb9-39e1-46b1-b455-9474ab30d8be": {
+      "views": 38000,
+      "rating": 8.2
+    },
+    "a302e3a2-2d7b-49f2-90d6-04c0cd996547": {
+      "views": 35700,
+      "rating": 8.6
+    },
+    "3d403b3a-9004-4ffe-9d7c-832246ff91f3": {
+      "views": 43400,
+      "rating": 9.6
+    },
+    "19f47e03-8d57-45ba-b438-b2bb94e40c3f": {
+      "views": 21100,
+      "rating": 8.2
+    },
+    "2339f5bc-b209-48c1-9c7f-717c9ca96107": {
+      "views": 78050,
+      "rating": 8.1
+    },
+    "bd03a2ea-fcc3-42ba-ac65-62e595308112": {
+      "views": 68750,
+      "rating": 8.5
+    },
+    "6d7d5f4a-f46a-420c-b17b-8b8c6d19e4ea": {
+      "views": 68000,
+      "rating": 7.9
+    },
+    "618a9faf-7f06-4a73-955f-741d2adf687d": {
+      "views": 58950,
+      "rating": 8.4
+    },
+    "9258b3cc-3dc9-49c4-8ede-b6189e18c4cc": {
+      "views": 195550,
+      "rating": 8.4
+    },
+    "acf24379-2b28-4942-bf16-9ae314e043df": {
+      "views": 175700,
+      "rating": 7.9
+    },
+    "7026053b-ea75-4d05-bc96-b416b5313d17": {
+      "views": 101250,
+      "rating": 9.3
+    },
+    "4fabcfa5-68b5-4d51-89cd-848e95d1217f": {
+      "views": 90400,
+      "rating": 7.8
+    },
+    "64b594a7-daee-4f5e-a327-3a0246b7e4cd": {
+      "views": 216650,
+      "rating": 9.1
+    },
+    "b9166999-2724-45c8-9d23-facd7b794005": {
+      "views": 198500,
+      "rating": 9.4
+    },
+    "593041c9-caf1-47b1-962a-f94f2b5a2b75": {
+      "views": 57200,
+      "rating": 8.3
+    },
+    "65d8a0ee-17b3-42b4-9f63-edc3d9c8afa7": {
+      "views": 53100,
+      "rating": 8.9
+    },
+    "5d725686-b5cf-41d2-ac98-1d0f4ca49529": {
+      "views": 263150,
+      "rating": 9
+    },
+    "40946fed-acab-4171-8f76-cd0f6acc8364": {
+      "views": 246550,
+      "rating": 8.3
+    },
+    "52d2470c-5075-48cb-8023-3074d971b240": {
+      "views": 230450,
+      "rating": 8.1
+    },
+    "71eeb3c7-3334-4639-812a-db7644b0d5a1": {
+      "views": 261600,
+      "rating": 9.6
+    },
+    "68cecdf0-b31a-4b0c-96d2-9052ca0a1c9b": {
+      "views": 100650,
+      "rating": 8.7
+    },
+    "d7872e7e-afdf-431f-96f3-b1d238b5c449": {
+      "views": 67650,
+      "rating": 9.6
+    },
+    "1a856408-b5a2-41b3-82b8-a3afd3ad5192": {
+      "views": 291700,
+      "rating": 8.1
+    },
+    "bca1843d-9ca1-46d2-ae64-8883394b72bc": {
+      "views": 225000,
+      "rating": 8.7
+    },
+    "089e1a55-9f58-45d9-95e5-a9b441215e50": {
+      "views": 252700,
+      "rating": 8.2
+    },
+    "e24569ed-58f8-4183-acb9-f906f3f812ca": {
+      "views": 170850,
+      "rating": 9.4
+    },
+    "e5374c2f-7e3b-4d74-9878-492db56aa11a": {
+      "views": 297400,
+      "rating": 9.3
+    },
+    "7dc1a17f-0174-466b-b7a0-76d2064c874f": {
+      "views": 52150,
+      "rating": 8
+    },
+    "9bb16b0f-9f37-4e93-848c-44992fc7c2f6": {
+      "views": 198200,
+      "rating": 8.9
+    },
+    "2e296cfc-46df-4371-b5a7-b23083b3d291": {
+      "views": 238150,
+      "rating": 8.1
+    },
+    "09e28562-309a-41b7-a71c-2f0d9f56c17c": {
+      "views": 273450,
+      "rating": 8.3
+    },
+    "b3500479-ab8e-40f7-8e5b-6e4029cb4918": {
+      "views": 296500,
+      "rating": 7.9
+    },
+    "f29c1d1e-7f7d-4969-8fea-302694f225ab": {
+      "views": 224850,
+      "rating": 8.6
+    },
+    "35d95f6b-30c2-43e8-b428-d3ab3a89bd0e": {
+      "views": 297600,
+      "rating": 8.8
+    },
+    "129c9951-f3ff-4f33-b487-6c308fbcd20f": {
+      "views": 109500,
+      "rating": 8.8
+    },
+    "843975d1-5061-4520-8319-d2b99e623ae7": {
+      "views": 304050,
+      "rating": 8.6
+    },
+    "497c34e2-855c-422c-81dc-bcad62e9e717": {
+      "views": 285000,
+      "rating": 9.4
+    },
+    "b390473c-b966-434a-9dbb-da8ea0e6ecf1": {
+      "views": 202700,
+      "rating": 7.8
+    },
+    "72fddfab-6b64-4344-ab39-96cc1b4da742": {
+      "views": 198900,
+      "rating": 7.9
+    },
+    "37471a24-5edc-447f-8921-9f098dcf02e1": {
+      "views": 268450,
+      "rating": 9.5
+    },
+    "607a30a1-e0d7-41ff-9726-410c32d34b9e": {
+      "views": 254000,
+      "rating": 8.5
+    },
+    "81a557f0-768b-4ecf-b837-38806df26aa3": {
+      "views": 81700,
+      "rating": 8.5
+    },
+    "4751643c-7464-4ee5-b6a1-1e14700f6952": {
+      "views": 75400,
+      "rating": 7.8
+    },
+    "c1cbdb60-fcc3-411c-87ad-ca53b494cbab": {
+      "views": 80750,
+      "rating": 8
+    },
+    "16724c26-1905-47d7-b638-6205378170e3": {
+      "views": 71500,
+      "rating": 8.6
+    },
+    "1c0fc20a-aaee-42a9-b567-67d6ca6f7d1d": {
+      "views": 96450,
+      "rating": 8.4
+    },
+    "cbfd9bf4-a98a-4ef6-ba50-010546d5fb29": {
+      "views": 87650,
+      "rating": 9.3
+    },
+    "32c58304-06cc-44de-a94e-0a933642afe8": {
+      "views": 82300,
+      "rating": 7.9
+    },
+    "f1e884f3-3d7a-497f-8bfb-bd7766106f2e": {
+      "views": 79850,
+      "rating": 8.6
+    },
+    "81e4f169-b5e7-495a-931a-408862bd4d69": {
+      "views": 77750,
+      "rating": 8
+    },
+    "6b88d542-0b0a-4dcf-b1ea-5a293cf6addd": {
+      "views": 51500,
+      "rating": 9.5
+    },
+    "37ceb942-6c21-491e-97e9-e3b6297177b4": {
+      "views": 237950,
+      "rating": 9.7
+    },
+    "d46071f3-d808-46d0-bbb7-7a88412a7579": {
+      "views": 218250,
+      "rating": 8.8
+    },
+    "43cbebfc-b250-415a-834b-773448746909": {
+      "views": 263800,
+      "rating": 8.9
+    },
+    "aa21f23e-a1c7-4d35-9e3b-a5e246d64bcd": {
+      "views": 212600,
+      "rating": 9.1
+    },
+    "f7fedaaf-04bf-404e-b918-f345ad410e03": {
+      "views": 219850,
+      "rating": 8
+    },
+    "6f83b9ad-a7a9-47dd-ab14-efb3a957699e": {
+      "views": 201550,
+      "rating": 8.1
+    },
+    "b8a57ba2-22e6-47a3-a05b-d5f9783a8e14": {
+      "views": 37850,
+      "rating": 8.4
+    },
+    "09e7eceb-098d-4678-ab51-1f23da48b183": {
+      "views": 34300,
+      "rating": 7.9
+    },
+    "8aef8c77-62e2-415d-ab90-bc20eecc86a1": {
+      "views": 33650,
+      "rating": 9.1
+    },
+    "84592cf3-5a37-4140-a494-af3ef82686d4": {
+      "views": 29400,
+      "rating": 8.6
+    },
+    "8eda12b7-46cb-4cc1-b030-03e0c29a35cd": {
+      "views": 129450,
+      "rating": 9.1
+    },
+    "635a2bf0-c71a-46bd-b048-8c51e356f1b9": {
+      "views": 122000,
+      "rating": 8.9
+    },
+    "b54703ae-56c5-4c79-889f-af2302b4d9f3": {
+      "views": 232700,
+      "rating": 9.5
+    },
+    "41e848d4-1150-4987-9830-b9f32e4474f7": {
+      "views": 216200,
+      "rating": 9.4
+    },
+    "1c567217-dc35-412b-9352-a2254281df2b": {
+      "views": 202400,
+      "rating": 9.2
+    },
+    "933c11b5-d9b0-4a52-b6cf-6b9f7caee873": {
+      "views": 189250,
+      "rating": 7.8
+    },
+    "46cb284e-e344-4275-a27e-dea4030ab3e2": {
+      "views": 58600,
+      "rating": 9
+    },
+    "65e964b0-5fac-4c76-8168-425affbdd96d": {
+      "views": 125300,
+      "rating": 7.9
+    },
+    "a82a4f78-880f-47cc-94eb-5d5c3815c79c": {
+      "views": 114050,
+      "rating": 8.1
+    },
+    "540fd6cf-3669-455f-9c9d-4231b9f3d9b6": {
+      "views": 156850,
+      "rating": 8.5
+    },
+    "332c5b40-489a-48bb-9547-9de346554375": {
+      "views": 149450,
+      "rating": 8.3
+    },
+    "00c62e1d-c7d0-4603-b668-3ddc4051b8bb": {
+      "views": 144250,
+      "rating": 9.4
+    },
+    "a682fc24-b260-4a12-8cbf-4a685b33b374": {
+      "views": 136800,
+      "rating": 9.2
+    },
+    "6a2c0d7f-2c4b-4443-b47d-0d34f0b547af": {
+      "views": 155150,
+      "rating": 8.1
+    },
+    "6ed457ea-d149-4b55-8292-e9953adeac11": {
+      "views": 24500,
+      "rating": 8.3
+    },
+    "160bc8fe-3c68-4c5d-98cc-3ca4f83061ea": {
+      "views": 22150,
+      "rating": 9.4
+    },
+    "24758caf-1522-4d78-a702-409792644ba6": {
+      "views": 285100,
+      "rating": 9.5
+    },
+    "329dfaa9-7f0b-4d8c-9f15-5aa8afb5b6e4": {
+      "views": 252650,
+      "rating": 7.9
+    },
+    "489bdcb2-d7b2-4dc0-84b3-34d8c9c5f7c6": {
+      "views": 56500,
+      "rating": 9.6
+    },
+    "096682cd-db2d-4c89-9204-403851b43449": {
+      "views": 53650,
+      "rating": 9
+    },
+    "7e546d32-5b4a-42e4-ba98-4d2b29fdae08": {
+      "views": 45500,
+      "rating": 8.5
+    },
+    "5fa04f2a-0e0d-4003-b678-1c8308905a89": {
+      "views": 42150,
+      "rating": 9.2
+    },
+    "7c353f2a-f7c3-461a-9d36-4d397e84d539": {
+      "views": 47850,
+      "rating": 7.9
+    },
+    "ee1ad8d4-67fb-476f-88e7-acd41e41d790": {
+      "views": 32450,
+      "rating": 8.5
+    },
+    "3b70d9cc-85cc-4cd7-8330-83e95a591277": {
+      "views": 38450,
+      "rating": 7.9
+    },
+    "5e532fb8-b233-4a7b-9153-f99a44e85c42": {
+      "views": 294650,
+      "rating": 7.9
+    },
+    "3d12daab-d553-4f5f-8d9f-4d597766a64c": {
+      "views": 263950,
+      "rating": 9.5
+    },
+    "da0b1169-d799-435a-82ca-03f79727a814": {
+      "views": 32050,
+      "rating": 8.8
+    },
+    "9fb3d0d0-4be2-4dfc-a4d1-05992503b645": {
+      "views": 29550,
+      "rating": 8.5
+    },
+    "289cb66a-2e29-4189-a7ac-a2dd787e499d": {
+      "views": 118300,
+      "rating": 9.7
+    },
+    "0c85dd19-f6f6-4d6e-8fbc-312690b8b114": {
+      "views": 112250,
+      "rating": 9.1
+    },
+    "1451d902-55ce-46d0-b47a-4d874c444196": {
+      "views": 97050,
+      "rating": 8.3
+    },
+    "00b90a9e-b087-4c15-b8b5-d1e7fcab2e61": {
+      "views": 165750,
+      "rating": 9.3
+    },
+    "9a1a29ed-71ca-4417-870c-b88a2cee38ce": {
+      "views": 151950,
+      "rating": 8.3
+    },
+    "b6c3f473-317a-4da9-b00d-6af88537ea48": {
+      "views": 136550,
+      "rating": 8.3
+    },
+    "b1114457-8d29-41bf-b44a-f35f677bf5aa": {
+      "views": 121000,
+      "rating": 7.9
+    },
+    "150ea7b7-fda7-4bf2-9ffd-7002748dde4a": {
+      "views": 113900,
+      "rating": 8.8
+    },
+    "eb6030eb-0cc8-471a-918b-bae7d8162e77": {
+      "views": 119250,
+      "rating": 8.9
+    },
+    "fedb0cae-e235-4747-bcca-52f27da74c25": {
+      "views": 93550,
+      "rating": 8.8
+    },
+    "2d7062da-5e95-458a-9541-a2be669f1c05": {
+      "views": 83750,
+      "rating": 8.3
+    },
+    "85cb19c4-4346-488e-9f27-e6b91a6cf672": {
+      "views": 59600,
+      "rating": 7.8
+    },
+    "6a0b00c7-3631-49dc-9faf-6226aba97776": {
+      "views": 56050,
+      "rating": 9.1
+    },
+    "21c4481a-b678-4eb1-ae85-57fc4d6fb84d": {
+      "views": 51200,
+      "rating": 9
+    },
+    "734d124f-d8a7-4334-b340-6fb39c28a454": {
+      "views": 41400,
+      "rating": 9.4
+    },
+    "208afc77-9e1b-4dce-ab2b-25dafe757371": {
+      "views": 236450,
+      "rating": 8.3
+    },
+    "e33c1ce0-a3ef-4cf3-9dd2-cf9624d7fb35": {
+      "views": 219200,
+      "rating": 8
+    },
+    "721422db-6161-436c-bb3d-b2346e391776": {
+      "views": 261750,
+      "rating": 9.4
+    },
+    "3ae4b00d-4c0b-4241-9d14-b20baa4a71fd": {
+      "views": 243050,
+      "rating": 7.8
+    },
+    "aea32b59-cc93-4d07-a9ae-ce95880505ca": {
+      "views": 270050,
+      "rating": 9.5
+    },
+    "e1db54ab-742f-4de0-a27b-1b9e83873398": {
+      "views": 241100,
+      "rating": 9.6
+    },
+    "b269f004-4b6f-4ffa-b854-6ff71da5c026": {
+      "views": 245050,
+      "rating": 9.1
+    },
+    "a07aee1d-3c2c-4cc3-b9c8-aebb2e45bd41": {
+      "views": 217950,
+      "rating": 8.1
+    },
+    "b40b18b6-df31-4537-b5e5-467542743d7f": {
+      "views": 166100,
+      "rating": 8.6
+    },
+    "1d6d5619-46f5-45ae-9ca0-10b0ef7fe319": {
+      "views": 149350,
+      "rating": 9.4
+    },
+    "6713e84b-3028-4248-a478-4943f06f2d95": {
+      "views": 61900,
+      "rating": 8.2
+    },
+    "6591df54-292e-44f7-9912-0c8f01f3856d": {
+      "views": 55050,
+      "rating": 8.5
+    },
+    "6fe3d10a-3152-49c9-9c2c-93e049c0a7bd": {
+      "views": 213900,
+      "rating": 8.8
+    },
+    "313fe680-98e7-4f67-b739-b7b793a4b2ea": {
+      "views": 190050,
+      "rating": 8.6
+    },
+    "5ae969da-e04e-4cd4-974f-ffbf840677d5": {
+      "views": 182250,
+      "rating": 9.4
+    },
+    "175d4a82-be59-466a-bbb2-0af449809c23": {
+      "views": 164100,
+      "rating": 8.8
+    },
+    "01bc055d-c8a8-41f0-a089-8065ed7e669d": {
+      "views": 85950,
+      "rating": 8.7
+    },
+    "04c5ea3b-7b03-47fd-9de9-948f59a5c5dd": {
+      "views": 284550,
+      "rating": 9.5
+    },
+    "476eb4fe-53f5-41fc-af8a-2a12894624a2": {
+      "views": 254350,
+      "rating": 9.4
+    },
+    "9cb0cca8-f053-4a7d-82c9-389ae2543608": {
+      "views": 44000,
+      "rating": 8.4
+    },
+    "5032f2b5-a838-4020-b326-60c2ec6a8286": {
+      "views": 40200,
+      "rating": 8.8
+    },
+    "3618aca7-17ed-45e8-8da4-84481bad5777": {
+      "views": 34750,
+      "rating": 9.3
+    },
+    "12cb574c-f28e-4a8c-b091-4cd98b8f8679": {
+      "views": 38200,
+      "rating": 8.6
+    },
+    "a885c9ef-30ce-41c2-961c-a41b36e8e76d": {
+      "views": 190800,
+      "rating": 9.6
+    },
+    "e28eacb6-2102-4a8f-8f1a-1da6f3388289": {
+      "views": 172300,
+      "rating": 9.3
+    },
+    "5807daaa-6e5d-4a10-a62a-25de95d4cb0e": {
+      "views": 29400,
+      "rating": 9.4
+    },
+    "4b7cb5e1-4405-44f5-aeb7-f7f0ade746ed": {
+      "views": 27150,
+      "rating": 9.2
+    },
+    "06280348-d006-4ca8-a2b1-1a31ab56d3a5": {
+      "views": 214400,
+      "rating": 7.8
+    },
+    "1feda0ab-18cd-4d3a-aeb1-96458927ff2c": {
+      "views": 188800,
+      "rating": 7.9
+    },
+    "09249b89-01c3-4487-b708-395939a904f2": {
+      "views": 171100,
+      "rating": 9
+    },
+    "c60ac4cf-e23e-415a-b444-aebc7f10c2d3": {
+      "views": 150550,
+      "rating": 7.8
+    },
+    "119e4f2b-015e-4b15-85aa-1bca3dfca7f1": {
+      "views": 133600,
+      "rating": 8.8
+    },
+    "9f57035f-d0d7-4d5a-a823-212bc7393bd1": {
+      "views": 118000,
+      "rating": 8.1
+    },
+    "919185b7-bceb-4dc7-af79-570db91d7c3f": {
+      "views": 42650,
+      "rating": 9.6
+    },
+    "94d3df71-f0ac-4d69-9654-deaa628b5982": {
+      "views": 38700,
+      "rating": 8.8
+    },
+    "0000b36a-a4d1-487d-ad29-1c63c7f25d5b": {
+      "views": 177250,
+      "rating": 8.7
+    },
+    "01c14124-6705-4259-bc53-4fb73d4c2f75": {
+      "views": 159950,
+      "rating": 8.9
+    },
+    "f5683315-ff2b-4ad3-9142-b9c19b816535": {
+      "views": 217450,
+      "rating": 9.4
+    },
+    "0803115e-612f-42dc-a023-1085ce73461c": {
+      "views": 204600,
+      "rating": 9
+    },
+    "a81f445c-6630-4b41-a65b-87a116dfee9b": {
+      "views": 253900,
+      "rating": 9.4
+    },
+    "e767ec31-0e58-4567-8197-ee20f51a2ab9": {
+      "views": 232550,
+      "rating": 8.3
+    },
+    "1c231544-732a-4431-b4fa-fe983de1b9ad": {
+      "views": 222600,
+      "rating": 8.6
+    },
+    "f86df7e8-feec-4276-a4b5-0d4b94d84b44": {
+      "views": 204500,
+      "rating": 9.2
+    },
+    "3bcd6f87-13d9-4d8a-bc72-91c13d265e7e": {
+      "views": 203300,
+      "rating": 8.4
+    },
+    "8dbcd515-2da9-4491-8795-d8faf42ce26c": {
+      "views": 123450,
+      "rating": 8.2
+    },
+    "a6d58e52-685b-4f36-b392-8a08da793838": {
+      "views": 117050,
+      "rating": 8.8
+    },
+    "a63d29c1-c65d-4618-8c7c-4b938fe10de6": {
+      "views": 287850,
+      "rating": 7.9
+    },
+    "7d269f49-996c-4b05-b767-5d7752c01351": {
+      "views": 267400,
+      "rating": 8.4
+    },
+    "1cefe320-00f4-401b-8817-c1645d52edc9": {
+      "views": 228600,
+      "rating": 9.4
+    },
+    "1b395984-113c-4f55-a704-55b2a5e6cf0a": {
+      "views": 216950,
+      "rating": 8.4
+    },
+    "a7f54b1c-f2ba-4e31-9169-19a4c2c62587": {
+      "views": 224500,
+      "rating": 9.7
+    },
+    "e28342ca-3101-42be-912f-0bcc5d61768f": {
+      "views": 198850,
+      "rating": 8.6
+    },
+    "a32399ab-44c4-4cfb-988b-fdb3d3829cc9": {
+      "views": 195450,
+      "rating": 7.9
+    },
+    "4fb11336-b5be-4790-ac2b-2c16a0628871": {
+      "views": 184300,
+      "rating": 9.3
+    },
+    "29d55692-86a7-43f9-b25e-8e6a4b050136": {
+      "views": 129700,
+      "rating": 9.7
+    },
+    "dad8f725-0bcc-4dfe-a7f5-c1cfb8c613ad": {
+      "views": 52800,
+      "rating": 9.5
+    },
+    "fe3a4d37-26ce-445b-94b7-a942e39a6fdc": {
+      "views": 150400,
+      "rating": 9.2
+    },
+    "7df58e23-8e05-42a2-95e1-e0510cfb93f7": {
+      "views": 276000,
+      "rating": 9.7
+    },
+    "2bc0bb72-1433-4525-bd9c-1aba3c1586c7": {
+      "views": 52400,
+      "rating": 8.2
+    },
+    "b4cf85f9-1999-4968-b888-ab5ac02e0c80": {
+      "views": 90150,
+      "rating": 8.2
+    },
+    "3b456526-64ab-41ad-a2d0-cf9f94832a71": {
+      "views": 40500,
+      "rating": 8.2
+    },
+    "c04c0ebf-b716-4089-b4b3-2aecbb3f3c44": {
+      "views": 229350,
+      "rating": 9.1
+    },
+    "60353a9b-96df-42a8-9313-a6c14ae14581": {
+      "views": 128450,
+      "rating": 7.8
+    },
+    "34f39fa2-0017-427e-b5fc-54415c8cd885": {
+      "views": 157600,
+      "rating": 7.9
+    },
+    "8d839893-7ac2-4ff2-8243-220243ab0a80": {
+      "views": 267450,
+      "rating": 8.6
+    },
+    "ee96ccca-0a03-4b1d-8ca7-a5e9d94d77f8": {
+      "views": 160100,
+      "rating": 9
+    },
+    "7c468029-4206-4842-b331-fd75b314dc8d": {
+      "views": 222650,
+      "rating": 8.9
+    },
+    "84565b6d-3ee2-4188-b67f-b4ff02144156": {
+      "views": 39700,
+      "rating": 7.9
+    },
+    "c201bb8f-3623-4a91-829f-262ccad9683f": {
+      "views": 294550,
+      "rating": 9
+    },
+    "27733aa8-17b7-4642-89e8-d665e440556a": {
+      "views": 117650,
+      "rating": 9.3
+    },
+    "3bed18b1-ea9e-4131-8fad-167c362a1a5d": {
+      "views": 105750,
+      "rating": 8.3
+    },
+    "2811702a-1a9b-49cb-94a4-c3f4f3faba65": {
+      "views": 166450,
+      "rating": 9
+    },
+    "0ef582a1-8418-4954-aa3f-73f075cd7acd": {
+      "views": 146900,
+      "rating": 9.5
+    },
+    "39b52ce7-7195-4768-b554-51fc91882153": {
+      "views": 250350,
+      "rating": 9.1
+    },
+    "bdce9f86-e80e-4631-ade8-559ab0e7994c": {
+      "views": 223600,
+      "rating": 9
+    },
+    "aef52e88-fdf6-4def-b114-ab11ffeaea6c": {
+      "views": 212250,
+      "rating": 9.5
+    },
+    "44e08edc-0f55-429a-9338-4e9a4cf5d91f": {
+      "views": 197700,
+      "rating": 8.9
+    },
+    "756a5f4c-1325-491c-905b-9390ed718098": {
+      "views": 120950,
+      "rating": 8.5
+    },
+    "84259339-5324-4147-b86d-0e2cfe3aaf7d": {
+      "views": 297100,
+      "rating": 9.6
+    },
+    "979e1e65-3929-4200-8f33-38b594776a6c": {
+      "views": 274150,
+      "rating": 9
+    },
+    "3c4568b6-81fc-4540-b49c-4f40f0a633f9": {
+      "views": 187700,
+      "rating": 9.1
+    },
+    "d78bfd41-40f7-437f-a330-bae57a087d6c": {
+      "views": 177350,
+      "rating": 9
+    },
+    "0fd19c86-e771-4d49-8efb-73991b08ddc2": {
+      "views": 242400,
+      "rating": 9.2
+    },
+    "d7e3b561-9273-49d1-b7af-753df50727b8": {
+      "views": 237550,
+      "rating": 8.5
+    },
+    "b9fd66d9-7a6c-40c8-a179-c8c913088cb1": {
+      "views": 227800,
+      "rating": 8.9
+    },
+    "f2dc75c3-ea82-4d93-88c6-a9566eb76ec2": {
+      "views": 186800,
+      "rating": 8.2
+    },
+    "5a200206-20d7-4bad-90ef-52882c1a18e0": {
+      "views": 206800,
+      "rating": 9.2
+    },
+    "6bba6898-442c-4440-b94b-cb153d34f3f8": {
+      "views": 292850,
+      "rating": 8.1
+    },
+    "3bc3950c-b619-4caf-80e4-fa53cd765d0e": {
+      "views": 272400,
+      "rating": 9
+    },
+    "ef55a55a-ec9b-46a2-8aa6-7f4a52e88357": {
+      "views": 253250,
+      "rating": 8.9
+    },
+    "3a2284c5-5322-4741-b853-dc951c87b1da": {
+      "views": 212400,
+      "rating": 8
+    },
+    "a46b1865-a64b-4fc1-b348-d66c4c394932": {
+      "views": 181050,
+      "rating": 9.4
+    },
+    "eeea2c27-7337-4ae2-a92c-945563eba695": {
+      "views": 159650,
+      "rating": 9.2
+    },
+    "54344b3a-b9c1-4251-b3e7-d62acf3250f1": {
+      "views": 87100,
+      "rating": 8.5
+    },
+    "5ca22455-433c-4163-8f94-af07a39d573c": {
+      "views": 80200,
+      "rating": 9.6
+    },
+    "19ff2b3e-0267-4a08-9e35-c0a3a21c4e20": {
+      "views": 77450,
+      "rating": 8.2
+    },
+    "fab073b8-b15b-4d88-bc9a-0fc1a3274823": {
+      "views": 69950,
+      "rating": 9.6
+    },
+    "63553307-f6a5-4cf2-9310-77551cc21f37": {
+      "views": 300850,
+      "rating": 9.1
+    },
+    "022e2430-2000-4ffd-ba4d-4770c67b95fa": {
+      "views": 266500,
+      "rating": 9.1
+    },
+    "bcb6bd58-4f2f-4c17-8458-7ba7fc6433af": {
+      "views": 67100,
+      "rating": 9.2
+    },
+    "4e795d43-7746-4559-9494-d049a8ee8a92": {
+      "views": 63850,
+      "rating": 7.8
+    },
+    "88d588ec-a422-4605-8d13-3e944904fafd": {
+      "views": 56600,
+      "rating": 8.1
+    },
+    "8ff616a5-5db2-4b97-bbd5-4e836c308b4d": {
+      "views": 49950,
+      "rating": 8.8
+    },
+    "b5093a9e-06ad-41af-aef8-cc1d448b78ec": {
+      "views": 169350,
+      "rating": 8.5
+    },
+    "c0b89928-084a-48ce-8bc4-0ea533edf1d7": {
+      "views": 158250,
+      "rating": 9.4
+    },
+    "adec5edb-ab60-4848-8668-d862cd3ee223": {
+      "views": 69400,
+      "rating": 9.1
+    },
+    "ad53d68f-e92d-4401-90d2-a4935d589204": {
+      "views": 62050,
+      "rating": 8
+    },
+    "50c48b71-4e7c-4c0e-8b79-b9c045a31b93": {
+      "views": 39450,
+      "rating": 8.2
+    },
+    "534c64ca-26e6-4626-b66b-dcec305352cf": {
+      "views": 37650,
+      "rating": 9.4
+    },
+    "97ffe858-60cb-433c-a4a8-5eb6b6f86dd2": {
+      "views": 223550,
+      "rating": 9.2
+    },
+    "bbbf9b3b-8a6d-4979-acfe-0a3187c81bc4": {
+      "views": 198150,
+      "rating": 9
+    },
+    "eaf6e078-e6e8-43ff-a5a5-779cd7db714c": {
+      "views": 270700,
+      "rating": 8.9
+    },
+    "90811ae4-bbe8-4ae7-a4dd-046d199e9756": {
+      "views": 256350,
+      "rating": 9.4
+    },
+    "574c3983-bbdd-4c15-aa8b-8e118e7a09c4": {
+      "views": 217900,
+      "rating": 8.9
+    },
+    "be63cba8-7d7a-4faf-ac9c-5c93b7b7c772": {
+      "views": 221750,
+      "rating": 8.7
+    },
+    "0ad025c2-70f7-4c60-aa0a-3b045427d675": {
+      "views": 128550,
+      "rating": 8.8
+    },
+    "b7e36346-b86f-413b-9bea-de7268ad722d": {
+      "views": 123100,
+      "rating": 8.6
+    },
+    "707ec410-cee7-439c-9cef-ac3bc12b3cfa": {
+      "views": 117850,
+      "rating": 8.2
+    },
+    "ce4b8cf7-cbee-4318-9c55-e6788b74cfb1": {
+      "views": 104300,
+      "rating": 8.4
+    },
+    "c16b43ac-73e7-4d89-b2b8-10c740cf5d09": {
+      "views": 76950,
+      "rating": 8.7
+    },
+    "f809b937-f6bc-482a-a29b-e8f5b6ce1ecc": {
+      "views": 72750,
+      "rating": 8.6
+    },
+    "b7e8a5a1-4b1b-40e4-854c-49d1729509b4": {
+      "views": 152150,
+      "rating": 8.3
+    },
+    "1d9edadb-822d-45d4-9fb7-74c0b2331a28": {
+      "views": 142900,
+      "rating": 9.5
+    },
+    "ec4f014d-c1e3-4f66-ba09-b1eefec43b52": {
+      "views": 137700,
+      "rating": 9.4
+    },
+    "746cf8a5-4cd3-46cf-bee8-f0e70685c666": {
+      "views": 125100,
+      "rating": 8.2
+    },
+    "a3424d01-f433-4d52-9b86-4e72a0c132be": {
+      "views": 68650,
+      "rating": 9
+    },
+    "6ced7cb5-1ff1-4b2d-8807-b06c6c855bed": {
+      "views": 282750,
+      "rating": 7.9
+    },
+    "8a4518ab-2d41-4410-adc7-66329ff87067": {
+      "views": 258900,
+      "rating": 8.3
+    },
+    "b0143515-ed57-459a-8b3d-8cefd1283c31": {
+      "views": 299550,
+      "rating": 9.4
+    },
+    "66efbeaf-1f29-42ed-a244-dffe28421f13": {
+      "views": 278100,
+      "rating": 7.9
+    },
+    "1e18f8e2-caf8-46d9-b661-46e8a76e3830": {
+      "views": 214850,
+      "rating": 8.1
+    },
+    "001190d7-c26f-440d-9bdb-75934fe8a7be": {
+      "views": 194900,
+      "rating": 8.4
+    },
+    "df7298ea-c09c-49ce-8751-fc7123e0f1d0": {
+      "views": 299600,
+      "rating": 8.3
+    },
+    "1debc0be-715f-496f-a57d-b1f37b77a3d5": {
+      "views": 275600,
+      "rating": 9.5
+    },
+    "505903fc-fba0-437c-a991-a0b1e980ca03": {
+      "views": 211500,
+      "rating": 9.3
+    },
+    "c70175bf-c5f6-4f81-a19f-d44932b4e05a": {
+      "views": 194150,
+      "rating": 8.1
+    },
+    "9b0fcd06-5c8a-4654-9054-4081c438b46c": {
+      "views": 173000,
+      "rating": 9.7
+    },
+    "ea7fb522-69a4-4d69-a0f3-0b655fbdec7c": {
+      "views": 36250,
+      "rating": 7.9
+    },
+    "61617169-c97d-4ddb-bd23-70314683bffd": {
+      "views": 34550,
+      "rating": 8.4
+    },
+    "e4e964df-4905-40d4-9445-aaf889948f18": {
+      "views": 78400,
+      "rating": 8.6
+    },
+    "e7a36835-f2ba-4bd8-a596-0db9936c4f0a": {
+      "views": 70450,
+      "rating": 8.5
+    },
+    "abd6c080-fce8-4e54-ab0d-ab0e3feb0b0f": {
+      "views": 202350,
+      "rating": 8.8
+    },
+    "199ffbe8-bcab-40c4-8813-88487847c6fa": {
+      "views": 140900,
+      "rating": 8.8
+    },
+    "5a586b28-3477-4f7f-aecb-423989e5fdb0": {
+      "views": 269550,
+      "rating": 9.4
+    },
+    "8b62d0f5-f7e2-43f3-9d06-cf5a4891dd1a": {
+      "views": 263100,
+      "rating": 8.4
+    },
+    "8833af52-b73a-4b24-a63e-7210cf148fc0": {
+      "views": 248250,
+      "rating": 8.2
+    },
+    "f0af606b-d154-49bc-90dc-b144020cb872": {
+      "views": 213250,
+      "rating": 9.3
+    },
+    "cedf0eae-3c3c-4059-9078-e367529b86e8": {
+      "views": 202900,
+      "rating": 8.9
+    },
+    "8e96a5cb-916f-4e59-9484-fb5aa236308a": {
+      "views": 194650,
+      "rating": 9.3
+    },
+    "92da241b-f21e-40a6-8be7-37c9090bcb9b": {
+      "views": 160000,
+      "rating": 8.6
+    },
+    "40de3683-15ce-4dfa-9017-3247a4587ded": {
+      "views": 146350,
+      "rating": 8.5
+    },
+    "5c475028-c67c-4ba5-b727-9a84a85c7d23": {
+      "views": 115400,
+      "rating": 8.9
+    },
+    "ad2303c9-5ed3-46fe-8e55-e4b7d5cfe15c": {
+      "views": 177350,
+      "rating": 9
+    },
+    "172a4e4e-9039-4477-a5c1-345af5fef945": {
+      "views": 166350,
+      "rating": 8.6
+    },
+    "ff06bbf3-5583-4295-838c-2d76047ca403": {
+      "views": 160500,
+      "rating": 9
+    },
+    "6e003eb0-7dad-4e0f-9b18-fd945c494e0c": {
+      "views": 142050,
+      "rating": 8.6
+    },
+    "e66de0b6-8c8b-4950-b328-359a51c4ac53": {
+      "views": 250100,
+      "rating": 8.7
+    },
+    "e9d77488-8cf4-436c-b29a-0a80e7182cc6": {
+      "views": 239800,
+      "rating": 9.3
+    },
+    "509915d7-92bd-471d-a5eb-12e64ecf64e0": {
+      "views": 201300,
+      "rating": 8.2
+    },
+    "8637c931-aec3-492a-bb76-acb8b02eede7": {
+      "views": 190700,
+      "rating": 8.1
+    },
+    "85d12cb3-b2a9-4713-8160-4af4ec99086c": {
+      "views": 82100,
+      "rating": 9.6
+    },
+    "2e712f06-7b50-4c7b-820a-5fd23833f63d": {
+      "views": 78450,
+      "rating": 8.4
+    },
+    "619c5f52-c7c1-48dd-99a5-26a2a6375373": {
+      "views": 64350,
+      "rating": 8.1
+    },
+    "34e07ca1-0eb5-44e0-855f-f4efaacf1323": {
+      "views": 65200,
+      "rating": 7.8
+    },
+    "b3c14b56-fed0-4ba4-af3f-020913620c4f": {
+      "views": 188950,
+      "rating": 8.5
+    },
+    "9140e95a-36f6-4f5f-9f00-d7d8fc6e9898": {
+      "views": 167300,
+      "rating": 9.3
+    },
+    "efc32bf9-8fa2-4dd1-b732-3ec98a423fb3": {
+      "views": 64150,
+      "rating": 9.4
+    },
+    "cfba3b03-38c2-4e27-8b35-11bc27b39adf": {
+      "views": 58800,
+      "rating": 9.3
+    },
+    "7afe9c88-d413-4348-a4a5-4a6fcc06e157": {
+      "views": 58400,
+      "rating": 9.5
+    },
+    "64910a88-3acf-4627-84a9-7022f07d9d6c": {
+      "views": 47700,
+      "rating": 8
+    },
+    "7de08a8a-e86d-4952-b24e-85dc8a2d11b0": {
+      "views": 45350,
+      "rating": 9
+    },
+    "02398861-6d2a-4644-bf4c-acaff21ba0f5": {
+      "views": 52000,
+      "rating": 9.2
+    },
+    "2b86275c-03cf-44fc-99f7-ad9ce8c4bc8a": {
+      "views": 38900,
+      "rating": 9.1
+    },
+    "d0dcf8cb-4637-4924-a064-04d7f6c483fc": {
+      "views": 39750,
+      "rating": 8.7
+    },
+    "2c28b38a-2adf-4eb6-9630-9bf436df8439": {
+      "views": 32300,
+      "rating": 9.6
+    },
+    "813a97c1-7f26-4497-8c9f-bd081e76324e": {
+      "views": 40400,
+      "rating": 8.7
+    },
+    "a6962991-3f31-4243-953b-bafffc86bf8a": {
+      "views": 20400,
+      "rating": 8.4
+    },
+    "054119c6-1cd6-4431-b46c-36ccd9558531": {
+      "views": 34550,
+      "rating": 9.5
+    },
+    "fd41d3ef-2f64-4094-be20-366ae6faee6d": {
+      "views": 113350,
+      "rating": 8.5
+    },
+    "744dd3d8-07a6-45b7-a838-b5d901308f60": {
+      "views": 102850,
+      "rating": 9.7
+    },
+    "30112939-467a-4c96-b350-51f0cf10f762": {
+      "views": 236400,
+      "rating": 8.2
+    },
+    "10c6c0af-9001-47d6-8585-0e3ab3400b81": {
+      "views": 215600,
+      "rating": 9.6
+    },
+    "b64cfdd8-3312-4741-a661-6b70d78e35d5": {
+      "views": 42600,
+      "rating": 8.8
+    },
+    "f1560a91-1f0f-4786-968a-3a135e37230c": {
+      "views": 238750,
+      "rating": 8.4
+    },
+    "6b7b15bb-8cfa-41be-b21d-6eca49b8539b": {
+      "views": 223250,
+      "rating": 9.3
+    },
+    "b269d8bc-5d95-476f-8ef2-7315fc3e891d": {
+      "views": 262650,
+      "rating": 9.2
+    },
+    "2c39cac4-7f73-4aaa-bb9c-a290adb20424": {
+      "views": 231750,
+      "rating": 9.2
+    },
+    "47e543d7-ef7e-4501-80bd-199059ef48f4": {
+      "views": 212100,
+      "rating": 8.6
+    },
+    "01bf12aa-42cb-4a4e-a0db-5ef78c6b5789": {
+      "views": 190800,
+      "rating": 8.7
+    },
+    "84044f64-ff12-4113-81c7-9ebd3e8f21d2": {
+      "views": 222100,
+      "rating": 9.5
+    },
+    "f0293ca0-b854-45a3-bdbb-df0faab6df4d": {
+      "views": 208650,
+      "rating": 8.6
+    },
+    "23f7e8a3-21e7-411d-9118-9237cf08044d": {
+      "views": 176250,
+      "rating": 9.1
+    },
+    "3534c6c8-52d9-4a3f-857b-817e85f17f4c": {
+      "views": 184250,
+      "rating": 9.4
+    },
+    "a497a999-a94f-4fb2-b2c4-7006fd710bd9": {
+      "views": 197850,
+      "rating": 8.5
+    },
+    "4b36e7f2-0968-4829-a870-4dbd384adddc": {
+      "views": 184950,
+      "rating": 8
+    },
+    "84b05535-7abf-4866-9e42-467c721d897c": {
+      "views": 179350,
+      "rating": 9.3
+    },
+    "2bc70b12-c885-4aa8-9c37-e4bacc3aa52b": {
+      "views": 171900,
+      "rating": 8.9
+    },
+    "17a4c213-34ea-46e9-83ea-bf3e43e51280": {
+      "views": 132250,
+      "rating": 9.6
+    },
+    "a010672a-0b33-4791-bee3-d40d395943f9": {
+      "views": 106650,
+      "rating": 9.4
+    },
+    "25e35965-a7ed-465b-b467-0a44f02e3cf3": {
+      "views": 126400,
+      "rating": 9.7
+    },
+    "b73cf21a-4b09-43e4-8772-097549b76446": {
+      "views": 113700,
+      "rating": 7.8
+    },
+    "e46512c3-b21d-483e-a2c4-13c6436f9b6f": {
+      "views": 202150,
+      "rating": 9.2
+    },
+    "c90ffc75-80c3-4d77-a244-0c9599f125bf": {
+      "views": 184800,
+      "rating": 9.7
+    },
+    "e3815958-a912-4347-97ea-199ea7569a72": {
+      "views": 23700,
+      "rating": 9.3
+    },
+    "967cc594-eefb-41e5-bc6b-a90e464a8306": {
+      "views": 21950,
+      "rating": 8.3
+    },
+    "e201920f-e1f3-4145-ba94-9ee21881df2b": {
+      "views": 20000,
+      "rating": 9.6
+    },
+    "1a938d5e-4214-4f09-985d-08f5e41d44c4": {
+      "views": 20550,
+      "rating": 9.6
+    },
+    "fe042c62-0939-4182-a17a-d975500fa8af": {
+      "views": 14300,
+      "rating": 8.4
+    },
+    "cfd79900-e7b2-486e-8ab9-8db7d0d73d61": {
+      "views": 18350,
+      "rating": 8.7
+    },
+    "dd86ce3a-a71a-4689-b1e7-d935c500e5da": {
+      "views": 66600,
+      "rating": 9.5
+    },
+    "048cabd1-4ad1-4590-9844-cb7b4f706643": {
+      "views": 58700,
+      "rating": 9.7
+    },
+    "e1c94d3b-4013-4ba1-aff5-74643b717074": {
+      "views": 53650,
+      "rating": 9.6
+    },
+    "2ed20c6b-3564-48dc-9c5d-01eb4dba066c": {
+      "views": 48350,
+      "rating": 7.9
+    },
+    "371dd368-0380-45a1-92c2-82883a45e481": {
+      "views": 146300,
+      "rating": 9.6
+    },
+    "187b8e80-5255-47db-ad3f-be2b5db1d203": {
+      "views": 129900,
+      "rating": 8.3
+    },
+    "8c1cdfa7-914e-4324-9b67-23b0c9ba0369": {
+      "views": 149950,
+      "rating": 9.6
+    },
+    "62f5049b-f469-435d-8122-950d8a588368": {
+      "views": 135600,
+      "rating": 9.2
+    },
+    "9bb88732-8632-4785-afef-1249cc3977c8": {
+      "views": 167600,
+      "rating": 8.1
+    },
+    "940746d6-06e6-48e3-a624-73b14cf250d1": {
+      "views": 151350,
+      "rating": 8.4
+    },
+    "a80d674a-4a98-45c4-9230-a0c78722fef6": {
+      "views": 132500,
+      "rating": 9.5
+    },
+    "dd2662c2-223a-411d-8575-b3e6bdf528ea": {
+      "views": 123300,
+      "rating": 8.3
+    },
+    "42ac7a8f-b125-4bd2-abfb-2576600d6012": {
+      "views": 20550,
+      "rating": 8.2
+    },
+    "05816858-7ef8-47b2-9bc0-d624c8ecfe15": {
+      "views": 18400,
+      "rating": 8.1
+    },
+    "3906cd7b-3c3c-461b-92d4-8bf86f0b57a9": {
+      "views": 281550,
+      "rating": 8.2
+    },
+    "dac52ddb-4851-411a-891b-fd0ff1be2079": {
+      "views": 22850,
+      "rating": 8
+    },
+    "a170c633-8694-4611-bbd1-2c493394b65b": {
+      "views": 20850,
+      "rating": 9.4
+    },
+    "32e2d4ad-2420-4210-bdc1-cf6b81fce097": {
+      "views": 20250,
+      "rating": 8.1
+    },
+    "95ecfb22-0a2d-4543-88ed-9e6982628add": {
+      "views": 17250,
+      "rating": 8.2
+    },
+    "24b97068-1be5-4d46-ad46-11d26b5ff115": {
+      "views": 59750,
+      "rating": 9.7
+    },
+    "2a2171d0-7e6c-4ed6-bef2-66d7f8d473c3": {
+      "views": 53400,
+      "rating": 8.9
+    },
+    "d0e84b48-b2c1-4db4-bf86-5c7ee101f610": {
+      "views": 142600,
+      "rating": 8.3
+    },
+    "7b5421f3-59bb-484c-ba44-99263eafa84d": {
+      "views": 80600,
+      "rating": 9.7
+    },
+    "441c23b8-3aee-4d17-8169-5e393aecfbe5": {
+      "views": 220500,
+      "rating": 8.1
+    },
+    "d3192f1b-32e6-4ec0-9c52-b66ed2d86b38": {
+      "views": 87550,
+      "rating": 8.6
+    },
+    "d39afea5-fc90-4b0e-ac58-c7d47071ce4e": {
+      "views": 83350,
+      "rating": 8.9
+    },
+    "1782a547-41d7-4eea-be68-50cc415e2830": {
+      "views": 73550,
+      "rating": 8.5
+    },
+    "f17bca8d-3046-44ad-b190-68b496d84e5b": {
+      "views": 61400,
+      "rating": 8.9
+    },
+    "1f7adcf9-4dfc-42f1-97fb-ebcfcb00e290": {
+      "views": 229550,
+      "rating": 8.5
+    },
+    "d9145f37-ff16-4a65-9e1d-fe0461153c55": {
+      "views": 213700,
+      "rating": 9.4
+    },
+    "3780ebb1-f881-4954-9b37-a0f942520b60": {
+      "views": 265100,
+      "rating": 7.9
+    },
+    "2da03343-9a81-448f-be00-7c478f8e3724": {
+      "views": 244200,
+      "rating": 9.2
+    },
+    "4c0f9fa5-09a5-46a5-bc94-555009cdab7e": {
+      "views": 25350,
+      "rating": 8.4
+    },
+    "5256e63f-279b-4ee1-994a-e98400f8cca0": {
+      "views": 22350,
+      "rating": 8.8
+    },
+    "01f407f1-a732-45f9-a479-e90a3d0651ca": {
+      "views": 147150,
+      "rating": 9.5
+    },
+    "6e25dea8-17df-4735-b493-152cec316f59": {
+      "views": 136100,
+      "rating": 8.8
+    },
+    "7a5a1c74-abe4-4355-b65b-8045d73b7988": {
+      "views": 126950,
+      "rating": 9.4
+    },
+    "bd2f83df-26e8-4507-b268-575eabc14d30": {
+      "views": 109150,
+      "rating": 8.9
+    },
+    "21c93650-3e48-495c-9ea4-ae33af08b0a6": {
+      "views": 116050,
+      "rating": 8
+    },
+    "eba1d8c4-a428-45fc-b919-ab912466a4da": {
+      "views": 77950,
+      "rating": 8.6
+    },
+    "6a258e8d-73a9-4066-9aa0-24fc9a7f16e4": {
+      "views": 69350,
+      "rating": 9.1
+    },
+    "2c4cae8f-81aa-49aa-b80a-148230cb28f5": {
+      "views": 70700,
+      "rating": 8.1
+    },
+    "fec59838-7c06-4ffb-b923-c9e0301689a3": {
+      "views": 58600,
+      "rating": 9.2
+    },
+    "61fa3e54-4c3b-4693-acb3-d21b982f7908": {
+      "views": 85700,
+      "rating": 8.6
+    },
+    "5947d9f2-33a0-4e71-b849-7982137cbc39": {
+      "views": 50250,
+      "rating": 8.1
+    },
+    "46123106-6f02-445a-afc1-f3e8a3dbe862": {
+      "views": 64200,
+      "rating": 7.8
+    },
+    "35a3cb49-c6dc-426e-8c67-1113d8952100": {
+      "views": 57700,
+      "rating": 9.1
+    },
+    "faf34db8-38b6-4cf5-9728-5f4f0df0a312": {
+      "views": 196600,
+      "rating": 8.4
+    },
+    "145e7fe9-512f-4ae8-88a6-00c4269cf131": {
+      "views": 180050,
+      "rating": 9.6
+    },
+    "cc1e3db2-0e19-499b-acd7-88210d12eb52": {
+      "views": 158850,
+      "rating": 8.9
+    },
+    "6f0abc9a-4411-4de3-a37c-f9580b980376": {
+      "views": 139250,
+      "rating": 8.1
+    },
+    "45560c5b-4dc2-4a6b-b2be-22bcfede8eaa": {
+      "views": 293600,
+      "rating": 9.1
+    },
+    "f7a38fca-c8df-484f-a92d-37c052a33b2d": {
+      "views": 270550,
+      "rating": 8.1
+    },
+    "8766690c-feae-466e-88b3-63dfd284caee": {
+      "views": 248950,
+      "rating": 9.4
+    },
+    "97dd5777-66bb-45f0-a53b-6857144806ab": {
+      "views": 207500,
+      "rating": 8.3
+    },
+    "4e61994a-dc39-4d21-be02-51ee25d51633": {
+      "views": 268650,
+      "rating": 8.1
+    },
+    "248f0029-182e-4f37-9991-f28f0b691773": {
+      "views": 252000,
+      "rating": 9.1
+    },
+    "e56667ec-c84e-421c-a62d-0c2309748f2d": {
+      "views": 208450,
+      "rating": 8.9
+    },
+    "51d644d0-b5f0-4e45-9b0e-083d8a8076be": {
+      "views": 200950,
+      "rating": 9.6
+    },
+    "6d0b7af0-8ddc-4315-bdd8-6658c6c5f8b4": {
+      "views": 188300,
+      "rating": 8.9
+    },
+    "4d3b65f7-95e0-4671-802b-7a9d2ddf070e": {
+      "views": 223600,
+      "rating": 9.7
+    },
+    "0dd266e4-f04f-4880-baea-24440cc98a44": {
+      "views": 199150,
+      "rating": 7.9
+    },
+    "ad58cc19-025e-403a-ae61-5aad715d4a49": {
+      "views": 197400,
+      "rating": 8.9
+    },
+    "8133733e-a183-49f4-a3ab-8f1219a25ae1": {
+      "views": 171000,
+      "rating": 8.1
+    },
+    "950f704d-6202-40df-afd6-9ebd41c56ed2": {
+      "views": 52450,
+      "rating": 9.6
+    },
+    "ad9a24c7-403b-4d3b-998f-79fd34f0623c": {
+      "views": 49450,
+      "rating": 8.5
+    },
+    "4656b327-89e9-48da-b3a3-39e47aaa0ae4": {
+      "views": 240800,
+      "rating": 9
+    },
+    "ff44e45b-0e88-4857-81d3-2d5b2a05b7fc": {
+      "views": 23000,
+      "rating": 8
+    },
+    "f0e18159-6900-4f96-920c-889f02348de9": {
+      "views": 21400,
+      "rating": 9.1
+    },
+    "7fdbcf1d-6ecc-4cdc-b03d-2af2dd2696e9": {
+      "views": 302950,
+      "rating": 8.5
+    },
+    "79877277-7070-4fe0-8494-b55cb3fa3185": {
+      "views": 268500,
+      "rating": 9.6
+    },
+    "9d04e1a7-e753-4bed-b87f-bfe4dba58c57": {
+      "views": 266250,
+      "rating": 8.7
+    },
+    "fe26bf30-5606-4d84-96e4-455caee13d69": {
+      "views": 259050,
+      "rating": 8.7
+    },
+    "783e025e-042a-4bb5-b753-ec65cb5f81b8": {
+      "views": 239100,
+      "rating": 8.6
+    },
+    "5ac21d6d-888e-4f98-8f53-81894fd63a6e": {
+      "views": 224450,
+      "rating": 8.6
+    },
+    "75494a58-55db-40a1-a36a-3541bbde301b": {
+      "views": 99550,
+      "rating": 8.5
+    },
+    "85cfac42-8d8d-479e-bafb-fefcf0d70748": {
+      "views": 90150,
+      "rating": 7.9
+    },
+    "0b4a2d88-ef05-42f7-b503-926c3e206d2d": {
+      "views": 126750,
+      "rating": 9.3
+    },
+    "876092ee-6c9b-413f-8120-81ef238187a8": {
+      "views": 114550,
+      "rating": 8.6
+    },
+    "3cc7a186-7fa8-4695-9cdc-f07a456e298d": {
+      "views": 102500,
+      "rating": 9.4
+    },
+    "b35a7fb6-d001-4f02-8fa4-5a07fba7fd95": {
+      "views": 96600,
+      "rating": 9
+    },
+    "952b55d7-ba20-4183-be6b-ae2cee6d1880": {
+      "views": 84550,
+      "rating": 9.2
+    },
+    "8c1c3f8a-2762-467a-b7fb-6ec0675492fe": {
+      "views": 80550,
+      "rating": 7.9
+    },
+    "a351e0c3-5b83-4ef3-9faa-e4183efe135c": {
+      "views": 304550,
+      "rating": 9.1
+    },
+    "9c3476ae-e488-4b7f-b898-f11586ff0ac5": {
+      "views": 272200,
+      "rating": 9.1
+    },
+    "5bb20fa3-b6ef-4fb8-8230-171370e77dfe": {
+      "views": 246500,
+      "rating": 9.5
+    },
+    "3b76dc3b-2e76-4be8-994b-5132f58e6032": {
+      "views": 226800,
+      "rating": 8.9
+    },
+    "3f03a27d-e709-4342-8793-1579c24f6340": {
+      "views": 61050,
+      "rating": 8.3
+    },
+    "a3df7b71-c45f-42df-9410-602032f777af": {
+      "views": 286600,
+      "rating": 8.8
+    },
+    "d1df4d58-ecf2-4062-b786-a69c99b47d24": {
+      "views": 266350,
+      "rating": 9.3
+    },
+    "479601eb-c7cd-4bb0-80e6-bbe7603a2fb6": {
+      "views": 139350,
+      "rating": 8.8
+    },
+    "23993bc4-ab73-47b0-b8a5-ac0a88b99a2e": {
+      "views": 128850,
+      "rating": 8.6
+    },
+    "e24a8714-a8bc-485e-8482-ac66b9dda27c": {
+      "views": 30150,
+      "rating": 9
+    },
+    "00cae65a-717b-4e5a-ba3b-f6520e4fa06f": {
+      "views": 256650,
+      "rating": 9.5
+    },
+    "300a806a-89d7-4062-8e42-dfd0817f8d50": {
+      "views": 257800,
+      "rating": 8.9
+    },
+    "29f59159-5cc3-42df-a2fc-008a25c5126e": {
+      "views": 257600,
+      "rating": 9.6
+    },
+    "b3ef4a65-8684-4f04-9a76-15d639ea1a6c": {
+      "views": 235750,
+      "rating": 8.4
+    },
+    "8675ffe0-eafa-4c87-acb2-ff85559498a6": {
+      "views": 204250,
+      "rating": 8.8
+    },
+    "9f4a8f1e-4dae-4fdc-8857-b8db5e398cb0": {
+      "views": 169850,
+      "rating": 9.5
+    },
+    "f34a4aa5-1695-444c-8708-75957dbca4ed": {
+      "views": 158300,
+      "rating": 8.5
+    },
+    "5290d53e-cf68-4ef1-85f2-c4b8a7524d1a": {
+      "views": 186750,
+      "rating": 8
+    },
+    "00953046-73a3-4629-8e9b-015c17b57e9a": {
+      "views": 176150,
+      "rating": 8.9
+    },
+    "fe3274ce-20f0-424a-b8fc-ebef8c576fb1": {
+      "views": 131600,
+      "rating": 7.8
+    },
+    "acdaa6ec-61d4-42ea-8194-4b29b5577d3a": {
+      "views": 263050,
+      "rating": 8.2
+    },
+    "0a1fff0f-71a8-44b4-9240-1f1ebde1114b": {
+      "views": 250500,
+      "rating": 9.6
+    },
+    "c83569a2-c569-4983-ae44-af0591add7d7": {
+      "views": 218600,
+      "rating": 9.6
+    },
+    "54b73178-b607-4c72-a4fb-9f0f923ed2cd": {
+      "views": 229050,
+      "rating": 9.3
+    },
+    "d1ca6b4b-77a5-4e88-9391-1cf1bb1ceef5": {
+      "views": 181150,
+      "rating": 9.6
+    },
+    "6da5bf45-6219-41fc-b003-d0c64c86f5a9": {
+      "views": 169700,
+      "rating": 8.9
+    },
+    "6132d7fe-118c-4fa7-a3fb-4f19bd9dea33": {
+      "views": 104000,
+      "rating": 9.5
+    },
+    "57573037-3ec3-496f-869d-e0b89f0d69e3": {
+      "views": 97900,
+      "rating": 9.1
+    },
+    "0e429856-be43-40ad-9486-cf71f749cc80": {
+      "views": 123050,
+      "rating": 8.8
+    },
+    "9527724b-8484-4e48-bda1-d037ed004910": {
+      "views": 111350,
+      "rating": 8.1
+    },
+    "8168e5b2-8f28-4a88-8c57-ba3943b13e18": {
+      "views": 101850,
+      "rating": 8.2
+    },
+    "68a357a1-677a-4225-aed3-4c6837c07585": {
+      "views": 104700,
+      "rating": 8
+    },
+    "be16ac07-6975-47c3-b658-dd302795063c": {
+      "views": 187550,
+      "rating": 8.1
+    },
+    "8d54c09e-0b01-4b33-9417-e02c7cedc5e4": {
+      "views": 176200,
+      "rating": 7.9
+    },
+    "11a2c21b-1eb5-47ca-a54a-592ebe0b67f1": {
+      "views": 110000,
+      "rating": 8.4
+    },
+    "ef4ac4f0-1ab5-436c-b05c-f8e98b4718ed": {
+      "views": 100200,
+      "rating": 8.7
+    },
+    "7b7f8267-300e-420e-b8e3-9f08ac3da1ec": {
+      "views": 85300,
+      "rating": 8.4
+    },
+    "17398322-bfab-4138-85a3-30af8fcb4e0e": {
+      "views": 79850,
+      "rating": 9.1
+    },
+    "2435d3de-a0ef-4d9b-b1cc-22da85e80609": {
+      "views": 119450,
+      "rating": 9.3
+    },
+    "0b0c1b40-1dcf-4e28-be72-2e127a827997": {
+      "views": 110550,
+      "rating": 9.3
+    },
+    "f495fad3-8b2a-471c-b9c6-f62c3bccdc2d": {
+      "views": 100500,
+      "rating": 9.2
+    },
+    "ad223e11-5531-40cc-a75c-ac0367f82537": {
+      "views": 89800,
+      "rating": 9.5
+    },
+    "cf83873d-023f-4c9d-9132-c4a51f2111b1": {
+      "views": 194100,
+      "rating": 8
+    },
+    "b472dba3-b40b-4e8a-95fd-ba24d221aaac": {
+      "views": 163050,
+      "rating": 8
+    },
+    "adcd9a6f-2fab-47f4-b50b-ff850813d108": {
+      "views": 149200,
+      "rating": 9.4
+    },
+    "8f46385c-10ee-4461-8fd4-d892970e42bb": {
+      "views": 219000,
+      "rating": 8.6
+    },
+    "13adc515-7a24-4f18-81cb-e79d89254dd2": {
+      "views": 187150,
+      "rating": 8.3
+    },
+    "3b91e58e-8407-4ead-9458-d95a080b06be": {
+      "views": 168400,
+      "rating": 8.9
+    },
+    "6b6e78f9-98d1-4816-8350-7c85a20e792b": {
+      "views": 152950,
+      "rating": 7.9
+    },
+    "32fff7b2-193a-44b1-911a-7fb888add5dd": {
+      "views": 131300,
+      "rating": 9.6
+    },
+    "bec936b5-c619-45a7-8116-9f48ef5fe4d3": {
+      "views": 274250,
+      "rating": 8.5
+    },
+    "2fd1ea51-ebc3-4f2c-8c03-26dce470b051": {
+      "views": 246650,
+      "rating": 8.6
+    },
+    "189ccfe4-4ed3-4bdd-abbb-0cc83052ac2a": {
+      "views": 41800,
+      "rating": 9.2
+    },
+    "89d85821-eb3d-4087-a2be-ad428edd5f6b": {
+      "views": 38200,
+      "rating": 7.9
+    },
+    "59c67f25-3a35-4fdb-b2a6-467149899409": {
+      "views": 291850,
+      "rating": 9.5
+    },
+    "8f38d852-fc90-4657-ae21-d411f6c1afd9": {
+      "views": 277900,
+      "rating": 9
+    },
+    "50c47b08-c325-424c-8c49-c21adffa5f05": {
+      "views": 60800,
+      "rating": 9.5
+    },
+    "a272a44c-182e-483a-a84d-2a2b57e97b11": {
+      "views": 55650,
+      "rating": 9.6
+    },
+    "ed35e984-d315-4864-a72e-c6447678a8fa": {
+      "views": 158700,
+      "rating": 7.9
+    },
+    "66c81947-953f-4fc8-850b-221e0838f3b3": {
+      "views": 149100,
+      "rating": 8.3
+    },
+    "c0e5331e-f8c3-4be8-af89-fbcdad705a2a": {
+      "views": 243500,
+      "rating": 9.4
+    },
+    "acb8f869-c08b-4766-b87a-a4be3530cf42": {
+      "views": 20800,
+      "rating": 8
+    },
+    "c8f30a9f-83a3-4a4b-b8c2-7aa4b0d198f1": {
+      "views": 19150,
+      "rating": 8.1
+    },
+    "cdfebd30-849d-44ca-ba1d-89b05d3bd9ff": {
+      "views": 146650,
+      "rating": 7.8
+    },
+    "2233c444-8958-479e-bcb2-3b7dd6b8163b": {
+      "views": 138800,
+      "rating": 8.8
+    },
+    "cca3fcec-190a-4a1f-b55f-174d4b8ed295": {
+      "views": 49750,
+      "rating": 9.4
+    },
+    "de859eb3-d83c-46df-bda2-7d0f0e9ead10": {
+      "views": 45800,
+      "rating": 7.8
+    },
+    "d60b4984-d6a3-475a-8368-293bb2431ca5": {
+      "views": 30550,
+      "rating": 8.7
+    },
+    "ac1f0455-b68e-433f-ab07-f8435f3c043e": {
+      "views": 27500,
+      "rating": 7.9
+    },
+    "5991cde1-4559-4133-bdb4-5e23e62cc12d": {
+      "views": 157900,
+      "rating": 8.7
+    },
+    "e8b049bc-e6a7-4ea9-8946-1df71658e544": {
+      "views": 146200,
+      "rating": 9.3
+    },
+    "1babe2b8-9b21-4461-87b1-f3ee522ba339": {
+      "views": 219500,
+      "rating": 7.9
+    },
+    "0cf63d08-72a7-4f75-b7ae-239b79a32b59": {
+      "views": 204650,
+      "rating": 9.4
+    },
+    "a7bfbcce-a499-4382-934b-54df4a3f9c32": {
+      "views": 283100,
+      "rating": 7.8
+    },
+    "5ea6e250-31da-47e7-8794-ddc6d6bd94af": {
+      "views": 256200,
+      "rating": 9.4
+    },
+    "4547d074-0f9b-428e-87db-3768c1934fe7": {
+      "views": 27800,
+      "rating": 8
+    },
+    "8b79be51-6eba-42dd-a3e9-63d95296bf4e": {
+      "views": 25150,
+      "rating": 9.5
+    },
+    "d14f8f01-84df-4770-9d46-b10c25b3c719": {
+      "views": 154250,
+      "rating": 9
+    },
+    "e9a41129-f848-4098-aecd-b5b152546020": {
+      "views": 147650,
+      "rating": 8.7
+    },
+    "0aa87748-fe2a-4c08-8b39-76d7518458c6": {
+      "views": 207250,
+      "rating": 9.7
+    },
+    "bf23d081-5470-494c-b91e-57817182b5f1": {
+      "views": 190100,
+      "rating": 9.5
+    },
+    "da58b946-8dd7-4d0e-920f-9051dc1bb0ad": {
+      "views": 219150,
+      "rating": 9.7
+    },
+    "8bfa29a7-75c6-425e-9f83-ee8e17bbdfc8": {
+      "views": 194450,
+      "rating": 8.4
+    },
+    "9be2c786-ad31-4cac-bab2-dcdaf8e38a5d": {
+      "views": 173600,
+      "rating": 8.3
+    },
+    "94d75b66-997e-4bbb-ad7c-36230023f459": {
+      "views": 177300,
+      "rating": 9.5
+    },
+    "48d2e355-c3e1-4d72-8759-deeed929521f": {
+      "views": 63700,
+      "rating": 8.6
+    },
+    "78608b35-5497-4cf1-bed1-1ac60aa3e4ad": {
+      "views": 56800,
+      "rating": 9.7
+    },
+    "129cb8e2-f589-46fe-9177-49b19d596540": {
+      "views": 225850,
+      "rating": 9.1
+    },
+    "88a1a8c7-4403-458e-b1f4-064b42636ac3": {
+      "views": 200900,
+      "rating": 8
+    },
+    "6d4269cb-9c71-45fb-bf38-e4c86ee59be5": {
+      "views": 190150,
+      "rating": 8.4
+    },
+    "66e45fea-0ca4-4995-a158-e2c59bba4cc5": {
+      "views": 174200,
+      "rating": 9.1
+    },
+    "a8df5783-77b1-4813-bdd3-d58bd644a73c": {
+      "views": 137200,
+      "rating": 9.4
+    },
+    "21737653-f795-4181-9cfc-cb22fde4cfb3": {
+      "views": 138600,
+      "rating": 9.3
+    },
+    "abdb4827-1247-4a76-99a5-493b63075a2c": {
+      "views": 116600,
+      "rating": 9.5
+    },
+    "ddb5cf81-dbd6-48d7-9768-dc7a3a7a1e64": {
+      "views": 106600,
+      "rating": 9.3
+    },
+    "8cd1e437-1106-4db5-af3f-215258342f96": {
+      "views": 118400,
+      "rating": 8.8
+    },
+    "5962dd6d-36f6-46ff-92cb-2a1c7ef4d1f3": {
+      "views": 109100,
+      "rating": 8.3
+    },
+    "2674d083-88e4-4b12-be8d-75e3ac0f53bd": {
+      "views": 296800,
+      "rating": 9.4
+    },
+    "a057a4ad-d13d-4e49-a8f8-470397b819c8": {
+      "views": 267800,
+      "rating": 9.6
+    },
+    "4570d578-dba8-4cad-80a4-0a7aa5d54617": {
+      "views": 115850,
+      "rating": 8.6
+    },
+    "62f9ddc3-4397-420a-aceb-93b717e8d913": {
+      "views": 103550,
+      "rating": 9.5
+    },
+    "75957773-c0a6-4643-8bad-b2b936c6ea63": {
+      "views": 186950,
+      "rating": 8.1
+    },
+    "8f4be2fe-a7f3-44d6-8a4b-6de8918e410d": {
+      "views": 176750,
+      "rating": 9
+    },
+    "4d175c9e-9fab-42ab-98a0-b35e14be1ca5": {
+      "views": 58650,
+      "rating": 8.5
+    },
+    "255de509-cc94-4226-8f69-d4c6efbb346b": {
+      "views": 55600,
+      "rating": 9.4
+    },
+    "1e28aa6b-abf0-4e47-95de-f27964e37a4c": {
+      "views": 276100,
+      "rating": 8
+    },
+    "61f5bfb2-149f-4c9d-b502-958b109e9ae3": {
+      "views": 247000,
+      "rating": 8
+    },
+    "1fb87f09-3c0b-4ec7-b8df-d4f5f3ab2014": {
+      "views": 95850,
+      "rating": 8.8
+    },
+    "292b8352-b8ea-4526-acd0-218f1a9e2b20": {
+      "views": 88150,
+      "rating": 8.7
+    },
+    "d68392c6-8eaa-4d1f-b1b9-968b0cfa0669": {
+      "views": 74850,
+      "rating": 8.8
+    },
+    "bcffe131-96c9-484c-8d80-6ad0a82e1600": {
+      "views": 81300,
+      "rating": 8.6
+    },
+    "8910eaef-9b93-4235-a0a5-80fb2c4a328b": {
+      "views": 173750,
+      "rating": 8.3
+    },
+    "38e12712-6c26-4f27-a257-e1fce95953fe": {
+      "views": 202600,
+      "rating": 9.5
+    },
+    "ec889225-279f-421e-bce7-1a7a6140e604": {
+      "views": 178400,
+      "rating": 8.9
+    },
+    "586dadbc-03a0-496c-9482-be14b4df12f2": {
+      "views": 178950,
+      "rating": 8.4
+    },
+    "4b5ed1d9-2b8f-4e2f-9c96-bd2b418a5a4d": {
+      "views": 166050,
+      "rating": 9
+    },
+    "e12dc919-cbbe-48fd-91c2-2cc018818cf0": {
+      "views": 63400,
+      "rating": 8.4
+    },
+    "864d1825-47f4-4e71-9555-d37aa2fe9746": {
+      "views": 56500,
+      "rating": 8.5
+    },
+    "ad8ec1e4-995f-4e40-8197-7b866d8db030": {
+      "views": 246700,
+      "rating": 8.9
+    },
+    "dbff4412-0343-4b39-ab54-9936d937608c": {
+      "views": 226250,
+      "rating": 7.9
+    },
+    "d96d35f3-73cf-4dbe-a448-7b8e04298204": {
+      "views": 212450,
+      "rating": 8.8
+    },
+    "8a71a47e-f433-4c27-9497-2e8acf165a82": {
+      "views": 135950,
+      "rating": 9.7
+    },
+    "63b45baf-aa84-4882-b5fa-e4e3edfb425b": {
+      "views": 61750,
+      "rating": 8.7
+    },
+    "551181fb-c9b2-487d-9b25-ab3ef4d099e5": {
+      "views": 118000,
+      "rating": 7.8
+    },
+    "fa607669-4bdd-4691-b1e6-d413b2f2efb0": {
+      "views": 304600,
+      "rating": 8.7
+    },
+    "e6e7f99d-4040-4696-ae32-59c1df7fe6f1": {
+      "views": 227150,
+      "rating": 8.6
+    },
+    "c2d4193d-96ab-45e9-90ee-f3083dd9d73c": {
+      "views": 56100,
+      "rating": 8.2
+    },
+    "9da45daf-b1cb-496a-b184-d2a5b82f7a80": {
+      "views": 112400,
+      "rating": 7.8
+    },
+    "27863de2-80dd-4911-9168-ae374e3e2b43": {
+      "views": 162250,
+      "rating": 9
+    },
+    "962c7afc-f9c2-41ab-a85c-f8d3be3d5988": {
+      "views": 292550,
+      "rating": 8.5
+    },
+    "5e23745f-0067-4746-b5ae-f6582a5d6c34": {
+      "views": 22050,
+      "rating": 9.1
+    },
+    "4dd8d14c-dcdf-4450-a1f0-b6e72ec5a34f": {
+      "views": 164850,
+      "rating": 9.5
+    },
+    "7bccac3d-952f-4f99-8332-e6f10637ca8c": {
+      "views": 135000,
+      "rating": 8.3
+    },
+    "c9665593-c54e-4dc3-bf58-21d5a8898f22": {
+      "views": 142400,
+      "rating": 8.1
+    },
+    "7b78da04-2262-4990-9dd3-f7362dff3c89": {
+      "views": 209400,
+      "rating": 8.7
+    },
+    "5aa5fe9f-951e-43b4-b9a1-e29b5aaa17ea": {
+      "views": 303600,
+      "rating": 8.8
+    },
+    "5cc50057-f5f1-45ca-842f-3685c375678d": {
+      "views": 45150,
+      "rating": 9.4
+    },
+    "a2596326-874f-43e7-8a1c-3b7b97221a4d": {
+      "views": 254650,
+      "rating": 8.6
+    },
+    "67e7e048-9213-43f2-a5aa-c674d09feafb": {
+      "views": 73000,
+      "rating": 9.3
+    },
+    "4447d8d6-9259-4b88-a62b-7feb6661e564": {
+      "views": 156100,
+      "rating": 8.8
+    },
+    "bebb965b-14d7-4478-bba7-04a9280fe5c0": {
+      "views": 265550,
+      "rating": 9.2
+    },
+    "c1362301-346a-4a1d-bec4-c58749946215": {
+      "views": 81900,
+      "rating": 9.6
+    },
+    "bd916b80-0125-43c7-933f-90bdecc47602": {
+      "views": 30550,
+      "rating": 9
+    },
+    "ab6c85e2-b8e5-446f-852c-15e25dc7ae9c": {
+      "views": 78750,
+      "rating": 8.8
+    },
+    "3ce9ba1b-e256-483c-b33f-f50560ef3cbf": {
+      "views": 73250,
+      "rating": 9.3
+    },
+    "368adac3-861f-4d90-be9e-1953519b119e": {
+      "views": 69950,
+      "rating": 9.6
+    },
+    "1839c40e-8411-4bad-a5d7-ebbcaabb96b4": {
+      "views": 31150,
+      "rating": 7.9
+    },
+    "77a8eb86-87e2-43f8-8f80-c167ef8b1835": {
+      "views": 27500,
+      "rating": 9.6
+    },
+    "111d695b-18b5-4719-bc09-fbf097c82805": {
+      "views": 125450,
+      "rating": 8.5
+    },
+    "741e690b-620c-48b7-b50e-73644b12826a": {
+      "views": 117400,
+      "rating": 8.5
+    },
+    "d2b924a3-73c7-47b5-8ce8-eb7689b5aab5": {
+      "views": 182400,
+      "rating": 9.2
+    },
+    "1f4590e6-e082-4ea2-8cce-f681840858d1": {
+      "views": 160800,
+      "rating": 8
+    },
+    "3f08bd9b-72b0-4e6b-bbc7-85a5a16e948e": {
+      "views": 195400,
+      "rating": 9.1
+    },
+    "066786cc-5a21-46e2-ba28-d1b54370e105": {
+      "views": 184000,
+      "rating": 9.2
+    },
+    "a131f3be-ac9e-4b23-8fc5-4a2b7079e28a": {
+      "views": 162700,
+      "rating": 9.4
+    },
+    "281a6971-77f7-4c55-bac4-41c7e980ec67": {
+      "views": 144800,
+      "rating": 8.6
+    },
+    "db1566e3-becc-49e7-9148-516b11947e2f": {
+      "views": 89000,
+      "rating": 8.8
+    },
+    "e889d4a0-a8b5-4fda-934e-3d4bb9a17380": {
+      "views": 80850,
+      "rating": 8.7
+    },
+    "c391d91a-a08f-4efd-af19-04db1ec8e35e": {
+      "views": 236600,
+      "rating": 8.2
+    },
+    "1f015ef6-cda9-4840-830c-7b2c2c1f3765": {
+      "views": 222250,
+      "rating": 8.1
+    },
+    "b4726fdb-b7de-4243-8866-23d91524b325": {
+      "views": 276100,
+      "rating": 8
+    },
+    "7bdcd804-8bf1-4e71-afb6-adaa3fc8f65c": {
+      "views": 182400,
+      "rating": 8.6
+    },
+    "4daa63cd-8fcc-4d89-bf3a-38bddede9fc2": {
+      "views": 149800,
+      "rating": 8.8
+    },
+    "2e7b3373-97d8-411c-bcfa-4e306f3c3444": {
+      "views": 136450,
+      "rating": 9.7
+    },
+    "9d680574-1deb-46f7-b137-493dbb2a1ff6": {
+      "views": 104650,
+      "rating": 9.6
+    },
+    "f0bae721-8655-49b0-935e-eb88f9644222": {
+      "views": 98350,
+      "rating": 9.7
+    },
+    "94318824-8d71-4455-bc38-8a6501cdc71b": {
+      "views": 150850,
+      "rating": 8.3
+    },
+    "e10dbdb7-f5d0-4821-901d-80187e849120": {
+      "views": 121950,
+      "rating": 8.9
+    },
+    "ce20fb24-ac62-4a7e-b2f5-fe29bdbb747e": {
+      "views": 115550,
+      "rating": 7.9
+    },
+    "cddc744d-4b3d-47b9-9fc7-533ca3601c14": {
+      "views": 95850,
+      "rating": 8.5
+    },
+    "c5b4d9d8-ff5c-44c3-ab9c-1a03917026b1": {
+      "views": 107700,
+      "rating": 8.7
+    },
+    "dd10327e-dafd-48cd-b0e1-c557a492dd24": {
+      "views": 134350,
+      "rating": 7.9
+    },
+    "5bf55611-db8b-445c-b6b7-3da789ce93d2": {
+      "views": 121750,
+      "rating": 9.5
+    },
+    "2a6f9b11-5760-41b0-b4de-39d93340fbf4": {
+      "views": 59950,
+      "rating": 9.6
+    },
+    "61ccf76d-2f0b-48b1-a008-aa56ec08979c": {
+      "views": 56200,
+      "rating": 8.9
+    },
+    "f0bccbc9-9cc3-449d-a85f-db93d95bc0f5": {
+      "views": 29400,
+      "rating": 8.3
+    },
+    "33bdb647-5422-4fe0-be37-56d51939edb5": {
+      "views": 27100,
+      "rating": 7.9
+    },
+    "07490144-4580-4233-9c9a-518aad6d12cb": {
+      "views": 52100,
+      "rating": 9.1
+    },
+    "6c261ecc-d863-4a05-8709-fbb428e1e2c6": {
+      "views": 47750,
+      "rating": 7.8
+    },
+    "aca5af47-7924-4e43-a8e3-c8659aab10e8": {
+      "views": 88050,
+      "rating": 8.6
+    },
+    "48ccfa5c-7098-4f0b-8eb8-b89a2a7121b8": {
+      "views": 78200,
+      "rating": 8
+    },
+    "96abda2d-98b1-45ca-82dc-718f7e4a93e9": {
+      "views": 237700,
+      "rating": 9.4
+    },
+    "238815b5-e792-454a-b4ad-b8428e6567f7": {
+      "views": 254300,
+      "rating": 9.2
+    },
+    "34f32d93-f2e8-4828-b0b3-09d6e000fe12": {
+      "views": 238250,
+      "rating": 8.3
+    },
+    "f1afaf43-6e31-432c-bd93-77086683e9d1": {
+      "views": 27450,
+      "rating": 9.4
+    },
+    "feb35a61-cac0-4efa-8ff4-28f9546fc3b1": {
+      "views": 91050,
+      "rating": 9.2
+    },
+    "e5db64a1-f6ab-4e61-bd18-28a50d146257": {
+      "views": 83900,
+      "rating": 9.5
+    },
+    "166c5621-1fbe-4e1b-8bce-1ef2e3f97bab": {
+      "views": 51850,
+      "rating": 9.3
+    },
+    "b93fa564-6618-456d-8b9a-32ac671bcf4f": {
+      "views": 49600,
+      "rating": 8.5
+    },
+    "63b90b8d-ff24-4c12-a1c5-323b69b02f7d": {
+      "views": 43600,
+      "rating": 9.7
+    },
+    "96886706-cb12-441f-aec6-77dea84980d3": {
+      "views": 99250,
+      "rating": 7.9
+    },
+    "58a32791-d192-4d6c-b1c0-1d35ac75443d": {
+      "views": 94000,
+      "rating": 8.7
+    },
+    "62a9ad25-9c09-4a7e-94cd-0afabf970d48": {
+      "views": 122600,
+      "rating": 7.9
+    },
+    "bcc55120-548b-49b9-b334-b374fed75ecd": {
+      "views": 117050,
+      "rating": 7.9
+    },
+    "8cc94b23-24a6-42b9-9134-9cfde380b625": {
+      "views": 245350,
+      "rating": 9.2
+    },
+    "8322f36e-4986-4e16-876b-b7f2af8b6900": {
+      "views": 225550,
+      "rating": 9.5
+    },
+    "fc409a97-50a6-4f67-8fb3-b9ac318a2ddf": {
+      "views": 164200,
+      "rating": 9.2
+    },
+    "d7a30915-aec3-4287-b34d-7f34993d6c21": {
+      "views": 154850,
+      "rating": 9.6
+    },
+    "9260996e-a2e9-4285-940b-7a5d4a32d337": {
+      "views": 79800,
+      "rating": 8.6
+    },
+    "5ccc5b50-1ba9-4bbd-ab12-51fa8cc0c363": {
+      "views": 71100,
+      "rating": 9.6
+    },
+    "414e2261-5e1f-4367-a3d8-d1ee5f52df74": {
+      "views": 202750,
+      "rating": 9.3
+    },
+    "6083472d-560b-4129-b6f8-2d7a14598376": {
+      "views": 183650,
+      "rating": 8.1
+    },
+    "844ea265-e074-4540-9c43-0eabdce5ec1a": {
+      "views": 165900,
+      "rating": 8.2
+    },
+    "decacae7-ae04-4249-ac7d-2a19fef2fc32": {
+      "views": 155850,
+      "rating": 7.9
+    },
+    "f590feb9-8f1e-48fa-8e28-c8dc49ca4d4a": {
+      "views": 183050,
+      "rating": 8.3
+    },
+    "fb994290-1823-4c0a-837b-661b02f5b767": {
+      "views": 163400,
+      "rating": 8.5
+    },
+    "abaff2bc-9e7f-474e-85bf-23e667fd4042": {
+      "views": 169450,
+      "rating": 9.7
+    },
+    "50505968-d719-49ca-baeb-52171342743d": {
+      "views": 157750,
+      "rating": 9.6
+    },
+    "ca5e6204-cc3a-4672-9338-f9c922c28574": {
+      "views": 99700,
+      "rating": 9
+    },
+    "550859fd-1aa5-49e8-9a62-e2f5b0a7f1c1": {
+      "views": 91100,
+      "rating": 9.2
+    },
+    "1d09a2ba-41c3-4e5a-99d3-00c17ae0873d": {
+      "views": 86600,
+      "rating": 9.1
+    },
+    "07de35ec-bb3e-4818-88eb-77db41af6c69": {
+      "views": 85800,
+      "rating": 9.2
+    },
+    "9cf9709e-cd40-4b5d-942e-d2a3e1ac1a29": {
+      "views": 145250,
+      "rating": 9.5
+    },
+    "46ce4e71-e677-4ea5-be42-c35e11338ce2": {
+      "views": 128050,
+      "rating": 8.4
+    },
+    "1c45dfec-ecfd-4350-af84-4278f5c4900e": {
+      "views": 87100,
+      "rating": 7.9
+    },
+    "0eee2a53-a870-4290-a3c0-c526fece6294": {
+      "views": 80750,
+      "rating": 9.5
+    },
+    "fe594823-7976-4051-8107-359a5d1712c4": {
+      "views": 270600,
+      "rating": 8.8
+    },
+    "1529c80e-b8c7-4f40-a3fa-c37055ad22f8": {
+      "views": 259550,
+      "rating": 8.3
+    },
+    "545ee56a-7b13-47e9-9ee9-af6f0771459c": {
+      "views": 150550,
+      "rating": 9
+    },
+    "673d97dd-bc1c-4a0c-aa1f-c5fbd51b0e8a": {
+      "views": 138300,
+      "rating": 9.4
+    },
+    "cbd419fd-f9bf-47bd-bdd6-5171e1dca715": {
+      "views": 128600,
+      "rating": 8.9
+    },
+    "18423287-c4b8-44f5-969b-d8c11e99b1c4": {
+      "views": 112600,
+      "rating": 7.9
+    },
+    "c3713820-1ded-4b9b-ac95-7392b46b3635": {
+      "views": 174100,
+      "rating": 8.6
+    },
+    "3a2dead1-d4bd-4d99-8b28-06b4583c644a": {
+      "views": 264050,
+      "rating": 7.8
+    },
+    "fdd29a19-f8fb-4cd4-a420-b351b63b114e": {
+      "views": 245650,
+      "rating": 8.3
+    },
+    "c1cc7b0d-078e-48e5-9313-8c6341fd0249": {
+      "views": 199700,
+      "rating": 8.1
+    },
+    "8ec8cc2d-9e37-450b-8944-214ff0b31606": {
+      "views": 176800,
+      "rating": 8.9
+    },
+    "78d83578-b5b7-48af-8fad-328416f5bb8b": {
+      "views": 155450,
+      "rating": 8.8
+    },
+    "55fc482b-b9b1-4995-9211-402fe5c1e69a": {
+      "views": 172950,
+      "rating": 8.2
+    },
+    "fc32e8ce-ce8e-4184-b222-f6b46550c099": {
+      "views": 167200,
+      "rating": 8.7
+    },
+    "becc15b6-6ae9-461c-90f0-3bb6579d9fa9": {
+      "views": 116950,
+      "rating": 8.4
+    },
+    "58f0a9e1-4795-458f-884a-919c1309c7cf": {
+      "views": 93750,
+      "rating": 7.9
+    },
+    "e425efcf-7d29-4744-be7a-0036b28d4752": {
+      "views": 100550,
+      "rating": 9.2
+    },
+    "c2b6d8c5-f9a9-4bf9-afd4-31e5a2a29abf": {
+      "views": 98650,
+      "rating": 9.5
+    },
+    "17e24847-ada7-4b44-9299-92fe6a8394c1": {
+      "views": 106550,
+      "rating": 9
+    },
+    "8b542af0-c425-478b-8465-998870839e26": {
+      "views": 74350,
+      "rating": 8.9
+    },
+    "edb4d3c0-a94c-4682-bfcd-3091057ab5a5": {
+      "views": 81200,
+      "rating": 9
+    },
+    "481000c2-6c42-4c61-9bbd-a0dfb560f3cd": {
+      "views": 278150,
+      "rating": 8.8
+    },
+    "ee2e0998-fdf3-4e5b-9a72-6fb1ffdd4af8": {
+      "views": 252600,
+      "rating": 7.9
+    },
+    "d52a87e6-b8f7-48fd-a1b4-a237b6dd04a4": {
+      "views": 217300,
+      "rating": 8.6
+    },
+    "898bb354-6909-4259-bf3d-cc8c546ab377": {
+      "views": 245600,
+      "rating": 8.8
+    },
+    "88516c6b-6382-441d-890b-16bec36741cb": {
+      "views": 214450,
+      "rating": 9.1
+    },
+    "748936e5-e41c-43a2-917e-9ff4a410921a": {
+      "views": 171500,
+      "rating": 8.6
+    },
+    "7ba4cfd8-b7f7-4068-b1f6-2f1b1ebcbd59": {
+      "views": 183100,
+      "rating": 8
+    },
+    "f1acc054-bb0f-4505-af05-53cb44dec9fc": {
+      "views": 148950,
+      "rating": 8
+    },
+    "3f23897f-a84b-4f03-9d18-90ed45d95cae": {
+      "views": 123600,
+      "rating": 9.5
+    },
+    "7117fe44-1b3f-481f-a560-2cba9dd50cab": {
+      "views": 209650,
+      "rating": 8.2
+    },
+    "8c191c05-a8d6-45f8-a06a-a0647a2bf61b": {
+      "views": 187450,
+      "rating": 8.2
+    },
+    "e80d62be-9ee3-4970-a7eb-b0553205abde": {
+      "views": 185950,
+      "rating": 9
+    },
+    "b6f9fbbe-8182-4601-b309-c8afb10b3bb2": {
+      "views": 170750,
+      "rating": 9
+    },
+    "79794e01-9e42-4310-914a-9caf821e2dff": {
+      "views": 128200,
+      "rating": 8
+    },
+    "8040812c-1084-4827-a375-7ff585889d0e": {
+      "views": 138700,
+      "rating": 8.9
+    },
+    "76015195-ce72-485f-bb83-c6fecfa9bda8": {
+      "views": 106650,
+      "rating": 8.2
+    },
+    "eb75b5d5-d762-40df-919c-fc7624975ab9": {
+      "views": 114100,
+      "rating": 8.1
+    },
+    "72189f46-1492-4e5e-a5cb-511fa4bb3a81": {
+      "views": 129700,
+      "rating": 8.3
+    },
+    "f558a226-9934-415f-ba37-6eeb334725cb": {
+      "views": 120250,
+      "rating": 9.7
+    },
+    "16640d9a-a453-47dd-88d8-78d63b821f20": {
+      "views": 105600,
+      "rating": 8.2
+    },
+    "0ac1d9a4-9b24-4cf8-ab6a-6c7b243169f7": {
+      "views": 96100,
+      "rating": 8.8
+    },
+    "be9d0195-7cc3-4229-9e86-442f8c6e4c95": {
+      "views": 102200,
+      "rating": 8.4
+    },
+    "0e758c1d-6abd-4b93-9ab4-a489465dba05": {
+      "views": 68700,
+      "rating": 9.3
+    },
+    "686d8924-6026-4546-8784-7c3ae56c6cb3": {
+      "views": 75900,
+      "rating": 8.8
+    },
+    "1371cefc-525e-4e26-99bd-e8f8884762de": {
+      "views": 90550,
+      "rating": 9.3
+    },
+    "79720c31-c2cd-4435-827c-18f8352ee444": {
+      "views": 86500,
+      "rating": 8.3
+    },
+    "c3d6e48e-c025-4920-b2d0-e727fc8cce1b": {
+      "views": 88850,
+      "rating": 8.2
+    },
+    "fae1f2e8-ae36-41b3-afa0-a6784380199c": {
+      "views": 72200,
+      "rating": 7.9
+    },
+    "c2f84402-8174-4687-b58e-7322424e2e74": {
+      "views": 72200,
+      "rating": 8.9
+    },
+    "643bc1b1-c437-481e-adcf-0068a258046a": {
+      "views": 69100,
+      "rating": 8.1
+    },
+    "69433746-79c8-432f-bf6c-1216f0e81308": {
+      "views": 56900,
+      "rating": 9.3
+    },
+    "8a89d65e-5b52-4367-9e26-70fe65a50ffc": {
+      "views": 54450,
+      "rating": 8.1
+    },
+    "7148e11d-2bc6-4442-987a-193856ef945e": {
+      "views": 60700,
+      "rating": 9.5
+    },
+    "e6f1647b-8330-4b37-9d9f-2bbc9353ea17": {
+      "views": 49250,
+      "rating": 7.8
+    },
+    "4b252054-2d1d-43dc-a3a0-83cf69fe2012": {
+      "views": 35600,
+      "rating": 9.1
+    },
+    "cbb8e8a0-27b9-4a59-9ad5-a50f30d27610": {
+      "views": 46600,
+      "rating": 8.1
+    },
+    "f9a88e6c-1d68-444a-a0a7-125dad84fd5e": {
+      "views": 263100,
+      "rating": 8.8
+    },
+    "6f61aa20-2699-4e89-ad4e-ba04d5776892": {
+      "views": 251500,
+      "rating": 9.1
+    },
+    "89912145-3af1-4937-bc3d-be3b7cefb778": {
+      "views": 232200,
+      "rating": 8.5
+    },
+    "082a1227-78c6-4dc0-8930-85595e9c31a0": {
+      "views": 217150,
+      "rating": 9.6
+    },
+    "e0909661-2321-422c-b692-6a5b63a7ba54": {
+      "views": 211400,
+      "rating": 9
+    },
+    "09fa7c35-ce24-4b81-8d6c-a0ddd07a97f2": {
+      "views": 159650,
+      "rating": 8.1
+    },
+    "94b843ec-af38-493e-9a2f-b1c4743f3fac": {
+      "views": 188200,
+      "rating": 8.5
+    },
+    "ea03ccde-377e-40eb-84ee-3dd76d7e9328": {
+      "views": 191300,
+      "rating": 8
+    },
+    "35b5c6b7-2517-42ac-a202-06773f9f6dc5": {
+      "views": 159550,
+      "rating": 8.2
+    },
+    "7b2f9bb4-7bc4-499f-9f1a-276490c85dca": {
+      "views": 136750,
+      "rating": 9.6
+    },
+    "6fc6653b-f020-4e7f-b4b7-8da912b2e183": {
+      "views": 143900,
+      "rating": 8
+    },
+    "edf0b362-686d-4714-9a21-6c203146c97c": {
+      "views": 156400,
+      "rating": 9.2
+    },
+    "992b825a-acdd-4f52-a808-d43da8e3a552": {
+      "views": 239700,
+      "rating": 7.9
+    },
+    "6b947b63-3a8d-42bd-86b4-3d57b7b146b5": {
+      "views": 221750,
+      "rating": 8.2
+    },
+    "38847003-c743-434a-a739-d845956f72ee": {
+      "views": 208800,
+      "rating": 9.2
+    },
+    "76842e14-b10b-4e0d-8fdc-baa8e5016d01": {
+      "views": 195850,
+      "rating": 9
+    },
+    "0f47b555-92d4-475d-858f-e96300b51058": {
+      "views": 202400,
+      "rating": 8.3
+    },
+    "a8cacfa4-0fdd-4d81-a8d8-da5e8bd37a34": {
+      "views": 165700,
+      "rating": 9.4
+    },
+    "cfe65ac9-d048-4067-8262-325c98f7ddb3": {
+      "views": 179700,
+      "rating": 9
+    },
+    "c8a5651c-e3eb-4a2e-86aa-5428f35f2acb": {
+      "views": 155950,
+      "rating": 8.7
+    },
+    "7c861b64-0641-429e-a40d-fa8977d2867c": {
+      "views": 102900,
+      "rating": 8.8
+    },
+    "d5bb3e27-f893-4312-960e-c6608b3e2b5b": {
+      "views": 107350,
+      "rating": 9.5
+    },
+    "cb577915-f425-4757-850a-f74118d3e41c": {
+      "views": 127050,
+      "rating": 8.8
+    },
+    "46961abb-9d1c-4a4d-ad41-8d2c5df2d4a6": {
+      "views": 78150,
+      "rating": 8
+    },
+    "01ba9f76-713a-4702-83a8-f5715c97fe2b": {
+      "views": 78200,
+      "rating": 9.3
+    },
+    "8bc6980a-0913-4263-8cbd-ab6040025a50": {
+      "views": 74450,
+      "rating": 9.1
+    },
+    "7f06290d-81b3-4994-b446-7c1f73a7ac71": {
+      "views": 70750,
+      "rating": 9.2
+    },
+    "85c92887-ae0f-4259-896b-fa991a95cbdd": {
+      "views": 56400,
+      "rating": 7.9
+    },
+    "cc39b97c-dafd-4854-84e2-c1226a34c223": {
+      "views": 63050,
+      "rating": 8.8
+    },
+    "35757750-494c-4d3a-bcd1-56746538d027": {
+      "views": 60300,
+      "rating": 9.4
+    },
+    "94c5d75f-42cf-40fd-aa1f-5d20840c4ba8": {
+      "views": 42200,
+      "rating": 8.9
+    },
+    "0022b3ee-a566-4e68-b550-18cf2fc6ee6a": {
+      "views": 52200,
+      "rating": 7.8
+    },
+    "26b06baa-6e3f-4521-a967-2b330ef9db48": {
+      "views": 30150,
+      "rating": 7.9
+    },
+    "55193d75-1f73-4427-9d05-59e86cd5a7f9": {
+      "views": 96950,
+      "rating": 9.2
+    },
+    "118fd644-59ec-4867-947e-8fc1378b6ed1": {
+      "views": 87500,
+      "rating": 7.9
+    },
+    "70fcb371-e593-4212-a8d8-14d2c52c15f6": {
+      "views": 83500,
+      "rating": 8.5
+    },
+    "cbbf21e0-07e4-488f-8c50-f3f301a65d95": {
+      "views": 81250,
+      "rating": 9.5
+    },
+    "93740ee7-2672-4ef4-9679-e74c8876ad80": {
+      "views": 71650,
+      "rating": 7.8
+    },
+    "dd834c2f-2da7-4469-8a72-a169554b4796": {
+      "views": 78750,
+      "rating": 8.7
+    },
+    "a1c36702-51b7-4362-84c0-00636b13c57f": {
+      "views": 71100,
+      "rating": 8.9
+    },
+    "1decf5fa-6171-4b4d-82b3-f2dabb17e77e": {
+      "views": 51100,
+      "rating": 8.1
+    },
+    "8233b817-a2b6-424b-9287-a08d72cb3354": {
+      "views": 43600,
+      "rating": 8.6
+    },
+    "f843ad60-9cb8-4633-aa84-88a61e4a6bce": {
+      "views": 61750,
+      "rating": 9.3
+    },
+    "652789b6-c1c3-41b6-bb9e-3663a93db475": {
+      "views": 46900,
+      "rating": 8.2
+    },
+    "ab78a3f0-2ec3-4837-99fd-bc788d782524": {
+      "views": 39750,
+      "rating": 7.8
+    },
+    "18a36721-7c09-44c2-ac9e-add486c3c7da": {
+      "views": 20350,
+      "rating": 8.7
+    },
+    "50708190-5cfd-43ff-8292-c7694fbf3b17": {
+      "views": 18300,
+      "rating": 9
+    },
+    "09d4cf81-ac32-49e9-9e1b-d34e0c582370": {
+      "views": 198250,
+      "rating": 8
+    },
+    "5a5fc6a1-027e-47d1-ba7a-93633a26e3bb": {
+      "views": 184500,
+      "rating": 9.4
+    },
+    "86635b17-797b-4c51-a7bb-c833c69e543d": {
+      "views": 190700,
+      "rating": 8.6
+    },
+    "c788414d-66f1-43de-9965-298b2376b233": {
+      "views": 172950,
+      "rating": 7.8
+    },
+    "46feb542-2338-4175-be46-6e3e70a7a9a4": {
+      "views": 85700,
+      "rating": 8.4
+    },
+    "06908d11-bb49-48c7-b241-2ba1f8a9cd97": {
+      "views": 136850,
+      "rating": 9.6
+    },
+    "b2560923-c7e3-4c72-893a-3adfb3d038ae": {
+      "views": 84550,
+      "rating": 9.2
+    },
+    "a6e95b25-c951-4c5d-858e-c98223f8fed2": {
+      "views": 80800,
+      "rating": 8.3
+    },
+    "eb8239cc-1d8e-4b89-9968-dc01de363081": {
+      "views": 101300,
+      "rating": 7.8
+    },
+    "9b9b1167-7124-4f0d-8852-06c1da94155f": {
+      "views": 144850,
+      "rating": 8.6
+    },
+    "032de20c-c85b-4348-903d-9e1fa5f35c13": {
+      "views": 38000,
+      "rating": 8.7
+    },
+    "5f65da2d-5fa6-47a8-957f-e8618c96e843": {
+      "views": 34800,
+      "rating": 9.3
+    },
+    "4cb82020-5d53-466e-ae11-3455bfbdebcb": {
+      "views": 98550,
+      "rating": 9.7
+    },
+    "d7331f8a-0ff4-4d44-8c5b-9d04e1e6798d": {
+      "views": 154550,
+      "rating": 9.2
+    },
+    "cb579aee-4a0b-4ac5-ace1-bcf4adb0383b": {
+      "views": 141000,
+      "rating": 7.9
+    },
+    "a61589f5-046b-4a0c-abd0-adc97c8e3a62": {
+      "views": 98050,
+      "rating": 8.5
+    },
+    "93d90dba-2fc1-4e72-a1a3-4cc86c65c151": {
+      "views": 90350,
+      "rating": 7.8
+    },
+    "c5614bca-ca9f-4976-a8ab-01f8daa284fa": {
+      "views": 132450,
+      "rating": 9.4
+    },
+    "a4046f58-684b-42ea-84c4-c818880d4019": {
+      "views": 253150,
+      "rating": 8.7
+    },
+    "ee693cba-13e6-4631-9594-3b6e27161b70": {
+      "views": 229900,
+      "rating": 8
+    },
+    "d1f2b738-7183-44df-9a13-3629faa925d8": {
+      "views": 206950,
+      "rating": 9.2
+    },
+    "844e0447-2b24-4fc9-a2fd-18dcb858d9fa": {
+      "views": 212500,
+      "rating": 8.7
+    },
+    "cfd664b1-e0ec-4f56-81e2-19427d9b59f5": {
+      "views": 90300,
+      "rating": 9.2
+    },
+    "7b211bed-b470-41a1-a599-9578aa9f3cde": {
+      "views": 86650,
+      "rating": 9.1
+    },
+    "a88efcbd-360c-431e-b1d3-93644c418af6": {
+      "views": 54050,
+      "rating": 8.8
+    },
+    "bd81ad99-1f04-4b2a-8509-ec58bea2cb1e": {
+      "views": 48600,
+      "rating": 7.9
+    },
+    "b8c9f9c1-9416-4a80-9003-76c146a39969": {
+      "views": 192750,
+      "rating": 8.8
+    },
+    "267b9995-f222-4f57-aafe-333956d74b07": {
+      "views": 170750,
+      "rating": 8.9
+    },
+    "05170992-0e10-4c5c-954e-79cbf76ce0ce": {
+      "views": 150800,
+      "rating": 8.8
+    },
+    "ae8c85ed-192f-47de-9ffd-705879a7e3eb": {
+      "views": 143100,
+      "rating": 9
+    },
+    "ce68a2cc-feee-4fa7-83a8-b061c47c3f55": {
+      "views": 134400,
+      "rating": 9
+    },
+    "4ce5f969-9937-42d7-9e21-082842a13f2e": {
+      "views": 76550,
+      "rating": 8.9
+    },
+    "a03b4d62-5b7c-4f0a-a6b6-a6aad8715c6d": {
+      "views": 122300,
+      "rating": 7.9
+    },
+    "c2714562-d4c3-4fbc-98bf-1afede37cf72": {
+      "views": 143400,
+      "rating": 9.3
+    },
+    "92db8460-a11c-4348-8413-898661c22ae5": {
+      "views": 126800,
+      "rating": 8.8
+    },
+    "5f276159-1ea4-41b9-963d-8f845e411094": {
+      "views": 304750,
+      "rating": 8.9
+    },
+    "e56c7d24-9cd4-46ca-bcde-2b0a9aa91e16": {
+      "views": 28650,
+      "rating": 9.2
+    },
+    "e32714f7-fb45-424d-9158-d314d80a0d98": {
+      "views": 25550,
+      "rating": 8.4
+    },
+    "2d089768-7a30-4da5-bc3a-d1e0f1440c27": {
+      "views": 194500,
+      "rating": 9.5
+    },
+    "fe42a2a6-70d3-4c8f-89bf-bcb971c95ea2": {
+      "views": 171600,
+      "rating": 8.4
+    },
+    "53b9a834-5bd6-44c9-b3e0-e2faeb8f3655": {
+      "views": 236400,
+      "rating": 9.3
+    },
+    "7ea03859-3891-4164-ba56-9430d8cf767c": {
+      "views": 151200,
+      "rating": 8.8
+    },
+    "c8515d78-4ff3-43df-96e8-703cc8859e82": {
+      "views": 133850,
+      "rating": 8.9
+    }
+  }
+}

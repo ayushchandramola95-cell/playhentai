@@ -81,11 +81,9 @@
 }
 
 .azChip:hover {
-  background: #7c3aed;
-  border-color: #a855f7;
+  background: var(--primary);
+  border-color: var(--primary);
   color: #ffffff;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 10px rgba(124, 58, 237, 0.35);
 }
 
 /* ============================================================ */

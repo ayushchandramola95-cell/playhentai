@@ -22,7 +22,7 @@
 @media (min-width: 901px) {
   .sidebarCollapsed .mainContent,
   .sidebarCollapsed .footerSection {
-    padding-left: 68px;
+    padding-left: 72px;
   }
 
   .sidebarExpanded .mainContent,

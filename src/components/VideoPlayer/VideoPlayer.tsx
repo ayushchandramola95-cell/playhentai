@@ -24,15 +24,6 @@ interface VideoPlayerProps {
   onToggleAutoplay?: () => void;
 }
 
-// ExoClick VAST tag — replace with your actual VAST URL from ExoClick dashboard
-const VAST_TAG_URL = process.env.NEXT_PUBLIC_EXOCLICK_VAST_URL || '';
-
-declare global {
-  interface Window {
-    google?: any;
-  }
-}
-
 export default function VideoPlayer({
   episodeId,
   videoUrl,
@@ -50,7 +41,6 @@ export default function VideoPlayer({
   const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const adContainerRef = useRef<HTMLDivElement>(null);
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [hasStartedPlaying, setHasStartedPlaying] = useState(false);
@@ -136,62 +126,19 @@ export default function VideoPlayer({
   // Autoplay countdown state
   const [autoplayCountdown, setAutoplayCountdown] = useState<number | null>(null);
 
-  // IMA state
-  const [adPlaying, setAdPlaying] = useState(false);
-  const [adInitialized, setAdInitialized] = useState(false);
-  const [imaReady, setImaReady] = useState(false);
-  const adsLoaderRef = useRef<any>(null);
-  const adsManagerRef = useRef<any>(null);
-  const adDisplayContainerRef = useRef<any>(null);
-
   const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const viewLoggedRef = useRef(false);
-
-  // Load Google IMA SDK script once
-  useEffect(() => {
-    if (!VAST_TAG_URL) return;
-    if (window.google?.ima) {
-      setImaReady(true);
-      return;
-    }
-    const existingScript = document.getElementById('google-ima-sdk');
-    if (existingScript) {
-      existingScript.addEventListener('load', () => setImaReady(true));
-      return;
-    }
-    const script = document.createElement('script');
-    script.id = 'google-ima-sdk';
-    script.src = 'https://imasdk.googleapis.com/js/sdkloader/ima3.js';
-    script.async = true;
-    script.onload = () => setImaReady(true);
-    script.onerror = () => console.warn('IMA SDK failed to load — ads disabled');
-    document.head.appendChild(script);
-  }, []);
 
   // Reload video element on URL change; reset state
   useEffect(() => {
     setIsPlaying(false);
     setCurrentTime(0);
     setDuration(0);
-    setAdPlaying(false);
-    setAdInitialized(false);
     setShowResumePrompt(false);
     setResumeTime(null);
     setAutoplayCountdown(null);
     viewLoggedRef.current = false;
-
-    // Destroy existing ads manager on episode change
-    if (adsManagerRef.current) {
-      try { adsManagerRef.current.destroy(); } catch (_) {}
-      adsManagerRef.current = null;
-    }
-    if (adsLoaderRef.current) {
-      adsLoaderRef.current = null;
-    }
-    if (adDisplayContainerRef.current) {
-      adDisplayContainerRef.current = null;
-    }
 
     setHasStartedPlaying(false);
     if (videoRef.current) {
@@ -217,106 +164,7 @@ export default function VideoPlayer({
     return () => clearTimeout(timer);
   }, [autoplayCountdown, nextEpisodeUrl, router]);
 
-  // ─── IMA: Initialize ad display container + loader ──────────────────────
-  const initializeIMA = () => {
-    if (!imaReady || !window.google?.ima) return;
-    if (!videoRef.current || !adContainerRef.current) return;
-    if (adInitialized) return;
 
-    const ima = window.google.ima;
-
-    const adDisplayContainer = new ima.AdDisplayContainer(
-      adContainerRef.current,
-      videoRef.current
-    );
-    adDisplayContainerRef.current = adDisplayContainer;
-
-    const adsLoader = new ima.AdsLoader(adDisplayContainer);
-    adsLoaderRef.current = adsLoader;
-
-    adsLoader.addEventListener(
-      ima.AdsManagerLoadedEvent.Type.ADS_MANAGER_LOADED,
-      onAdsManagerLoaded,
-      false
-    );
-
-    adsLoader.addEventListener(
-      ima.AdErrorEvent.Type.AD_ERROR,
-      onAdError,
-      false
-    );
-
-    const adsRequest = new ima.AdsRequest();
-    adsRequest.adTagUrl = VAST_TAG_URL;
-
-    const w = containerRef.current?.offsetWidth || 640;
-    const h = containerRef.current?.offsetHeight || 360;
-    adsRequest.linearAdSlotWidth = w;
-    adsRequest.linearAdSlotHeight = h;
-    adsRequest.nonLinearAdSlotWidth = w;
-    adsRequest.nonLinearAdSlotHeight = 150;
-
-    adDisplayContainer.initialize();
-    adsLoader.requestAds(adsRequest);
-    setAdInitialized(true);
-  };
-
-  const onAdsManagerLoaded = (adsManagerLoadedEvent: any) => {
-    const ima = window.google.ima;
-    const adsRenderingSettings = new ima.AdsRenderingSettings();
-    adsRenderingSettings.restoreCustomPlaybackStateOnAdBreakComplete = true;
-
-    const adsManager = adsManagerLoadedEvent.getAdsManager(
-      videoRef.current,
-      adsRenderingSettings
-    );
-    adsManagerRef.current = adsManager;
-
-    adsManager.addEventListener(ima.AdEvent.Type.CONTENT_PAUSE_REQUESTED, onContentPauseRequested, false);
-    adsManager.addEventListener(ima.AdEvent.Type.CONTENT_RESUME_REQUESTED, onContentResumeRequested, false);
-    adsManager.addEventListener(ima.AdEvent.Type.ALL_ADS_COMPLETED, onAllAdsCompleted, false);
-    adsManager.addEventListener(ima.AdErrorEvent.Type.AD_ERROR, onAdError, false);
-
-    try {
-      const w = containerRef.current?.offsetWidth || 640;
-      const h = containerRef.current?.offsetHeight || 360;
-      adsManager.init(w, h, ima.ViewMode.NORMAL);
-      adsManager.start();
-    } catch (err) {
-      console.warn('IMA AdsManager start error:', err);
-      playMainVideo();
-    }
-  };
-
-  const onContentPauseRequested = () => {
-    if (videoRef.current) videoRef.current.pause();
-    setIsPlaying(false);
-    setAdPlaying(true);
-  };
-
-  const onContentResumeRequested = () => {
-    setAdPlaying(false);
-    playMainVideo();
-  };
-
-  const onAllAdsCompleted = () => {
-    setAdPlaying(false);
-    if (adsManagerRef.current) {
-      try { adsManagerRef.current.destroy(); } catch (_) {}
-      adsManagerRef.current = null;
-    }
-    playMainVideo();
-  };
-
-  const onAdError = (adErrorEvent: any) => {
-    console.warn('IMA Ad error:', adErrorEvent?.getError?.()?.toString());
-    setAdPlaying(false);
-    if (adsManagerRef.current) {
-      try { adsManagerRef.current.destroy(); } catch (_) {}
-      adsManagerRef.current = null;
-    }
-    playMainVideo();
-  };
 
   const playMainVideo = () => {
     if (videoRef.current) {
@@ -405,14 +253,8 @@ export default function VideoPlayer({
 
   // ─── Play toggle — runs IMA on first press ───────────────────────────────
   const togglePlay = () => {
-    if (adPlaying) return;
-
     if (!isPlaying) {
       setHasStartedPlaying(true);
-      if (VAST_TAG_URL && imaReady && !adInitialized) {
-        initializeIMA();
-        return;
-      }
       playMainVideo();
     } else {
       if (videoRef.current) {
@@ -433,7 +275,6 @@ export default function VideoPlayer({
 
   // Handle container tap/click
   const handleContainerClick = (e: React.MouseEvent) => {
-    if (adPlaying) return;
 
     const target = e.target as HTMLElement;
 
@@ -782,7 +623,7 @@ export default function VideoPlayer({
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [duration, isPlaying, isMuted, volume, isFullscreen, isTheater, isPip, adPlaying, nextEpisodeUrl, prevEpisodeUrl, showShortcutsModal]);
+  }, [duration, isPlaying, isMuted, volume, isFullscreen, isTheater, isPip, nextEpisodeUrl, prevEpisodeUrl, showShortcutsModal]);
 
   const handleVideoEnded = () => {
     setIsPlaying(false);
@@ -834,22 +675,8 @@ export default function VideoPlayer({
         <div className={styles.blackScreenBackdrop} />
       )}
 
-      {/* Google IMA Ad Container */}
-      <div
-        ref={adContainerRef}
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          zIndex: adPlaying ? 20 : -1,
-          pointerEvents: adPlaying ? 'all' : 'none',
-        }}
-      />
-
       {/* Floating Resume Prompt */}
-      {showResumePrompt && resumeTime !== null && !adPlaying && (
+      {showResumePrompt && resumeTime !== null && (
         <div className={styles.resumePrompt} onClick={(e) => e.stopPropagation()}>
           <Clock size={15} className={styles.resumeIcon} />
           <span>Resume from <strong>{formatTime(resumeTime)}</strong>?</span>
@@ -879,7 +706,7 @@ export default function VideoPlayer({
       )}
 
       {/* Autoplay Countdown Overlay */}
-      {autoplayCountdown !== null && nextEpisodeUrl && !adPlaying && (
+      {autoplayCountdown !== null && nextEpisodeUrl && (
         <div className={styles.autoplayOverlay} onClick={(e) => e.stopPropagation()}>
           <div className={styles.autoplayCard}>
             <div className={styles.countdownRing}>
@@ -973,8 +800,7 @@ export default function VideoPlayer({
       )}
 
       {/* Premium overlay controls */}
-      {!adPlaying && (
-        <div className={`${styles.controlsOverlay} ${showControls ? styles.visible : ''}`}>
+      <div className={`${styles.controlsOverlay} ${showControls ? styles.visible : ''}`}>
 
           {/* Top Header details */}
           <div className={styles.topHeader}>
@@ -1224,7 +1050,6 @@ export default function VideoPlayer({
           </div>
 
         </div>
-      )}
     </div>
   );
 }

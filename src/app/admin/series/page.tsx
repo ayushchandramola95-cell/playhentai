@@ -231,12 +231,14 @@ export default function AdminSeriesPage() {
 
   const handleAutoFillSEO = () => {
     if (title) {
-      setMetaTitle(`${title} - Watch English Sub HD | Play Hentai`);
+      const isUnc = tagsInput.split(',').some(t => t.trim().toLowerCase() === 'uncensored');
+      const titleSuffix = isUnc ? '(Uncensored, Eng Sub)' : '(Eng Sub)';
+      setMetaTitle(`${title} ${titleSuffix} | Play Hentai`);
       if (description) {
         const cleanDesc = description.replace(/<[^>]*>?/gm, '').slice(0, 155).trim() + '...';
         setMetaDescription(cleanDesc);
       } else {
-        setMetaDescription(`Watch ${title} with English subtitles in HD. Stream all available episodes, releases, and check out similar anime on Play Hentai.`);
+        setMetaDescription(`Watch ${title} ${isUnc ? 'uncensored hentai anime with English subtitles' : 'hentai anime with English subtitles'} in full HD free on Play Hentai.`);
       }
     }
   };
@@ -2426,6 +2428,17 @@ export default function AdminSeriesPage() {
                         {s.status || 'ongoing'}
                       </span>
 
+                      {/* Censorship Badge */}
+                      {((s.tags || []).some((t: string) => t.toLowerCase() === 'uncensored') || (s.content_rating || '').toLowerCase() === 'uncensored') ? (
+                        <span style={{ fontSize: '0.68rem', fontWeight: 800, background: 'rgba(16, 185, 129, 0.16)', color: '#34d399', border: '1px solid rgba(16, 185, 129, 0.35)', padding: '0.15rem 0.55rem', borderRadius: '12px', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }} title="Uncensored Full Explicit">
+                          ✨ Uncensored
+                        </span>
+                      ) : (
+                        <span style={{ fontSize: '0.68rem', fontWeight: 700, background: 'rgba(59, 130, 246, 0.12)', color: '#60a5fa', border: '1px solid rgba(59, 130, 246, 0.25)', padding: '0.15rem 0.55rem', borderRadius: '12px', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }} title="Standard Broadcast Censored">
+                          🔒 Censored
+                        </span>
+                      )}
+
                       {/* 16:9 Banner Ready Badge (only if available) */}
                       {hasBanner && (
                         <span style={{ fontSize: '0.68rem', fontWeight: 800, background: 'rgba(16, 185, 129, 0.12)', color: '#10b981', border: '1px solid rgba(16, 185, 129, 0.25)', padding: '0.15rem 0.55rem', borderRadius: '12px' }} title="16:9 Banner Backdrops Ready">
@@ -3747,6 +3760,92 @@ export default function AdminSeriesPage() {
                             </button>
                           </div>
                         </div>
+
+                        {/* Dedicated Censorship Status Selector */}
+                        <div style={{
+                          background: '#131722',
+                          border: '1px solid #23283b',
+                          borderRadius: '10px',
+                          padding: '0.75rem 1rem',
+                          marginBottom: '0.75rem'
+                        }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                            <span style={{ fontSize: '0.78rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em', color: '#f59e0b', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                              🛡️ Censorship Status (Required for SEO & Filters)
+                            </span>
+                            <span style={{ fontSize: '0.72rem', color: 'var(--foreground-muted)' }}>
+                              Sets Uncensored tags, badges, and (Uncensored, Eng Sub) title
+                            </span>
+                          </div>
+
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem' }}>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const cleaned = tagsInput.split(',').map(t => t.trim()).filter(t => t.length > 0 && t.toLowerCase() !== 'uncensored');
+                                setTagsInput(cleaned.join(', '));
+                              }}
+                              style={{
+                                padding: '0.55rem 0.8rem',
+                                borderRadius: '8px',
+                                border: !tagsInput.split(',').some(t => t.trim().toLowerCase() === 'uncensored')
+                                  ? '1px solid #3b82f6'
+                                  : '1px solid #282e44',
+                                background: !tagsInput.split(',').some(t => t.trim().toLowerCase() === 'uncensored')
+                                  ? 'rgba(59, 130, 246, 0.18)'
+                                  : '#181c2b',
+                                color: !tagsInput.split(',').some(t => t.trim().toLowerCase() === 'uncensored')
+                                  ? '#60a5fa'
+                                  : '#94a3b8',
+                                fontWeight: 800,
+                                fontSize: '0.8rem',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '0.4rem',
+                                transition: 'all 0.15s ease'
+                              }}
+                            >
+                              <span>🔒 Censored (Broadcast)</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const current = tagsInput.split(',').map(t => t.trim()).filter(Boolean);
+                                if (!current.some(t => t.toLowerCase() === 'uncensored')) {
+                                  current.unshift('Uncensored');
+                                  setTagsInput(current.join(', '));
+                                }
+                              }}
+                              style={{
+                                padding: '0.55rem 0.8rem',
+                                borderRadius: '8px',
+                                border: tagsInput.split(',').some(t => t.trim().toLowerCase() === 'uncensored')
+                                  ? '1px solid #10b981'
+                                  : '1px solid #282e44',
+                                background: tagsInput.split(',').some(t => t.trim().toLowerCase() === 'uncensored')
+                                  ? 'rgba(16, 185, 129, 0.18)'
+                                  : '#181c2b',
+                                color: tagsInput.split(',').some(t => t.trim().toLowerCase() === 'uncensored')
+                                  ? '#34d399'
+                                  : '#94a3b8',
+                                fontWeight: 800,
+                                fontSize: '0.8rem',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '0.4rem',
+                                transition: 'all 0.15s ease'
+                              }}
+                            >
+                              <span>✨ Uncensored (Full Explicit)</span>
+                            </button>
+                          </div>
+                        </div>
+
                         <input
                           type="text"
                           className={styles.inputField}

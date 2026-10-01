@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { getSeriesViewsMap, getEpisodeViewsMap } from '@/utils/views';
+import { resolveSeriesMetrics, resolveEpisodeMetrics } from '@/utils/fakeMetricsStore';
 import { MOCK_SERIES, MOCK_EPISODES, MOCK_SERIES_DETAILS } from '@/utils/mockData';
 import { STUDIOS, tagToSlug } from '@/utils/constants';
 
@@ -306,12 +307,21 @@ export async function getLocalAllPublishedSeries(): Promise<any[]> {
     return MOCK_SERIES;
   }
 
-  return published.map(s => ({
-    ...s,
-    views: viewsMap[s.id] || s.views || 0,
-    episode_count: s.episode_count_override || seriesEpisodeCountMap[s.id] || 0,
-    firstEpisodeId: seriesFirstEpMap[s.id] || null,
-  }));
+  return published.map(s => {
+    const isUpcoming = (s.status || '').toLowerCase() === 'upcoming' || Boolean(s.is_upcoming);
+    const rawViews = isUpcoming ? 0 : (viewsMap[s.id] || s.views || 0);
+    const rawRating = s.rating ?? null;
+    const resolved = resolveSeriesMetrics(s.id, rawViews, rawRating, 0, isUpcoming);
+
+    return {
+      ...s,
+      views: isUpcoming ? 0 : resolved.views,
+      rating: resolved.rating,
+      isBoosted: isUpcoming ? false : resolved.isBoosted,
+      episode_count: s.episode_count_override || seriesEpisodeCountMap[s.id] || 0,
+      firstEpisodeId: seriesFirstEpMap[s.id] || null,
+    };
+  });
 }
 
 /**
@@ -377,16 +387,30 @@ export async function getLocalSeriesDetails(slug: string): Promise<{ dbSeries: a
   const seasonsWithEpisodes = seasons.map(sn => {
     const episodes = catalog.episodes
       .filter(ep => ep.season_id === sn.id && ep.is_published !== false)
-      .sort((a, b) => (a.episode_number || 0) - (b.episode_number || 0));
+      .sort((a, b) => (a.episode_number || 0) - (b.episode_number || 0))
+      .map(ep => {
+        const resolvedEp = resolveEpisodeMetrics(ep.id, ep.views || 0, ep.rating ?? null, ep.episode_number || 1);
+        return {
+          ...ep,
+          views: resolvedEp.views,
+          views_count: resolvedEp.views,
+          rating: resolvedEp.rating,
+        };
+      });
     return {
       ...sn,
       episodes
     };
   });
 
+  const isUpcoming = (series.status || '').toLowerCase() === 'upcoming' || Boolean(series.is_upcoming);
+  const rawSeriesViews = isUpcoming ? 0 : (viewsMap[series.id] || series.views || 0);
+  const resolvedSeries = resolveSeriesMetrics(series.id, rawSeriesViews, series.rating ?? null, 0, isUpcoming);
+
   const enrichedSeries = {
     ...series,
-    views: viewsMap[series.id] || series.views || 0
+    views: isUpcoming ? 0 : resolvedSeries.views,
+    rating: resolvedSeries.rating,
   };
 
   return {
@@ -477,17 +501,43 @@ export async function getLocalResolvedEpisode(episodeId: string): Promise<any | 
 
       if (foundEp) {
         const parentSeason = seasons.find(s => s.id === foundEp.season_id);
+        const resolvedEp = resolveEpisodeMetrics(foundEp.id, foundEp.views || 0, foundEp.rating ?? null, foundEp.episode_number || 1);
+        const resolvedSeries = resolveSeriesMetrics(series.id, series.views || 0, series.rating ?? null);
+
         const siblingEps = episodes
           .filter(e => e.season_id === foundEp.season_id)
-          .sort((a, b) => (a.episode_number || 0) - (b.episode_number || 0));
+          .sort((a, b) => (a.episode_number || 0) - (b.episode_number || 0))
+          .map(e => {
+            const r = resolveEpisodeMetrics(e.id, e.views || 0, e.rating ?? null, e.episode_number || 1);
+            return {
+              ...e,
+              views: r.views,
+              views_count: r.views,
+              rating: r.rating,
+            };
+          });
+
+        const activeEpEnriched = {
+          ...foundEp,
+          views: resolvedEp.views,
+          views_count: resolvedEp.views,
+          rating: resolvedEp.rating,
+        };
+
+        const seriesEnriched = {
+          ...series,
+          views: resolvedSeries.views,
+          views_count: resolvedSeries.views,
+          rating: resolvedSeries.rating,
+        };
 
         return {
-          activeEpisode: foundEp,
-          seriesDetails: series,
+          activeEpisode: activeEpEnriched,
+          seriesDetails: seriesEnriched,
           seriesTitle: series.title,
           seriesSlug: series.slug,
           seasonTitle: parentSeason?.title || 'Season 1',
-          seasonEpisodes: siblingEps.length > 0 ? siblingEps : [foundEp],
+          seasonEpisodes: siblingEps.length > 0 ? siblingEps : [activeEpEnriched],
           isDbEmpty: false
         };
       }
@@ -526,17 +576,43 @@ export async function getLocalResolvedEpisode(episodeId: string): Promise<any | 
   if (ep) {
     const parentSeason = catalog.seasons.find(s => s.id === ep.season_id);
     const series = parentSeason ? catalog.series.find(s => s.id === parentSeason.series_id) : null;
+    const resolvedEp = resolveEpisodeMetrics(ep.id, ep.views || 0, ep.rating ?? null, ep.episode_number || 1);
+    const resolvedSeries = series ? resolveSeriesMetrics(series.id, series.views || 0, series.rating ?? null) : null;
+
     const siblingEps = catalog.episodes
       .filter(e => e.season_id === ep.season_id && e.is_published !== false)
-      .sort((a, b) => (a.episode_number || 0) - (b.episode_number || 0));
+      .sort((a, b) => (a.episode_number || 0) - (b.episode_number || 0))
+      .map(e => {
+        const r = resolveEpisodeMetrics(e.id, e.views || 0, e.rating ?? null, e.episode_number || 1);
+        return {
+          ...e,
+          views: r.views,
+          views_count: r.views,
+          rating: r.rating,
+        };
+      });
+
+    const activeEpEnriched = {
+      ...ep,
+      views: resolvedEp.views,
+      views_count: resolvedEp.views,
+      rating: resolvedEp.rating,
+    };
+
+    const seriesEnriched = series ? {
+      ...series,
+      views: resolvedSeries?.views ?? series.views,
+      views_count: resolvedSeries?.views ?? series.views,
+      rating: resolvedSeries?.rating ?? series.rating,
+    } : null;
 
     return {
-      activeEpisode: ep,
-      seriesDetails: series,
-      seriesTitle: series?.title || 'Series',
-      seriesSlug: series?.slug || '',
+      activeEpisode: activeEpEnriched,
+      seriesDetails: seriesEnriched,
+      seriesTitle: seriesEnriched?.title || 'Series',
+      seriesSlug: seriesEnriched?.slug || '',
       seasonTitle: parentSeason?.title || 'Season 1',
-      seasonEpisodes: siblingEps.length > 0 ? siblingEps : [ep],
+      seasonEpisodes: siblingEps.length > 0 ? siblingEps : [activeEpEnriched],
       isDbEmpty: false
     };
   }
@@ -650,7 +726,8 @@ export async function getLocalSeriesByStatus(status: string): Promise<any[]> {
  */
 export async function getLocalTrendingSeries(limit: number = 30): Promise<any[]> {
   const allSeries = await getLocalAllPublishedSeries();
-  return [...allSeries].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, limit);
+  const nonUpcoming = allSeries.filter(s => (s.status || '').toLowerCase() !== 'upcoming' && !s.is_upcoming);
+  return [...nonUpcoming].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, limit);
 }
 
 /**
@@ -691,6 +768,7 @@ export async function getLocalRecentEpisodes(limit: number = 50): Promise<any[]>
     .map(ep => {
       const season = seasonMap.get(ep.season_id);
       const series = season?.series;
+      const resolvedEp = resolveEpisodeMetrics(ep.id, ep.views || 0, ep.rating ?? null, ep.episode_number || 1);
       return {
         id: ep.id,
         episode_number: ep.episode_number,
@@ -698,6 +776,9 @@ export async function getLocalRecentEpisodes(limit: number = 50): Promise<any[]>
         rawTitle: ep.title || '',
         showSlug: series?.slug || '',
         tags: series?.tags || [],
+        views: resolvedEp.views,
+        views_count: resolvedEp.views,
+        rating: resolvedEp.rating,
         isNew: false,
         isUncensored: (ep.title || '').toLowerCase().includes('uncensored') || (series?.tags && series.tags.some((t: string) => t.toLowerCase() === 'uncensored')) || false,
         thumbnail: ep.thumbnail_key,

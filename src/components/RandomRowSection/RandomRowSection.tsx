@@ -11,15 +11,11 @@ interface RandomRowSectionProps {
 }
 
 export default function RandomRowSection({ seriesPool }: RandomRowSectionProps) {
-  const [items, setItems] = useState<any[]>(() => {
-    return seriesPool && seriesPool.length > 0 ? seriesPool.slice(0, 15) : [];
-  });
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(true);
-  const [activeIndex, setActiveIndex] = useState(0);
-
-  const totalDots = 5;
+  const getCleanPool = (pool: any[]) => {
+    return (pool || []).filter(
+      (s: any) => (s?.status || '').toLowerCase() !== 'upcoming' && !s?.is_upcoming
+    );
+  };
 
   const shuffleArray = (array: any[]) => {
     const arr = [...array];
@@ -30,9 +26,21 @@ export default function RandomRowSection({ seriesPool }: RandomRowSectionProps) 
     return arr;
   };
 
+  const [items, setItems] = useState<any[]>(() => {
+    const clean = getCleanPool(seriesPool);
+    return clean.length > 0 ? clean.slice(0, 15) : [];
+  });
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  const totalDots = 5;
+
   const handleShuffle = () => {
-    if (seriesPool && seriesPool.length > 0) {
-      setItems(shuffleArray(seriesPool).slice(0, 15));
+    const clean = getCleanPool(seriesPool);
+    if (clean.length > 0) {
+      setItems(shuffleArray(clean).slice(0, 15));
       if (scrollRef.current) {
         scrollRef.current.scrollTo({ left: 0, behavior: 'smooth' });
       }

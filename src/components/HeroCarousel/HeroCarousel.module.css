@@ -1,24 +1,32 @@
+/* ==========================================================================
+   HANIME-STYLE SPOTLIGHT HERO CAROUSEL
+   Atmospheric Blur Backdrop + 2-Column Split + Layered Card Stack + Mini Thumbnails
+   ========================================================================== */
+
 .heroSection {
   position: relative;
   width: 100%;
   max-width: 100%;
-  min-height: 380px;
-  height: 44vh;
-  max-height: 430px;
-  overflow: hidden !important;
+  min-height: 480px;
+  overflow: hidden;
   display: flex;
   align-items: center;
-  background: #090d16;
+  background: #090c15;
   color: #ffffff;
   touch-action: pan-y;
+  padding: 2.2rem 0 3.2rem 0;
 }
 
+/* --------------------------------------------------------------------------
+   Atmospheric Background Slides with Gradient Masks
+   -------------------------------------------------------------------------- */
 .slidesContainer {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   z-index: 0;
+  pointer-events: none;
 }
 
 .slide {
@@ -28,7 +36,7 @@
   height: 100%;
   opacity: 0;
   visibility: hidden;
-  transition: opacity 1.2s cubic-bezier(0.25, 1, 0.5, 1), visibility 1.2s ease;
+  transition: opacity 0.8s cubic-bezier(0.25, 1, 0.5, 1), visibility 0.8s ease;
 }
 
 .slideActive {
@@ -43,195 +51,118 @@
   height: 100%;
 }
 
-.heroImage {
+.heroBgImage {
   object-fit: cover;
   object-position: center 25%;
+  filter: blur(8px) brightness(0.72) saturate(1.18);
+  transform: scale(1.06);
+  opacity: 0.92;
   pointer-events: none;
-  filter: brightness(0.85);
 }
 
 .heroOverlay {
   position: absolute;
   inset: 0;
   background: 
-    radial-gradient(circle at 75% 50%, rgba(8, 8, 8, 0.35) 0%, rgba(8, 8, 8, 0.95) 75%),
-    linear-gradient(to right, #080808 0%, rgba(8, 8, 8, 0.95) 25%, rgba(8, 8, 8, 0.6) 55%, rgba(8, 8, 8, 0.4) 100%),
-    linear-gradient(to top, #080808 0%, rgba(8, 8, 8, 0.6) 18%, transparent 40%);
+    linear-gradient(to right, #090c15 0%, rgba(9, 12, 21, 0.92) 28%, rgba(9, 12, 21, 0.65) 55%, rgba(9, 12, 21, 0.2) 80%, rgba(9, 12, 21, 0.35) 100%),
+    linear-gradient(to top, #090c15 0%, rgba(9, 12, 21, 0.8) 12%, transparent 40%),
+    linear-gradient(to bottom, #090c15 0%, rgba(9, 12, 21, 0.4) 15%, transparent 28%);
   z-index: 1;
 }
 
+/* --------------------------------------------------------------------------
+   Main Spotlight Container & Grid
+   -------------------------------------------------------------------------- */
 .heroContentWrapper {
   width: 100%;
-  max-width: 1720px;
+  max-width: 1600px;
   margin: 0 auto;
-  padding: 0 2rem;
+  padding: 0 2.5rem;
   position: relative;
   z-index: 10;
-  pointer-events: none;
 }
 
-.heroCardContainer {
-  display: flex;
+.spotlightGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 510px;
+  gap: 3.5rem;
   align-items: center;
-  gap: 2.2rem;
-  pointer-events: auto;
 }
 
-.heroCardInitial {
-  opacity: 1;
-  transform: none;
-  pointer-events: auto;
-}
-
-.heroCardActive {
-  animation: slide-up-fade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-.heroCardInactive {
-  display: none !important;
-}
-
-@keyframes slide-up-fade {
-  from {
-    opacity: 0;
-    transform: translateY(24px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Left Poster Card */
-.posterCardWrapper {
-  position: relative;
-  width: 185px;
-  min-width: 185px;
-  aspect-ratio: 2 / 3;
-  border-radius: 14px;
-  overflow: hidden;
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.15);
-  flex-shrink: 0;
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
-}
-
-.posterCardWrapper:hover {
-  transform: scale(1.03) translateY(-4px);
-  box-shadow: 0 22px 45px rgba(0, 0, 0, 0.8), 0 0 0 1.5px var(--primary);
-}
-
-.posterLink {
-  display: block;
-  width: 100%;
-  height: 100%;
-  position: relative;
-}
-
-.posterImage {
-  object-fit: cover;
-  transition: transform 0.4s ease;
-}
-
-.posterLink:hover .posterImage {
-  transform: scale(1.06);
-}
-
-.posterHoverOverlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(9, 13, 22, 0.5);
-  backdrop-filter: blur(2px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #ffffff;
-  opacity: 0;
-  transition: opacity 0.25s ease;
-}
-
-.posterLink:hover .posterHoverOverlay {
-  opacity: 1;
-}
-
-/* Right Content Area */
-.heroContent {
-  max-width: 680px;
+/* --------------------------------------------------------------------------
+   LEFT COLUMN: Info, Titles, Badges, Actions, and Thumbnails
+   -------------------------------------------------------------------------- */
+.leftColumn {
   display: flex;
   flex-direction: column;
-  gap: 0.55rem;
-  text-align: left;
+  gap: 0.9rem;
+  max-width: 680px;
+  min-width: 0;
 }
 
 .dbAlert {
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   font-weight: 600;
   color: var(--primary);
   background: rgba(var(--primary-rgb), 0.15);
   border: 1px solid rgba(var(--primary-rgb), 0.3);
-  padding: 0.45rem 1rem;
+  padding: 0.35rem 0.85rem;
   border-radius: 20px;
   width: fit-content;
-  margin-bottom: 0.25rem;
 }
 
-.heroMetaCol {
-  display: flex;
-  flex-direction: column;
-  gap: 0.45rem;
-}
-
+/* Badges Row */
 .badgeRow {
   display: flex;
   align-items: center;
-  gap: 0.65rem;
+  gap: 0.85rem;
   flex-wrap: wrap;
 }
 
-.taglineBadge {
-  background: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%);
+.statusPill {
+  background: #f43f5e;
   color: #ffffff;
   font-size: 0.74rem;
-  font-weight: 900;
-  letter-spacing: 0.04em;
-  padding: 0.22rem 0.75rem;
-  border-radius: 20px;
-  text-transform: uppercase;
-  box-shadow: 0 0 12px rgba(236, 72, 153, 0.45);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  padding: 0.24rem 0.72rem;
+  border-radius: 9999px;
+  box-shadow: 0 2px 10px rgba(244, 63, 94, 0.4);
+}
+
+.releaseText {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.studioBadge {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-}
-
-.qualityBadge {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
-  color: #ffffff;
-  font-size: 0.72rem;
-  font-weight: 900;
-  letter-spacing: 0.05em;
-  padding: 0.22rem 0.65rem;
-  border-radius: 5px;
-  text-transform: uppercase;
-}
-
-.categoryBadge {
-  background: rgba(255, 255, 255, 0.14);
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  color: rgba(255, 255, 255, 0.95);
-  font-size: 0.75rem;
+  font-size: 0.84rem;
   font-weight: 700;
-  padding: 0.22rem 0.7rem;
-  border-radius: 5px;
-  text-transform: uppercase;
+  color: #cbd5e1;
 }
 
+.checkIcon {
+  color: #f43f5e;
+  flex-shrink: 0;
+}
+
+/* Hero Title */
 .heroTitle {
-  font-size: clamp(1.6rem, 2.5vw, 2.15rem);
+  font-size: clamp(1.85rem, 3.2vw, 2.75rem);
   font-weight: 900;
   line-height: 1.15;
   letter-spacing: -0.025em;
   color: #ffffff;
-  text-shadow: 0 3px 16px rgba(0, 0, 0, 0.7);
   margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-shadow: 0 3px 20px rgba(0, 0, 0, 0.8);
 }
 
 .heroTitle a {
@@ -244,564 +175,479 @@
   color: var(--primary);
 }
 
-.genreSubLine {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.7);
-  letter-spacing: 0.02em;
-}
-
-.heroStatsRow {
-  display: flex;
-  align-items: center;
-  gap: 0.55rem;
-  font-size: 0.85rem;
-  font-weight: 600;
-  margin-top: 0.1rem;
-}
-
-.heroRating {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  color: #fbbf24;
-  font-weight: 800;
-  background: rgba(245, 158, 11, 0.14);
-  border: 1px solid rgba(245, 158, 11, 0.3);
-  padding: 0.15rem 0.5rem;
-  border-radius: 6px;
-  font-size: 0.8rem;
-  letter-spacing: 0.02em;
-}
-
-.statDot {
-  color: rgba(255, 255, 255, 0.35);
-  font-size: 0.85rem;
-}
-
-.heroViews {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  color: #cbd5e1;
-  font-size: 0.82rem;
-  font-weight: 600;
-}
-
+/* Description (2 lines clamped) */
 .heroDescription {
-  font-size: 0.88rem;
-  line-height: 1.45;
-  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: #cbd5e1;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
-  margin: 0.1rem 0 0.45rem 0;
+  margin: 0;
 }
 
-.heroButtons {
+/* Metadata Stats and Tag Chips */
+.statsAndTagsRow {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  flex-wrap: nowrap;
+  gap: 1.1rem;
+  flex-wrap: wrap;
+  margin-top: 0.1rem;
 }
 
-.heroButtons > * {
-  flex: none;
-  width: auto;
+.statsGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
 }
 
-.playBtn {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
-  color: #ffffff;
-  padding: 0.55rem 1.3rem;
-  border-radius: 8px;
-  font-weight: 700;
-  font-size: 0.88rem;
+.statItem {
   display: inline-flex;
   align-items: center;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #cbd5e1;
+}
+
+.statIcon {
+  flex-shrink: 0;
+}
+
+.tagChips {
+  display: flex;
+  align-items: center;
   gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.qualityChip {
+  background: rgba(var(--primary-rgb), 0.2);
+  border: 1px solid rgba(var(--primary-rgb), 0.45);
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.tagChip {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #cbd5e1;
+  font-size: 0.74rem;
+  font-weight: 600;
+  padding: 0.2rem 0.65rem;
+  border-radius: 6px;
   text-decoration: none;
   transition: all 0.2s ease;
-  box-shadow: 0 4px 16px rgba(var(--primary-rgb), 0.4);
+  white-space: nowrap;
+}
+
+.tagChip:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.28);
+  color: #ffffff;
+}
+
+/* Action Buttons */
+.actionButtons {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  flex-wrap: wrap;
+  margin-top: 0.35rem;
+}
+
+.watchNowBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--primary);
+  color: #ffffff;
+  padding: 0.72rem 1.65rem;
+  border-radius: 9999px;
+  font-size: 0.92rem;
+  font-weight: 800;
+  text-decoration: none;
+  box-shadow: 0 4px 18px rgba(var(--primary-rgb), 0.4);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   border: none;
 }
 
-.playBtn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(var(--primary-rgb), 0.55);
-  filter: brightness(1.08);
+.watchNowBtn:hover {
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 22px rgba(var(--primary-rgb), 0.55);
 }
 
-.detailsBtn {
-  background: rgba(255, 255, 255, 0.12);
-  color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  padding: 0.55rem 1.2rem;
-  border-radius: 8px;
-  font-weight: 700;
-  font-size: 0.88rem;
+.allEpisodesBtn {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+  padding: 0.72rem 1.45rem;
+  border-radius: 9999px;
+  font-size: 0.92rem;
+  font-weight: 700;
   text-decoration: none;
-  backdrop-filter: blur(10px);
   transition: all 0.2s ease;
 }
 
-.detailsBtn:hover {
-  background: rgba(255, 255, 255, 0.24);
-  border-color: rgba(255, 255, 255, 0.38);
-  transform: translateY(-2px);
+.allEpisodesBtn:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
 }
 
-/* Side Circular Navigation Buttons */
-.navBtn {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 44px;
-  height: 44px;
+/* --------------------------------------------------------------------------
+   Mini Thumbnails Strip ("Latest uploads")
+   -------------------------------------------------------------------------- */
+.thumbStripContainer {
+  margin-top: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  width: 100%;
+}
+
+.thumbStripHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 580px;
+}
+
+.thumbStripTitle {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #94a3b8;
+  letter-spacing: -0.01em;
+}
+
+.thumbArrows {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.thumbArrowBtn {
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
-  background: rgba(15, 23, 42, 0.65);
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  color: #ffffff;
-  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #94a3b8;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  z-index: 20;
+  padding: 0;
   transition: all 0.2s ease;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45);
 }
 
-.navBtn:hover {
-  background: var(--primary);
+.thumbArrowBtn:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.28);
   color: #ffffff;
-  border-color: transparent;
-  transform: translateY(-50%) scale(1.08);
 }
 
-.prevBtn {
-  left: calc(2rem - 22px);
-}
-
-@media (min-width: 1780px) {
-  .prevBtn {
-    left: calc((100% - 1720px) / 2 + 2rem - 22px);
-  }
-}
-
-.nextBtn {
-  right: 2rem;
-}
-
-@media (min-width: 1780px) {
-  .nextBtn {
-    right: calc((100% - 1720px) / 2 + 2rem);
-  }
-}
-
-/* Bottom Capsule Indicator Container */
-.capsuleDotsContainer {
-  position: absolute;
-  bottom: 0.85rem;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(9, 13, 22, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  backdrop-filter: blur(12px);
-  padding: 0.28rem 0.75rem;
-  border-radius: 30px;
+.thumbTrack {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  z-index: 20;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.55);
+  gap: 0.75rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 6px 4px 12px 4px;
+  max-width: 580px;
 }
 
-.dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #ffffff;
-  opacity: 0.35;
-  border: none;
+.thumbTrack::-webkit-scrollbar {
+  display: none;
+}
+
+.thumbItem {
+  position: relative;
+  width: 102px;
+  min-width: 102px;
+  height: 58px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 2px solid transparent;
+  background: #161b26;
   cursor: pointer;
   padding: 0;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  opacity: 0.6;
+  flex-shrink: 0;
 }
 
-.dotActive {
-  width: 20px;
-  border-radius: 8px;
+.thumbItem:hover {
+  opacity: 0.95;
+  transform: translateY(-2px);
+}
+
+/* Active Glowing Halo (Exactly matching Hanime screenshot) */
+.thumbItemActive {
+  opacity: 1 !important;
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 18px rgba(var(--primary-rgb), 0.75), 0 4px 14px rgba(0, 0, 0, 0.6) !important;
+  transform: translateY(-2px);
+}
+
+.thumbImage {
+  object-fit: cover;
+}
+
+/* --------------------------------------------------------------------------
+   RIGHT COLUMN: Layered Floating Spotlight Stack
+   -------------------------------------------------------------------------- */
+.rightColumn {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  position: relative;
+  min-width: 0;
+}
+
+.cardStack {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  aspect-ratio: 16 / 9.8;
+  margin-right: 28px;
+}
+
+/* Back Card (Tilted 3D Stack Effect) */
+.backCard {
+  position: absolute;
+  inset: 0;
+  border-radius: 20px;
+  overflow: hidden;
+  transform: translate(30px, -6px) rotate(4deg) scale(0.94);
+  opacity: 0.65;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.backCardShade {
+  position: absolute;
+  inset: 0;
+  background: rgba(9, 12, 21, 0.25);
+}
+
+/* Front Spotlight Card */
+.frontCard {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 20px;
+  overflow: hidden;
+  z-index: 2;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  text-decoration: none;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.frontCard:hover {
+  transform: scale(1.02);
+  border-color: rgba(var(--primary-rgb), 0.6);
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.85), 0 0 25px rgba(var(--primary-rgb), 0.35);
+}
+
+.cardImage {
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.frontCard:hover .cardImage {
+  transform: scale(1.05);
+}
+
+.frontCardVignette {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(9, 12, 21, 0.95) 0%, rgba(9, 12, 21, 0.4) 45%, transparent 75%);
+  z-index: 2;
+}
+
+/* Spotlight Badge Overlay (Bottom Left of Front Card) */
+.spotlightBadgeOverlay {
+  position: absolute;
+  bottom: 18px;
+  left: 18px;
+  right: 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.spotlightPlayIconBox {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.frontCard:hover .spotlightPlayIconBox {
   background: var(--primary);
-  opacity: 1;
+  border-color: transparent;
+  transform: scale(1.1);
 }
 
-/* Responsive Layout */
+.spotlightInfo {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 2px;
+}
+
+.spotlightCategory {
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #cbd5e1;
+}
+
+.spotlightTitleText {
+  font-size: 0.96rem;
+  font-weight: 800;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+}
+
+/* --------------------------------------------------------------------------
+   RESPONSIVE LAYOUTS
+   -------------------------------------------------------------------------- */
 @media (max-width: 1200px) {
   .heroSection {
-    min-height: 360px;
-    height: 42vh;
-    max-height: 410px;
+    min-height: 450px;
+    padding: 1.8rem 0 2.8rem 0;
   }
-  .heroTitle {
-    font-size: 1.85rem;
+
+  .spotlightGrid {
+    grid-template-columns: minmax(0, 1fr) 430px;
+    gap: 2.2rem;
   }
-  .posterCardWrapper {
-    width: 165px;
-    min-width: 165px;
-  }
-  .heroContentWrapper {
-    padding: 0 2rem;
+
+  .cardStack {
+    max-width: 430px;
   }
 }
 
-@media (max-width: 992px) {
-  .heroSection {
-    min-height: 330px;
-    height: 38vh;
-    max-height: 370px;
-  }
-  .posterCardWrapper {
-    width: 145px;
-    min-width: 145px;
-  }
-  .heroTitle {
-    font-size: 1.6rem;
-  }
-}
-
-/* Mobile Screens (max-width: 768px) - Option 1: Split Card Layout */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .heroSection {
     min-height: auto;
-    height: auto;
-    max-height: none;
-    padding: 1.15rem 0 2.6rem 0;
-    margin: 0;
-    overflow: hidden;
-    display: block;
-    background: radial-gradient(circle at 50% 0%, rgba(147, 51, 234, 0.16) 0%, rgba(10, 8, 20, 0.98) 65%, #08080c 100%);
+    padding: 1.6rem 0 2.4rem 0;
   }
 
-  /* Completely eliminate background banner rendering & downloading on mobile */
-  .slidesContainer {
-    display: none !important;
+  .spotlightGrid {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 2rem;
+    align-items: stretch;
   }
 
-  .heroBg,
-  .heroImage,
-  .heroOverlay {
-    display: none !important;
+  .cardStack {
+    max-width: 580px;
+    margin: 0 auto;
+  }
+
+  .backCard {
+    display: none;
+  }
+
+  .leftColumn {
+    max-width: 100%;
+  }
+
+  .thumbStripHeader,
+  .thumbTrack {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .heroSection {
+    padding: 1.2rem 0 2rem 0;
   }
 
   .heroContentWrapper {
     padding: 0 1rem;
-    height: auto;
-    display: block;
-    pointer-events: auto;
   }
 
-  /* Option 1 Split-Card Grid Structure: Left Poster + Right Info Stack (Badges, Title, Genres, Stats, Synopsis), Full-width Buttons Below */
-  .heroCardContainer {
-    display: grid;
-    grid-template-columns: 142px 1fr;
-    grid-template-areas:
-      "poster meta"
-      "btns   btns";
-    gap: 0.85rem 1rem;
-    align-items: start;
-    width: 100%;
-    pointer-events: auto;
-  }
-
-  /* Left Poster Card Thumbnail - Enlarged, taller & cinematic */
-  .posterCardWrapper {
-    grid-area: poster;
-    display: block !important;
-    width: 142px !important;
-    min-width: 142px !important;
-    max-width: 142px !important;
-    aspect-ratio: 2 / 3 !important;
-    border-radius: 14px;
-    overflow: hidden;
-    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.14);
-    position: relative;
-    align-self: start;
-  }
-
-  /* Flatten heroContent so its children participate directly in the heroCardContainer grid */
-  .heroContent {
-    display: contents;
-    max-width: 100%;
-  }
-
-  .dbAlert {
-    grid-column: 1 / -1;
-    font-size: 0.75rem;
-    padding: 0.35rem 0.75rem;
-    margin-bottom: 0.2rem;
-  }
-
-  /* Right Meta Column (Badges, Title, Tags, Stats & Synopsis) */
-  .heroMetaCol {
-    grid-area: meta;
-    display: flex;
-    flex-direction: column;
-    gap: 0.32rem;
-    justify-content: flex-start;
-    min-width: 0;
-  }
-
-  .badgeRow {
-    display: flex;
-    align-items: center;
-    gap: 0.32rem;
-    flex-wrap: wrap;
-    margin-bottom: 0;
-  }
-
-  .taglineBadge {
-    font-size: 0.62rem;
-    padding: 0.14rem 0.5rem;
-    letter-spacing: 0.02em;
-  }
-
-  .qualityBadge {
-    font-size: 0.62rem;
-    padding: 0.14rem 0.45rem;
-  }
-
-  .categoryBadge {
-    font-size: 0.62rem;
-    padding: 0.14rem 0.5rem;
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.18);
+  .spotlightGrid {
+    gap: 1.4rem;
   }
 
   .heroTitle {
-    font-size: 1.12rem;
-    line-height: 1.25;
-    font-weight: 800;
-    letter-spacing: -0.015em;
-    color: #ffffff;
-    margin: 0;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
-  }
-
-  .genreSubLine {
-    font-size: 0.73rem;
-    font-weight: 600;
-    color: #cbd5e1;
-    margin: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  /* Rating and Views Row Below Genre Line */
-  .heroStatsRow {
-    display: flex;
-    align-items: center;
-    gap: 0.45rem;
-    margin-top: 0.02rem;
-  }
-
-  .heroRating {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    color: #fbbf24;
-    font-weight: 800;
-    background: rgba(245, 158, 11, 0.14);
-    border: 1px solid rgba(245, 158, 11, 0.28);
-    padding: 0.1rem 0.4rem;
-    border-radius: 5px;
-    font-size: 0.72rem;
-    letter-spacing: 0.02em;
-  }
-
-  .statDot {
-    color: rgba(255, 255, 255, 0.35);
-    font-size: 0.72rem;
-  }
-
-  .heroViews {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    color: #94a3b8;
-    font-size: 0.72rem;
-    font-weight: 600;
-  }
-
-  /* Synopsis inside Right Meta Column */
-  .heroDescription {
-    font-size: 0.76rem;
-    line-height: 1.38;
-    color: rgba(255, 255, 255, 0.72);
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    margin: 0.12rem 0 0 0;
-  }
-
-  /* Action Buttons Span Full Width Across Both Columns Below */
-  .heroButtons {
-    grid-area: btns;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 0.5rem;
-    width: 100%;
-    margin-top: 0.15rem;
-  }
-
-  .heroButtons > * {
-    min-height: 38px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 9px !important;
-  }
-
-  .playBtn {
-    flex: 1.4 !important;
-    font-size: 0.84rem !important;
-    font-weight: 800 !important;
-    gap: 0.35rem;
-    padding: 0.55rem 0.65rem !important;
-    background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%) !important;
-    box-shadow: 0 4px 14px rgba(168, 85, 247, 0.4) !important;
-    border: none !important;
-  }
-
-  .detailsBtn {
-    flex: 1 !important;
-    font-size: 0.8rem !important;
-    font-weight: 700 !important;
-    gap: 0.3rem;
-    padding: 0.55rem 0.45rem !important;
-    background: rgba(255, 255, 255, 0.08) !important;
-    border: 1px solid rgba(255, 255, 255, 0.16) !important;
-    backdrop-filter: blur(10px) !important;
-    color: #ffffff !important;
-  }
-
-  .heroButtons :global(button) {
-    flex: 1 !important;
-    font-size: 0.8rem !important;
-    font-weight: 700 !important;
-    gap: 0.3rem;
-    padding: 0.55rem 0.45rem !important;
-    background: rgba(255, 255, 255, 0.08) !important;
-    border: 1px solid rgba(255, 255, 255, 0.16) !important;
-    backdrop-filter: blur(10px) !important;
-    color: #ffffff !important;
-  }
-
-  .navBtn {
-    display: none;
-  }
-
-  /* Dots Indicator Centered at the Bottom */
-  .capsuleDotsContainer {
-    bottom: 0.65rem;
-    background: rgba(10, 8, 20, 0.85);
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    backdrop-filter: blur(12px);
-    padding: 0.24rem 0.65rem;
-    border-radius: 24px;
-    gap: 0.35rem;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
-  }
-
-  .dot {
-    width: 6px;
-    height: 6px;
-  }
-
-  .dotActive {
-    width: 20px;
-    background: linear-gradient(135deg, #c084fc, #9333ea);
-    box-shadow: 0 0 8px rgba(192, 132, 252, 0.5);
-  }
-}
-
-/* Extra Small Mobile (max-width: 480px) */
-@media (max-width: 480px) {
-  .heroSection {
-    padding: 0.95rem 0 2.4rem 0;
-  }
-
-  .heroContentWrapper {
-    padding: 0 0.85rem;
-  }
-
-  .heroCardContainer {
-    grid-template-columns: 126px 1fr;
-    gap: 0.65rem 0.8rem;
-  }
-
-  .posterCardWrapper {
-    width: 126px !important;
-    min-width: 126px !important;
-    max-width: 126px !important;
-    border-radius: 12px;
-  }
-
-  .heroTitle {
-    font-size: 1.02rem;
+    font-size: 1.4rem;
     line-height: 1.22;
   }
 
   .heroDescription {
-    font-size: 0.73rem;
-    line-height: 1.34;
-    -webkit-line-clamp: 2;
+    font-size: 0.85rem;
+    line-height: 1.45;
   }
 
-  .heroStatsRow {
-    gap: 0.35rem;
+  .actionButtons {
+    gap: 0.6rem;
   }
 
-  .heroRating {
-    font-size: 0.68rem;
-    padding: 0.1rem 0.35rem;
+  .watchNowBtn,
+  .allEpisodesBtn {
+    padding: 0.62rem 1.25rem;
+    font-size: 0.86rem;
   }
 
-  .heroViews {
-    font-size: 0.68rem;
+  .cardStack {
+    aspect-ratio: 16 / 9.5;
   }
 
-  .heroButtons {
-    gap: 0.35rem;
+  .spotlightBadgeOverlay {
+    bottom: 12px;
+    left: 12px;
+    right: 12px;
+    gap: 10px;
   }
 
-  .playBtn {
-    font-size: 0.78rem !important;
-    padding: 0.5rem 0.4rem !important;
+  .spotlightPlayIconBox {
+    width: 36px;
+    height: 36px;
   }
 
-  .detailsBtn {
-    font-size: 0.75rem !important;
-    padding: 0.5rem 0.35rem !important;
+  .spotlightTitleText {
+    font-size: 0.86rem;
   }
 
-  .heroButtons :global(button) {
-    font-size: 0.75rem !important;
-    padding: 0.5rem 0.35rem !important;
+  .thumbItem {
+    width: 90px;
+    min-width: 90px;
+    height: 52px;
   }
 }
-

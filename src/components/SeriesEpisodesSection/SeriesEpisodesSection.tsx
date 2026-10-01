@@ -287,7 +287,7 @@ export default function SeriesEpisodesSection({
                   <div className={styles.thumbnailWrapper}>
                     <Image
                       src={getR2Url(ep.thumbnail_key || coverImageKey, 'thumbnail')}
-                      alt={`Stream ${seriesTitle} Episode ${ep.episode_number} Hentai online - PlayHentai`}
+                      alt={`Watch ${seriesTitle} Episode ${ep.episode_number} ${isUncensored ? '(Uncensored, Eng Sub)' : '(Eng Sub)'} in HD - Play Hentai`}
                       fill
                       sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                       className={styles.thumbnailImage}

@@ -93,6 +93,9 @@ export default function RandomizerPortal({ seriesList }: RandomizerPortalProps) 
   // Filter series based on user selections
   const filteredList = useMemo(() => {
     return seriesList.filter((s) => {
+      // Exclude upcoming series
+      if ((s.status || '').toLowerCase() === 'upcoming' || (s as any).is_upcoming) return false;
+
       // Genre filter
       if (selectedGenre !== 'all') {
         const genLower = selectedGenre.toLowerCase();

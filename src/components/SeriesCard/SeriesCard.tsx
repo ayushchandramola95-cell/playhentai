@@ -127,7 +127,7 @@ export default function SeriesCard({ item, className = '' }: SeriesCardProps) {
         <div className={styles.seriesImageWrapper}>
           <Image
             src={posterSrc}
-            alt={`${item.title} poster`}
+            alt={`Watch ${item.title} online free in HD`}
             fill
             sizes="(max-width: 480px) 50vw, (max-width: 768px) 33vw, (max-width: 1200px) 25vw, 220px"
             className={styles.cardImage}
@@ -180,10 +180,16 @@ export default function SeriesCard({ item, className = '' }: SeriesCardProps) {
           <Link href={`/series/${item.slug}`}>{item.title}</Link>
         </h4>
         <div className={styles.seriesBottomMeta}>
-          <div className={styles.seriesViewsRow}>
-            <Eye size={12} className={styles.eyeIcon} />
-            <span>{formatViews(item.views || 0)}</span>
-          </div>
+          {!isUpcoming ? (
+            <div className={styles.seriesViewsRow}>
+              <Eye size={12} className={styles.eyeIcon} />
+              <span>{formatViews(item.views || 0)}</span>
+            </div>
+          ) : (
+            <div className={styles.seriesViewsRow} style={{ color: '#60a5fa', fontWeight: 800, fontSize: '0.72rem', letterSpacing: '0.04em' }}>
+              <span>COMING SOON</span>
+            </div>
+          )}
           {studio && (
             <span className={styles.studioText} title={studio}>
               {studio}

@@ -5,19 +5,17 @@ import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { 
   Home, 
-  Flame, 
-  Layers, 
-  Sparkles,
-  ShieldCheck, 
-  Box, 
-  Film, 
-  Tv, 
-  Dices, 
-  Bookmark, 
-  History, 
+  LayoutGrid, 
+  TrendingUp, 
+  Crown,
+  Shuffle, 
   Heart, 
+  Clock, 
+  Bookmark,
+  Film, 
+  BadgeCheck, 
+  Grid3X3,
   Settings, 
-  User, 
   LogIn, 
   UserPlus, 
   LogOut 
@@ -64,136 +62,177 @@ export default function DesktopSidebar() {
     router.push('/');
   };
 
-  const navItems = [
+  const watchItems = [
     { label: 'Home', href: '/', icon: Home },
-    { label: 'Trending', href: '/trending', icon: Flame, iconColor: '#f97316' },
-    { label: 'Browse Hentai', href: '/categories', icon: Layers },
-    { label: 'Genres', href: '/genres', icon: Sparkles, iconColor: '#ec4899' },
-    { label: 'Uncensored', href: '/uncensored', icon: ShieldCheck, iconColor: '#10b981' },
-    { label: '3D Animations', href: '/3d', icon: Box, iconColor: '#06b6d4' },
-    { label: 'Playlists', href: '/playlists', icon: Film },
-    { label: 'Studios', href: '/studios', icon: Tv },
-    { label: 'Random', href: '/random', icon: Dices, iconColor: '#a855f7' },
+    { label: 'Browse', href: '/categories', icon: LayoutGrid },
+    { label: 'Trending', href: '/trending', icon: TrendingUp },
+    { label: 'Top rated', href: '/playlists', icon: Crown },
+    { label: 'Random', href: '/random', icon: Shuffle },
   ];
 
   const libraryItems = [
-    { label: 'My Watchlist', href: '/watchlist', icon: Bookmark },
-    { label: 'Watch History', href: '/history', icon: History },
-    { label: 'Favorites', href: '/favorites', icon: Heart, iconColor: '#ec4899' },
+    { label: 'Favorites', href: '/favorites', icon: Heart },
+    { label: 'History', href: '/history', icon: Clock },
+    { label: 'Watchlist', href: '/watchlist', icon: Bookmark },
   ];
+
+  const exploreItems = [
+    { label: 'Series', href: '/recent/series', icon: Film },
+    { label: 'Studios', href: '/studios', icon: BadgeCheck },
+    { label: 'Tags', href: '/genres', icon: Grid3X3 },
+  ];
+
+  const allItems = [...watchItems, ...libraryItems, ...exploreItems];
 
   return (
     <aside 
       className={`${styles.sidebar} ${isExpanded ? styles.expanded : styles.collapsed}`} 
       aria-label="Main Desktop Navigation"
     >
-      {/* Scrollable Sidebar Navigation Body (Starts directly beneath top header) */}
       <div className={styles.sidebarBody}>
-        {/* Main Navigation Section */}
-        <nav className={styles.navSection}>
-          {navItems.map(item => {
-            const Icon = item.icon;
-            const active = isNavActive(item.href);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`${styles.navItem} ${active ? styles.activeItem : ''}`}
-                aria-label={item.label}
-              >
-                <Icon 
-                  size={20} 
-                  className={styles.navIcon} 
-                  style={!active && item.iconColor ? { color: item.iconColor } : undefined} 
-                />
-                <span className={styles.navLabel}>{item.label}</span>
-                {!isExpanded && <span className={styles.tooltip}>{item.label}</span>}
-              </Link>
-            );
-          })}
-        </nav>
+        {/* Expanded Top Auth Buttons (Like Hanime) */}
+        {isExpanded && !user && (
+          <div className={styles.expandedAuthBox}>
+            <Link href="/login" className={styles.expandedLoginBtn}>
+              <LogIn size={15} />
+              <span>Log in</span>
+            </Link>
+            <Link href="/login" className={styles.expandedJoinBtn}>
+              <UserPlus size={15} />
+              <span>Join</span>
+            </Link>
+          </div>
+        )}
 
-        {/* Library Section */}
-        <div className={styles.sectionDivider} />
-        {isExpanded && <div className={styles.sectionHeading}>LIBRARY</div>}
-        
-        <div className={styles.navSection}>
-          {libraryItems.map(item => {
-            const Icon = item.icon;
-            const active = isNavActive(item.href);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`${styles.navItem} ${active ? styles.activeItem : ''}`}
-                aria-label={item.label}
-              >
-                <Icon 
-                  size={20} 
-                  className={styles.navIcon} 
-                  style={!active && item.iconColor ? { color: item.iconColor } : undefined} 
-                />
-                <span className={styles.navLabel}>{item.label}</span>
-                {!isExpanded && <span className={styles.tooltip}>{item.label}</span>}
-              </Link>
-            );
-          })}
-        </div>
+        {isExpanded && user && (
+          <div className={styles.expandedUserCard}>
+            <div className={styles.userAvatar}>
+              {(profile?.username || user.email || 'U')[0].toUpperCase()}
+            </div>
+            <div className={styles.userInfo}>
+              <span className={styles.userName}>{profile?.username || 'User'}</span>
+              <span className={styles.userRole}>{profile?.role === 'admin' ? 'Admin' : 'Member'}</span>
+            </div>
+          </div>
+        )}
 
-        {/* Account / Admin Section */}
-        <div className={styles.sectionDivider} />
-        {isExpanded && <div className={styles.sectionHeading}>ACCOUNT</div>}
-
-        <div className={styles.navSection}>
-          {user ? (
-            <>
-              {profile?.role === 'admin' && (
+        {/* Collapsed Mode: Single clean icon+label column (Hanime style) */}
+        {!isExpanded ? (
+          <nav className={styles.collapsedNav}>
+            {allItems.map(item => {
+              const Icon = item.icon;
+              const active = isNavActive(item.href);
+              return (
                 <Link
-                  href="/admin"
-                  className={`${styles.navItem} ${isNavActive('/admin') ? styles.activeItem : ''}`}
-                  aria-label="Admin Dashboard"
+                  key={item.href}
+                  href={item.href}
+                  className={`${styles.collapsedItem} ${active ? styles.collapsedActiveItem : ''}`}
+                  aria-label={item.label}
                 >
-                  <Settings size={20} className={styles.navIcon} style={{ color: '#f59e0b' }} />
-                  <span className={styles.navLabel}>Admin Console</span>
-                  {!isExpanded && <span className={styles.tooltip}>Admin Console</span>}
+                  <div className={styles.collapsedIconWrapper}>
+                    <Icon size={20} className={styles.collapsedIcon} />
+                  </div>
+                  <span className={styles.collapsedLabel}>{item.label}</span>
                 </Link>
-              )}
+              );
+            })}
+          </nav>
+        ) : (
+          /* Expanded Mode: Categorized Sections with Headings (Hanime drawer style) */
+          <div className={styles.expandedSectionsWrap}>
+            <div className={styles.groupHeading}>WATCH</div>
+            <nav className={styles.expandedNav}>
+              {watchItems.map(item => {
+                const Icon = item.icon;
+                const active = isNavActive(item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`${styles.expandedItem} ${active ? styles.expandedActiveItem : ''}`}
+                  >
+                    <Icon size={18} className={styles.expandedIcon} />
+                    <span className={styles.expandedLabel}>{item.label}</span>
+                  </Link>
+                );
+              })}
+            </nav>
 
-              <button 
-                type="button"
-                onClick={handleSignOut}
-                className={`${styles.navItem} ${styles.signOutBtn}`}
-                aria-label="Sign Out"
-              >
-                <LogOut size={20} className={styles.navIcon} />
-                <span className={styles.navLabel}>Sign Out</span>
-                {!isExpanded && <span className={styles.tooltip}>Sign Out</span>}
-              </button>
-            </>
-          ) : (
-            <>
-              <Link
-                href="/login"
-                className={styles.navItem}
-                aria-label="Sign In"
-              >
-                <LogIn size={20} className={styles.navIcon} />
-                <span className={styles.navLabel}>Sign In</span>
-                {!isExpanded && <span className={styles.tooltip}>Sign In</span>}
-              </Link>
+            <div className={styles.sectionDivider} />
+            <div className={styles.groupHeading}>LIBRARY</div>
+            <nav className={styles.expandedNav}>
+              {libraryItems.map(item => {
+                const Icon = item.icon;
+                const active = isNavActive(item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`${styles.expandedItem} ${active ? styles.expandedActiveItem : ''}`}
+                  >
+                    <Icon size={18} className={styles.expandedIcon} />
+                    <span className={styles.expandedLabel}>{item.label}</span>
+                  </Link>
+                );
+              })}
+            </nav>
 
-              <Link
-                href="/login"
-                className={styles.navItem}
-                aria-label="Create Account"
-              >
-                <UserPlus size={20} className={styles.navIcon} />
-                <span className={styles.navLabel}>Create Account</span>
-                {!isExpanded && <span className={styles.tooltip}>Create Account</span>}
-              </Link>
-            </>
-          )}
-        </div>
+            <div className={styles.sectionDivider} />
+            <div className={styles.groupHeading}>EXPLORE</div>
+            <nav className={styles.expandedNav}>
+              {exploreItems.map(item => {
+                const Icon = item.icon;
+                const active = isNavActive(item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`${styles.expandedItem} ${active ? styles.expandedActiveItem : ''}`}
+                  >
+                    <Icon size={18} className={styles.expandedIcon} />
+                    <span className={styles.expandedLabel}>{item.label}</span>
+                  </Link>
+                );
+              })}
+            </nav>
+
+            {/* Account / Admin section */}
+            {user && (
+              <>
+                <div className={styles.sectionDivider} />
+                <div className={styles.groupHeading}>ACCOUNT</div>
+                <nav className={styles.expandedNav}>
+                  {profile?.role === 'admin' && (
+                    <Link
+                      href="/admin"
+                      className={`${styles.expandedItem} ${isNavActive('/admin') ? styles.expandedActiveItem : ''}`}
+                    >
+                      <Settings size={18} className={styles.expandedIcon} />
+                      <span className={styles.expandedLabel}>Admin Console</span>
+                    </Link>
+                  )}
+                  <button 
+                    type="button"
+                    onClick={handleSignOut}
+                    className={`${styles.expandedItem} ${styles.signOutBtn}`}
+                  >
+                    <LogOut size={18} className={styles.expandedIcon} />
+                    <span className={styles.expandedLabel}>Sign Out</span>
+                  </button>
+                </nav>
+              </>
+            )}
+
+            {/* Expanded Footer Links */}
+            <div className={styles.expandedFooterLinks}>
+              <Link href="/terms">Terms</Link>
+              <span className={styles.footerDot}>•</span>
+              <Link href="/privacy">Privacy</Link>
+              <span className={styles.footerDot}>•</span>
+              <Link href="/dmca">DMCA</Link>
+            </div>
+          </div>
+        )}
       </div>
     </aside>
   );

@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { 
   Tv, 
+  Film,
   Search, 
   Plus, 
   Trash2, 
@@ -60,6 +61,8 @@ export default function AdminFeaturedPage() {
   const [slideCount, setSlideCount] = useState<number>(8);
   const [autoplaySpeed, setAutoplaySpeed] = useState<number>(6000);
   const [taglines, setTaglines] = useState<Record<string, string>>({});
+  const [heroBannerMode, setHeroBannerMode] = useState<'series' | 'episodes'>('series');
+  const [heroBannerEpisodeFilter, setHeroBannerEpisodeFilter] = useState<'latest' | 'random' | 'mix'>('latest');
 
   // Filter & Search states
   const [searchQuery, setSearchQuery] = useState('');
@@ -115,6 +118,12 @@ export default function AdminFeaturedPage() {
               if (parsed && typeof parsed === 'object') setTaglines(parsed);
             } catch (e) {}
           }
+          if (setData.settings.hero_banner_mode) {
+            setHeroBannerMode(setData.settings.hero_banner_mode as 'series' | 'episodes');
+          }
+          if (setData.settings.hero_banner_episode_filter) {
+            setHeroBannerEpisodeFilter(setData.settings.hero_banner_episode_filter as 'latest' | 'random' | 'mix');
+          }
         }
       }
     } catch (err: any) {
@@ -139,6 +148,8 @@ export default function AdminFeaturedPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             settings: {
+              hero_banner_mode: heroBannerMode,
+              hero_banner_episode_filter: heroBannerEpisodeFilter,
               hero_banner_source: bannerSource,
               hero_banner_slide_count: String(slideCount),
               hero_banner_autoplay_speed: String(autoplaySpeed),
@@ -557,8 +568,167 @@ export default function AdminFeaturedPage() {
               </div>
             </div>
 
-            {/* 6-Option Selection Source Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '0.85rem' }}>
+            {/* Carousel Content Type Toggle: Series vs Episodes */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem', marginBottom: '1.4rem' }}>
+              <span style={{ fontSize: '0.84rem', fontWeight: 700, color: 'var(--foreground-secondary)' }}>
+                Carousel Content Mode:
+              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.35rem', background: 'rgba(0,0,0,0.3)', borderRadius: '12px', border: '1px solid var(--border)', width: 'fit-content' }}>
+                <button
+                  type="button"
+                  onClick={() => setHeroBannerMode('series')}
+                  style={{
+                    padding: '0.45rem 1.15rem',
+                    borderRadius: '8px',
+                    fontSize: '0.85rem',
+                    fontWeight: 800,
+                    border: 'none',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.45rem',
+                    background: heroBannerMode === 'series' ? 'var(--primary)' : 'transparent',
+                    color: heroBannerMode === 'series' ? '#ffffff' : 'var(--foreground-secondary)',
+                    transition: 'all 0.2s ease',
+                    boxShadow: heroBannerMode === 'series' ? '0 2px 10px rgba(var(--primary-rgb), 0.4)' : 'none'
+                  }}
+                >
+                  <Film size={15} />
+                  <span>Series Carousel</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setHeroBannerMode('episodes')}
+                  style={{
+                    padding: '0.45rem 1.15rem',
+                    borderRadius: '8px',
+                    fontSize: '0.85rem',
+                    fontWeight: 800,
+                    border: 'none',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.45rem',
+                    background: heroBannerMode === 'episodes' ? 'var(--primary)' : 'transparent',
+                    color: heroBannerMode === 'episodes' ? '#ffffff' : 'var(--foreground-secondary)',
+                    transition: 'all 0.2s ease',
+                    boxShadow: heroBannerMode === 'episodes' ? '0 2px 10px rgba(var(--primary-rgb), 0.4)' : 'none'
+                  }}
+                >
+                  <Tv size={15} />
+                  <span>Episodes Only Carousel</span>
+                </button>
+              </div>
+            </div>
+
+            {/* If Episodes Mode is active, show the 3 Episode Filter cards */}
+            {heroBannerMode === 'episodes' ? (
+              <div>
+                <div style={{ marginBottom: '1rem', padding: '0.75rem 1rem', borderRadius: '10px', background: 'rgba(var(--primary-rgb), 0.12)', border: '1px solid rgba(var(--primary-rgb), 0.25)', fontSize: '0.84rem', color: '#e2e8f0', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                  <Tv size={18} style={{ color: 'var(--primary)', flexShrink: 0 }} />
+                  <span>
+                    <strong>Episodes Mode Enabled:</strong> The carousel directly displays individual episodes using their video thumbnails, episode numbers, and direct 1-click Watch links.
+                  </span>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '0.85rem' }}>
+                  {/* Episode Option 1: Latest Released Episodes */}
+                  <label style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '0.8rem',
+                    padding: '1rem',
+                    borderRadius: '12px',
+                    background: heroBannerEpisodeFilter === 'latest' ? 'rgba(168, 85, 247, 0.12)' : 'var(--surface-hover)',
+                    border: `2px solid ${heroBannerEpisodeFilter === 'latest' ? 'var(--primary)' : 'var(--border)'}`,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                  }}>
+                    <input
+                      type="radio"
+                      name="episodeFilter"
+                      value="latest"
+                      checked={heroBannerEpisodeFilter === 'latest'}
+                      onChange={() => setHeroBannerEpisodeFilter('latest')}
+                      style={{ marginTop: '0.2rem', accentColor: 'var(--primary)' }}
+                    />
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: '0.92rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                        <Clock size={15} style={{ color: 'var(--primary)' }} />
+                        <span>Latest Released Episodes</span>
+                      </div>
+                      <p style={{ fontSize: '0.8rem', color: 'var(--foreground-secondary)', marginTop: '0.2rem', lineHeight: 1.35, margin: 0 }}>
+                        Features the newest episodes added to the site with their video screenshot thumbnails.
+                      </p>
+                    </div>
+                  </label>
+
+                  {/* Episode Option 2: Random Episodes */}
+                  <label style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '0.8rem',
+                    padding: '1rem',
+                    borderRadius: '12px',
+                    background: heroBannerEpisodeFilter === 'random' ? 'rgba(168, 85, 247, 0.12)' : 'var(--surface-hover)',
+                    border: `2px solid ${heroBannerEpisodeFilter === 'random' ? 'var(--primary)' : 'var(--border)'}`,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                  }}>
+                    <input
+                      type="radio"
+                      name="episodeFilter"
+                      value="random"
+                      checked={heroBannerEpisodeFilter === 'random'}
+                      onChange={() => setHeroBannerEpisodeFilter('random')}
+                      style={{ marginTop: '0.2rem', accentColor: 'var(--primary)' }}
+                    />
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: '0.92rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                        <Shuffle size={15} style={{ color: 'var(--primary)' }} />
+                        <span>Random Episodes Shuffle</span>
+                      </div>
+                      <p style={{ fontSize: '0.8rem', color: 'var(--foreground-secondary)', marginTop: '0.2rem', lineHeight: 1.35, margin: 0 }}>
+                        Randomly shuffles episodes across your entire anime library for fresh discovery.
+                      </p>
+                    </div>
+                  </label>
+
+                  {/* Episode Option 3: Mix of Trending & Latest */}
+                  <label style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '0.8rem',
+                    padding: '1rem',
+                    borderRadius: '12px',
+                    background: heroBannerEpisodeFilter === 'mix' ? 'rgba(168, 85, 247, 0.12)' : 'var(--surface-hover)',
+                    border: `2px solid ${heroBannerEpisodeFilter === 'mix' ? 'var(--primary)' : 'var(--border)'}`,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                  }}>
+                    <input
+                      type="radio"
+                      name="episodeFilter"
+                      value="mix"
+                      checked={heroBannerEpisodeFilter === 'mix'}
+                      onChange={() => setHeroBannerEpisodeFilter('mix')}
+                      style={{ marginTop: '0.2rem', accentColor: 'var(--primary)' }}
+                    />
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: '0.92rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                        <Sliders size={15} style={{ color: 'var(--primary)' }} />
+                        <span>Mix of Trending & Latest</span>
+                      </div>
+                      <p style={{ fontSize: '0.8rem', color: 'var(--foreground-secondary)', marginTop: '0.2rem', lineHeight: 1.35, margin: 0 }}>
+                        Blends the most-viewed popular episodes with the newest episode uploads.
+                      </p>
+                    </div>
+                  </label>
+                </div>
+              </div>
+            ) : (
+              /* 6-Option Selection Source Grid */
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '0.85rem' }}>
               
               {/* Source 1: Featured Tags (Manual) */}
               <label style={{
@@ -746,7 +916,8 @@ export default function AdminFeaturedPage() {
                 </div>
               </label>
             </div>
-          </div>
+          )}
+        </div>
 
           {/* 3. Curate Featured Titles, Artwork Validation & Smart Sort */}
           <div>

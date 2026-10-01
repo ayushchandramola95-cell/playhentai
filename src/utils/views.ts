@@ -1,5 +1,6 @@
 import { createAdminClient } from '@/utils/supabase/admin';
 import { unstable_cache } from 'next/cache';
+import { isFakeMetricsActive, getFakeMetricsConfig } from '@/utils/fakeMetricsStore';
 
 /**
  * Dynamically queries all episode view logs and aggregates them by series_id.
@@ -51,6 +52,17 @@ async function fetchSeriesViewsMap(timeframe: '7d' | '30d' | 'all' = 'all'): Pro
         viewsMap[seriesId] = (viewsMap[seriesId] || 0) + 1;
       }
     });
+
+    // If boosted metrics are active, overlay boosted views without altering real data
+    if (isFakeMetricsActive()) {
+      const config = getFakeMetricsConfig();
+      const timeframeMultiplier = timeframe === '7d' ? 0.15 : timeframe === '30d' ? 0.45 : 1.0;
+      Object.entries(config.series || {}).forEach(([seriesId, data]) => {
+        // Boosted views scaled by timeframe plus any real organic views
+        const boosted = Math.round((data.views || 0) * timeframeMultiplier);
+        viewsMap[seriesId] = boosted + (viewsMap[seriesId] || 0);
+      });
+    }
   } catch (err) {
     console.error('Error in getSeriesViewsMap:', err);
   }
@@ -80,6 +92,14 @@ async function fetchEpisodeViewsMap(): Promise<Record<string, number>> {
         viewsMap[episodeId] = (viewsMap[episodeId] || 0) + 1;
       }
     });
+
+    // If boosted metrics are active, overlay boosted views on episodes
+    if (isFakeMetricsActive()) {
+      const config = getFakeMetricsConfig();
+      Object.entries(config.episodes || {}).forEach(([episodeId, data]) => {
+        viewsMap[episodeId] = (data.views || 0) + (viewsMap[episodeId] || 0);
+      });
+    }
   } catch (err) {
     console.error('Error in getEpisodeViewsMap:', err);
   }

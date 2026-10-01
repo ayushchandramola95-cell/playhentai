@@ -26,7 +26,9 @@ import {
   FileText,
   Shield,
   LogIn,
-  UserPlus
+  UserPlus,
+  Download,
+  Smartphone
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSidebar } from '@/contexts/SidebarContext';
@@ -53,17 +55,56 @@ export default function Header() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const pwaTipRef = useRef<HTMLDivElement>(null);
   const [currentGenre, setCurrentGenre] = useState<string | null>(null);
   const [searchFocused, setSearchFocused] = useState(false);
 
+  // PWA installation state
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [isPwaInstalled, setIsPwaInstalled] = useState(false);
+  const [isIos, setIsIos] = useState(false);
+  const [showPwaTip, setShowPwaTip] = useState(false);
+
   useEffect(() => {
     setMounted(true);
+
+    if (typeof window !== 'undefined') {
+      const isStandalone = 
+        window.matchMedia('(display-mode: standalone)').matches || 
+        (window.navigator as any).standalone === true;
+      if (isStandalone) {
+        setIsPwaInstalled(true);
+      }
+
+      const ua = window.navigator.userAgent.toLowerCase();
+      setIsIos(/iphone|ipad|ipod/.test(ua));
+    }
+
+    const handleBeforeInstall = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+
+    const handleAppInstalled = () => {
+      setIsPwaInstalled(true);
+      setDeferredPrompt(null);
+      setShowPwaTip(false);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstall);
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+    };
   }, []);
 
-  // Close mobile drawer, reset search focus, and scroll to top on route changes
+  // Close mobile drawer, PWA tip, reset search focus, and scroll to top on route changes
   useEffect(() => {
     setMobileMenuOpen(false);
     setSearchFocused(false);
+    setShowPwaTip(false);
     if (typeof window !== 'undefined') {
       window.scrollTo(0, 0);
     }
@@ -89,11 +130,14 @@ export default function Header() {
     }
   }, [pathname]);
 
-  // Close dropdown on click outside
+  // Close dropdown & PWA tooltip on click outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setDropdownOpen(false);
+      }
+      if (pwaTipRef.current && !pwaTipRef.current.contains(event.target as Node)) {
+        setShowPwaTip(false);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
@@ -109,6 +153,24 @@ export default function Header() {
 
   const toggleDropdown = () => {
     setDropdownOpen(!dropdownOpen);
+  };
+
+  const handleInstallClick = async () => {
+    if (deferredPrompt) {
+      try {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          setIsPwaInstalled(true);
+          setDeferredPrompt(null);
+          setShowPwaTip(false);
+        }
+      } catch (err) {
+        console.error('PWA install prompt error:', err);
+      }
+    } else {
+      setShowPwaTip(prev => !prev);
+    }
   };
 
   const isNavActive = (path: string) => {
@@ -185,22 +247,76 @@ export default function Header() {
         <SearchBar onFocusChange={setSearchFocused} />
       </div>
 
-      {/* Right Section: Desktop Watchlist Shortcut & User Dropdown */}
+      {/* Right Section: PWA Install Button & User Account Controls */}
       <div className={styles.rightSection}>
-        {/* Watchlist Shortcut */}
-        <Link href="/watchlist" className={`${styles.watchlistShortcut} ${pathname === '/watchlist' ? styles.activeLink : ''}`} title="My Watchlist">
-          <Bookmark size={16} className={styles.watchlistShortcutIcon} />
-          <span>Watchlist</span>
-        </Link>
+        {/* PWA App Install Button (Watchlist moved into User dropdown as requested) */}
+        {!isPwaInstalled && (
+          <div className={styles.pwaInstallWrapper} ref={pwaTipRef}>
+            <button
+              type="button"
+              onClick={handleInstallClick}
+              className={styles.pwaInstallBtn}
+              title="Install PlayHentai App (1-Click, Ad-Free)"
+              aria-label="Install PlayHentai App"
+            >
+              <div className={styles.pwaIconBox}>
+                <Download size={14} className={styles.pwaIcon} />
+              </div>
+              <span className={styles.pwaBtnText}>Install App</span>
+              <span className={styles.pwaBadgeFree}>APP</span>
+            </button>
+
+            {/* PWA Guidance Popover / Tooltip */}
+            {showPwaTip && (
+              <div className={`${styles.pwaTooltip} glass`}>
+                <div className={styles.pwaTooltipHeader}>
+                  <Smartphone size={16} className={styles.pwaTooltipIcon} />
+                  <span className={styles.pwaTooltipTitle}>Install PlayHentai App</span>
+                  <button 
+                    type="button" 
+                    onClick={() => setShowPwaTip(false)}
+                    className={styles.pwaTooltipClose}
+                    aria-label="Close tooltip"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+                <div className={styles.pwaTooltipBody}>
+                  {isIos ? (
+                    <p>
+                      Tap the <strong>Share</strong> button <span className={styles.inlineShareIcon}>⎋</span> in Safari, then scroll down and tap <strong>&quot;Add to Home Screen&quot;</strong>.
+                    </p>
+                  ) : (
+                    <p>
+                      Click the <strong>Install icon</strong> in your browser&apos;s address bar, or click browser menu (<strong>⋮</strong>) &rarr; <strong>&quot;Install PlayHentai&quot;</strong>.
+                    </p>
+                  )}
+                </div>
+                <div className={styles.pwaTooltipPerks}>
+                  <span>⚡ Instant 1-tap launch</span>
+                  <span>🎬 Fullscreen mode</span>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* User Account Controls */}
         {loading ? (
           <div className={styles.skeletonUser} />
         ) : user ? (
           <div className={styles.profileContainer} ref={dropdownRef}>
-            <button onClick={toggleDropdown} className={styles.profileBtn}>
+            <button 
+              onClick={toggleDropdown} 
+              className={`${styles.profileBtn} ${dropdownOpen ? styles.profileBtnActive : ''}`}
+              aria-expanded={dropdownOpen}
+              aria-label="User Account Menu"
+            >
               <div className={styles.avatar}>
-                <User size={16} />
+                <span className={styles.avatarInitial}>
+                  {(profile?.username || user.email || 'U')[0].toUpperCase()}
+                </span>
+                <span className={styles.avatarStatusDot} />
               </div>
               <span className={styles.username}>
                 {profile?.username || user.email?.split('@')[0]}
@@ -210,46 +326,93 @@ export default function Header() {
 
             {dropdownOpen && (
               <div className={`${styles.dropdownMenu} glass`}>
+                {/* Enhanced Profile Header */}
                 <div className={styles.dropdownHeader}>
-                  <div className={styles.dropdownEmail}>{user.email}</div>
-                  {profile?.role === 'admin' && (
-                    <span className={styles.adminBadge}>Admin</span>
-                  )}
+                  <div className={styles.dropdownHeaderAvatar}>
+                    <span>{(profile?.username || user.email || 'U')[0].toUpperCase()}</span>
+                  </div>
+                  <div className={styles.dropdownHeaderText}>
+                    <div className={styles.dropdownName}>
+                      {profile?.username || user.email?.split('@')[0]}
+                    </div>
+                    <div className={styles.dropdownEmail} title={user.email}>
+                      {user.email}
+                    </div>
+                    <div className={styles.dropdownBadgeContainer}>
+                      {profile?.role === 'admin' ? (
+                        <span className={styles.adminBadge}>
+                          <ShieldCheck size={11} /> Admin
+                        </span>
+                      ) : (
+                        <span className={styles.vipBadge}>
+                          <Sparkles size={11} /> VIP Member
+                        </span>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
-                <hr className={styles.divider} />
+                <div className={styles.dropdownSectionLabel}>MY LIBRARY</div>
 
+                {/* My Watchlist - integrated directly into user toggle */}
+                <Link 
+                  href="/watchlist" 
+                  onClick={() => setDropdownOpen(false)} 
+                  className={`${styles.dropdownItem} ${pathname === '/watchlist' ? styles.dropdownItemActive : ''}`}
+                >
+                  <Bookmark size={16} style={{ color: '#38bdf8' }} />
+                  <span>My Watchlist</span>
+                </Link>
+
+                {/* My Favorites */}
                 <Link 
                   href="/favorites" 
                   onClick={() => setDropdownOpen(false)} 
-                  className={styles.dropdownItem}
+                  className={`${styles.dropdownItem} ${pathname === '/favorites' ? styles.dropdownItemActive : ''}`}
                 >
                   <Heart size={16} style={{ color: '#ec4899' }} />
                   <span>My Favorites</span>
                 </Link>
 
+                {/* Watch History */}
                 <Link 
                   href="/history" 
                   onClick={() => setDropdownOpen(false)} 
-                  className={styles.dropdownItem}
+                  className={`${styles.dropdownItem} ${pathname === '/history' ? styles.dropdownItemActive : ''}`}
                 >
-                  <History size={16} style={{ color: '#8b5cf6' }} />
+                  <History size={16} style={{ color: '#a855f7' }} />
                   <span>Watch History</span>
                 </Link>
 
+                <hr className={styles.divider} />
+
+                <div className={styles.dropdownSectionLabel}>PREFERENCES</div>
+
+                {/* Account Settings */}
+                <Link 
+                  href="/settings" 
+                  onClick={() => setDropdownOpen(false)} 
+                  className={`${styles.dropdownItem} ${pathname === '/settings' ? styles.dropdownItemActive : ''}`}
+                >
+                  <Settings size={16} style={{ color: '#94a3b8' }} />
+                  <span>Account Settings</span>
+                </Link>
+
+                {/* Admin Dashboard */}
                 {profile?.role === 'admin' && (
                   <Link 
                     href="/admin" 
                     onClick={() => setDropdownOpen(false)} 
-                    className={styles.dropdownItem}
+                    className={`${styles.dropdownItem} ${pathname.startsWith('/admin') ? styles.dropdownItemActive : ''}`}
                   >
-                    <Settings size={16} style={{ color: '#f59e0b' }} />
+                    <ShieldCheck size={16} style={{ color: '#f59e0b' }} />
                     <span>Admin Dashboard</span>
                   </Link>
                 )}
 
                 <hr className={styles.divider} />
 
+                {/* Sign Out */}
                 <button onClick={handleSignOut} className={`${styles.dropdownItem} ${styles.signOutBtn}`}>
                   <LogOut size={16} />
                   <span>Sign Out</span>
@@ -259,7 +422,8 @@ export default function Header() {
           </div>
         ) : (
           <Link href="/login" className={styles.signInBtn}>
-            Sign In
+            <LogIn size={15} style={{ marginRight: '0.35rem' }} />
+            <span>Sign In</span>
           </Link>
         )}
       </div>
@@ -333,6 +497,32 @@ export default function Header() {
                 </div>
               )}
             </div>
+
+            {/* Mobile PWA Install Banner */}
+            {!isPwaInstalled && (
+              <div className={styles.drawerPwaCard}>
+                <div className={styles.drawerPwaLeft}>
+                  <div className={styles.drawerPwaIconBox}>
+                    <Download size={18} />
+                  </div>
+                  <div className={styles.drawerPwaText}>
+                    <div className={styles.drawerPwaTitle}>Install PlayHentai App</div>
+                    <div className={styles.drawerPwaSubtitle}>1-Tap Launch & 100% Ad-Free</div>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    handleInstallClick();
+                  }}
+                  className={styles.drawerPwaInstallBtn}
+                  aria-label="Install App"
+                >
+                  Install
+                </button>
+              </div>
+            )}
 
             {/* Scrollable Navigation List */}
             <div className={styles.drawerNavBody}>
@@ -525,6 +715,19 @@ export default function Header() {
                     </div>
                     <span className={styles.drawerNavText}>Privacy Policy</span>
                   </Link>
+
+                  {user && (
+                    <Link 
+                      href="/settings" 
+                      onClick={() => setMobileMenuOpen(false)} 
+                      className={`${styles.drawerNavLink} ${pathname === '/settings' ? styles.drawerActiveLink : ''}`}
+                    >
+                      <div className={styles.drawerIconBox} style={{ color: '#94a3b8' }}>
+                        <Settings size={18} />
+                      </div>
+                      <span className={styles.drawerNavText}>Account Settings</span>
+                    </Link>
+                  )}
 
                   {profile?.role === 'admin' && (
                     <Link 

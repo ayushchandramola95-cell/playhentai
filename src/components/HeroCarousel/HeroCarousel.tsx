@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Play, ChevronLeft, ChevronRight, Info, Star, Eye } from 'lucide-react';
+import { Play, ChevronLeft, ChevronRight, Star, Eye, Layers, CheckCircle2 } from 'lucide-react';
 import WatchlistToggle from '../WatchlistToggle/WatchlistToggle';
 import { getR2Url } from '@/utils/r2';
 import styles from './HeroCarousel.module.css';
@@ -33,6 +33,9 @@ interface SeriesItem {
   tagline?: string;
   rating?: number | null;
   views?: number;
+  studio?: string | null;
+  release_year?: number | string | null;
+  watchEpisodeUrl?: string | null;
 }
 
 interface HeroCarouselProps {
@@ -45,8 +48,9 @@ export default function HeroCarousel({ activeSeries, isDbEmpty, autoplaySpeed = 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [hasInteracted, setHasInteracted] = useState(false);
-  const [loadedSlides, setLoadedSlides] = useState<Set<number>>(() => new Set([0]));
+  const [loadedSlides, setLoadedSlides] = useState<Set<number>>(() => new Set([0, 1]));
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const thumbTrackRef = useRef<HTMLDivElement | null>(null);
 
   const totalSlides = activeSeries ? activeSeries.length : 0;
 
@@ -56,20 +60,24 @@ export default function HeroCarousel({ activeSeries, isDbEmpty, autoplaySpeed = 
     }
   }, [currentIndex]);
 
+  // Preload current slide, next slide, and previous slide for instant rendering
   useEffect(() => {
+    if (totalSlides === 0) return;
     setLoadedSlides((prev) => {
-      if (prev.has(currentIndex) && (totalSlides <= 1 || prev.has((currentIndex + 1) % totalSlides))) {
+      const nextIdx = (currentIndex + 1) % totalSlides;
+      const prevIdx = (currentIndex - 1 + totalSlides) % totalSlides;
+      if (prev.has(currentIndex) && prev.has(nextIdx) && prev.has(prevIdx)) {
         return prev;
       }
-      const next = new Set(prev);
-      next.add(currentIndex);
-      if (totalSlides > 0) {
-        next.add((currentIndex + 1) % totalSlides);
-      }
-      return next;
+      const updated = new Set(prev);
+      updated.add(currentIndex);
+      updated.add(nextIdx);
+      updated.add(prevIdx);
+      return updated;
     });
   }, [currentIndex, totalSlides]);
 
+  // Autoplay timer
   useEffect(() => {
     if (totalSlides <= 1 || autoplaySpeed <= 0) return;
 
@@ -86,6 +94,15 @@ export default function HeroCarousel({ activeSeries, isDbEmpty, autoplaySpeed = 
     };
   }, [totalSlides, isPaused, autoplaySpeed]);
 
+  // Scroll active thumbnail smoothly into view
+  useEffect(() => {
+    if (!thumbTrackRef.current) return;
+    const activeEl = thumbTrackRef.current.children[currentIndex] as HTMLElement | undefined;
+    if (activeEl) {
+      activeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+    }
+  }, [currentIndex]);
+
   const handleNext = () => {
     if (totalSlides <= 1) return;
     setCurrentIndex((prevIndex) => (prevIndex + 1) % totalSlides);
@@ -96,14 +113,10 @@ export default function HeroCarousel({ activeSeries, isDbEmpty, autoplaySpeed = 
     setCurrentIndex((prevIndex) => (prevIndex - 1 + totalSlides) % totalSlides);
   };
 
-  const handleDotClick = (index: number) => {
-    setCurrentIndex(index);
-  };
-
-  // Touch Swipe State for Mobile Screens
+  // Touch Swipe for Mobile
   const touchStartX = useRef<number | null>(null);
   const touchEndX = useRef<number | null>(null);
-  const minSwipeDistance = 35; // minimum px distance for swipe trigger
+  const minSwipeDistance = 35;
 
   const handleTouchStart = (e: React.TouchEvent) => {
     setIsPaused(true);
@@ -119,17 +132,27 @@ export default function HeroCarousel({ activeSeries, isDbEmpty, autoplaySpeed = 
     setIsPaused(false);
     if (!touchStartX.current || !touchEndX.current) return;
     const distance = touchStartX.current - touchEndX.current;
-    const isLeftSwipe = distance > minSwipeDistance;
-    const isRightSwipe = distance < -minSwipeDistance;
-
-    if (isLeftSwipe) {
+    if (distance > minSwipeDistance) {
       handleNext();
-    } else if (isRightSwipe) {
+    } else if (distance < -minSwipeDistance) {
       handlePrev();
     }
   };
 
   if (!activeSeries || activeSeries.length === 0) return null;
+
+  const currentSeries = activeSeries[currentIndex] || activeSeries[0];
+  const nextIndex = (currentIndex + 1) % totalSlides;
+  const nextSeries = activeSeries[nextIndex] || currentSeries;
+
+  const currentWatchLink = currentSeries.watchEpisodeUrl
+    ? currentSeries.watchEpisodeUrl
+    : (currentSeries.slug 
+        ? `/watch/${currentSeries.slug}-episode-1` 
+        : (currentSeries.firstEpisodeId ? `/watch/${currentSeries.firstEpisodeId}` : `/series/${currentSeries.slug}`));
+
+  const currentCoverUrl = getR2Url(currentSeries.cover_image_key || currentSeries.banner_image_key || currentSeries.poster_image_key, 'cover');
+  const nextCoverUrl = getR2Url(nextSeries.cover_image_key || nextSeries.banner_image_key || nextSeries.poster_image_key, 'cover');
 
   return (
     <section 
@@ -139,9 +162,9 @@ export default function HeroCarousel({ activeSeries, isDbEmpty, autoplaySpeed = 
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
-      aria-label="Featured Series Carousel"
+      aria-label="Spotlight Featured Carousel"
     >
-      {/* Background Banner Slides with Vignette Overlay */}
+      {/* Background Banner Slides with Atmospheric Blur & Gradient Masks */}
       <div className={styles.slidesContainer}>
         {activeSeries.map((series, index) => {
           const isActive = index === currentIndex;
@@ -157,12 +180,12 @@ export default function HeroCarousel({ activeSeries, isDbEmpty, autoplaySpeed = 
                 {loadedSlides.has(index) && (
                   <Image
                     src={bannerUrl}
-                    alt={`${series.title || 'Featured'} cover`}
+                    alt={`${series.title || 'Featured'} backdrop`}
                     fill
                     sizes="(max-width: 768px) 1px, 100vw"
-                    className={styles.heroImage}
-                    priority={false}
-                    loading={index === 0 ? "eager" : "lazy"}
+                    className={styles.heroBgImage}
+                    priority={index === 0}
+                    loading={index === 0 ? 'eager' : 'lazy'}
                     unoptimized={typeof bannerUrl === 'string' && bannerUrl.startsWith('data:')}
                   />
                 )}
@@ -173,168 +196,195 @@ export default function HeroCarousel({ activeSeries, isDbEmpty, autoplaySpeed = 
         })}
       </div>
 
-      {/* Main Hero Card Container */}
+      {/* Main Spotlight Container */}
       <div className={styles.heroContentWrapper}>
-        {activeSeries.map((series, index) => {
-          const isActive = index === currentIndex;
-          const isInitial = !hasInteracted && index === 0;
-
-          const posterKey = series.poster_image_key || series.cover_image_key;
-          const posterUrl = getR2Url(posterKey, 'poster');
+        <div className={styles.spotlightGrid}>
           
-          const cleanTags = (series.tags || [series.category || 'Featured'])
-            .filter(t => t.toLowerCase() !== 'featured' && !t.toLowerCase().startsWith('featured:'))
-            .slice(0, 3);
+          {/* LEFT COLUMN: Metadata, Titles, Actions, and Thumbnails Strip */}
+          <div className={styles.leftColumn}>
+            {isDbEmpty && (
+              <div className={styles.dbAlert}>
+                💡 Featuring catalog mock data
+              </div>
+            )}
 
-          const ratingVal = typeof series.rating === 'number' && series.rating > 0
-            ? series.rating
-            : (series.rating && !isNaN(Number(series.rating)) && Number(series.rating) > 0 ? Number(series.rating) : null);
+            {/* Top Badges Row */}
+            <div className={styles.badgeRow}>
+              <span className={styles.statusPill}>
+                {currentSeries.tagline || 'New episode'}
+              </span>
+              <span className={styles.releaseText}>
+                {currentSeries.release_year ? `${currentSeries.release_year}` : 'Latest release'}
+              </span>
+              {currentSeries.studio && (
+                <span className={styles.studioBadge}>
+                  <CheckCircle2 size={13} className={styles.checkIcon} />
+                  <span>{currentSeries.studio}</span>
+                </span>
+              )}
+            </div>
 
-          const displayRating = ratingVal 
-            ? ratingVal.toFixed(1) 
-            : (8.4 + ((series.title || 'Hentai').charCodeAt(0) % 12) * 0.1).toFixed(1);
+            {/* Hero Main Title */}
+            <h1 className={styles.heroTitle}>
+              <Link href={currentSeries.watchEpisodeUrl || `/series/${currentSeries.slug}`} title={currentSeries.title}>
+                {currentSeries.title}
+              </Link>
+            </h1>
 
-          const displayViews = typeof series.views === 'number' && series.views > 0
-            ? series.views
-            : (2400 + ((series.title || 'Hentai').length * 187));
+            {/* Synopsis (2 lines clamped) */}
+            <p className={styles.heroDescription}>
+              {currentSeries.description || 'Watch the latest episodes in high definition with English subtitles on PlayHentai.'}
+            </p>
 
-          return (
-            <div 
-              key={series.id || index} 
-              className={`${styles.heroCardContainer} ${
-                isActive
-                  ? (isInitial ? styles.heroCardInitial : styles.heroCardActive)
-                  : styles.heroCardInactive
-              }`}
-            >
-              {/* Left Poster Thumbnail Card */}
-              <div className={styles.posterCardWrapper}>
-                <Link href={`/series/${series.slug}`} className={styles.posterLink}>
-                  {loadedSlides.has(index) && (
-                    <Image
-                      src={posterUrl}
-                      alt={`${series.title || 'Featured'} poster`}
-                      fill
-                      sizes="(max-width: 768px) 142px, 220px"
-                      className={styles.posterImage}
-                      priority={index === 0}
-                      fetchPriority={index === 0 ? "high" : "auto"}
-                      unoptimized={typeof posterUrl === 'string' && posterUrl.startsWith('data:')}
-                    />
-                  )}
-                  <div className={styles.posterHoverOverlay}>
-                    <Play size={40} fill="white" />
-                  </div>
-                </Link>
+            {/* Metadata Stats & Tags Row */}
+            <div className={styles.statsAndTagsRow}>
+              <div className={styles.statsGroup}>
+                <div className={styles.statItem}>
+                  <Eye size={14} className={styles.statIcon} />
+                  <span>{formatViews(currentSeries.views)}</span>
+                </div>
+                <div className={styles.statItem}>
+                  <Star size={13} fill="#fbbf24" color="#fbbf24" className={styles.statIcon} />
+                  <span>
+                    {currentSeries.rating ? Number(currentSeries.rating).toFixed(1) : '8.8'}
+                  </span>
+                </div>
               </div>
 
-              {/* Right Content Area */}
-              <div className={styles.heroContent}>
-                {isDbEmpty && (
-                  <div className={styles.dbAlert}>
-                    💡 Featuring catalog mock data
-                  </div>
-                )}
-
-                <div className={styles.heroMetaCol}>
-                  <div className={styles.badgeRow}>
-                    {series.tagline && (
-                      <span className={styles.taglineBadge}>
-                        {series.tagline}
-                      </span>
-                    )}
-                    <span className={styles.qualityBadge}>HD</span>
-                    <span className={styles.categoryBadge}>{series.category || 'Anime'}</span>
-                  </div>
-
-                  <h2 className={styles.heroTitle}>
-                    <Link href={`/series/${series.slug}`}>{series.title}</Link>
-                  </h2>
-
-                  {cleanTags.length > 0 && (
-                    <div className={styles.genreSubLine}>
-                      {cleanTags.join(' • ')}
-                    </div>
-                  )}
-
-                  {/* Rating and Views Option */}
-                  <div className={styles.heroStatsRow}>
-                    <div className={styles.heroRating}>
-                      <Star size={12} fill="#fbbf24" color="#fbbf24" />
-                      <span>{displayRating}</span>
-                    </div>
-                    <span className={styles.statDot}>•</span>
-                    <div className={styles.heroViews}>
-                      <Eye size={13} />
-                      <span>{formatViews(displayViews)} views</span>
-                    </div>
-                  </div>
-
-                  {/* Synopsis Moved to Right Column */}
-                  <p className={styles.heroDescription}>
-                    {series.description}
-                  </p>
-                </div>
-
-                <div className={styles.heroButtons}>
-                  <Link 
-                    href={series.slug ? `/watch/${series.slug}-episode-1` : (series.firstEpisodeId ? `/watch/${series.firstEpisodeId}` : `/series/${series.slug}`)} 
-                    className={styles.playBtn}
-                  >
-                    <Play size={18} fill="currentColor" />
-                    <span>Watch Now</span>
-                  </Link>
-
-                  <Link href={`/series/${series.slug}`} className={styles.detailsBtn}>
-                    <Info size={18} />
-                    <span>Details</span>
-                  </Link>
-
-                  <WatchlistToggle seriesId={series.id} variant="hero" />
-                </div>
+              {/* Tag Chips */}
+              <div className={styles.tagChips}>
+                <span className={styles.qualityChip}>HD</span>
+                {(currentSeries.tags || [currentSeries.category || 'Anime'])
+                  .filter(t => t.toLowerCase() !== 'featured' && !t.toLowerCase().startsWith('featured:'))
+                  .slice(0, 4)
+                  .map(tag => (
+                    <Link 
+                      key={tag} 
+                      href={`/tag/${encodeURIComponent(tag.toLowerCase().replace(/\s+/g, '-'))}`}
+                      className={styles.tagChip}
+                    >
+                      {tag}
+                    </Link>
+                  ))}
               </div>
             </div>
-          );
-        })}
-      </div>
 
-      {/* Side Circular Navigation Buttons */}
-      {totalSlides > 1 && (
-        <>
-          <button 
-            type="button"
-            className={`${styles.navBtn} ${styles.prevBtn}`}
-            onClick={handlePrev}
-            aria-label="Previous Slide"
-          >
-            <ChevronLeft size={24} />
-          </button>
+            {/* Action Buttons: Watch Now, All Episodes, Watchlist */}
+            <div className={styles.actionButtons}>
+              <Link href={currentWatchLink} className={styles.watchNowBtn}>
+                <Play size={18} fill="currentColor" />
+                <span>Watch now</span>
+              </Link>
 
-          <button 
-            type="button"
-            className={`${styles.navBtn} ${styles.nextBtn}`}
-            onClick={handleNext}
-            aria-label="Next Slide"
-          >
-            <ChevronRight size={24} />
-          </button>
-        </>
-      )}
+              <Link href={`/series/${currentSeries.slug}`} className={styles.allEpisodesBtn}>
+                <Layers size={17} />
+                <span>All episodes</span>
+              </Link>
 
-      {/* Bottom Capsule Dots Indicator Bar */}
-      {totalSlides > 1 && (
-        <div className={styles.capsuleDotsContainer}>
-          {activeSeries.map((_, idx) => (
-            <button
-              key={idx}
-              type="button"
-              className={`${styles.dot} ${idx === currentIndex ? styles.dotActive : ''}`}
-              onClick={() => handleDotClick(idx)}
-              aria-label={`Go to slide ${idx + 1}`}
-            />
-          ))}
+              <WatchlistToggle seriesId={currentSeries.id} variant="hero" />
+            </div>
+
+            {/* Bottom Mini Thumbnails Strip ("Latest uploads") */}
+            {totalSlides > 1 && (
+              <div className={styles.thumbStripContainer}>
+                <div className={styles.thumbStripHeader}>
+                  <span className={styles.thumbStripTitle}>Latest uploads</span>
+                  <div className={styles.thumbArrows}>
+                    <button 
+                      type="button" 
+                      onClick={handlePrev} 
+                      className={styles.thumbArrowBtn}
+                      aria-label="Previous series"
+                    >
+                      <ChevronLeft size={15} />
+                    </button>
+                    <button 
+                      type="button" 
+                      onClick={handleNext} 
+                      className={styles.thumbArrowBtn}
+                      aria-label="Next series"
+                    >
+                      <ChevronRight size={15} />
+                    </button>
+                  </div>
+                </div>
+
+                <div className={styles.thumbTrack} ref={thumbTrackRef}>
+                  {activeSeries.map((item, idx) => {
+                    const isItemActive = idx === currentIndex;
+                    const thumbImg = getR2Url(item.cover_image_key || item.poster_image_key || item.banner_image_key, 'cover');
+                    
+                    return (
+                      <button
+                        key={item.id || idx}
+                        type="button"
+                        onClick={() => setCurrentIndex(idx)}
+                        className={`${styles.thumbItem} ${isItemActive ? styles.thumbItemActive : ''}`}
+                        aria-label={`Select ${item.title}`}
+                      >
+                        <Image
+                          src={thumbImg}
+                          alt={item.title}
+                          fill
+                          sizes="120px"
+                          className={styles.thumbImage}
+                          unoptimized={typeof thumbImg === 'string' && thumbImg.startsWith('data:')}
+                        />
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* RIGHT COLUMN: Layered Floating Spotlight Card Stack */}
+          <div className={styles.rightColumn}>
+            <div className={styles.cardStack}>
+              {/* Back Card (Shows next slide, tilted for 3D depth) */}
+              {totalSlides > 1 && (
+                <div className={styles.backCard} aria-hidden="true">
+                  <Image
+                    src={nextCoverUrl}
+                    alt={nextSeries.title}
+                    fill
+                    sizes="(max-width: 1024px) 1px, 520px"
+                    className={styles.cardImage}
+                    unoptimized={typeof nextCoverUrl === 'string' && nextCoverUrl.startsWith('data:')}
+                  />
+                  <div className={styles.backCardShade} />
+                </div>
+              )}
+
+              {/* Front Card (Active Series, Interactive with Spotlight Play Badge) */}
+              <Link href={currentWatchLink} className={styles.frontCard} aria-label={`Watch ${currentSeries.title}`}>
+                <Image
+                  src={currentCoverUrl}
+                  alt={currentSeries.title}
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 460px, 540px"
+                  className={styles.cardImage}
+                  priority={true}
+                  unoptimized={typeof currentCoverUrl === 'string' && currentCoverUrl.startsWith('data:')}
+                />
+                <div className={styles.frontCardVignette} />
+
+                {/* Frosted In-the-Spotlight Badge Overlay */}
+                <div className={styles.spotlightBadgeOverlay}>
+                  <div className={styles.spotlightPlayIconBox}>
+                    <Play size={18} fill="white" color="white" />
+                  </div>
+                  <div className={styles.spotlightInfo}>
+                    <span className={styles.spotlightCategory}>IN THE SPOTLIGHT</span>
+                    <span className={styles.spotlightTitleText}>{currentSeries.title}</span>
+                  </div>
+                </div>
+              </Link>
+            </div>
+          </div>
+
         </div>
-      )}
+      </div>
     </section>
   );
 }

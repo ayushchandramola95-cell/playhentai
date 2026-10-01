@@ -13,14 +13,30 @@ import HorizontalScrollRow from '@/components/HorizontalScrollRow/HorizontalScro
 import RandomRowSection from '@/components/RandomRowSection/RandomRowSection';
 import JsonLd from '@/components/JsonLd/JsonLd';
 import RecommendationsBanner from '@/components/RecommendationsBanner/RecommendationsBanner';
+import PwaInstallBanner from '@/components/PwaInstallBanner/PwaInstallBanner';
 import styles from './page.module.css';
 import { MOCK_SERIES, MOCK_EPISODES, MOCK_SERIES_DETAILS } from '@/utils/mockData';
 import { getR2Url } from '@/utils/r2';
 import { getEpisodeWatchUrl } from '@/utils/episodeUrl';
 import { getSeriesViewsMap, getEpisodeViewsMap } from '@/utils/views';
 import { tagToSlug } from '@/utils/constants';
+import { convertStudioNameToSlug } from '@/utils/studiosData';
 
 export const revalidate = 120;
+
+const POPULAR_HOMEPAGE_TAGS = [
+  'Uncensored', '3D', 'Harem', 'MILF', 'Romance', 'Fantasy', 'School Girls', 'Supernatural', 
+  'Comedy', 'Sci-Fi', 'Ecchi', 'Vanilla', 'Tsundere', 'Yuri', 'POV', 'Maid', 'Dark Skin', 
+  'Demons', 'Magic', 'Adventure', 'Succubus', 'Drama', 'Cosplay', 'Cat Girl', 'BDSM', 
+  'Bondage', 'Cross-dressing', 'Femdom', 'Elf', 'Gyaru', 'Housewife', 'Historical', 
+  'Tentacles', 'Toys', 'Vampire', 'Horror'
+];
+
+const FEATURED_STUDIOS = [
+  'Queen Bee', 'Mary Jane', 'Pink Pineapple', 'PoRO', 'Bunnywalker', 'Seven', 
+  'MS Pictures', 'Magic Bus', 'Arms', 'Studio Jack', 'T-Rex', 'Discovery', 
+  'Collaboration Works', 'White Bear', 'Studio Fantasia', 'Milky'
+];
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
 
@@ -31,13 +47,13 @@ const publicSupabaseClient = createSupabaseClient(supabaseUrl, supabaseAnonKey);
 const HOME_DESCRIPTION = 'Watch hentai anime online free in 1080p HD on Play Hentai. Stream uncensored series and episodes with English subtitles, new releases, and popular titles.';
 
 export const metadata = {
-  title: 'Play Hentai – Watch Hentai Anime Online Free in HD',
+  title: 'Play Hentai – Watch Free Hentai Anime Online in HD (Eng Sub)',
   description: HOME_DESCRIPTION,
   alternates: {
     canonical: '/',
   },
   openGraph: {
-    title: 'Play Hentai – Watch Hentai Anime Online Free in HD',
+    title: 'Play Hentai – Watch Free Hentai Anime Online in HD (Eng Sub)',
     description: HOME_DESCRIPTION,
     url: SITE_URL,
     siteName: 'Play Hentai',
@@ -48,14 +64,14 @@ export const metadata = {
         url: `${SITE_URL}/og-banner.png`,
         width: 1200,
         height: 630,
-        alt: 'Play Hentai – Watch Hentai Anime Online Free in HD',
+        alt: 'Play Hentai – Watch Free Hentai Anime Online in HD (Eng Sub)',
         type: 'image/png',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Play Hentai – Watch Hentai Anime Online Free in HD',
+    title: 'Play Hentai – Watch Free Hentai Anime Online in HD (Eng Sub)',
     description: HOME_DESCRIPTION,
     images: [`${SITE_URL}/og-banner.png`],
   },
@@ -225,10 +241,77 @@ export default async function HomePage() {
 
   const heroSource = settingsMap.hero_banner_source || 'featured_tags';
   const slideLimit = parseInt(settingsMap.hero_banner_slide_count || '8', 10) || 8;
+  const heroMode = settingsMap.hero_banner_mode || 'series';
+  const episodeFilter = settingsMap.hero_banner_episode_filter || 'latest';
 
   // 3. Fetch Cached Series & Episodes catalog (60s TTL for superfast performance)
   let featuredSeries: any[] = [];
   const { dbSeries, dbEpisodes, isDbEmpty } = await getCachedCatalogData();
+
+  // If Admin chose Episodes Mode: show episodes directly using their video thumbnail
+  if (heroMode === 'episodes' && dbEpisodes && dbEpisodes.length > 0) {
+    let targetEps = dbEpisodes.filter((ep: any) => ep.is_published !== false);
+
+    if (episodeFilter === 'latest') {
+      targetEps.sort((a: any, b: any) => {
+        const timeA = new Date(a.release_date || a.created_at || 0).getTime();
+        const timeB = new Date(b.release_date || b.created_at || 0).getTime();
+        return timeB - timeA;
+      });
+    } else if (episodeFilter === 'random') {
+      targetEps = [...targetEps].sort(() => 0.5 - Math.random());
+    } else if (episodeFilter === 'mix') {
+      const half = Math.ceil(slideLimit / 2);
+      const byDate = [...targetEps].sort((a: any, b: any) => 
+        new Date(b.release_date || b.created_at || 0).getTime() - new Date(a.release_date || a.created_at || 0).getTime()
+      ).slice(0, half);
+      const remaining = targetEps.filter((e: any) => !byDate.some((b: any) => b.id === e.id));
+      const byViews = [...remaining].sort((a: any, b: any) => (b.views || 0) - (a.views || 0));
+
+      const interleaved: any[] = [];
+      const maxCount = Math.max(byDate.length, byViews.length);
+      for (let i = 0; i < maxCount; i++) {
+        if (i < byDate.length) interleaved.push(byDate[i]);
+        if (i < byViews.length) interleaved.push(byViews[i]);
+        if (interleaved.length >= slideLimit) break;
+      }
+      targetEps = interleaved;
+    }
+
+    const selectedEps = targetEps.slice(0, slideLimit);
+    const seriesLookup = new Map<string, any>();
+    (dbSeries || []).forEach((s: any) => seriesLookup.set(s.id, s));
+
+    featuredSeries = selectedEps.map((ep: any) => {
+      const season = Array.isArray(ep.seasons) ? ep.seasons[0] : ep.seasons;
+      const seriesObj = season ? (Array.isArray(season.series) ? season.series[0] : season.series) : seriesLookup.get(ep.series_id);
+      const seriesTitle = seriesObj?.title || '';
+      const seriesSlug = seriesObj?.slug || '';
+      const epTitle = ep.title || `Episode ${ep.episode_number}`;
+      const displayTitle = seriesTitle ? `${seriesTitle} - ${epTitle}` : epTitle;
+      const epThumb = ep.thumbnail || ep.cover_image_key || ep.thumbnail_key || seriesObj?.cover_image_key || seriesObj?.poster_image_key;
+      const epCover = ep.cover_image_key || ep.thumbnail || seriesObj?.cover_image_key || seriesObj?.banner_image_key;
+
+      return {
+        id: ep.id,
+        title: displayTitle,
+        slug: seriesSlug || ep.slug || ep.id,
+        description: ep.description || seriesObj?.description || '',
+        poster_image_key: epThumb,
+        cover_image_key: epCover,
+        banner_image_key: epCover,
+        tags: (seriesObj?.tags || ['HD', 'Episode']).slice(0, 4),
+        category: seriesObj?.category || 'Anime',
+        firstEpisodeId: ep.id,
+        watchEpisodeUrl: getEpisodeWatchUrl(ep.id, ep.episode_number, seriesSlug),
+        tagline: `Episode ${ep.episode_number}`,
+        rating: seriesObj?.rating || null,
+        views: ep.views || 0,
+        studio: seriesObj?.studio || seriesObj?.studios?.name || null,
+        release_year: ep.release_date ? new Date(ep.release_date).getFullYear() : (seriesObj?.release_year || null),
+      };
+    });
+  }
 
   // Fallback pool to rich Mock Data ONLY if DB has zero series
   // Sort pool by actual release date/year timestamp descending
@@ -265,8 +348,9 @@ export default async function HomePage() {
     return list.length > 0 ? list : [...pool];
   };
 
-  // Calculate Featured Series according to Admin Panel heroSource & slideLimit
-  if (heroSource === 'latest_series') {
+  // Calculate Featured Series according to Admin Panel heroSource & slideLimit (if not already set by Episodes Mode)
+  if (featuredSeries.length === 0) {
+    if (heroSource === 'latest_series') {
     featuredSeries = [...pool].slice(0, slideLimit);
   } else if (heroSource === 'latest_episodes') {
     featuredSeries = getLatestEpisodeSeries().slice(0, slideLimit);
@@ -340,6 +424,7 @@ export default async function HomePage() {
       featuredSeries = pool.slice(0, slideLimit);
     }
   }
+}
 
   // Parse custom promotional taglines and autoplay speed
   const autoplaySpeed = parseInt(settingsMap.hero_banner_autoplay_speed || '6000', 10);
@@ -367,9 +452,12 @@ export default async function HomePage() {
     tags: (s.tags || []).slice(0, 4),
     category: s.category || 'Anime',
     firstEpisodeId: s.firstEpisodeId || null,
-    tagline: heroTaglinesMap[s.id] || heroTaglinesMap[s.slug] || undefined,
+    watchEpisodeUrl: s.watchEpisodeUrl || null,
+    tagline: s.tagline || heroTaglinesMap[s.id] || heroTaglinesMap[s.slug] || undefined,
     rating: s.rating || null,
     views: s.views || 0,
+    studio: s.studio || s.studios?.name || null,
+    release_year: s.release_year || s.releaseYear || null,
   }));
 
 
@@ -471,17 +559,8 @@ export default async function HomePage() {
     });
   }
 
-  // Populate upcoming series strictly from real series (no fake mock data)
-  let upcomingSeriesPool = rawPool.filter(s => (s.status || '').toLowerCase() === 'upcoming' || s.is_upcoming);
-  if (upcomingSeriesPool.length < 6) {
-    const seenIds = new Set(upcomingSeriesPool.map(s => s.id || s.slug));
-    rawPool.forEach(s => {
-      if (!seenIds.has(s.id) && !seenIds.has(s.slug)) {
-        seenIds.add(s.id);
-        upcomingSeriesPool.push({ ...s, status: 'upcoming' });
-      }
-    });
-  }
+  // Populate upcoming series strictly from real upcoming series
+  const upcomingSeriesPool = rawPool.filter(s => (s.status || '').toLowerCase() === 'upcoming' || Boolean(s.is_upcoming));
   const upcomingSeries = upcomingSeriesPool.slice(0, 15);
 
   // Group Explore Categories dynamically (3 rows of 6 cards = 18 items)
@@ -563,6 +642,103 @@ export default async function HomePage() {
     'caption': 'Play Hentai — Watch Hentai Anime Online Free in HD'
   };
 
+  const faqJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    'mainEntity': [
+      {
+        '@type': 'Question',
+        'name': 'What is Play Hentai and is it completely free?',
+        'acceptedAnswer': {
+          '@type': 'Answer',
+          'text': 'Play Hentai is a premier free adult animation and hentai streaming platform. You can stream full uncensored episodes and series in 1080p HD without paid subscriptions, paywalls, or intrusive popunder advertisements.'
+        }
+      },
+      {
+        '@type': 'Question',
+        'name': 'Can I watch uncensored hentai anime episodes in 1080p HD?',
+        'acceptedAnswer': {
+          '@type': 'Answer',
+          'text': 'Yes. We prioritize pristine 1080p and 720p HD releases for both hand-drawn Japanese animation and modern 3D CGI titles, featuring uncensored footage whenever produced by original animation studios.'
+        }
+      },
+      {
+        '@type': 'Question',
+        'name': 'Do video releases include English subtitles or English dubs?',
+        'acceptedAnswer': {
+          '@type': 'Answer',
+          'text': 'All Japanese releases feature verified, high-accuracy English subtitles (Subbed). Popular releases also provide multi-language voice tracks or English dubbing (Dubbed) where available.'
+        }
+      },
+      {
+        '@type': 'Question',
+        'name': 'How frequently is new hentai content added to Play Hentai?',
+        'acceptedAnswer': {
+          '@type': 'Answer',
+          'text': 'Our streaming database updates daily with new episode uploads, trending releases, remastered classics, and upcoming series announcements.'
+        }
+      },
+      {
+        '@type': 'Question',
+        'name': 'Can I stream Play Hentai on mobile devices, tablets, and smart TVs?',
+        'acceptedAnswer': {
+          '@type': 'Answer',
+          'text': 'Yes. The Play Hentai HTML5 video player is fully responsive and optimized for ultra-smooth playback on mobile phones (iOS & Android), tablets, PCs, and smart TVs with zero ad interruptions.'
+        }
+      }
+    ]
+  };
+
+  const siteNavJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    'name': 'Play Hentai Navigation Sitelinks',
+    'itemListElement': [
+      {
+        '@type': 'SiteNavigationElement',
+        'position': 1,
+        'name': 'Trending Hentai',
+        'description': 'Watch trending and most popular anime series online in HD',
+        'url': `${SITE_URL}/trending`
+      },
+      {
+        '@type': 'SiteNavigationElement',
+        'position': 2,
+        'name': 'Uncensored Catalog',
+        'description': 'Stream 1080p uncensored hentai anime without pixelation or mosaics',
+        'url': `${SITE_URL}/uncensored`
+      },
+      {
+        '@type': 'SiteNavigationElement',
+        'position': 3,
+        'name': '3D Animation',
+        'description': 'Browse premium 3D CGI adult animation series and movies in HD',
+        'url': `${SITE_URL}/3d`
+      },
+      {
+        '@type': 'SiteNavigationElement',
+        'position': 4,
+        'name': 'Browse Genres',
+        'description': 'Explore complete directory of hentai genres and thematic tags',
+        'url': `${SITE_URL}/categories`
+      },
+      {
+        '@type': 'SiteNavigationElement',
+        'position': 5,
+        'name': 'Animation Studios',
+        'description': 'Browse Japanese adult animation production studios',
+        'url': `${SITE_URL}/studios`
+      },
+      {
+        '@type': 'SiteNavigationElement',
+        'position': 6,
+        'name': 'Recent Episodes',
+        'description': 'Daily new uncensored and subbed anime episode releases',
+        'url': `${SITE_URL}/recent/episodes`
+      }
+    ]
+  };
+
   // Lightweight sanitized series lists for SeriesCard components
   // Eliminates hundreds of kilobytes of unneeded description & nested episode columns from RSC Flight payload
   const cleanLatestSeries = sortedLatestSeries.slice(0, 18).map(toCleanSeriesCard);
@@ -571,7 +747,13 @@ export default async function HomePage() {
     .slice(0, 18)
     .map(toCleanSeriesCard);
   const cleanUpcomingSeries = (upcomingSeries || []).slice(0, 18).map(toCleanSeriesCard);
-  const lightweightRandomPool = rawPool.slice(0, 24).map(toCleanSeriesCard);
+  
+  // Random Pool: strictly released, playable series (zero upcoming), pre-shuffled for true randomness on load
+  const availableRandomSeries = activeSeries.filter(
+    s => (s.status || '').toLowerCase() !== 'upcoming' && !s.is_upcoming
+  );
+  const shuffledRandomSeries = [...availableRandomSeries].sort(() => 0.5 - Math.random());
+  const lightweightRandomPool = shuffledRandomSeries.slice(0, 36).map(toCleanSeriesCard);
 
   // Preload first hero image for instant mobile & desktop Largest Contentful Paint (LCP)
   const firstFeatured = featuredSeries && featuredSeries.length > 0 ? featuredSeries[0] : null;
@@ -585,11 +767,7 @@ export default async function HomePage() {
       {firstBannerUrl && (
         <link rel="preload" as="image" href={firstBannerUrl} fetchPriority="high" media="(min-width: 769px)" />
       )}
-      <JsonLd data={[itemListJsonLd, brandImageJsonLd]} />
-
-      {/* Ambient Glows */}
-      <div className="ambient-glow" />
-      <div className="ambient-glow-2" />
+      <JsonLd data={[itemListJsonLd, brandImageJsonLd, faqJsonLd, siteNavJsonLd]} />
 
       {/* Primary SEO H1 Heading Section */}
       <section className={styles.seoHeroHeader} aria-label="Welcome to PlayHentai">
@@ -626,7 +804,7 @@ export default async function HomePage() {
                   <div className={styles.cardImageWrapper}>
                     <Image
                       src={thumbUrl}
-                      alt={ep.fullTitle || ep.title}
+                      alt={`Watch ${ep.fullTitle || ep.title} ${ep.isUncensored ? '(Uncensored, Eng Sub)' : '(Eng Sub)'} in HD`}
                       fill
                       sizes="(max-width: 480px) 50vw, (max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
                       className={styles.cardImage}
@@ -767,7 +945,63 @@ export default async function HomePage() {
             );
           })}
         </div>
+
+        {/* Popular Tags Directory Cloud (Internal Link Flood) */}
+        <div className={styles.tagsCloudWrapper}>
+          <div className={styles.tagsCloudHeader}>
+            <div className={styles.tagsCloudTitle}>
+              <Sparkles size={15} color="#f59e0b" />
+              <span>Explore Popular Genres &amp; Themes</span>
+            </div>
+            <Link href="/genres" prefetch={false} className={styles.viewAllLink}>
+              All Tags <ChevronRight size={13} />
+            </Link>
+          </div>
+          <div className={styles.tagsCloudGrid}>
+            {POPULAR_HOMEPAGE_TAGS.map((tag) => {
+              const isSpecial = ['Uncensored', '3D', 'MILF', 'Harem', 'Vanilla', 'Romance'].includes(tag);
+              return (
+                <Link
+                  key={tag}
+                  href={`/categories/${tagToSlug(tag)}`}
+                  prefetch={false}
+                  className={`${styles.tagPill} ${isSpecial ? styles.tagPillSpecial : ''}`}
+                >
+                  <span>#{tag}</span>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Top Production Studios Showcase */}
+        <div className={styles.tagsCloudWrapper} style={{ marginTop: '1rem' }}>
+          <div className={styles.tagsCloudHeader}>
+            <div className={styles.tagsCloudTitle}>
+              <Flame size={15} color="#3b82f6" />
+              <span>Featured Animation Studios</span>
+            </div>
+            <Link href="/studios" prefetch={false} className={styles.viewAllLink}>
+              All Studios <ChevronRight size={13} />
+            </Link>
+          </div>
+          <div className={styles.studiosGrid}>
+            {FEATURED_STUDIOS.map((studio) => (
+              <Link
+                key={studio}
+                href={`/studios/${convertStudioNameToSlug(studio)}`}
+                prefetch={false}
+                className={styles.studioPill}
+              >
+                <span>🏢 {studio}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
       </section>
+
+      {/* PWA Home Screen Installation Prompt (Direct Traffic Retention) */}
+      <PwaInstallBanner />
 
       {/* Large SEO Content Section */}
       <section className={styles.seoContentSection}>
@@ -864,6 +1098,86 @@ export default async function HomePage() {
               </p>
             </div>
 
+            <div className={styles.seoCard}>
+              <h3>1080p Full HD &amp; Uncensored Quality</h3>
+              <p>
+                Visual fidelity is paramount in adult animation. Play Hentai encodes and delivers video streams in native 1080p and 720p high-definition resolutions at 60 frames per second. For collectors of unedited content, our dedicated uncensored library preserves original animator drawings without pixelation, digital blur, or mosaic bars, ensuring a crystal-clear, true-to-source presentation.
+              </p>
+            </div>
+
+            <div className={styles.seoCard}>
+              <h3>English Subbed (Eng Sub) &amp; Voice Dubs</h3>
+              <p>
+                Enjoy seamless storytelling with verified, highly accurate English subtitles (Eng Sub) timed to precision with Japanese voice acting tracks. Every line of dialogue is translated with context, honorifics, and character nuances intact. In addition to our extensive subbed library, select popular franchises feature complete English voice dubbing (Dubbed) for an accessible viewing experience.
+              </p>
+            </div>
+
+            <div className={styles.seoCard}>
+              <h3>High-Performance HTML5 Player (Zero Ads)</h3>
+              <p>
+                We believe your streaming sessions should be smooth, private, and uninterrupted. Unlike traditional streaming sites burdened with intrusive popunders, malware-prone redirects, and video prerolls, Play Hentai provides a 100% ad-free custom HTML5 video player. Enjoy lightning-fast buffering, keyboard shortcuts (Space to toggle play, arrows to scrub), theater mode, and responsive mobile playback across iOS, Android, and desktop.
+              </p>
+            </div>
+
+          </div>
+
+          {/* FAQ Accordion Section (Rich Snippet SEO & User Guidance) */}
+          <div className={styles.faqSection}>
+            <h3 className={styles.faqSectionTitle}>
+              <span>Frequently Asked Questions</span>
+            </h3>
+
+            <div className={styles.faqList}>
+              <details className={styles.faqItem} open>
+                <summary className={styles.faqQuestion}>
+                  <span>What is Play Hentai and is it completely free?</span>
+                  <span className={styles.faqIcon}>+</span>
+                </summary>
+                <p className={styles.faqAnswer}>
+                  Play Hentai is a premier free adult animation and hentai streaming platform. You can stream full uncensored episodes and series in 1080p HD without paid subscriptions, paywalls, or intrusive popunder advertisements.
+                </p>
+              </details>
+
+              <details className={styles.faqItem}>
+                <summary className={styles.faqQuestion}>
+                  <span>Can I watch uncensored hentai anime episodes in 1080p HD?</span>
+                  <span className={styles.faqIcon}>+</span>
+                </summary>
+                <p className={styles.faqAnswer}>
+                  Yes. We prioritize pristine 1080p and 720p HD releases for both hand-drawn Japanese animation and modern 3D CGI titles, featuring uncensored footage whenever produced by original animation studios.
+                </p>
+              </details>
+
+              <details className={styles.faqItem}>
+                <summary className={styles.faqQuestion}>
+                  <span>Do video releases include English subtitles or English dubs?</span>
+                  <span className={styles.faqIcon}>+</span>
+                </summary>
+                <p className={styles.faqAnswer}>
+                  All Japanese releases feature verified, high-accuracy English subtitles (Subbed). Popular releases also provide multi-language voice tracks or English dubbing (Dubbed) where available.
+                </p>
+              </details>
+
+              <details className={styles.faqItem}>
+                <summary className={styles.faqQuestion}>
+                  <span>How frequently is new hentai content added to Play Hentai?</span>
+                  <span className={styles.faqIcon}>+</span>
+                </summary>
+                <p className={styles.faqAnswer}>
+                  Our streaming database updates daily with new episode uploads, trending releases, remastered classics, and upcoming series announcements.
+                </p>
+              </details>
+
+              <details className={styles.faqItem}>
+                <summary className={styles.faqQuestion}>
+                  <span>Can I stream Play Hentai on mobile devices, tablets, and smart TVs?</span>
+                  <span className={styles.faqIcon}>+</span>
+                </summary>
+                <p className={styles.faqAnswer}>
+                  Yes. The Play Hentai HTML5 video player is fully responsive and optimized for ultra-smooth playback on mobile phones (iOS & Android), tablets, PCs, and smart TVs with zero ad interruptions.
+                </p>
+              </details>
+            </div>
           </div>
         </div>
       </section>

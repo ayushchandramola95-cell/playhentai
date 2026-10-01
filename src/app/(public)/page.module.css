@@ -6,12 +6,17 @@
   padding-bottom: 5rem;
 }
 
-/* SEO Hero Header Section (Above Hero Carousel) */
+/* SEO Hero Header Section (Screen-reader & Crawlers Only, Carousel Sits Flush) */
 .seoHeroHeader {
-  max-width: 1720px;
-  margin: 0 auto;
-  padding: 0.85rem 2rem 0.55rem;
-  width: 100%;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
 }
 
 .seoHeroTitle {
@@ -157,16 +162,24 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 8px;
   position: relative;
-  transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+  transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, box-shadow 0.32s ease;
   overflow: hidden;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
   width: 100%;
+  transform-style: preserve-3d;
+  transform-origin: left center;
+  will-change: transform;
 }
 
 .episodeCard:hover {
-  border-color: var(--primary, #7c3aed);
-  transform: translateY(-3px);
-  box-shadow: 0 8px 25px rgba(124, 58, 237, 0.25);
+  transform: translateY(-6px) rotateY(-7deg) rotateX(2deg) scale(1.02);
+  border-color: rgba(var(--primary-rgb), 0.7);
+  box-shadow: 
+    inset 2px 0 6px rgba(255, 255, 255, 0.12),
+    -10px 14px 28px rgba(0, 0, 0, 0.75),
+    -2px 0 8px rgba(0, 0, 0, 0.5),
+    0 0 18px rgba(var(--primary-rgb), 0.35);
+  z-index: 20 !important;
 }
 
 .cardImageLink {
@@ -183,31 +196,31 @@
   border-radius: 8px 8px 0 0;
   background: var(--surface-hover);
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  transition: border-color 0.25s ease;
+  transition: border-color 0.2s ease;
 }
 
 .episodeCard:hover .cardImageWrapper {
-  border-color: var(--primary);
+  border-color: rgba(168, 85, 247, 0.3);
 }
 
 .cardImage {
   object-fit: cover;
-  transition: transform 0.5s ease;
+  transition: transform 0.35s ease;
 }
 
 .episodeCard:hover .cardImage {
-  transform: scale(1.05);
+  transform: scale(1.01);
 }
 
 .cardImageOverlay {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.35);
   display: flex;
   align-items: center;
   justify-content: center;
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.2s ease;
   z-index: 5;
 }
 
@@ -216,13 +229,8 @@
 }
 
 .cardPlayIcon {
-  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5));
-  transform: scale(0.9);
-  transition: transform 0.3s ease;
-}
-
-.episodeCard:hover .cardPlayIcon {
-  transform: scale(1);
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.6));
+  transition: opacity 0.2s ease;
 }
 
 /* Badges on Landscape Card */
@@ -417,27 +425,24 @@
 }
 
 .viewAllLink {
-  color: var(--primary);
-  font-size: 0.85rem;
+  color: #e2e8f0;
+  font-size: 0.82rem;
   font-weight: 700;
   text-decoration: none;
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  padding: 0.4rem 0.95rem;
-  border-radius: 30px;
-  background: rgba(var(--primary-rgb), 0.08);
-  border: 1px solid rgba(var(--primary-rgb), 0.2);
-  transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  padding: 0.35rem 0.85rem;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
 .viewAllLink:hover {
-  background: var(--primary);
+  background: rgba(255, 255, 255, 0.12);
   color: #ffffff;
-  border-color: transparent;
-  box-shadow: 0 4px 16px rgba(var(--primary-rgb), 0.4);
-  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.22);
   text-decoration: none !important;
 }
 
@@ -637,10 +642,9 @@
 }
 
 .categoryCard:hover {
-  background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.1) 0%, rgba(var(--primary-rgb), 0.05) 100%);
-  border-color: rgba(var(--primary-rgb), 0.45);
-  box-shadow: 0 6px 20px rgba(var(--primary-rgb), 0.2);
-  transform: translateY(-3px);
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(168, 85, 247, 0.5);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
 }
 
 .categoryCard:hover .categoryLabel {
@@ -714,21 +718,7 @@
 }
 
 .recBtn:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
-}
-
-.viewAllLink {
-  font-size: 0.9rem;
-  color: var(--primary);
-  font-weight: 600;
-  text-decoration: none !important;
-  transition: all 0.2s ease;
-}
-
-.viewAllLink:hover {
-  opacity: 0.9;
-  text-decoration: none !important;
+  filter: brightness(1.08);
 }
 
 /* Responsive Breakpoints */
@@ -1291,5 +1281,174 @@
   padding: 0 !important;
   margin: 0 !important;
   max-width: 100% !important;
+}
+
+/* FAQ Accordion Section */
+.faqSection {
+  margin-top: 2.5rem;
+}
+
+.faqSectionTitle {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 1.25rem;
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.faqList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.faqItem {
+  background: rgba(18, 18, 18, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  overflow: hidden;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.faqItem:hover {
+  border-color: rgba(245, 158, 11, 0.3);
+  background: rgba(24, 24, 24, 0.8);
+}
+
+.faqItem[open] {
+  border-color: rgba(245, 158, 11, 0.4);
+  background: rgba(22, 22, 22, 0.85);
+}
+
+.faqQuestion {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #f1f5f9;
+  padding: 1rem 1.25rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  user-select: none;
+  list-style: none;
+}
+
+.faqQuestion::-webkit-details-marker {
+  display: none;
+}
+
+.faqQuestion:hover {
+  color: #f59e0b;
+}
+
+.faqAnswer {
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: var(--foreground-secondary, #94a3b8);
+  padding: 0.8rem 1.25rem 1.1rem 1.25rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  margin: 0;
+}
+
+/* Expanded Tag Cloud & Studios Directory on Homepage (Internal Link Flood) */
+.tagsCloudWrapper {
+  margin-top: 1.5rem;
+  padding: 1.35rem 1.5rem;
+  background: rgba(18, 18, 18, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  backdrop-filter: blur(12px);
+}
+
+.tagsCloudHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.95rem;
+}
+
+.tagsCloudTitle {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: #f1f5f9;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.tagsCloudGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.tagPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 650;
+  color: #cbd5e1;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0.38rem 0.75rem;
+  border-radius: 20px;
+  text-decoration: none;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.tagPill:hover {
+  background: rgba(245, 158, 11, 0.15);
+  border-color: rgba(245, 158, 11, 0.45);
+  color: #f59e0b;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.15);
+}
+
+.tagPillSpecial {
+  background: rgba(236, 72, 153, 0.12);
+  border-color: rgba(236, 72, 153, 0.35);
+  color: #f472b6;
+}
+
+.tagPillSpecial:hover {
+  background: rgba(236, 72, 153, 0.24);
+  border-color: rgba(236, 72, 153, 0.6);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.2);
+}
+
+.studiosGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.studioPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #e2e8f0;
+  background: rgba(59, 130, 246, 0.08);
+  border: 1px solid rgba(59, 130, 246, 0.22);
+  padding: 0.38rem 0.8rem;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.studioPill:hover {
+  background: rgba(59, 130, 246, 0.22);
+  border-color: rgba(59, 130, 246, 0.55);
+  color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
 }
 

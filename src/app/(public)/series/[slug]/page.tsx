@@ -110,8 +110,8 @@ export async function generateMetadata({ params }: SeriesPageProps): Promise<Met
       if (data.meta_title) {
         title = data.meta_title;
       } else {
-        const uncensoredSuffix = isUncensored ? '(Uncensored)' : '';
-        title = buildSeoTitle(`Watch ${data.title}`, uncensoredSuffix);
+        const titleSuffix = isUncensored ? '(Uncensored, Eng Sub)' : '(Eng Sub)';
+        title = buildSeoTitle(`Watch ${data.title}`, titleSuffix);
       }
 
       // Description Template (Strictly <= 155 chars for SEO / Bing compliance)
@@ -120,12 +120,12 @@ export async function generateMetadata({ params }: SeriesPageProps): Promise<Met
       } else if (data.description && data.description.trim().length >= 20) {
         const cleanSynopsis = data.description.trim().replace(/\s+/g, ' ');
         const shortSynopsis = cleanSynopsis.length > 90 ? `${cleanSynopsis.slice(0, 85).trim()}...` : cleanSynopsis;
-        description = buildSeoDescription(`${shortSynopsis} Watch ${data.title} ${tagLabel} online in HD free on Play Hentai.`);
+        description = buildSeoDescription(`${shortSynopsis} Watch ${data.title} ${tagLabel} with English subtitles free on Play Hentai.`);
       } else {
         if (isUncensored) {
-          description = buildSeoDescription(`Watch ${data.title} uncensored hentai anime online in full HD with English subtitles free on Play Hentai.`);
+          description = buildSeoDescription(`Watch ${data.title} uncensored hentai anime with English subtitles in full HD free on Play Hentai.`);
         } else {
-          description = buildSeoDescription(`Watch ${data.title} hentai anime online in full HD with English subtitles free on Play Hentai.`);
+          description = buildSeoDescription(`Watch ${data.title} hentai anime with English subtitles in full HD free on Play Hentai.`);
         }
       }
     } else if (MOCK_SERIES_DETAILS[slug]) {
@@ -137,17 +137,17 @@ export async function generateMetadata({ params }: SeriesPageProps): Promise<Met
         mock.tags?.some((t: string) => t.toLowerCase() === 'uncensored');
       const tagLabel = isUncensored ? 'Uncensored Hentai Anime' : 'Hentai Anime';
 
-      const uncensoredSuffix = isUncensored ? '(Uncensored)' : '';
-      title = buildSeoTitle(`Watch ${mock.title}`, uncensoredSuffix);
+      const titleSuffix = isUncensored ? '(Uncensored, Eng Sub)' : '(Eng Sub)';
+      title = buildSeoTitle(`Watch ${mock.title}`, titleSuffix);
 
       if (mock.description && mock.description.trim().length >= 20) {
         const cleanSynopsis = mock.description.trim().replace(/\s+/g, ' ');
         const shortSynopsis = cleanSynopsis.length > 90 ? `${cleanSynopsis.slice(0, 85).trim()}...` : cleanSynopsis;
-        description = buildSeoDescription(`${shortSynopsis} Watch ${mock.title} ${tagLabel} online in HD free on Play Hentai.`);
+        description = buildSeoDescription(`${shortSynopsis} Watch ${mock.title} ${tagLabel} with English subtitles free on Play Hentai.`);
       } else if (isUncensored) {
-        description = buildSeoDescription(`Watch ${mock.title} uncensored hentai anime online in full HD with English subtitles free on Play Hentai.`);
+        description = buildSeoDescription(`Watch ${mock.title} uncensored hentai anime with English subtitles in full HD free on Play Hentai.`);
       } else {
-        description = buildSeoDescription(`Watch ${mock.title} hentai anime online in full HD with English subtitles free on Play Hentai.`);
+        description = buildSeoDescription(`Watch ${mock.title} hentai anime with English subtitles in full HD free on Play Hentai.`);
       }
     }
   } catch (err) {
