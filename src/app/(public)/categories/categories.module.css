@@ -158,6 +158,13 @@
   background: var(--surface);
   border: 1px solid var(--border);
   position: relative;
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, box-shadow 0.28s ease;
+}
+
+.seriesCard:hover {
+  transform: translateY(-6px);
+  border-color: rgba(255, 255, 255, 0.22);
+  box-shadow: 0 14px 28px -4px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
 .cardImageLink {
@@ -175,11 +182,6 @@
 
 .cardImage {
   object-fit: cover;
-  transition: transform 0.5s ease;
-}
-
-.seriesCard:hover .cardImage {
-  transform: scale(1.05);
 }
 
 .cardImageOverlay {

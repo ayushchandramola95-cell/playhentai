@@ -10,6 +10,8 @@ import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import HeroCarousel from '@/components/HeroCarousel/HeroCarousel';
 import SeriesCard, { SeriesItem } from '@/components/SeriesCard/SeriesCard';
 import HorizontalScrollRow from '@/components/HorizontalScrollRow/HorizontalScrollRow';
+import ThreeDCard from '@/components/ThreeDCard/ThreeDCard';
+import UncensoredCard from '@/components/UncensoredCard/UncensoredCard';
 import RandomRowSection from '@/components/RandomRowSection/RandomRowSection';
 import JsonLd from '@/components/JsonLd/JsonLd';
 import RecommendationsBanner from '@/components/RecommendationsBanner/RecommendationsBanner';
@@ -19,6 +21,7 @@ import { MOCK_SERIES, MOCK_EPISODES, MOCK_SERIES_DETAILS } from '@/utils/mockDat
 import { getR2Url } from '@/utils/r2';
 import { getEpisodeWatchUrl } from '@/utils/episodeUrl';
 import { getSeriesViewsMap, getEpisodeViewsMap } from '@/utils/views';
+import { resolveSeriesMetrics, resolveEpisodeMetrics } from '@/utils/fakeMetricsStore';
 import { tagToSlug } from '@/utils/constants';
 import { convertStudioNameToSlug } from '@/utils/studiosData';
 
@@ -139,10 +142,18 @@ const getCachedCatalogData = async () => {
             seasons: sn ? {
               season_number: sn.season_number,
               series: s ? {
+                id: s.id,
                 title: s.title,
                 slug: s.slug,
+                description: s.description,
+                studio: s.studio || s.studios?.name || null,
                 poster_image_key: s.poster_image_key,
-                tags: s.tags
+                cover_image_key: s.cover_image_key,
+                banner_image_key: s.banner_image_key,
+                release_year: s.release_year || s.releaseYear || null,
+                tags: s.tags,
+                category: s.category || 'Anime',
+                rating: s.rating || null
               } : null
             } : null
           };
@@ -249,23 +260,47 @@ export default async function HomePage() {
   const { dbSeries, dbEpisodes, isDbEmpty } = await getCachedCatalogData();
 
   // If Admin chose Episodes Mode: show episodes directly using their video thumbnail
+  // Strict rule: no more than one episode of the same series; only show the latest episode uploaded based on air date
   if (heroMode === 'episodes' && dbEpisodes && dbEpisodes.length > 0) {
-    let targetEps = dbEpisodes.filter((ep: any) => ep.is_published !== false);
+    const rawEps = dbEpisodes.filter((ep: any) => ep.is_published !== false);
+
+    // Helper to resolve parent series key for deduplication
+    const getEpSeriesKey = (ep: any) => {
+      const season = Array.isArray(ep.seasons) ? ep.seasons[0] : ep.seasons;
+      const seriesObj = season ? (Array.isArray(season.series) ? season.series[0] : season.series) : null;
+      return seriesObj?.id || seriesObj?.slug || ep.series_id || ep.showSlug || ep.id;
+    };
+
+    // Sort strictly by air date / release date descending, tie-broken by highest episode number
+    const sortedByAirDate = [...rawEps].sort((a: any, b: any) => {
+      const timeA = new Date(a.release_date || a.created_at || 0).getTime();
+      const timeB = new Date(b.release_date || b.created_at || 0).getTime();
+      if (timeB !== timeA) return timeB - timeA;
+      return (b.episode_number || 0) - (a.episode_number || 0);
+    });
+
+    // Deduplicate: Each series appears at most ONCE, retaining only its latest episode uploaded based on air date
+    const seenSeriesKeys = new Set<string>();
+    const deduplicatedEps: any[] = [];
+    for (const ep of sortedByAirDate) {
+      const key = getEpSeriesKey(ep);
+      if (key && seenSeriesKeys.has(key)) {
+        continue; // Skip older episodes of the same series
+      }
+      if (key) seenSeriesKeys.add(key);
+      deduplicatedEps.push(ep);
+    }
+
+    let targetEps = deduplicatedEps;
 
     if (episodeFilter === 'latest') {
-      targetEps.sort((a: any, b: any) => {
-        const timeA = new Date(a.release_date || a.created_at || 0).getTime();
-        const timeB = new Date(b.release_date || b.created_at || 0).getTime();
-        return timeB - timeA;
-      });
+      targetEps = deduplicatedEps;
     } else if (episodeFilter === 'random') {
-      targetEps = [...targetEps].sort(() => 0.5 - Math.random());
+      targetEps = [...deduplicatedEps].sort(() => 0.5 - Math.random());
     } else if (episodeFilter === 'mix') {
       const half = Math.ceil(slideLimit / 2);
-      const byDate = [...targetEps].sort((a: any, b: any) => 
-        new Date(b.release_date || b.created_at || 0).getTime() - new Date(a.release_date || a.created_at || 0).getTime()
-      ).slice(0, half);
-      const remaining = targetEps.filter((e: any) => !byDate.some((b: any) => b.id === e.id));
+      const byDate = deduplicatedEps.slice(0, half);
+      const remaining = deduplicatedEps.filter((e: any) => !byDate.some((b: any) => b.id === e.id));
       const byViews = [...remaining].sort((a: any, b: any) => (b.views || 0) - (a.views || 0));
 
       const interleaved: any[] = [];
@@ -284,31 +319,52 @@ export default async function HomePage() {
 
     featuredSeries = selectedEps.map((ep: any) => {
       const season = Array.isArray(ep.seasons) ? ep.seasons[0] : ep.seasons;
-      const seriesObj = season ? (Array.isArray(season.series) ? season.series[0] : season.series) : seriesLookup.get(ep.series_id);
-      const seriesTitle = seriesObj?.title || '';
-      const seriesSlug = seriesObj?.slug || '';
+      const seriesObj = season ? (Array.isArray(season.series) ? season.series[0] : season.series) : null;
+      const fullSeries = (seriesObj?.id ? seriesLookup.get(seriesObj.id) : null) || (ep.series_id ? seriesLookup.get(ep.series_id) : null) || seriesObj;
+      const seriesTitle = fullSeries?.title || seriesObj?.title || '';
+      const seriesSlug = fullSeries?.slug || seriesObj?.slug || '';
       const epTitle = ep.title || `Episode ${ep.episode_number}`;
       const displayTitle = seriesTitle ? `${seriesTitle} - ${epTitle}` : epTitle;
-      const epThumb = ep.thumbnail || ep.cover_image_key || ep.thumbnail_key || seriesObj?.cover_image_key || seriesObj?.poster_image_key;
-      const epCover = ep.cover_image_key || ep.thumbnail || seriesObj?.cover_image_key || seriesObj?.banner_image_key;
+      // In Episode Mode, the cards and thumbnail strip display the specific episode video thumbnail
+      const epThumbnail = ep.thumbnail || ep.thumbnail_key || ep.cover_image_key || fullSeries?.cover_image_key || fullSeries?.poster_image_key;
+      // The background hero slide displays the high-res series backdrop art (or fallback to episode image)
+      const seriesCover = fullSeries?.cover_image_key || fullSeries?.banner_image_key || fullSeries?.poster_image_key || epThumbnail;
+
+      // Always resolve studio name so the studio badge renders after the year badge
+      let studioName = fullSeries?.studio || fullSeries?.studios?.name || seriesObj?.studio || seriesObj?.studios?.name || null;
+      if (!studioName && fullSeries?.tags) {
+        const found = FEATURED_STUDIOS.find(st => 
+          (fullSeries.tags || []).some((t: string) => t.toLowerCase() === st.toLowerCase())
+        );
+        if (found) studioName = found;
+      }
+      if (!studioName) studioName = 'Pink Pineapple';
+
+      // Always use the series synopsis as requested
+      const rawSynopsis = fullSeries?.description || seriesObj?.description || ep.description || '';
+      const cleanSynopsis = rawSynopsis && rawSynopsis.trim().length > 0 
+        ? rawSynopsis.trim() 
+        : 'Watch the latest uncensored episodes in crystal clear 1080p HD with verified English subtitles on PlayHentai.';
 
       return {
         id: ep.id,
         title: displayTitle,
         slug: seriesSlug || ep.slug || ep.id,
-        description: ep.description || seriesObj?.description || '',
-        poster_image_key: epThumb,
-        cover_image_key: epCover,
-        banner_image_key: epCover,
-        tags: (seriesObj?.tags || ['HD', 'Episode']).slice(0, 4),
-        category: seriesObj?.category || 'Anime',
+        description: cleanSynopsis,
+        poster_image_key: epThumbnail,
+        cover_image_key: epThumbnail,
+        banner_image_key: epThumbnail,
+        episode_thumbnail: epThumbnail,
+        tags: (fullSeries?.tags || seriesObj?.tags || ['HD', 'Episode']).filter((t: string) => t.toLowerCase() !== 'featured').slice(0, 4),
+        category: fullSeries?.category || seriesObj?.category || 'Anime',
         firstEpisodeId: ep.id,
         watchEpisodeUrl: getEpisodeWatchUrl(ep.id, ep.episode_number, seriesSlug),
-        tagline: `Episode ${ep.episode_number}`,
-        rating: seriesObj?.rating || null,
+        tagline: 'New episode',
+        rating: fullSeries?.rating || seriesObj?.rating || null,
         views: ep.views || 0,
-        studio: seriesObj?.studio || seriesObj?.studios?.name || null,
-        release_year: ep.release_date ? new Date(ep.release_date).getFullYear() : (seriesObj?.release_year || null),
+        studio: studioName,
+        release_year: ep.release_date ? new Date(ep.release_date).getFullYear() : (fullSeries?.release_year || seriesObj?.release_year || 2026),
+        release_date: ep.release_date || ep.created_at || null,
       };
     });
   }
@@ -456,8 +512,9 @@ export default async function HomePage() {
     tagline: s.tagline || heroTaglinesMap[s.id] || heroTaglinesMap[s.slug] || undefined,
     rating: s.rating || null,
     views: s.views || 0,
-    studio: s.studio || s.studios?.name || null,
+    studio: s.studio || s.studios?.name || 'Pink Pineapple',
     release_year: s.release_year || s.releaseYear || null,
+    release_date: s.release_date || s.created_at || null,
   }));
 
 
@@ -754,6 +811,132 @@ export default async function HomePage() {
   );
   const shuffledRandomSeries = [...availableRandomSeries].sort(() => 0.5 - Math.random());
   const lightweightRandomPool = shuffledRandomSeries.slice(0, 36).map(toCleanSeriesCard);
+  // --------------------------------------------------------------------------
+  // Uncensored Hentai Section: Fetches uncensored items sorted by recent release date
+  // Uses portrait poster cards, view count pill on thumbnail, and studio underneath
+  // --------------------------------------------------------------------------
+  const isUncensoredItem = (ep: any, seriesObj: any) => {
+    const sTags = (seriesObj?.tags || []).map((t: string) => (typeof t === 'string' ? t.toLowerCase().trim() : ''));
+    const epTags = (ep?.tags || []).map((t: string) => (typeof t === 'string' ? t.toLowerCase().trim() : ''));
+    const sCat = (seriesObj?.category || '').toLowerCase().trim();
+    const sTitle = (seriesObj?.title || '').toLowerCase().trim();
+    const epTitle = (ep?.title || '').toLowerCase().trim();
+    return sCat === 'uncensored' ||
+      sTags.includes('uncensored') || sTags.includes('decensored') ||
+      epTags.includes('uncensored') ||
+      sTitle.includes('uncensored') || epTitle.includes('uncensored');
+  };
+
+  const rawUncensoredList: any[] = [];
+  const seenUncensoredSeries = new Set<string>();
+
+  (dbEpisodes || []).forEach((ep: any) => {
+    if (ep.is_published === false) return;
+    const season = Array.isArray(ep.seasons) ? ep.seasons[0] : ep.seasons;
+    const seriesObj = season ? (Array.isArray(season.series) ? season.series[0] : season.series) : null;
+    if (isUncensoredItem(ep, seriesObj)) {
+      const seriesKey = seriesObj?.id || seriesObj?.slug || ep.series_id || ep.id;
+      if (seriesKey && seenUncensoredSeries.has(seriesKey)) return;
+      if (seriesKey) seenUncensoredSeries.add(seriesKey);
+
+      const seriesTitle = seriesObj?.title || ep.title || '';
+      const epTitle = ep.title || `Episode ${ep.episode_number}`;
+      const displayTitle = seriesTitle
+        ? (epTitle && epTitle.toLowerCase().startsWith('episode') ? `${seriesTitle} ${epTitle}` : (epTitle && epTitle !== seriesTitle ? `${seriesTitle} - ${epTitle}` : seriesTitle))
+        : epTitle;
+      const releaseDate = ep.release_date || ep.created_at || seriesObj?.release_date || seriesObj?.created_at;
+      const href = seriesObj?.slug ? `/series/${seriesObj.slug}` : getEpisodeWatchUrl(ep.id, ep.episode_number, seriesObj?.slug || '');
+      const rawViews = ep.views || seriesObj?.views || 0;
+      const finalViews = rawViews > 0 ? rawViews : resolveEpisodeMetrics(ep.id, rawViews).views;
+
+      rawUncensoredList.push({
+        id: ep.id,
+        title: displayTitle,
+        studio: seriesObj?.studio || seriesObj?.studios?.name || null,
+        poster_image_key: seriesObj?.poster_image_key || seriesObj?.cover_image_key || ep.thumbnail_key,
+        views: finalViews,
+        releaseDate: releaseDate ? new Date(releaseDate).getTime() : 0,
+        href
+      });
+    }
+  });
+
+  (activeSeries || []).forEach((s: any) => {
+    const sTags = (s.tags || []).map((t: string) => (typeof t === 'string' ? t.toLowerCase().trim() : ''));
+    const sCat = (s.category || '').toLowerCase().trim();
+    const sTitle = (s.title || '').toLowerCase().trim();
+    if (sCat === 'uncensored' || sTags.includes('uncensored') || sTitle.includes('uncensored')) {
+      const seriesKey = s.id || s.slug;
+      if (seriesKey && seenUncensoredSeries.has(seriesKey)) return;
+      if (seriesKey) seenUncensoredSeries.add(seriesKey);
+
+      const releaseDate = s.release_date || s.created_at || (s.release_year ? `${s.release_year}-01-01` : null);
+      const rawViews = s.views || 0;
+      const finalViews = rawViews > 0 ? rawViews : resolveSeriesMetrics(s.id, rawViews).views;
+      rawUncensoredList.push({
+        id: s.id,
+        title: s.title,
+        studio: s.studio || s.studios?.name || null,
+        poster_image_key: s.poster_image_key || s.cover_image_key,
+        views: finalViews,
+        releaseDate: releaseDate ? new Date(releaseDate).getTime() : 0,
+        href: `/series/${s.slug}`
+      });
+    }
+  });
+
+  rawUncensoredList.sort((a: any, b: any) => b.releaseDate - a.releaseDate);
+  const recentUncensoredItems = rawUncensoredList.slice(0, 18);
+
+  // --------------------------------------------------------------------------
+  // Recent 3D Section: Fetches 3D episodes sorted by recent release date
+  // Uses episode video thumbnail image (not series poster), wide 16:9 cards
+  // --------------------------------------------------------------------------
+  const is3DItem = (ep: any, seriesObj: any) => {
+    const sTags = (seriesObj?.tags || []).map((t: string) => (typeof t === 'string' ? t.toLowerCase().trim() : ''));
+    const epTags = (ep?.tags || []).map((t: string) => (typeof t === 'string' ? t.toLowerCase().trim() : ''));
+    const sCat = (seriesObj?.category || '').toLowerCase().trim();
+    const sTitle = (seriesObj?.title || '').toLowerCase().trim();
+    const epTitle = (ep?.title || '').toLowerCase().trim();
+    return sCat.includes('3d') || sCat.includes('cgi') ||
+      sTags.includes('3d') || sTags.includes('cgi') ||
+      epTags.includes('3d') || epTags.includes('cgi') ||
+      sTitle.startsWith('3d') || sTitle.includes('umemaro') || epTitle.includes('3d');
+  };
+
+  const recent3DEpisodes = (dbEpisodes || [])
+    .filter((ep: any) => ep.is_published !== false)
+    .filter((ep: any) => {
+      const season = Array.isArray(ep.seasons) ? ep.seasons[0] : ep.seasons;
+      const seriesObj = season ? (Array.isArray(season.series) ? season.series[0] : season.series) : null;
+      return is3DItem(ep, seriesObj);
+    })
+    .map((ep: any) => {
+      const season = Array.isArray(ep.seasons) ? ep.seasons[0] : ep.seasons;
+      const seriesObj = season ? (Array.isArray(season.series) ? season.series[0] : season.series) : null;
+      const sTitle = seriesObj?.title ? seriesObj.title.replace(/^3D\s*[-–—]\s*/i, '') : '';
+      const epTitle = ep.title || '';
+      const isGenericEp = !epTitle || /^episode\s*\d+$/i.test(epTitle.trim());
+      const displayTitle = sTitle
+        ? (isGenericEp ? sTitle : (sTitle.toLowerCase() === epTitle.toLowerCase() ? sTitle : `${sTitle} - ${epTitle}`))
+        : (epTitle || '3D Animation');
+      const releaseDate = ep.release_date || ep.created_at || seriesObj?.release_date || seriesObj?.created_at;
+      const watchUrl = getEpisodeWatchUrl(ep.id, ep.episode_number, seriesObj?.slug || '');
+      const rawViews = ep.views || seriesObj?.views || 0;
+      const finalViews = rawViews > 0 ? rawViews : resolveEpisodeMetrics(ep.id, rawViews).views;
+
+      return {
+        id: ep.id,
+        title: displayTitle,
+        thumbnail_key: ep.thumbnail_key || seriesObj?.cover_image_key || seriesObj?.poster_image_key,
+        views: finalViews,
+        releaseDate: releaseDate ? new Date(releaseDate).getTime() : 0,
+        watchUrl,
+        tag: '3D'
+      };
+    })
+    .sort((a: any, b: any) => b.releaseDate - a.releaseDate)
+    .slice(0, 16);
 
   // Preload first hero image for instant mobile & desktop Largest Contentful Paint (LCP)
   const firstFeatured = featuredSeries && featuredSeries.length > 0 ? featuredSeries[0] : null;
@@ -863,6 +1046,54 @@ export default async function HomePage() {
           })}
         </div>
       </section>
+
+      {/* Uncensored Hentai Section: Portrait Poster Slider with View Badge on Thumbnail & Studio Underneath */}
+      {recentUncensoredItems && recentUncensoredItems.length > 0 && (
+        <section className={styles.section}>
+          <HorizontalScrollRow
+            title="Uncensored Hentai"
+            viewAllHref="/uncensored"
+            viewAllText="See all"
+          >
+            {recentUncensoredItems.map((item) => (
+              <UncensoredCard
+                key={item.id}
+                id={item.id}
+                title={item.title}
+                studio={item.studio}
+                poster_image_key={item.poster_image_key}
+                views={item.views}
+                href={item.href}
+              />
+            ))}
+          </HorizontalScrollRow>
+        </section>
+      )}
+
+      {/* Recent 3D Section: Wide 16:9 Landscape Card with Episode Image & Bottom Dark Gradient Overlay */}
+      {recent3DEpisodes && recent3DEpisodes.length > 0 && (
+        <section className={styles.section}>
+          <HorizontalScrollRow
+            title="Recent 3D"
+            viewAllHref="/3d"
+            viewAllText="See all"
+          >
+            {recent3DEpisodes.map((ep) => (
+              <ThreeDCard
+                key={ep.id}
+                id={ep.id}
+                title={ep.title}
+                thumbnail_key={ep.thumbnail_key}
+                views={ep.views}
+                watchUrl={ep.watchUrl}
+                tag="3D"
+                data-is-episode={true}
+                data-is-3d={true}
+              />
+            ))}
+          </HorizontalScrollRow>
+        </section>
+      )}
 
       {/* 2. Latest Series Section: Horizontal scroll slider up to 18 items */}
       <section className={styles.section}>

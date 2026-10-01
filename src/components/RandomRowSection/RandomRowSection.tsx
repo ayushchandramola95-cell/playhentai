@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { Shuffle, ChevronLeft, ChevronRight } from 'lucide-react';
 import SeriesCard from '@/components/SeriesCard/SeriesCard';
+import { useDragScroll } from '@/hooks/useDragScroll';
 import styles from './RandomRowSection.module.css';
 
 interface RandomRowSectionProps {
@@ -31,6 +32,7 @@ export default function RandomRowSection({ seriesPool }: RandomRowSectionProps) 
     return clean.length > 0 ? clean.slice(0, 15) : [];
   });
   const scrollRef = useRef<HTMLDivElement>(null);
+  useDragScroll(scrollRef);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
   const [activeIndex, setActiveIndex] = useState(0);

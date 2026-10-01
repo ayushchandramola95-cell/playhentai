@@ -137,8 +137,21 @@
   scrollbar-width: none;
   -ms-overflow-style: none;
   -webkit-overflow-scrolling: touch;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
 }
 
+.scrollContainer:active {
+  cursor: grabbing;
+}
+
+.scrollContainer img,
+.scrollContainer a {
+  -webkit-user-drag: none;
+  user-drag: none;
+}
 
 .scrollContainer::-webkit-scrollbar {
   display: none;

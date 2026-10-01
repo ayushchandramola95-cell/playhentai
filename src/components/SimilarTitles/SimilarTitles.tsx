@@ -3,6 +3,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Compass, ChevronLeft, ChevronRight } from 'lucide-react';
 import SeriesCard, { SeriesItem } from '../SeriesCard/SeriesCard';
+import { useDragScroll } from '@/hooks/useDragScroll';
 import styles from './SimilarTitles.module.css';
 
 interface SimilarTitlesProps {
@@ -12,6 +13,7 @@ interface SimilarTitlesProps {
 
 export default function SimilarTitles({ list, title = 'You May Also Like' }: SimilarTitlesProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  useDragScroll(scrollContainerRef);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(true);
 

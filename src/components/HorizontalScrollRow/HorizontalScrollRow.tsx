@@ -3,6 +3,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useDragScroll } from '@/hooks/useDragScroll';
 import styles from './HorizontalScrollRow.module.css';
 
 interface HorizontalScrollRowProps {
@@ -10,6 +11,7 @@ interface HorizontalScrollRowProps {
   subtitle?: string;
   subtitleColor?: string;
   viewAllHref?: string;
+  viewAllText?: string;
   children: React.ReactNode;
   className?: string;
 }
@@ -19,10 +21,12 @@ export default function HorizontalScrollRow({
   subtitle,
   subtitleColor,
   viewAllHref,
+  viewAllText = 'See all',
   children,
   className = '',
 }: HorizontalScrollRowProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  useDragScroll(scrollRef);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -98,7 +102,8 @@ export default function HorizontalScrollRow({
           <div className={styles.headerControls}>
             {viewAllHref && (
               <Link href={viewAllHref} prefetch={false} className={styles.viewAllBtn}>
-                ALL
+                <span>{viewAllText}</span>
+                <ChevronRight size={13} style={{ marginLeft: 3 }} />
               </Link>
             )}
             <button
@@ -132,8 +137,9 @@ export default function HorizontalScrollRow({
         >
           {React.Children.map(children, (child) => {
             if (!React.isValidElement(child)) return child;
+            const is3D = (child.props as any)?.['data-is-3d'] || (child.props as any)?.is3D || (child.props as any)?.tag === '3D';
             const isEpisode = (child.props as any)?.['data-is-episode'] || (child.props as any)?.isEpisode;
-            const itemClass = isEpisode ? styles.episodeItem : styles.seriesItem;
+            const itemClass = is3D ? styles.threeDItem : isEpisode ? styles.episodeItem : styles.seriesItem;
             return (
               <div className={`${styles.scrollItem} ${itemClass}`}>
                 {child}

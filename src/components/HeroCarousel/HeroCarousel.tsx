@@ -3,13 +3,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Play, ChevronLeft, ChevronRight, Star, Eye, Layers, CheckCircle2 } from 'lucide-react';
+import { Play, ChevronLeft, ChevronRight, Star, Eye, Layers, CheckCircle2, Heart } from 'lucide-react';
 import WatchlistToggle from '../WatchlistToggle/WatchlistToggle';
 import { getR2Url } from '@/utils/r2';
 import styles from './HeroCarousel.module.css';
 
 function formatViews(views?: number): string {
-  if (views === undefined || views === null || views === 0) return '1.4K';
+  if (views === undefined || views === null || views === 0) return '71.2K';
   if (views >= 1000000) {
     return (views / 1000000).toFixed(1) + 'M';
   }
@@ -17,6 +17,30 @@ function formatViews(views?: number): string {
     return (views / 1000).toFixed(1) + 'K';
   }
   return views.toString();
+}
+
+function formatReleaseText(releaseDate?: string | null, releaseYear?: number | string | null): string {
+  if (releaseDate) {
+    const time = new Date(releaseDate).getTime();
+    if (!isNaN(time) && time > 0) {
+      const diffMs = Date.now() - time;
+      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+      if (diffDays <= 0) return 'Today';
+      if (diffDays === 1) return 'Yesterday';
+      if (diffDays < 7) return `${diffDays} days ago`;
+      if (diffDays < 30) {
+        const weeks = Math.floor(diffDays / 7);
+        return `${weeks} ${weeks === 1 ? 'week' : 'weeks'} ago`;
+      }
+      if (diffDays < 365) {
+        const months = Math.floor(diffDays / 30);
+        return `${months} ${months === 1 ? 'month' : 'months'} ago`;
+      }
+      return `${new Date(time).getFullYear()}`;
+    }
+  }
+  if (releaseYear) return `${releaseYear}`;
+  return '3 weeks ago';
 }
 
 interface SeriesItem {
@@ -27,6 +51,7 @@ interface SeriesItem {
   poster_image_key?: string;
   cover_image_key?: string;
   banner_image_key?: string;
+  episode_thumbnail?: string;
   tags?: string[];
   category?: string;
   firstEpisodeId?: string | null;
@@ -35,6 +60,7 @@ interface SeriesItem {
   views?: number;
   studio?: string | null;
   release_year?: number | string | null;
+  release_date?: string | null;
   watchEpisodeUrl?: string | null;
 }
 
@@ -77,29 +103,34 @@ export default function HeroCarousel({ activeSeries, isDbEmpty, autoplaySpeed = 
     });
   }, [currentIndex, totalSlides]);
 
-  // Autoplay timer
+  // Autoplay timer (auto-scrolls continuously and syncs with progress bar)
   useEffect(() => {
     if (totalSlides <= 1 || autoplaySpeed <= 0) return;
 
     if (!isPaused) {
-      timerRef.current = setInterval(() => {
+      const timer = setTimeout(() => {
         setCurrentIndex((prevIndex) => (prevIndex + 1) % totalSlides);
       }, autoplaySpeed);
+
+      return () => clearTimeout(timer);
     }
+  }, [totalSlides, isPaused, autoplaySpeed, currentIndex]);
 
-    return () => {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-      }
-    };
-  }, [totalSlides, isPaused, autoplaySpeed]);
-
-  // Scroll active thumbnail smoothly into view
+  // Scroll active thumbnail smoothly into view inside horizontal track ONLY (never moves or scrolls the page window)
   useEffect(() => {
-    if (!thumbTrackRef.current) return;
-    const activeEl = thumbTrackRef.current.children[currentIndex] as HTMLElement | undefined;
+    const track = thumbTrackRef.current;
+    if (!track) return;
+    const activeEl = track.children[currentIndex] as HTMLElement | undefined;
     if (activeEl) {
-      activeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+      const trackWidth = track.clientWidth;
+      const elOffsetLeft = activeEl.offsetLeft;
+      const elWidth = activeEl.clientWidth;
+      const targetScrollLeft = elOffsetLeft - (trackWidth / 2) + (elWidth / 2);
+
+      track.scrollTo({
+        left: Math.max(0, targetScrollLeft),
+        behavior: 'smooth'
+      });
     }
   }, [currentIndex]);
 
@@ -139,6 +170,89 @@ export default function HeroCarousel({ activeSeries, isDbEmpty, autoplaySpeed = 
     }
   };
 
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const cardStackRef = useRef<HTMLDivElement | null>(null);
+  const isHoveringCardRef = useRef(false);
+
+  // Background parallax + subtle ambient tilt across hero section
+  const handleSectionMouseMove = (e: React.MouseEvent<HTMLElement>) => {
+    if (!sectionRef.current) return;
+    const rect = sectionRef.current.getBoundingClientRect();
+    const heroNormX = ((e.clientX - rect.left) / rect.width - 0.5) * 2; // -1 to +1
+    const heroNormY = ((e.clientY - rect.top) / rect.height - 0.5) * 2; // -1 to +1
+
+    // Subtle, elegant background parallax drift
+    const bgX = heroNormX * -8;
+    const bgY = heroNormY * -5;
+    sectionRef.current.style.setProperty('--bg-parallax-x', `${bgX.toFixed(2)}px`);
+    sectionRef.current.style.setProperty('--bg-parallax-y', `${bgY.toFixed(2)}px`);
+
+    // Very subtle ambient tilt when moving outside the card
+    if (!isHoveringCardRef.current && cardStackRef.current) {
+      const ambientTiltX = 2 - heroNormY * 1.5;
+      const ambientTiltY = -6 + heroNormX * 1.5;
+      cardStackRef.current.style.setProperty('--card-tilt-x', `${ambientTiltX.toFixed(2)}deg`);
+      cardStackRef.current.style.setProperty('--card-tilt-y', `${ambientTiltY.toFixed(2)}deg`);
+      cardStackRef.current.style.setProperty('--card-transition', '0.25s cubic-bezier(0.16, 1, 0.3, 1)');
+    }
+  };
+
+  const handleSectionMouseLeave = () => {
+    setIsPaused(false);
+    if (sectionRef.current) {
+      sectionRef.current.style.setProperty('--bg-parallax-x', '0px');
+      sectionRef.current.style.setProperty('--bg-parallax-y', '0px');
+    }
+    if (!isHoveringCardRef.current && cardStackRef.current) {
+      cardStackRef.current.style.setProperty('--card-tilt-x', '2deg');
+      cardStackRef.current.style.setProperty('--card-tilt-y', '-6deg');
+      cardStackRef.current.style.setProperty('--card-lift', '0px');
+      cardStackRef.current.style.setProperty('--card-transition', '0.65s cubic-bezier(0.2, 0.7, 0.2, 1)');
+    }
+  };
+
+  // Subtle, tactile 3D Corner & Edge Pressing Physics on Card Stack
+  const handleCardMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!cardStackRef.current) return;
+    isHoveringCardRef.current = true;
+    const rect = cardStackRef.current.getBoundingClientRect();
+    const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    const y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
+
+    const normX = (x - 0.5) * 2; // -1 (left) to +1 (right)
+    const normY = (y - 0.5) * 2; // -1 (top) to +1 (bottom)
+
+    // Refined subtle tilt mechanics:
+    // Gentle 6deg maximum tilt that softly presses down corners and edges under cursor
+    const maxTilt = 6;
+    const tiltX = 2 - normY * maxTilt;
+    const tiltY = -6 + normX * maxTilt;
+
+    cardStackRef.current.style.setProperty('--card-tilt-x', `${tiltX.toFixed(2)}deg`);
+    cardStackRef.current.style.setProperty('--card-tilt-y', `${tiltY.toFixed(2)}deg`);
+    cardStackRef.current.style.setProperty('--card-lift', '6px');
+    cardStackRef.current.style.setProperty('--card-shine-opacity', '0.55');
+    cardStackRef.current.style.setProperty('--card-shine-x', `${(x * 100).toFixed(1)}%`);
+    cardStackRef.current.style.setProperty('--card-shine-y', `${(y * 100).toFixed(1)}%`);
+    cardStackRef.current.style.setProperty('--card-transition', '0.16s cubic-bezier(0.16, 1, 0.3, 1)');
+  };
+
+  const handleCardMouseEnter = () => {
+    isHoveringCardRef.current = true;
+    setIsPaused(true);
+  };
+
+  const handleCardMouseLeave = () => {
+    isHoveringCardRef.current = false;
+    setIsPaused(false);
+    if (!cardStackRef.current) return;
+    cardStackRef.current.style.setProperty('--card-tilt-x', '2deg');
+    cardStackRef.current.style.setProperty('--card-tilt-y', '-6deg');
+    cardStackRef.current.style.setProperty('--card-lift', '0px');
+    cardStackRef.current.style.setProperty('--card-shine-opacity', '0');
+    cardStackRef.current.style.setProperty('--card-transition', '0.65s cubic-bezier(0.2, 0.7, 0.2, 1)');
+  };
+
   if (!activeSeries || activeSeries.length === 0) return null;
 
   const currentSeries = activeSeries[currentIndex] || activeSeries[0];
@@ -151,14 +265,15 @@ export default function HeroCarousel({ activeSeries, isDbEmpty, autoplaySpeed = 
         ? `/watch/${currentSeries.slug}-episode-1` 
         : (currentSeries.firstEpisodeId ? `/watch/${currentSeries.firstEpisodeId}` : `/series/${currentSeries.slug}`));
 
-  const currentCoverUrl = getR2Url(currentSeries.cover_image_key || currentSeries.banner_image_key || currentSeries.poster_image_key, 'cover');
-  const nextCoverUrl = getR2Url(nextSeries.cover_image_key || nextSeries.banner_image_key || nextSeries.poster_image_key, 'cover');
+  const currentCoverUrl = getR2Url(currentSeries.episode_thumbnail || currentSeries.cover_image_key || currentSeries.poster_image_key || currentSeries.banner_image_key, 'cover');
+  const nextCoverUrl = getR2Url(nextSeries.episode_thumbnail || nextSeries.cover_image_key || nextSeries.poster_image_key || nextSeries.banner_image_key, 'cover');
 
   return (
     <section 
+      ref={sectionRef}
       className={styles.heroSection}
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
+      onMouseMove={handleSectionMouseMove}
+      onMouseLeave={handleSectionMouseLeave}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
@@ -168,7 +283,7 @@ export default function HeroCarousel({ activeSeries, isDbEmpty, autoplaySpeed = 
       <div className={styles.slidesContainer}>
         {activeSeries.map((series, index) => {
           const isActive = index === currentIndex;
-          const bannerKey = series.banner_image_key || series.cover_image_key || series.poster_image_key;
+          const bannerKey = series.episode_thumbnail || series.banner_image_key || series.cover_image_key || series.poster_image_key;
           const bannerUrl = getR2Url(bannerKey, 'banner');
           
           return (
@@ -214,7 +329,7 @@ export default function HeroCarousel({ activeSeries, isDbEmpty, autoplaySpeed = 
                 {currentSeries.tagline || 'New episode'}
               </span>
               <span className={styles.releaseText}>
-                {currentSeries.release_year ? `${currentSeries.release_year}` : 'Latest release'}
+                {formatReleaseText(currentSeries.release_date, currentSeries.release_year)}
               </span>
               {currentSeries.studio && (
                 <span className={styles.studioBadge}>
@@ -244,9 +359,9 @@ export default function HeroCarousel({ activeSeries, isDbEmpty, autoplaySpeed = 
                   <span>{formatViews(currentSeries.views)}</span>
                 </div>
                 <div className={styles.statItem}>
-                  <Star size={13} fill="#fbbf24" color="#fbbf24" className={styles.statIcon} />
+                  <Heart size={13} fill="#ff2e7e" color="#ff2e7e" className={styles.statIcon} />
                   <span>
-                    {currentSeries.rating ? Number(currentSeries.rating).toFixed(1) : '8.8'}
+                    {Math.max(12, Math.floor((currentSeries.views || 600) / 85))}
                   </span>
                 </div>
               </div>
@@ -312,7 +427,7 @@ export default function HeroCarousel({ activeSeries, isDbEmpty, autoplaySpeed = 
                 <div className={styles.thumbTrack} ref={thumbTrackRef}>
                   {activeSeries.map((item, idx) => {
                     const isItemActive = idx === currentIndex;
-                    const thumbImg = getR2Url(item.cover_image_key || item.poster_image_key || item.banner_image_key, 'cover');
+                    const thumbImg = getR2Url(item.episode_thumbnail || item.cover_image_key || item.poster_image_key || item.banner_image_key, 'cover');
                     
                     return (
                       <button
@@ -326,10 +441,12 @@ export default function HeroCarousel({ activeSeries, isDbEmpty, autoplaySpeed = 
                           src={thumbImg}
                           alt={item.title}
                           fill
-                          sizes="120px"
+                          sizes="(max-width: 768px) 140px, 220px"
                           className={styles.thumbImage}
                           unoptimized={typeof thumbImg === 'string' && thumbImg.startsWith('data:')}
                         />
+                        <div className={styles.thumbShade} />
+                        {isItemActive && <span key={currentIndex} className={styles.thumbProgressBar} />}
                       </button>
                     );
                   })}
@@ -338,9 +455,15 @@ export default function HeroCarousel({ activeSeries, isDbEmpty, autoplaySpeed = 
             )}
           </div>
 
-          {/* RIGHT COLUMN: Layered Floating Spotlight Card Stack */}
+          {/* RIGHT COLUMN: Layered Floating Spotlight Card Stack with Interactive 3D Physics */}
           <div className={styles.rightColumn}>
-            <div className={styles.cardStack}>
+            <div 
+              ref={cardStackRef}
+              className={styles.cardStack}
+              onMouseMove={handleCardMouseMove}
+              onMouseEnter={handleCardMouseEnter}
+              onMouseLeave={handleCardMouseLeave}
+            >
               {/* Back Card (Shows next slide, tilted for 3D depth) */}
               {totalSlides > 1 && (
                 <div className={styles.backCard} aria-hidden="true">
@@ -357,7 +480,12 @@ export default function HeroCarousel({ activeSeries, isDbEmpty, autoplaySpeed = 
               )}
 
               {/* Front Card (Active Series, Interactive with Spotlight Play Badge) */}
-              <Link href={currentWatchLink} className={styles.frontCard} aria-label={`Watch ${currentSeries.title}`}>
+              <Link 
+                key={currentSeries.id || currentIndex}
+                href={currentWatchLink} 
+                className={styles.frontCard} 
+                aria-label={`Watch ${currentSeries.title}`}
+              >
                 <Image
                   src={currentCoverUrl}
                   alt={currentSeries.title}
@@ -368,6 +496,7 @@ export default function HeroCarousel({ activeSeries, isDbEmpty, autoplaySpeed = 
                   unoptimized={typeof currentCoverUrl === 'string' && currentCoverUrl.startsWith('data:')}
                 />
                 <div className={styles.frontCardVignette} />
+                <div className={styles.cardShine} aria-hidden="true" />
 
                 {/* Frosted In-the-Spotlight Badge Overlay */}
                 <div className={styles.spotlightBadgeOverlay}>

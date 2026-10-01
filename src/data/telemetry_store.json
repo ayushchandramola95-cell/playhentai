@@ -37,10 +37,29 @@
       "browser": "Chrome",
       "os": "Windows",
       "referrer": "http://localhost:3004/"
+    },
+    "ph_y2fjc7w9_1790876658914": {
+      "sessionId": "ph_y2fjc7w9_1790876658914",
+      "firstSeen": 1790876659937,
+      "lastSeen": 1790876662691,
+      "durationSeconds": 4,
+      "pageViews": 1,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": false,
+      "visitedRoutes": [
+        "/"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Edge",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/"
     }
   },
   "routeVisits": {
-    "/": 217,
+    "/": 219,
     "/series/imaizumin-chi-wa-douyara-gal-no-tamariba-ni-natteru-rashii": 2,
     "/login": 83
   },
@@ -51,14 +70,14 @@
     "depth100": 0
   },
   "deviceCounts": {
-    "desktop": 5,
+    "desktop": 6,
     "mobile": 0,
     "tablet": 0
   },
   "adBlockCounts": {
     "blocked": 0,
-    "notBlocked": 5
+    "notBlocked": 6
   },
   "totalWatchEvents": 0,
-  "lastCleaned": 1790841994828
+  "lastCleaned": 1790876659937
 }

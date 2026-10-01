@@ -123,18 +123,17 @@
   transition: border-color 0.25s ease;
 }
 
+.episodeCard:hover {
+  transform: translateY(-6px);
+}
+
 .episodeCard:hover .cardImageWrapper {
-  border-color: var(--primary);
-  box-shadow: 0 4px 20px rgba(var(--primary-rgb), 0.2);
+  border-color: rgba(255, 255, 255, 0.22);
+  box-shadow: 0 12px 24px -4px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
 .cardImage {
   object-fit: cover;
-  transition: transform 0.5s ease;
-}
-
-.episodeCard:hover .cardImage {
-  transform: scale(1.05);
 }
 
 /* SUB Badge (Top Left) */

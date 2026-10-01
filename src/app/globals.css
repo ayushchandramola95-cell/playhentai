@@ -188,27 +188,23 @@ body {
   border: 1px solid var(--border);
 }
 
-/* 3D Book Interactive Card Hover Effect */
+/* Interactive Card Hover Effect (Smooth Whole-Card Float) */
 .card-hover {
-  transform-style: preserve-3d;
-  transform-origin: left center;
-  transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, box-shadow 0.32s ease;
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, box-shadow 0.28s ease;
   will-change: transform;
 }
 
 .card-hover:hover {
-  transform: translateY(-6px) rotateY(-7deg) rotateX(2deg) scale(1.025);
-  border-color: rgba(var(--primary-rgb), 0.7) !important;
+  transform: translateY(-6px);
+  border-color: rgba(255, 255, 255, 0.22) !important;
   box-shadow: 
-    inset 2px 0 6px rgba(255, 255, 255, 0.12),
-    -10px 14px 28px rgba(0, 0, 0, 0.75),
-    -2px 0 8px rgba(0, 0, 0, 0.5),
-    0 0 18px rgba(var(--primary-rgb), 0.35) !important;
+    0 14px 28px -4px rgba(0, 0, 0, 0.8),
+    0 0 0 1px rgba(255, 255, 255, 0.08) !important;
   z-index: 15;
 }
 
 .card-hover:active {
-  transform: translateY(-2px) rotateY(-3deg) scale(0.99);
+  transform: translateY(-2px);
   opacity: 0.95;
 }
 
@@ -251,4 +247,16 @@ button:active:not(:disabled) {
   .mobile-sticky-ad {
     display: none !important;
   }
+}
+
+/* Drag to scroll global utilities */
+.is-dragging-scroll {
+  cursor: grabbing !important;
+  user-select: none !important;
+}
+
+.is-dragging-scroll * {
+  cursor: grabbing !important;
+  pointer-events: none !important;
+  user-select: none !important;
 }

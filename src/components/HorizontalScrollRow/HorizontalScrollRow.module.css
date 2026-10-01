@@ -50,45 +50,46 @@
 }
 
 .viewAllBtn {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #cbd5e1;
+  background: transparent;
+  border: none;
+  color: #a1a1aa;
   font-size: 0.82rem;
-  font-weight: 700;
-  padding: 0.35rem 0.85rem;
+  font-weight: 600;
+  padding: 0.2rem 0.5rem;
   border-radius: 6px;
   text-decoration: none;
-  letter-spacing: 0.04em;
-  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  letter-spacing: 0.02em;
+  transition: color 0.15s ease, transform 0.15s ease;
   display: inline-flex;
   align-items: center;
   justify-content: center;
 }
 
 .viewAllBtn:hover {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.22);
   color: #ffffff;
+  transform: translateX(2px);
+  text-decoration: none !important;
 }
 
 .arrowBtn {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #cbd5e1;
-  width: 34px;
-  height: 34px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #f1f5f9;
+  width: 32px;
+  height: 32px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 6px;
+  border-radius: 9999px;
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
 }
 
 .arrowBtn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.28);
   color: #ffffff;
+  transform: scale(1.06);
 }
 
 .arrowBtn:disabled {
@@ -115,8 +116,21 @@
   scrollbar-width: none;
   -ms-overflow-style: none;
   -webkit-overflow-scrolling: touch;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
 }
 
+.scrollContainer:active {
+  cursor: grabbing;
+}
+
+.scrollContainer img,
+.scrollContainer a {
+  -webkit-user-drag: none;
+  user-drag: none;
+}
 
 .scrollContainer::-webkit-scrollbar {
   display: none;
@@ -125,6 +139,14 @@
 .scrollItem {
   flex: 0 0 auto;
   scroll-snap-align: start;
+}
+
+/* Landscape 3D Item Width in Slider: increased card size */
+.threeDItem {
+  flex: 0 0 355px;
+  width: 355px;
+  min-width: 355px;
+  max-width: 355px;
 }
 
 /* Landscape Episode Item Width in Slider */
@@ -172,6 +194,12 @@
 }
 
 @media (max-width: 1100px) {
+  .threeDItem {
+    flex: 0 0 320px;
+    width: 320px;
+    min-width: 320px;
+    max-width: 320px;
+  }
   .episodeItem {
     flex: 0 0 270px;
     width: 270px;
@@ -221,6 +249,13 @@
     white-space: nowrap !important;
   }
 
+  .threeDItem {
+    flex: 0 0 260px !important;
+    width: 260px !important;
+    min-width: 260px !important;
+    max-width: 260px !important;
+  }
+
   .episodeItem {
     flex: 0 0 220px !important;
     width: 220px !important;
@@ -246,6 +281,13 @@
 @media (max-width: 480px) {
   .sectionTitle {
     font-size: 1.1rem !important;
+  }
+
+  .threeDItem {
+    flex: 0 0 240px !important;
+    width: 240px !important;
+    min-width: 240px !important;
+    max-width: 240px !important;
   }
 
   .seriesItem {
