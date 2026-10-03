@@ -17,6 +17,7 @@ interface VideoPlayerProps {
   nextEpisodeUrl?: string | null;
   prevEpisodeUrl?: string | null;
   onToggleTheater?: () => void;
+  isTheaterMode?: boolean;
   isLightsOff?: boolean;
   onToggleCinema?: () => void;
   posterUrl?: string;
@@ -32,6 +33,7 @@ export default function VideoPlayer({
   nextEpisodeUrl,
   prevEpisodeUrl,
   onToggleTheater,
+  isTheaterMode,
   isLightsOff = false,
   onToggleCinema,
   posterUrl,
@@ -50,11 +52,17 @@ export default function VideoPlayer({
   const [isMuted, setIsMuted] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [isTheater, setIsTheater] = useState(false);
+  const [isTheater, setIsTheater] = useState(isTheaterMode ?? false);
   const [playbackRate, setPlaybackRate] = useState(1);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
   const [showShortcutsModal, setShowShortcutsModal] = useState(false);
   const [isPip, setIsPip] = useState(false);
+
+  useEffect(() => {
+    if (isTheaterMode !== undefined) {
+      setIsTheater(isTheaterMode);
+    }
+  }, [isTheaterMode]);
 
   // Hydrate persistent volume and mute preferences from localStorage
   useEffect(() => {
@@ -1029,9 +1037,9 @@ export default function VideoPlayer({
                 <button
                   type="button"
                   onClick={(e) => { e.stopPropagation(); toggleTheater(); }}
-                  className={`${styles.controlBtn} ${styles.theaterBtn}`}
-                  title="Theater Mode (T)"
-                  aria-label="Toggle Theater Mode"
+                  className={`${styles.controlBtn} ${styles.theaterBtn} ${isTheater ? styles.theaterActiveBtn : ''}`}
+                  title={isTheater ? 'Exit Theater Mode (T)' : 'Theater Mode (T)'}
+                  aria-label={isTheater ? 'Exit Theater Mode' : 'Toggle Theater Mode'}
                 >
                   <Layout size={18} />
                 </button>

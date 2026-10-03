@@ -1,7 +1,7 @@
 .container {
-  max-width: 1720px;
+  max-width: 1680px;
   margin: 0 auto;
-  padding: 1.75rem 2rem 6rem;
+  padding: 1rem 2rem 3.5rem;
   width: 100%;
   position: relative;
   min-height: 80vh;
@@ -59,7 +59,7 @@
   font-size: 0.68rem;
   font-weight: 850;
   padding: 0.2rem 0.65rem;
-  border-radius: 20px;
+  border-radius: 4px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -193,7 +193,7 @@
 
 @media (max-width: 540px) {
   .container {
-    padding: 1rem 0.85rem 3.5rem;
+    padding: 0.85rem 1rem 3rem;
   }
   .seriesGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
@@ -229,20 +229,19 @@
   align-items: center;
   gap: 0.35rem;
   padding: 0.5rem 1.2rem;
-  border-radius: 30px;
-  background: rgba(18, 14, 32, 0.6);
+  border-radius: 6px;
+  background: var(--surface, #121722);
   border: 1px solid rgba(255, 255, 255, 0.12);
   color: var(--foreground-primary);
   font-size: 0.88rem;
   font-weight: 700;
   text-decoration: none;
-  transition: all 0.2s ease;
+  transition: background 0.2s ease, border-color 0.2s ease;
 }
 
 .pageBtn:hover:not(.pageBtnDisabled) {
   background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(168, 85, 247, 0.5);
-  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.25);
 }
 
 .pageBtnDisabled {

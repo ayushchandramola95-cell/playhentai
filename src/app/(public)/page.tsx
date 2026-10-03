@@ -944,11 +944,16 @@ export default async function HomePage() {
   const firstPosterUrl = firstPosterKey ? getR2Url(firstPosterKey, 'poster') : null;
   const firstBannerKey = firstFeatured?.banner_image_key || firstFeatured?.cover_image_key || firstFeatured?.poster_image_key;
   const firstBannerUrl = firstBannerKey ? getR2Url(firstBannerKey, 'banner') : null;
+  const firstCoverKey = firstFeatured?.episode_thumbnail || firstFeatured?.cover_image_key || firstFeatured?.poster_image_key || firstFeatured?.banner_image_key;
+  const firstCoverUrl = firstCoverKey ? getR2Url(firstCoverKey, 'cover') : null;
 
   return (
     <div className={styles.container}>
       {firstBannerUrl && (
         <link rel="preload" as="image" href={firstBannerUrl} fetchPriority="high" media="(min-width: 769px)" />
+      )}
+      {firstCoverUrl && (
+        <link rel="preload" as="image" href={firstCoverUrl} fetchPriority="high" media="(max-width: 768px)" />
       )}
       <JsonLd data={[itemListJsonLd, brandImageJsonLd, faqJsonLd, siteNavJsonLd]} />
 
@@ -1047,6 +1052,33 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* 2. Latest Series Section: Horizontal scroll slider up to 18 items */}
+      <section className={styles.section}>
+        <HorizontalScrollRow
+          title="Latest Hentai Anime Series"
+          subtitle="UPDATED DAILY"
+          viewAllHref="/recent/series"
+        >
+          {cleanLatestSeries.map((item) => (
+            <SeriesCard key={item.id} item={item} />
+          ))}
+        </HorizontalScrollRow>
+      </section>
+
+      {/* 3. Trending & Most Viewed Section: Horizontal scroll slider up to 18 items */}
+      <section className={styles.section}>
+        <HorizontalScrollRow
+          title="Trending & Most Viewed"
+          subtitle="POPULAR NOW"
+          subtitleColor="#ec4899"
+          viewAllHref="/trending"
+        >
+          {cleanTrendingSeries.map((item) => (
+            <SeriesCard key={item.id} item={item} />
+          ))}
+        </HorizontalScrollRow>
+      </section>
+
       {/* Uncensored Hentai Section: Portrait Poster Slider with View Badge on Thumbnail & Studio Underneath */}
       {recentUncensoredItems && recentUncensoredItems.length > 0 && (
         <section className={styles.section}>
@@ -1095,31 +1127,9 @@ export default async function HomePage() {
         </section>
       )}
 
-      {/* 2. Latest Series Section: Horizontal scroll slider up to 18 items */}
+      {/* 5. Random Section: Live Shuffle slider of active series */}
       <section className={styles.section}>
-        <HorizontalScrollRow
-          title="Latest Hentai Anime Series"
-          subtitle="UPDATED DAILY"
-          viewAllHref="/recent/series"
-        >
-          {cleanLatestSeries.map((item) => (
-            <SeriesCard key={item.id} item={item} />
-          ))}
-        </HorizontalScrollRow>
-      </section>
-
-      {/* 3. Trending & Most Viewed Section: Horizontal scroll slider up to 18 items */}
-      <section className={styles.section}>
-        <HorizontalScrollRow
-          title="Trending & Most Viewed"
-          subtitle="POPULAR NOW"
-          subtitleColor="#ec4899"
-          viewAllHref="/trending"
-        >
-          {cleanTrendingSeries.map((item) => (
-            <SeriesCard key={item.id} item={item} />
-          ))}
-        </HorizontalScrollRow>
+        <RandomRowSection seriesPool={lightweightRandomPool} />
       </section>
 
       {/* 4. Upcoming Anime Section: Horizontal scroll slider up to 18 items */}
@@ -1136,11 +1146,6 @@ export default async function HomePage() {
           </HorizontalScrollRow>
         </section>
       )}
-
-      {/* 5. Random Section: Live Shuffle slider of active series */}
-      <section className={styles.section}>
-        <RandomRowSection seriesPool={lightweightRandomPool} />
-      </section>
 
       {/* Recommendations Banner (Client Component with Auth) */}
       <RecommendationsBanner />
@@ -1256,7 +1261,7 @@ export default async function HomePage() {
             </p>
 
             {/* Quick Links Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '0.8rem', marginTop: '0.8rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '0.8rem', marginTop: '0.8rem' }}>
               <Link href="/uncensored" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '8px', padding: '0.6rem 0.8rem', color: '#f59e0b', fontSize: '0.8rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.4rem', textDecoration: 'none' }} className="card-hover">
                 ✨ Uncensored Hentai
               </Link>

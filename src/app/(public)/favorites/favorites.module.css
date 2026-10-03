@@ -1,12 +1,12 @@
 /* =========================================================================
-   Favorites Page Styles - Modern Glassmorphism & High Aesthetic
+   Favorites Page Styles - Modern Flat Dark Aesthetic
    ========================================================================= */
 
 .container {
   width: 100%;
-  max-width: 1440px;
+  max-width: 1680px;
   margin: 0 auto;
-  padding: 1.5rem 1.5rem 5rem;
+  padding: 1rem 2rem 3.5rem;
   position: relative;
   min-height: 80vh;
 }
@@ -59,7 +59,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.35rem 0.75rem;
+  padding: 0.25rem 0.65rem;
   background: rgba(236, 72, 153, 0.12);
   border: 1px solid rgba(236, 72, 153, 0.3);
   color: #f472b6;
@@ -67,20 +67,20 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  border-radius: 9999px;
+  border-radius: 4px;
 }
 
 .totalPill {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.35rem 0.75rem;
+  padding: 0.25rem 0.65rem;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--text-secondary, #cbd5e1);
   font-size: 0.8rem;
   font-weight: 500;
-  border-radius: 9999px;
+  border-radius: 4px;
 }
 
 .titleRow {
@@ -90,19 +90,18 @@
 }
 
 .titleIconBadge {
-  width: 48px;
-  height: 48px;
-  border-radius: 14px;
-  background: linear-gradient(135deg, rgba(236, 72, 153, 0.2), rgba(168, 85, 247, 0.2));
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: rgba(236, 72, 153, 0.15);
   border: 1px solid rgba(236, 72, 153, 0.35);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 20px rgba(236, 72, 153, 0.25);
 }
 
 .mainTitle {
-  font-size: 2.25rem;
+  font-size: 2.1rem;
   font-weight: 800;
   color: #ffffff;
   letter-spacing: -0.025em;
@@ -127,11 +126,10 @@
   padding: 0.85rem 1.25rem;
   background: rgba(245, 158, 11, 0.08);
   border: 1px solid rgba(245, 158, 11, 0.25);
-  border-radius: 12px;
+  border-radius: 6px;
   font-size: 0.88rem;
   color: #fbbf24;
   line-height: 1.45;
-  backdrop-filter: blur(8px);
 }
 
 .guestLockIcon {
@@ -153,10 +151,9 @@
 
 /* Controls Section */
 .controlsSection {
-  background: rgba(18, 18, 26, 0.65);
+  background: var(--surface, #121722);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(16px);
-  border-radius: 16px;
+  border-radius: 8px;
   padding: 1.25rem;
   margin-bottom: 2rem;
   display: flex;
@@ -191,21 +188,19 @@
 
 .searchInput {
   width: 100%;
-  height: 42px;
+  height: 40px;
   padding: 0 2.4rem 0 2.4rem;
-  background: rgba(0, 0, 0, 0.35);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
+  background: rgba(8, 8, 14, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
   color: #ffffff;
   font-size: 0.88rem;
   outline: none;
-  transition: all 0.2s ease;
+  transition: border-color 0.2s ease;
 }
 
 .searchInput:focus {
-  border-color: rgba(236, 72, 153, 0.6);
-  box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.15);
-  background: rgba(0, 0, 0, 0.5);
+  border-color: rgba(255, 255, 255, 0.28);
 }
 
 .searchInput::placeholder {
@@ -256,28 +251,27 @@
 }
 
 .sortSelect {
-  height: 42px;
+  height: 40px;
   padding: 0 2rem 0 2.25rem;
-  background: rgba(0, 0, 0, 0.35);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
+  background: rgba(8, 8, 14, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
   color: #ffffff;
   font-size: 0.85rem;
   font-weight: 500;
   appearance: none;
   outline: none;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: border-color 0.2s ease;
 }
 
 .sortSelect:hover,
 .sortSelect:focus {
-  border-color: rgba(236, 72, 153, 0.5);
-  background: rgba(0, 0, 0, 0.5);
+  border-color: rgba(255, 255, 255, 0.25);
 }
 
 .sortSelect option {
-  background: #12121a;
+  background: #121722;
   color: #ffffff;
   padding: 8px;
 }
@@ -293,9 +287,9 @@
 .viewModeToggle {
   display: flex;
   align-items: center;
-  background: rgba(0, 0, 0, 0.35);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
+  background: rgba(8, 8, 14, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
   padding: 3px;
   gap: 2px;
 }
@@ -304,11 +298,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 34px;
+  width: 34px;
+  height: 32px;
   background: transparent;
   border: none;
-  border-radius: 8px;
+  border-radius: 4px;
   color: rgba(255, 255, 255, 0.5);
   cursor: pointer;
   transition: all 0.2s ease;
@@ -319,9 +313,8 @@
 }
 
 .viewBtnActive {
-  background: rgba(236, 72, 153, 0.2);
-  color: #f472b6;
-  border: 1px solid rgba(236, 72, 153, 0.4);
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
 }
 
 /* Clear All Button */
@@ -329,23 +322,22 @@
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  height: 42px;
+  height: 40px;
   padding: 0 1rem;
   background: rgba(239, 68, 68, 0.1);
   border: 1px solid rgba(239, 68, 68, 0.25);
   color: #f87171;
   font-size: 0.85rem;
   font-weight: 600;
-  border-radius: 10px;
+  border-radius: 6px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background 0.2s ease;
 }
 
 .clearAllBtn:hover {
-  background: rgba(239, 68, 68, 0.2);
-  border-color: rgba(239, 68, 68, 0.45);
+  background: #ef4444;
+  border-color: #ef4444;
   color: #ffffff;
-  box-shadow: 0 2px 10px rgba(239, 68, 68, 0.2);
 }
 
 /* Quick Tags Row (Horizontally Scrollable) */
@@ -419,7 +411,7 @@
   color: var(--text-secondary, #cbd5e1);
   font-size: 0.8rem;
   font-weight: 500;
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
   white-space: nowrap;
   flex-shrink: 0;
@@ -501,9 +493,9 @@
   color: #f87171;
   font-size: 0.78rem;
   font-weight: 600;
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background 0.2s ease;
 }
 
 .removeBtn:hover:not(:disabled) {
@@ -527,19 +519,16 @@
 .listItem {
   display: flex;
   gap: 1.25rem;
-  background: rgba(18, 18, 26, 0.55);
+  background: var(--surface, #121722);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(12px);
-  border-radius: 14px;
+  border-radius: 8px;
   padding: 1rem;
-  transition: all 0.25s ease;
+  transition: border-color 0.2s ease, background 0.2s ease;
 }
 
 .listItem:hover {
-  background: rgba(18, 18, 26, 0.8);
-  border-color: rgba(236, 72, 153, 0.3);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 .listPosterWrap {
@@ -547,7 +536,7 @@
   width: 110px;
   min-width: 110px;
   height: 155px;
-  border-radius: 10px;
+  border-radius: 6px;
   overflow: hidden;
   background: #0d0e15;
   flex-shrink: 0;
@@ -633,7 +622,7 @@
   color: #fbbf24;
   font-size: 0.78rem;
   font-weight: 700;
-  border-radius: 6px;
+  border-radius: 4px;
 }
 
 .listMetaPill {
@@ -659,14 +648,13 @@
   color: #ffffff;
   font-size: 0.82rem;
   font-weight: 600;
-  border-radius: 8px;
+  border-radius: 6px;
   text-decoration: none;
-  transition: all 0.2s ease;
+  transition: background 0.2s ease;
 }
 
 .listWatchBtn:hover {
   background: #db2777;
-  transform: scale(1.02);
 }
 
 .listRemoveBtn {
@@ -678,9 +666,9 @@
   background: rgba(239, 68, 68, 0.1);
   border: 1px solid rgba(239, 68, 68, 0.25);
   color: #f87171;
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background 0.2s ease;
 }
 
 .listRemoveBtn:hover {
@@ -712,16 +700,16 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
   color: var(--text-secondary, #cbd5e1);
   font-size: 0.72rem;
-  border-radius: 6px;
+  border-radius: 4px;
 }
 
 /* Empty Search Fallback */
 .emptySearchCard {
   text-align: center;
   padding: 4rem 2rem;
-  background: rgba(18, 18, 26, 0.4);
+  background: var(--surface, #121722);
   border: 1px dashed rgba(255, 255, 255, 0.12);
-  border-radius: 16px;
+  border-radius: 8px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -761,11 +749,11 @@
   background: #ec4899;
   color: #ffffff;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background 0.2s ease;
 }
 
 .resetBtn:hover {
@@ -777,11 +765,11 @@
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.15);
   color: #ffffff;
-  border-radius: 8px;
+  border-radius: 6px;
   font-size: 0.85rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background 0.2s ease;
 }
 
 .resetBtnSecondary:hover {
@@ -792,10 +780,9 @@
 .emptyFavoritesCard {
   text-align: center;
   padding: 5rem 2rem;
-  background: rgba(18, 18, 26, 0.55);
+  background: var(--surface, #121722);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(16px);
-  border-radius: 20px;
+  border-radius: 8px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -805,15 +792,14 @@
 }
 
 .emptyIconBadge {
-  width: 90px;
-  height: 90px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, rgba(236, 72, 153, 0.15), rgba(168, 85, 247, 0.15));
+  width: 72px;
+  height: 72px;
+  border-radius: 8px;
+  background: rgba(236, 72, 153, 0.12);
   border: 1px solid rgba(236, 72, 153, 0.35);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 35px rgba(236, 72, 153, 0.2);
   margin-bottom: 0.5rem;
 }
 
@@ -853,7 +839,7 @@
   padding: 0.75rem 1rem;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 10px;
+  border-radius: 6px;
   color: #ffffff;
   font-size: 0.85rem;
   font-weight: 600;
@@ -864,7 +850,6 @@
 .explorePill:hover {
   background: rgba(255, 255, 255, 0.08);
   border-color: rgba(236, 72, 153, 0.4);
-  transform: translateY(-2px);
 }
 
 .primaryBtn {
@@ -872,19 +857,17 @@
   align-items: center;
   justify-content: center;
   padding: 0.75rem 2rem;
-  background: linear-gradient(135deg, #ec4899, #8b5cf6);
+  background: var(--primary);
   color: #ffffff;
   font-size: 0.95rem;
   font-weight: 700;
-  border-radius: 10px;
+  border-radius: 6px;
   text-decoration: none;
-  transition: all 0.25s ease;
-  box-shadow: 0 4px 20px rgba(236, 72, 153, 0.3);
+  transition: background 0.2s ease;
 }
 
 .primaryBtn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 25px rgba(236, 72, 153, 0.45);
+  background: var(--primary-hover);
 }
 
 /* Modal Styles */
@@ -902,10 +885,9 @@
 }
 
 .modalCard {
-  background: #14141e;
+  background: var(--surface, #121722);
   border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
-  border-radius: 20px;
+  border-radius: 8px;
   padding: 2rem;
   max-width: 440px;
   width: 100%;
@@ -918,9 +900,9 @@
 }
 
 .modalIconWrap {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
   background: rgba(239, 68, 68, 0.12);
   border: 1px solid rgba(239, 68, 68, 0.3);
   display: flex;
@@ -956,14 +938,14 @@
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.12);
   color: #ffffff;
-  border-radius: 10px;
+  border-radius: 6px;
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background 0.2s ease;
 }
 
-.modalCancelBtn:hover:not(:disabled) {
+.modalCancelBtn:hover {
   background: rgba(255, 255, 255, 0.15);
 }
 
@@ -971,18 +953,17 @@
   flex: 1;
   padding: 0.7rem;
   background: #ef4444;
-  border: none;
+  border: 1px solid #ef4444;
   color: #ffffff;
-  border-radius: 10px;
+  border-radius: 6px;
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background 0.2s ease;
 }
 
-.modalConfirmBtn:hover:not(:disabled) {
+.modalConfirmBtn:hover {
   background: #dc2626;
-  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.35);
 }
 
 /* Animations */
@@ -1027,7 +1008,7 @@
 
 @media (max-width: 768px) {
   .container {
-    padding: 0.9rem 0.8rem 3.5rem !important;
+    padding: 0.85rem 1rem 3rem !important;
     overflow-x: hidden !important;
   }
 
@@ -1053,13 +1034,13 @@
   .highlightPill {
     font-size: 0.64rem !important;
     padding: 0.18rem 0.55rem !important;
-    border-radius: 16px !important;
+    border-radius: 4px !important;
   }
 
   .totalPill {
     font-size: 0.68rem !important;
     padding: 0.18rem 0.55rem !important;
-    border-radius: 16px !important;
+    border-radius: 4px !important;
     white-space: nowrap !important;
   }
 
@@ -1071,7 +1052,7 @@
   .titleIconBadge {
     width: 32px !important;
     height: 32px !important;
-    border-radius: 10px !important;
+    border-radius: 6px !important;
   }
 
   .titleIconBadge svg {
@@ -1095,7 +1076,7 @@
   .guestNotice {
     padding: 0.55rem 0.75rem !important;
     font-size: 0.75rem !important;
-    border-radius: 10px !important;
+    border-radius: 6px !important;
     gap: 0.5rem !important;
     line-height: 1.4 !important;
   }
@@ -1103,10 +1084,10 @@
   /* Compact Mobile Control Hub */
   .controlsSection {
     padding: 0.75rem 0.85rem !important;
-    border-radius: 16px !important;
-    background: rgba(12, 10, 22, 0.88) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45) !important;
+    border-radius: 8px !important;
+    background: var(--surface, #121722) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    box-shadow: none !important;
     margin-bottom: 1.25rem !important;
     gap: 0.55rem !important;
   }
@@ -1129,9 +1110,9 @@
     height: 38px !important;
     font-size: 0.8rem !important;
     padding: 0 2rem 0 2.2rem !important;
-    border-radius: 12px !important;
-    background: rgba(255, 255, 255, 0.04) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 6px !important;
+    background: rgba(8, 8, 14, 0.85) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
   }
 
   .searchIcon {
@@ -1159,12 +1140,12 @@
   .sortSelect {
     height: 36px !important;
     width: 100% !important;
-    border-radius: 10px !important;
+    border-radius: 6px !important;
     font-size: 0.76rem !important;
     font-weight: 750 !important;
     padding: 0 1.6rem 0 1.85rem !important;
-    background: rgba(255, 255, 255, 0.04) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    background: rgba(8, 8, 14, 0.85) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
   }
 
   .sortIcon {
@@ -1181,24 +1162,24 @@
 
   .viewModeToggle {
     height: 36px !important;
-    border-radius: 10px !important;
+    border-radius: 6px !important;
     padding: 2px !important;
-    background: rgba(255, 255, 255, 0.04) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    background: rgba(8, 8, 14, 0.85) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
     display: flex !important;
     align-items: center !important;
   }
 
   .viewBtn {
     padding: 0.35rem 0.5rem !important;
-    border-radius: 8px !important;
+    border-radius: 4px !important;
   }
 
   .clearAllBtn {
     height: 36px !important;
     padding: 0 0.85rem !important;
     font-size: 0.76rem !important;
-    border-radius: 10px !important;
+    border-radius: 6px !important;
     white-space: nowrap !important;
     justify-content: center !important;
   }
@@ -1217,7 +1198,7 @@
   .tagFilterChip {
     padding: 0.22rem 0.55rem !important;
     font-size: 0.72rem !important;
-    border-radius: 8px !important;
+    border-radius: 6px !important;
   }
 
   .tagCount {
@@ -1252,12 +1233,10 @@
     padding: 0.22rem 0.5rem !important;
     font-size: 0.66rem !important;
     font-weight: 800 !important;
-    border-radius: 8px !important;
+    border-radius: 6px !important;
     background: rgba(15, 12, 24, 0.94) !important;
     border: 1px solid rgba(239, 68, 68, 0.6) !important;
     color: #fca5a5 !important;
-    backdrop-filter: blur(8px) !important;
-    -webkit-backdrop-filter: blur(8px) !important;
   }
 
   /* List View on Mobile */

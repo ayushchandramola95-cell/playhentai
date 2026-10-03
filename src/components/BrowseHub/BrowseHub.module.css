@@ -8,34 +8,29 @@
 }
 
 /* ==========================================================================
-   2-Tier Master Filter Control Panel (Glassmorphic Anime Catalog Design)
+   2-Tier Master Filter Control Panel (Flat Dark Aesthetic)
    ========================================================================== */
 .filterPanel {
   display: flex;
   flex-direction: column;
   gap: 0.9rem;
   padding: 1rem 1.25rem;
-  background: rgba(15, 12, 26, 0.7);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  background: var(--surface, #121722);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
   width: 100%;
-  transition: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+  transition: border-color 0.2s ease;
 }
 
 .filterPanelFocused {
-  border-color: rgba(124, 58, 237, 0.35);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55), 0 0 25px rgba(124, 58, 237, 0.18);
-  background: rgba(18, 14, 32, 0.82);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 /* Row 1: Taxonomy / Facet Filter Controls */
 .filterTopRow {
   display: flex;
   align-items: center;
-  gap: 0.65rem;
+  gap: 0.5rem;
   flex-wrap: wrap;
 }
 
@@ -43,44 +38,43 @@
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.45rem 0.95rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 25px;
+  gap: 0.45rem;
+  padding: 0.42rem 0.85rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
   color: #f1f5f9;
-  font-size: 0.85rem;
-  font-weight: 750;
+  font-size: 0.84rem;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+  transition: background 0.18s ease, border-color 0.18s ease;
   font-family: inherit;
   user-select: none;
 }
 
 .filterBtn:hover {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
   color: #ffffff;
-  transform: translateY(-1px);
 }
 
 .filterBtnActive {
-  background: rgba(124, 58, 237, 0.25) !important;
-  border-color: rgba(124, 58, 237, 0.65) !important;
-  color: #c084fc !important;
-  box-shadow: 0 0 14px rgba(124, 58, 237, 0.25);
+  background: rgba(255, 255, 255, 0.12) !important;
+  border-color: rgba(255, 255, 255, 0.28) !important;
+  color: #ffffff !important;
+  box-shadow: none;
 }
 
 .btnBadge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.72rem;
-  font-weight: 850;
-  background: var(--primary);
+  font-size: 0.7rem;
+  font-weight: 800;
+  background: var(--primary, #ff2e7e);
   color: #ffffff;
-  padding: 0.1rem 0.45rem;
-  border-radius: 12px;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
   line-height: 1;
 }
 
@@ -93,18 +87,18 @@
   position: relative;
   display: inline-flex;
   align-items: center;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 25px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
   color: #f1f5f9;
-  font-size: 0.85rem;
-  font-weight: 750;
-  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+  font-size: 0.84rem;
+  font-weight: 700;
+  transition: background 0.18s ease, border-color 0.18s ease;
 }
 
 .filterSelectWrapper:hover {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
   color: #ffffff;
 }
 
@@ -127,10 +121,10 @@
   background: transparent;
   border: none;
   color: inherit;
-  font-size: 0.85rem;
-  font-weight: 750;
-  padding: 0.45rem 1.9rem 0.45rem 2.25rem;
-  border-radius: 25px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  padding: 0.42rem 1.9rem 0.42rem 2.25rem;
+  border-radius: 6px;
   outline: none;
   cursor: pointer;
   font-family: inherit;
@@ -147,22 +141,22 @@
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.45rem 0.85rem;
+  padding: 0.42rem 0.8rem;
   background: rgba(239, 68, 68, 0.1);
   border: 1px solid rgba(239, 68, 68, 0.25);
   color: #f87171;
   font-size: 0.82rem;
-  font-weight: 750;
-  border-radius: 25px;
+  font-weight: 700;
+  border-radius: 6px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.18s ease;
   font-family: inherit;
   margin-left: auto;
 }
 
 .resetBtn:hover {
-  background: rgba(239, 68, 68, 0.2);
-  border-color: rgba(239, 68, 68, 0.5);
+  background: rgba(239, 68, 68, 0.18);
+  border-color: rgba(239, 68, 68, 0.4);
   color: #ffffff;
 }
 
@@ -198,21 +192,21 @@
   padding: 0 2rem 0 2.3rem;
   background: rgba(8, 8, 14, 0.85);
   border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 22px;
+  border-radius: 6px;
   color: #ffffff;
   font-size: 0.84rem;
   font-weight: 600;
   outline: none;
   width: 100%;
-  transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+  transition: border-color 0.18s ease;
   font-family: inherit;
 }
 
 .searchInput:focus,
 .searchInputFocused {
-  border-color: var(--primary);
+  border-color: rgba(255, 255, 255, 0.28);
   background: rgba(14, 11, 24, 0.95);
-  box-shadow: 0 0 16px rgba(124, 58, 237, 0.4);
+  box-shadow: none;
 }
 
 .clearSearch {
@@ -257,26 +251,25 @@
   display: inline-flex;
   align-items: center;
   background: rgba(8, 8, 14, 0.85);
-  border: 1px solid rgba(124, 58, 237, 0.35);
-  border-radius: 22px;
-  padding: 0.18rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 0.15rem;
   gap: 0.15rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
 }
 
 .viewModeBtn {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  padding: 0.32rem 0.65rem;
-  border-radius: 18px;
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
   background: transparent;
   border: none;
   color: var(--foreground-muted);
   font-size: 0.78rem;
-  font-weight: 750;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
   font-family: inherit;
 }
 
@@ -286,9 +279,9 @@
 }
 
 .viewModeActive {
-  background: var(--primary) !important;
+  background: var(--primary, #ff2e7e) !important;
   color: #ffffff !important;
-  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.4);
+  box-shadow: none;
 }
 
 .viewModeText {
@@ -313,23 +306,22 @@
 .sortSelect {
   appearance: none;
   background: rgba(8, 8, 14, 0.85);
-  border: 1px solid rgba(124, 58, 237, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   color: #ffffff;
   font-size: 0.82rem;
-  font-weight: 800;
+  font-weight: 700;
   padding: 0.42rem 2.2rem 0.42rem 2.3rem;
-  border-radius: 22px;
+  border-radius: 6px;
   outline: none;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: border-color 0.18s ease;
   font-family: inherit;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
   width: 100%;
 }
 
 .sortSelect:hover {
-  border-color: var(--primary);
-  background: rgba(124, 58, 237, 0.15);
+  border-color: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .sortSelect option {
@@ -394,74 +386,74 @@
   gap: 0.5rem;
   flex-wrap: wrap;
   padding: 0.65rem 0.95rem;
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--surface, #121722);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
+  border-radius: 8px;
 }
 
 .activeBadgeInclude {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.3rem 0.75rem;
-  background: rgba(34, 197, 94, 0.15);
-  border: 1px solid rgba(34, 197, 94, 0.4);
+  padding: 0.25rem 0.65rem;
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.32);
   color: #4ade80;
-  border-radius: 20px;
-  font-size: 0.82rem;
-  font-weight: 750;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 700;
 }
 
 .activeBadgeBlock {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.3rem 0.75rem;
-  background: rgba(239, 68, 68, 0.15);
-  border: 1px solid rgba(239, 68, 68, 0.4);
+  padding: 0.25rem 0.65rem;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.32);
   color: #f87171;
-  border-radius: 20px;
-  font-size: 0.82rem;
-  font-weight: 750;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 700;
 }
 
 .activeBadgeBrand {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.3rem 0.75rem;
-  background: rgba(245, 158, 11, 0.15);
-  border: 1px solid rgba(245, 158, 11, 0.4);
+  padding: 0.25rem 0.65rem;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.32);
   color: #fbbf24;
-  border-radius: 20px;
-  font-size: 0.82rem;
-  font-weight: 750;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 700;
 }
 
 .activeBadgeYear {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.3rem 0.75rem;
-  background: rgba(59, 130, 246, 0.15);
-  border: 1px solid rgba(59, 130, 246, 0.4);
+  padding: 0.25rem 0.65rem;
+  background: rgba(59, 130, 246, 0.12);
+  border: 1px solid rgba(59, 130, 246, 0.32);
   color: #60a5fa;
-  border-radius: 20px;
-  font-size: 0.82rem;
-  font-weight: 750;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 700;
 }
 
 .activeBadgeStatus {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.3rem 0.75rem;
-  background: rgba(168, 85, 247, 0.15);
-  border: 1px solid rgba(168, 85, 247, 0.4);
+  padding: 0.25rem 0.65rem;
+  background: rgba(168, 85, 247, 0.12);
+  border: 1px solid rgba(168, 85, 247, 0.32);
   color: #c084fc;
-  border-radius: 20px;
-  font-size: 0.82rem;
-  font-weight: 750;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 700;
 }
 
 .badgeRemoveBtn {
@@ -1091,24 +1083,23 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 40px;
-  height: 40px;
-  padding: 0 0.85rem;
-  background: rgba(18, 14, 32, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 30px;
+  min-width: 36px;
+  height: 36px;
+  padding: 0 0.75rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
   color: #ffffff;
   font-size: 0.85rem;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.18s ease;
   text-decoration: none;
 }
 
 .pageBtn:hover:not(.pageBtnDisabled) {
   background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(168, 85, 247, 0.5);
-  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.22);
 }
 
 .pageBtnDisabled {

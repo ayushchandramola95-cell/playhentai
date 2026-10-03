@@ -1,8 +1,8 @@
 /* Container Layout */
 .container {
-  max-width: 1440px;
+  max-width: 1680px;
   margin: 0 auto;
-  padding: 2.5rem 1.5rem 6rem;
+  padding: 1rem 2rem 3.5rem;
   width: 100%;
   position: relative;
   min-height: 80vh;
@@ -58,7 +58,7 @@
   padding: 0.25rem 0.65rem;
   background: rgba(168, 85, 247, 0.12);
   border: 1px solid rgba(168, 85, 247, 0.3);
-  border-radius: 20px;
+  border-radius: 4px;
   color: #c084fc;
   font-size: 0.72rem;
   font-weight: 800;
@@ -73,7 +73,7 @@
   padding: 0.25rem 0.65rem;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 20px;
+  border-radius: 4px;
   color: #cbd5e1;
   font-size: 0.72rem;
   font-weight: 700;
@@ -90,12 +90,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, rgba(168, 85, 247, 0.25), rgba(236, 72, 153, 0.25));
-  border: 1px solid rgba(168, 85, 247, 0.4);
-  box-shadow: 0 4px 16px rgba(168, 85, 247, 0.25);
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: rgba(168, 85, 247, 0.2);
+  border: 1px solid rgba(168, 85, 247, 0.35);
   flex-shrink: 0;
 }
 
@@ -104,12 +103,10 @@
 }
 
 .mainTitle {
-  font-size: 2.2rem;
+  font-size: 2.1rem;
   font-weight: 850;
   letter-spacing: -0.025em;
-  background: linear-gradient(135deg, #ffffff 40%, #e2e8f0 80%, #cbd5e1 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #ffffff;
 }
 
 .subtext {
@@ -125,7 +122,10 @@
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  animation: fadeIn 0.45s ease-out;
+  background: var(--surface, #121722);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 1.25rem;
 }
 
 .searchSortRow {
@@ -155,19 +155,17 @@
 .searchInput {
   width: 100%;
   padding: 0.6rem 2.2rem 0.6rem 2.4rem;
-  background: rgba(15, 23, 42, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
+  background: rgba(8, 8, 14, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
   color: #ffffff;
   font-size: 0.88rem;
-  transition: all 0.2s ease;
+  transition: border-color 0.2s ease;
 }
 
 .searchInput:focus {
   outline: none;
-  border-color: rgba(168, 85, 247, 0.6);
-  background: rgba(15, 23, 42, 0.9);
-  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.15);
+  border-color: rgba(255, 255, 255, 0.28);
 }
 
 .searchInput::placeholder {
@@ -217,20 +215,20 @@
 .sortSelect {
   appearance: none;
   -webkit-appearance: none;
-  background: rgba(15, 23, 42, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(8, 8, 14, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   color: #e2e8f0;
   font-size: 0.84rem;
   font-weight: 600;
   padding: 0.55rem 2rem 0.55rem 2rem;
-  border-radius: 10px;
+  border-radius: 6px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: border-color 0.2s ease;
 }
 
 .sortSelect:focus {
   outline: none;
-  border-color: rgba(168, 85, 247, 0.6);
+  border-color: rgba(255, 255, 255, 0.25);
 }
 
 .sortArrow {
@@ -243,9 +241,9 @@
 /* View Mode Toggle */
 .viewToggleGroup {
   display: flex;
-  background: rgba(15, 23, 42, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
+  background: rgba(8, 8, 14, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
   padding: 2px;
 }
 
@@ -254,7 +252,7 @@
   border: none;
   color: #94a3b8;
   padding: 0.45rem 0.6rem;
-  border-radius: 8px;
+  border-radius: 4px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -263,9 +261,8 @@
 }
 
 .viewBtnActive {
-  background: rgba(168, 85, 247, 0.25);
+  background: rgba(255, 255, 255, 0.1);
   color: #ffffff;
-  border: 1px solid rgba(168, 85, 247, 0.4);
 }
 
 /* Clear All Button */
@@ -276,19 +273,18 @@
   font-size: 0.82rem;
   font-weight: 700;
   padding: 0.52rem 0.95rem;
-  border-radius: 10px;
+  border-radius: 6px;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  transition: all 0.2s ease;
+  transition: background 0.2s ease;
 }
 
 .clearAllBtn:hover {
   background: #ef4444;
   color: #ffffff;
   border-color: #ef4444;
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);
 }
 
 /* Status Filter Tabs */
@@ -305,7 +301,7 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
   color: #94a3b8;
   padding: 0.45rem 0.95rem;
-  border-radius: 20px;
+  border-radius: 6px;
   font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
@@ -319,8 +315,8 @@
 }
 
 .tabBtnActive {
-  background: linear-gradient(135deg, rgba(168, 85, 247, 0.25), rgba(236, 72, 153, 0.25));
-  border-color: rgba(168, 85, 247, 0.5);
+  background: var(--primary);
+  border-color: var(--primary);
   color: #ffffff;
   font-weight: 700;
 }
@@ -356,23 +352,19 @@
 
 /* Grid Card */
 .gridCard {
-  background: rgba(15, 23, 42, 0.65);
+  background: var(--surface, #121722);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
+  border-radius: 8px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
   position: relative;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  transition: border-color 0.2s ease;
   z-index: 1;
 }
 
 .gridCard:hover {
-  border-color: rgba(168, 85, 247, 0.5);
-  transform: translateY(-4px);
-  box-shadow: 0 10px 28px rgba(168, 85, 247, 0.2);
-  z-index: 20;
+  border-color: rgba(255, 255, 255, 0.22);
 }
 
 /* Grid Thumbnail */
@@ -467,7 +459,7 @@
   background: rgba(15, 12, 24, 0.92);
   border: 1px solid rgba(239, 68, 68, 0.6);
   color: #fca5a5;
-  border-radius: 14px;
+  border-radius: 6px;
   padding: 0.24rem 0.55rem;
   font-size: 0.7rem;
   font-weight: 750;
@@ -475,27 +467,20 @@
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
   opacity: 0;
   pointer-events: none;
-  transform: translateY(-2px) scale(0.92);
-  transition: opacity 0.2s ease, transform 0.2s ease, background 0.15s ease;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
+  transition: opacity 0.2s ease, background 0.15s ease, border-color 0.15s ease;
 }
 
 .gridCard:hover .removeBtn {
   opacity: 1 !important;
   pointer-events: auto !important;
-  transform: translateY(0) scale(1) !important;
 }
 
 .removeBtn:hover {
   background: #ef4444 !important;
   color: #ffffff !important;
   border-color: #ef4444 !important;
-  transform: translateY(0) scale(1.05) !important;
-  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.55) !important;
 }
 
 .removeBtn:disabled {
@@ -619,19 +604,17 @@
   margin-top: 0.4rem;
   background: rgba(168, 85, 247, 0.15);
   border: 1px solid rgba(168, 85, 247, 0.35);
-  border-radius: 8px;
+  border-radius: 6px;
   color: #ffffff;
   font-size: 0.8rem;
   font-weight: 750;
   text-decoration: none;
-  transition: all 0.2s ease;
+  transition: background 0.2s ease;
 }
 
 .resumeCardBtn:hover {
   background: #a855f7;
   border-color: #a855f7;
-  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.35);
-  transform: translateY(-1px);
 }
 
 /* ========================================= */
@@ -648,25 +631,23 @@
   align-items: center;
   gap: 1.25rem;
   padding: 0.9rem;
-  border-radius: 14px;
-  background: rgba(15, 23, 42, 0.65);
+  border-radius: 8px;
+  background: var(--surface, #121722);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  transition: all 0.25s ease;
+  transition: border-color 0.2s ease;
   position: relative;
   overflow: hidden;
 }
 
 .historyItem:hover {
   border-color: rgba(168, 85, 247, 0.45);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
 }
 
 .thumbnailWrapper {
   position: relative;
   width: 190px;
   aspect-ratio: 16 / 9;
-  border-radius: 8px;
+  border-radius: 6px;
   overflow: hidden;
   flex-shrink: 0;
   background: #090d16;
@@ -790,20 +771,18 @@
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  background: linear-gradient(135deg, #a855f7, #9333ea);
+  background: var(--primary);
   color: #ffffff;
   padding: 0.55rem 1.1rem;
-  border-radius: 20px;
+  border-radius: 6px;
   font-weight: 750;
   font-size: 0.82rem;
   text-decoration: none;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.35);
+  transition: background 0.2s ease;
 }
 
 .resumeBtn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(168, 85, 247, 0.5);
+  background: var(--primary-hover);
 }
 
 .listRemoveBtn {
@@ -812,12 +791,12 @@
   color: #94a3b8;
   width: 34px;
   height: 34px;
-  border-radius: 50%;
+  border-radius: 6px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: background 0.2s ease;
 }
 
 .listRemoveBtn:hover {
@@ -830,9 +809,9 @@
 /* EMPTY STATES & GUEST VIEW                 */
 /* ========================================= */
 .guestCard {
-  background: rgba(15, 23, 42, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 24px;
+  background: var(--surface, #121722);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
   padding: 4rem 2rem;
   max-width: 680px;
   margin: 3rem auto;
@@ -840,16 +819,14 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  backdrop-filter: blur(12px);
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);
 }
 
 .guestIconBadge {
   width: 64px;
   height: 64px;
-  border-radius: 20px;
-  background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(236, 72, 153, 0.2));
-  border: 1px solid rgba(168, 85, 247, 0.4);
+  border-radius: 8px;
+  background: rgba(168, 85, 247, 0.12);
+  border: 1px solid rgba(168, 85, 247, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -887,7 +864,7 @@
 .guestFeature {
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 12px;
+  border-radius: 6px;
   padding: 1rem;
   display: flex;
   flex-direction: column;
@@ -921,20 +898,18 @@
 }
 
 .primaryBtn {
-  background: linear-gradient(135deg, #a855f7, #ec4899);
+  background: var(--primary);
   color: #ffffff;
   font-size: 0.88rem;
   font-weight: 750;
   padding: 0.68rem 1.6rem;
-  border-radius: 24px;
+  border-radius: 6px;
   text-decoration: none;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 16px rgba(168, 85, 247, 0.4);
+  transition: background 0.2s ease;
 }
 
 .primaryBtn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 22px rgba(168, 85, 247, 0.6);
+  background: var(--primary-hover);
 }
 
 .secondaryBtn {
@@ -944,9 +919,9 @@
   font-size: 0.88rem;
   font-weight: 700;
   padding: 0.68rem 1.6rem;
-  border-radius: 24px;
+  border-radius: 6px;
   text-decoration: none;
-  transition: all 0.2s ease;
+  transition: background 0.2s ease;
 }
 
 .secondaryBtn:hover {
@@ -956,9 +931,9 @@
 
 /* Empty Watchlist Card */
 .emptyWatchlistCard {
-  background: rgba(15, 23, 42, 0.5);
+  background: var(--surface, #121722);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 24px;
+  border-radius: 8px;
   padding: 4.5rem 2rem;
   text-align: center;
   display: flex;
@@ -969,9 +944,9 @@
 }
 
 .emptyIconBadge {
-  width: 72px;
-  height: 72px;
-  border-radius: 22px;
+  width: 64px;
+  height: 64px;
+  border-radius: 8px;
   background: rgba(168, 85, 247, 0.1);
   border: 1px solid rgba(168, 85, 247, 0.25);
   display: flex;
@@ -1014,7 +989,7 @@
   padding: 0.65rem 1rem;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
+  border-radius: 6px;
   color: #cbd5e1;
   font-size: 0.82rem;
   font-weight: 700;
@@ -1026,14 +1001,13 @@
   background: rgba(255, 255, 255, 0.08);
   border-color: rgba(168, 85, 247, 0.4);
   color: #ffffff;
-  transform: translateY(-1px);
 }
 
 /* Empty Search */
 .emptySearchCard {
-  background: rgba(15, 23, 42, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 18px;
+  background: var(--surface, #121722);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
   padding: 4rem 2rem;
   text-align: center;
   display: flex;
@@ -1067,7 +1041,7 @@
   font-weight: 700;
   font-size: 0.82rem;
   padding: 0.5rem 1.2rem;
-  border-radius: 20px;
+  border-radius: 6px;
   cursor: pointer;
   margin-top: 0.5rem;
   transition: all 0.2s ease;
@@ -1094,21 +1068,20 @@
 }
 
 .modalCard {
-  background: #0f172a;
+  background: var(--surface, #121722);
   border: 1px solid rgba(239, 68, 68, 0.3);
-  border-radius: 20px;
+  border-radius: 8px;
   padding: 2rem;
   max-width: 440px;
   width: 100%;
   text-align: center;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
   animation: scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .modalIconWrap {
-  width: 54px;
-  height: 54px;
-  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
   background: rgba(239, 68, 68, 0.12);
   border: 1px solid rgba(239, 68, 68, 0.3);
   display: flex;
@@ -1143,7 +1116,7 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: #e2e8f0;
   padding: 0.65rem 0;
-  border-radius: 10px;
+  border-radius: 6px;
   font-size: 0.85rem;
   font-weight: 700;
   cursor: pointer;
@@ -1160,12 +1133,11 @@
   border: 1px solid #ef4444;
   color: #ffffff;
   padding: 0.65rem 0;
-  border-radius: 10px;
+  border-radius: 6px;
   font-size: 0.85rem;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
-  transition: all 0.2s ease;
+  transition: background 0.2s ease;
 }
 
 .modalConfirmBtn:hover {

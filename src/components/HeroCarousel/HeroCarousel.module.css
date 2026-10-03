@@ -111,9 +111,9 @@
    -------------------------------------------------------------------------- */
 .heroContentWrapper {
   width: 100%;
-  max-width: 1600px;
+  max-width: 1680px;
   margin: 0 auto;
-  padding: 0 2.5rem;
+  padding: 0 2rem;
   position: relative;
   z-index: 10;
 }
@@ -344,6 +344,27 @@
   background: rgba(255, 255, 255, 0.16);
   border-color: rgba(255, 255, 255, 0.3);
   transform: translateY(-2px);
+}
+
+.allEpisodesTextMobile {
+  display: none;
+}
+
+.allEpisodesTextDesktop {
+  display: inline;
+}
+
+.watchlistWrapper {
+  display: flex;
+  align-items: center;
+}
+
+.cardCornerBadge {
+  display: none;
+}
+
+.mobilePaginationContainer {
+  display: none;
 }
 
 /* --------------------------------------------------------------------------
@@ -682,6 +703,10 @@
     padding: 1.4rem 0 1.8rem 0;
   }
 
+  .heroContentWrapper {
+    padding: 0 1.5rem;
+  }
+
   .spotlightGrid {
     display: flex;
     flex-direction: column-reverse;
@@ -710,60 +735,364 @@
 
 @media (max-width: 768px) {
   .heroSection {
-    padding: 1rem 0 1.5rem 0;
+    min-height: auto;
+    padding: 0.35rem 0 0.65rem 0;
+  }
+
+  .heroOverlay {
+    background: linear-gradient(
+      to bottom,
+      rgba(8, 8, 8, 0.4) 0%,
+      rgba(8, 8, 8, 0.78) 42%,
+      #080808 85%
+    ) !important;
+  }
+
+  .heroSection::after {
+    height: 35px;
   }
 
   .heroContentWrapper {
-    padding: 0 1rem;
+    width: 100%;
+    max-width: 100%;
+    padding: 0 0.85rem;
+    box-sizing: border-box;
   }
 
   .spotlightGrid {
-    gap: 1.4rem;
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 0.65rem;
+    align-items: stretch;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
   }
 
-  .heroTitle {
-    font-size: 1.45rem;
-    line-height: 1.22;
+  .leftColumn {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    gap: 0.4rem;
   }
 
-  .heroDescription {
-    font-size: 0.85rem;
-    line-height: 1.45;
-  }
-
-  .actionButtons {
-    gap: 0.6rem;
-  }
-
-  .watchNowBtn,
-  .allEpisodesBtn {
-    padding: 0.62rem 1.25rem;
-    font-size: 0.86rem;
+  /* 16:9 Sleek Centered Front Card with Ambient Depth */
+  .rightColumn {
+    padding-top: 0;
+    justify-content: center;
   }
 
   .cardStack {
-    aspect-ratio: 16 / 9.5;
+    max-width: 100%;
+    aspect-ratio: 16 / 9;
+    margin: 0 auto;
+    transform: none !important;
   }
 
+  .backCard {
+    display: none;
+  }
+
+  .frontCard {
+    border-radius: 14px;
+    box-shadow: 0 16px 40px -12px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(255, 255, 255, 0.14);
+    transform: none;
+  }
+
+  /* Mobile Spotlight Corner Tag on Front Card */
+  .cardCornerBadge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    background: rgba(8, 8, 8, 0.78);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 46, 126, 0.5);
+    color: #ff2e7e;
+    font-size: 0.62rem;
+    font-weight: 850;
+    letter-spacing: 0.08em;
+    padding: 0.2rem 0.55rem;
+    border-radius: 9999px;
+    z-index: 5;
+    pointer-events: none;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.55);
+  }
+
+  .cornerSparkle {
+    color: #ff2e7e;
+  }
+
+  /* Center the Play Icon on Front Card for instant mobile tap-to-play feel */
   .spotlightBadgeOverlay {
-    bottom: 12px;
-    left: 12px;
-    right: 12px;
-    gap: 10px;
+    position: absolute;
+    inset: 0;
+    bottom: auto;
+    left: auto;
+    right: auto;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    padding: 0;
+  }
+
+  .spotlightInfo {
+    display: none;
   }
 
   .spotlightPlayIconBox {
-    width: 36px;
-    height: 36px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(255, 46, 126, 0.88);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 2px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 0 24px rgba(255, 46, 126, 0.75), 0 4px 18px rgba(0, 0, 0, 0.6);
+    transition: transform 0.2s ease, background 0.2s ease;
   }
 
-  .spotlightTitleText {
-    font-size: 0.86rem;
+  .frontCard:active .spotlightPlayIconBox {
+    transform: scale(0.92);
   }
 
-  .thumbItem {
-    width: 105px;
-    min-width: 105px;
-    height: 60px;
+  /* Compact Badges Row */
+  .badgeRow {
+    gap: 0.45rem;
+    align-items: center;
+  }
+
+  .statusPill {
+    font-size: 0.72rem;
+    padding: 0.2rem 0.62rem;
+  }
+
+  .releaseText {
+    font-size: 0.78rem;
+    color: #94a3b8;
+  }
+
+  .studioBadge {
+    font-size: 0.76rem;
+    padding: 0.18rem 0.58rem;
+  }
+
+  /* Enlarged Hero Title on Mobile */
+  .heroTitle {
+    font-size: clamp(1.3rem, 5.2vw, 1.5rem);
+    font-weight: 850;
+    line-height: 1.22;
+    letter-spacing: -0.02em;
+    margin: 0.1rem 0 0.05rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* HIDE Hero Synopsis on Mobile Screen Only */
+  .heroDescription {
+    display: none !important;
+  }
+
+  /* Single-Row Stats and Tags (Slightly larger, crisp) */
+  .statsAndTagsRow {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    margin-top: 0.1rem;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 1px;
+    max-width: 100%;
+  }
+
+  .statsAndTagsRow::-webkit-scrollbar {
+    display: none;
+  }
+
+  .statsGroup {
+    gap: 0.65rem;
+    flex-shrink: 0;
+  }
+
+  .statItem {
+    font-size: 0.8rem;
+    font-weight: 700;
+    gap: 0.3rem;
+    color: #cbd5e1;
+    white-space: nowrap;
+  }
+
+  .tagChips {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex-wrap: nowrap;
+    flex-shrink: 0;
+  }
+
+  .qualityChip {
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 0.18rem 0.52rem;
+  }
+
+  .tagChip {
+    font-size: 0.74rem;
+    padding: 0.2rem 0.56rem;
+  }
+
+  /* Only display top 2 tag chips on mobile to prevent horizontal overflow */
+  .tagChips .tagChip:nth-child(n+3) {
+    display: none;
+  }
+
+  /* Action Buttons: Enlarged 1-Row Inline Grid */
+  .allEpisodesTextMobile {
+    display: inline;
+  }
+
+  .allEpisodesTextDesktop {
+    display: none;
+  }
+
+  .actionButtons {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0.4rem;
+    width: 100%;
+    max-width: 100%;
+    margin-top: 0.35rem;
+    box-sizing: border-box;
+  }
+
+  .watchNowBtn {
+    width: 100%;
+    min-width: 0;
+    height: 42px;
+    padding: 0 0.45rem;
+    font-size: 0.85rem;
+    font-weight: 800;
+    gap: 0.35rem;
+    justify-content: center;
+    white-space: nowrap;
+    box-shadow: 0 3px 16px rgba(255, 46, 126, 0.45);
+    box-sizing: border-box;
+  }
+
+  .allEpisodesBtn {
+    width: 100%;
+    min-width: 0;
+    height: 42px;
+    padding: 0 0.4rem;
+    font-size: 0.82rem;
+    font-weight: 750;
+    gap: 0.3rem;
+    justify-content: center;
+    white-space: nowrap;
+    box-sizing: border-box;
+  }
+
+  .watchlistWrapper {
+    width: 100%;
+    min-width: 0;
+    display: flex;
+    box-sizing: border-box;
+  }
+
+  /* Hide the Bulky Thumbnail Strip on Mobile */
+  .thumbStripContainer {
+    display: none !important;
+  }
+
+  /* Sleek, Modern Slide Indicator Navigation on Mobile (Clean centered dots) */
+  .mobilePaginationContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.65rem;
+    width: 100%;
+    padding: 0.35rem 0 0;
+    margin-top: 0.25rem;
+  }
+
+  .mobileNavArrow {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    color: #cbd5e1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+  }
+
+  .mobileNavArrow:active {
+    transform: scale(0.92);
+    background: rgba(255, 46, 126, 0.25);
+    color: #ffffff;
+    border-color: #ff2e7e;
+  }
+
+  .mobileDotsTrack {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .mobileDot {
+    position: relative;
+    width: 8px;
+    height: 5px;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.22);
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    overflow: hidden;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .mobileDotActive {
+    width: 26px;
+    background: rgba(255, 46, 126, 0.35);
+    box-shadow: 0 0 10px rgba(255, 46, 126, 0.6);
+  }
+
+  .mobileDotProgress {
+    position: absolute;
+    inset: 0;
+    background: #ff2e7e;
+    transform-origin: left;
+    animation: thumbProgress 6s linear forwards;
+  }
+}
+
+@media (max-width: 380px) {
+  .heroTitle {
+    font-size: 1.22rem;
+  }
+
+  .watchNowBtn {
+    padding: 0 0.35rem;
+    font-size: 0.8rem;
+  }
+
+  .allEpisodesBtn {
+    padding: 0 0.3rem;
+    font-size: 0.78rem;
   }
 }

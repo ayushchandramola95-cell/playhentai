@@ -1,7 +1,7 @@
 .container {
-  max-width: 1720px;
+  max-width: 1680px;
   margin: 0 auto;
-  padding: 1.75rem 2rem 6rem;
+  padding: 1rem 2rem 3.5rem;
   width: 100%;
   position: relative;
   min-height: 80vh;
@@ -62,7 +62,7 @@
   font-size: 0.68rem;
   font-weight: 850;
   padding: 0.2rem 0.6rem;
-  border-radius: 20px;
+  border-radius: 4px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -77,7 +77,7 @@
   font-size: 0.72rem;
   font-weight: 700;
   padding: 0.2rem 0.65rem;
-  border-radius: 20px;
+  border-radius: 4px;
 }
 
 .titleRow {
@@ -106,17 +106,14 @@
 
 /* Controls & Filter Hub */
 .controlsSection {
-  background: rgba(18, 14, 28, 0.75);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  background: var(--surface, #121722);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
+  border-radius: 8px;
   padding: 1rem 1.25rem;
   margin-bottom: 2rem;
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
 }
 
 .searchSortRow {
@@ -146,20 +143,18 @@
 .searchInput {
   width: 100%;
   padding: 0.55rem 2.2rem 0.55rem 2.4rem;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  border-radius: 25px;
+  background: rgba(8, 8, 14, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
   color: #ffffff;
   font-size: 0.86rem;
   font-weight: 500;
   outline: none;
-  transition: all 0.2s ease;
+  transition: border-color 0.2s ease;
 }
 
 .searchInput:focus {
-  background: rgba(255, 255, 255, 0.07);
-  border-color: var(--primary);
-  box-shadow: 0 0 12px rgba(236, 72, 153, 0.25);
+  border-color: rgba(255, 255, 255, 0.28);
 }
 
 .clearSearch {
@@ -173,7 +168,7 @@
   align-items: center;
   justify-content: center;
   padding: 0.2rem;
-  border-radius: 50%;
+  border-radius: 4px;
   transition: color 0.15s ease;
 }
 
@@ -195,7 +190,7 @@
   font-size: 0.82rem;
   font-weight: 700;
   padding: 0.45rem 0.9rem;
-  border-radius: 20px;
+  border-radius: 6px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -218,7 +213,7 @@
   background: rgba(0, 0, 0, 0.25);
   font-size: 0.7rem;
   padding: 0.1rem 0.45rem;
-  border-radius: 10px;
+  border-radius: 4px;
   font-weight: 800;
 }
 
@@ -237,25 +232,24 @@
 
 .sortSelect {
   appearance: none;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(8, 8, 14, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   color: #ffffff;
   padding: 0.45rem 2rem 0.45rem 2.1rem;
-  border-radius: 20px;
+  border-radius: 6px;
   font-size: 0.82rem;
   font-weight: 700;
   cursor: pointer;
   outline: none;
-  transition: all 0.2s ease;
+  transition: border-color 0.2s ease;
 }
 
 .sortSelect:hover, .sortSelect:focus {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.25);
 }
 
 .sortSelect option {
-  background: #151122;
+  background: #121722;
   color: #ffffff;
 }
 
@@ -313,7 +307,6 @@
   background: var(--primary);
   border-color: var(--primary);
   color: #ffffff;
-  box-shadow: 0 2px 8px rgba(236, 72, 153, 0.4);
 }
 
 /* Visual Genre Cards Grid */
@@ -326,23 +319,21 @@
 .genreCard {
   position: relative;
   min-height: 220px;
-  border-radius: 18px;
+  border-radius: 8px;
   overflow: hidden;
   text-decoration: none;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   padding: 1.25rem 1.35rem;
-  background: #130f1e;
+  background: var(--surface, #121722);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: border-color 0.2s ease, background 0.2s ease;
 }
 
 .genreCard:hover {
-  transform: translateY(-4px);
-  border-color: rgba(255, 255, 255, 0.25);
-  box-shadow: 0 14px 35px rgba(0, 0, 0, 0.55);
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.03);
 }
 
 .cardTopAccent {
@@ -424,10 +415,8 @@
   font-size: 0.74rem;
   font-weight: 800;
   padding: 0.22rem 0.6rem;
-  border-radius: 12px;
-  background: rgba(0, 0, 0, 0.55);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.65);
   color: var(--foreground-secondary);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
@@ -445,10 +434,8 @@
   font-size: 0.74rem;
   font-weight: 800;
   padding: 0.22rem 0.55rem;
-  border-radius: 12px;
-  background: rgba(0, 0, 0, 0.55);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.65);
   color: #fbbf24;
   border: 1px solid rgba(245, 158, 11, 0.35);
 }
@@ -516,9 +503,9 @@
 
 /* Empty State */
 .emptyState {
-  background: rgba(18, 14, 28, 0.6);
+  background: var(--surface, #121722);
   border: 1px dashed rgba(255, 255, 255, 0.12);
-  border-radius: 16px;
+  border-radius: 8px;
   padding: 4rem 2rem;
   text-align: center;
   display: flex;
@@ -551,16 +538,15 @@
   background: var(--primary);
   color: #ffffff;
   border: none;
-  border-radius: 20px;
+  border-radius: 6px;
   font-size: 0.85rem;
   font-weight: 800;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background 0.2s ease;
 }
 
 .resetBtn:hover {
   background: var(--primary-hover);
-  transform: translateY(-1px);
 }
 
 /* SEO Info Section (Bottom) */
@@ -572,13 +558,10 @@
 }
 
 .seoCard {
-  background: rgba(18, 14, 30, 0.65);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: var(--surface, #121722);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 20px;
+  border-radius: 8px;
   padding: 2.5rem;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
 }
 
 .seoCard h2 {
@@ -628,7 +611,7 @@
 
 @media (max-width: 1024px) {
   .container {
-    padding: 1.5rem 1.25rem 5rem;
+    padding: 1rem 1.25rem 4rem;
   }
   .genresGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -637,7 +620,7 @@
 
 @media (max-width: 768px) {
   .container {
-    padding: 1.25rem 1rem 4rem;
+    padding: 0.85rem 1rem 3rem;
   }
   .mainTitle {
     font-size: 1.75rem;

@@ -1,7 +1,7 @@
 .container {
-  max-width: 1720px;
+  max-width: 1680px;
   margin: 0 auto;
-  padding: 1.75rem 2rem 6rem;
+  padding: 1rem 2rem 3.5rem;
   width: 100%;
   position: relative;
   min-height: 80vh;
@@ -60,14 +60,14 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  background: rgba(168, 85, 247, 0.14);
+  background: rgba(168, 85, 247, 0.12);
   color: #c084fc;
-  border: 1px solid rgba(168, 85, 247, 0.35);
+  border: 1px solid rgba(168, 85, 247, 0.28);
   font-size: 0.68rem;
   font-weight: 850;
-  padding: 0.2rem 0.6rem;
-  border-radius: 20px;
-  letter-spacing: 0.08em;
+  padding: 0.18rem 0.55rem;
+  border-radius: 4px;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
@@ -99,30 +99,25 @@
   margin: 0;
 }
 
-/* Sleek Combined Filter Bar */
+/* Sleek Combined Filter Bar (Flat Dark) */
 .filterBar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1.25rem;
   padding: 0.85rem 1.25rem;
-  background: rgba(15, 12, 26, 0.7);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  background: var(--surface, #121722);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
   width: 100%;
-  margin-bottom: 0.75rem;
+  margin-bottom: 1.25rem;
   position: relative;
   z-index: 10;
-  transition: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+  transition: border-color 0.2s ease;
 }
 
 .filterBarFocused {
-  border-color: rgba(168, 85, 247, 0.4);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55), 0 0 25px rgba(168, 85, 247, 0.2);
-  background: rgba(18, 14, 32, 0.85);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 /* Category Filter Tabs Bar */
@@ -137,30 +132,30 @@
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  padding: 0.45rem 0.95rem;
-  border-radius: 25px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 0.42rem 0.85rem;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   color: #f1f5f9;
   font-size: 0.84rem;
-  font-weight: 750;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background 0.18s ease, border-color 0.18s ease;
   white-space: nowrap;
   font-family: inherit;
 }
 
 .tabBtn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(168, 85, 247, 0.5);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
   color: #ffffff;
 }
 
 .activeTab {
-  background: var(--primary) !important;
-  border-color: var(--primary) !important;
+  background: var(--primary, #ff2e7e) !important;
+  border-color: var(--primary, #ff2e7e) !important;
   color: #ffffff !important;
-  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.45);
+  box-shadow: none;
 }
 
 .tabCount {
@@ -169,7 +164,7 @@
   background: rgba(255, 255, 255, 0.12);
   color: #e2e8f0;
   padding: 0.1rem 0.45rem;
-  border-radius: 12px;
+  border-radius: 4px;
 }
 
 .activeTabCount {
@@ -199,21 +194,21 @@
   padding: 0 2rem 0 2.3rem;
   background: rgba(8, 8, 14, 0.85);
   border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 22px;
+  border-radius: 6px;
   color: #ffffff;
   font-size: 0.84rem;
   font-weight: 600;
   outline: none;
   width: 100%;
-  transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+  transition: border-color 0.18s ease;
   font-family: inherit;
 }
 
 .searchInput:focus,
 .searchInputFocused {
-  border-color: var(--primary);
+  border-color: rgba(255, 255, 255, 0.28);
   background: rgba(14, 11, 24, 0.95);
-  box-shadow: 0 0 16px rgba(124, 58, 237, 0.4);
+  box-shadow: none;
 }
 
 .clearSearch {
@@ -295,16 +290,13 @@
   position: relative;
   display: flex;
   justify-content: space-between;
-  border-radius: 20px;
-  padding: 1.75rem 2rem;
+  border-radius: 8px;
+  padding: 1.5rem 1.75rem;
   overflow: hidden;
-  min-height: 230px;
-  background: rgba(18, 14, 30, 0.7);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-  transition: transform 0.35s cubic-bezier(0.25, 0.8, 0.25, 1), border-color 0.3s ease, box-shadow 0.35s ease;
+  min-height: 220px;
+  background: var(--surface, #121722);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: border-color 0.2s ease, background 0.2s ease;
   text-decoration: none !important;
 }
 
@@ -314,9 +306,8 @@
 }
 
 .collectionCard:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.55), 0 0 25px rgba(168, 85, 247, 0.2);
-  border-color: rgba(168, 85, 247, 0.45);
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.22);
 }
 
 .cardBgGradient {
@@ -498,14 +489,12 @@
 /* --- Detail Page Layout (/playlists/[slug]) --- */
 .detailHeader {
   position: relative;
-  border-radius: 24px;
+  border-radius: 8px;
   overflow: hidden;
-  padding: 3rem 2.5rem;
+  padding: 2.5rem 2rem;
   margin-bottom: 2.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
-  background: rgba(18, 14, 30, 0.8);
-  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--surface, #121722);
 }
 
 .detailHeaderBg {
@@ -515,7 +504,7 @@
   width: 100%;
   height: 100%;
   background: var(--accent-gradient);
-  opacity: 0.14;
+  opacity: 0.08;
   pointer-events: none;
   z-index: 1;
 }
@@ -535,12 +524,11 @@
   font-size: 0.85rem;
   font-weight: 700;
   margin-bottom: 1.25rem;
-  transition: color 0.2s ease, transform 0.2s ease;
+  transition: color 0.2s ease;
 }
 
 .backLink:hover {
   color: #c084fc;
-  transform: translateX(-2px);
 }
 
 .detailHeaderContent h1 {
@@ -566,7 +554,7 @@
   color: #fff;
   background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
   padding: 0.25rem 0.7rem;
-  border-radius: 6px;
+  border-radius: 4px;
   letter-spacing: 0.05em;
 }
 
@@ -610,9 +598,9 @@
   justify-content: center;
   padding: 5rem 2rem;
   text-align: center;
-  background: rgba(18, 14, 28, 0.6);
+  background: var(--surface, #121722);
   border: 1px dashed rgba(255, 255, 255, 0.12);
-  border-radius: 16px;
+  border-radius: 8px;
   gap: 1rem;
 }
 
@@ -635,16 +623,15 @@
   background: var(--primary);
   color: #ffffff;
   border: none;
-  border-radius: 25px;
+  border-radius: 6px;
   font-size: 0.88rem;
   font-weight: 800;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background 0.2s ease;
 }
 
 .clearFiltersBtn:hover {
   background: #6d28d9;
-  transform: translateY(-1px);
 }
 
 /* Responsive Rules */

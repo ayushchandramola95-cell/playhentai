@@ -917,7 +917,7 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
         {/* Discussion / Comments Section (Placed directly above Frequently Asked Questions) */}
         {firstEpisodeId && (
           <section className={styles.discussionSection}>
-            <div className={`${styles.commentsCardWrapper} glass`}>
+            <div className={styles.commentsCardWrapper}>
               <CommentSection episodeId={firstEpisodeId} />
             </div>
           </section>

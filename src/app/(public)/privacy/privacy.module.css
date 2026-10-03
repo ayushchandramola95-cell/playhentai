@@ -1,7 +1,7 @@
 .container {
   min-height: 100vh;
-  padding: 2.5rem 1.5rem 6rem;
-  max-width: 1280px;
+  padding: 1rem 2rem 3.5rem;
+  max-width: 1680px;
   margin: 0 auto;
   position: relative;
 }
@@ -22,7 +22,7 @@
 }
 
 .backBtn:hover {
-  color: #f43f5e;
+  color: var(--primary, #f43f5e);
 }
 
 /* Page Layout: Main Content (left) + Sticky Sidebar (right) */
@@ -55,12 +55,12 @@
 }
 
 .headerIcon {
-  color: #f43f5e;
+  color: var(--primary, #f43f5e);
   flex-shrink: 0;
 }
 
 .pageTitle {
-  font-size: 2.5rem;
+  font-size: 2.2rem;
   font-weight: 900;
   color: #ffffff;
   letter-spacing: -0.03em;
@@ -81,11 +81,11 @@
   gap: 0.5rem;
   font-size: 0.82rem;
   font-weight: 600;
-  color: #f43f5e;
+  color: var(--primary, #f43f5e);
   background: rgba(244, 63, 94, 0.08);
   border: 1px solid rgba(244, 63, 94, 0.2);
   padding: 0.35rem 0.85rem;
-  border-radius: 9999px;
+  border-radius: 4px;
   width: fit-content;
   margin-top: 0.5rem;
 }
@@ -167,7 +167,7 @@
 .warningBox {
   background: rgba(244, 63, 94, 0.06);
   border: 1px solid rgba(244, 63, 94, 0.25);
-  border-radius: 12px;
+  border-radius: 6px;
   padding: 1.25rem 1.5rem;
   display: flex;
   align-items: flex-start;
@@ -178,20 +178,20 @@
 }
 
 .warningIcon {
-  color: #f43f5e;
+  color: var(--primary, #f43f5e);
   flex-shrink: 0;
   margin-top: 2px;
 }
 
 .warningBox strong {
-  color: #f43f5e;
+  color: var(--primary, #f43f5e);
 }
 
 /* Info / Note Card */
 .infoCard {
-  background: #11141f;
+  background: var(--surface, #121722);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
+  border-radius: 8px;
   padding: 1.25rem 1.5rem;
   display: flex;
   flex-direction: column;
@@ -225,7 +225,7 @@
 }
 
 .bulletDot {
-  color: #f43f5e;
+  color: var(--primary, #f43f5e);
   font-size: 0.75rem;
   margin-top: 5px;
   flex-shrink: 0;
@@ -240,19 +240,19 @@
 }
 
 .contactCard {
-  background: #11141f;
+  background: var(--surface, #121722);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
+  border-radius: 8px;
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  transition: border-color 0.2s ease, transform 0.2s ease;
+  transition: border-color 0.2s ease;
 }
 
 .contactCard:hover {
-  border-color: rgba(244, 63, 94, 0.35);
-  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: none;
 }
 
 .contactRole {
@@ -267,11 +267,11 @@
 }
 
 .roleIcon {
-  color: #f43f5e;
+  color: var(--primary, #f43f5e);
 }
 
 .contactEmail {
-  color: #f43f5e;
+  color: var(--primary, #f43f5e);
   font-weight: 700;
   font-size: 1.05rem;
   text-decoration: none;
@@ -300,17 +300,15 @@
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
-  background: rgba(17, 20, 31, 0.7);
+  background: var(--surface, #121722);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
+  border-radius: 8px;
   padding: 1.5rem 1.25rem;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  box-shadow: none;
   max-height: calc(100vh - 120px);
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: rgba(244, 63, 94, 0.2) transparent;
-  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
   z-index: 10;
 }
 
@@ -332,8 +330,7 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #f43f5e;
-  box-shadow: 0 0 8px #f43f5e;
+  background: var(--primary, #f43f5e);
 }
 
 .tocNav {
@@ -353,8 +350,8 @@
   font-weight: 500;
   color: #94a3b8;
   text-decoration: none;
-  border-radius: 8px;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  border-radius: 6px;
+  transition: all 0.2s ease;
   position: relative;
 }
 
@@ -377,23 +374,23 @@
 .tocLink:hover {
   color: #ffffff;
   background: rgba(255, 255, 255, 0.05);
-  transform: translateX(3px);
+  transform: none;
 }
 
 .tocLink:hover .tocNum {
-  color: #f43f5e;
+  color: var(--primary, #f43f5e);
 }
 
 .tocLinkActive {
   background: rgba(244, 63, 94, 0.12);
   color: #ffffff;
   font-weight: 700;
-  border-left: 3px solid #f43f5e;
+  border-left: 3px solid var(--primary, #f43f5e);
   padding-left: calc(0.75rem - 3px);
 }
 
 .tocLinkActive .tocNum {
-  color: #f43f5e;
+  color: var(--primary, #f43f5e);
   font-weight: 900;
 }
 
@@ -408,7 +405,7 @@
   font-weight: 600;
   cursor: pointer;
   padding: 0.6rem 0.9rem;
-  border-radius: 8px;
+  border-radius: 6px;
   transition: all 0.2s ease;
   width: 100%;
   justify-content: center;
@@ -416,9 +413,9 @@
 
 .printBtn:hover {
   color: #ffffff;
-  background: rgba(244, 63, 94, 0.12);
-  border-color: rgba(244, 63, 94, 0.3);
-  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+  transform: none;
 }
 
 /* ============================================================ */
@@ -432,9 +429,9 @@
   .sidebar {
     position: static;
     order: -1;
-    background: #11141f;
+    background: var(--surface, #121722);
     border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 12px;
+    border-radius: 8px;
     padding: 1.25rem;
   }
   .pageTitle {

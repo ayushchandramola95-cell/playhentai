@@ -1,7 +1,7 @@
 .container {
-  max-width: 1720px;
+  max-width: 1680px;
   margin: 0 auto;
-  padding: 1.75rem 2rem 6rem;
+  padding: 1rem 2rem 3.5rem;
   width: 100%;
   position: relative;
   min-height: 80vh;
@@ -9,7 +9,7 @@
 }
 
 .headerBanner {
-  margin-bottom: 2.2rem;
+  margin-bottom: 1.75rem;
   text-align: left;
 }
 
@@ -28,12 +28,12 @@
   gap: 0.35rem;
   background: rgba(236, 72, 153, 0.12);
   color: #f472b6;
-  border: 1px solid rgba(236, 72, 153, 0.3);
+  border: 1px solid rgba(236, 72, 153, 0.28);
   font-size: 0.68rem;
   font-weight: 850;
-  padding: 0.2rem 0.6rem;
-  border-radius: 20px;
-  letter-spacing: 0.08em;
+  padding: 0.18rem 0.55rem;
+  border-radius: 4px;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
@@ -55,7 +55,7 @@
 }
 
 .mainTitle {
-  font-size: 2rem;
+  font-size: 1.85rem;
   font-weight: 850;
   color: #ffffff;
   letter-spacing: -0.02em;
@@ -64,26 +64,23 @@
 }
 
 .subtitle {
-  font-size: 0.92rem;
+  font-size: 0.9rem;
   color: var(--foreground-secondary);
-  margin-bottom: 1.35rem;
+  margin-bottom: 1.25rem;
   line-height: 1.5;
   max-width: 800px;
 }
 
 .filterBar {
-  padding: 0.95rem 1.35rem;
-  border-radius: 14px;
+  padding: 0.85rem 1.25rem;
+  border-radius: 8px;
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  gap: 1.25rem;
+  gap: 1rem;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(15, 12, 26, 0.65);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+  background: var(--surface, #121722);
   flex-wrap: wrap;
 }
 
@@ -115,27 +112,26 @@
   color: #cbd5e1;
   font-size: 0.8rem;
   font-weight: 700;
-  padding: 0.4rem 0.95rem;
-  border-radius: 25px;
+  padding: 0.35rem 0.85rem;
+  border-radius: 6px;
   text-decoration: none;
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+  transition: all 0.18s ease;
 }
 
 .filterChip:hover {
-  background: rgba(255, 255, 255, 0.09);
+  background: rgba(255, 255, 255, 0.08);
   color: #ffffff;
   border-color: rgba(255, 255, 255, 0.18);
-  transform: translateY(-1px);
 }
 
 .activeChip {
-  background: var(--primary) !important;
-  border-color: transparent !important;
+  background: var(--primary, #ff2e7e) !important;
+  border-color: var(--primary, #ff2e7e) !important;
   color: #ffffff !important;
-  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.4);
+  box-shadow: none;
 }
 
 .rightFiltersGroup {
@@ -163,23 +159,22 @@
 .genreSelect {
   appearance: none;
   background: rgba(8, 8, 8, 0.85);
-  border: 1px solid rgba(124, 58, 237, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   color: #ffffff;
   font-size: 0.82rem;
-  font-weight: 800;
+  font-weight: 700;
   padding: 0.42rem 2.2rem 0.42rem 2.3rem;
-  border-radius: 30px;
+  border-radius: 6px;
   outline: none;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: border-color 0.18s ease;
   font-family: inherit;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
   width: 100%;
 }
 
 .genreSelect:hover {
-  border-color: var(--primary);
-  background: rgba(124, 58, 237, 0.15);
+  border-color: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .genreSelect option {

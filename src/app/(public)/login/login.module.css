@@ -10,17 +10,19 @@
 
 .authCard {
   width: 100%;
-  max-width: 450px;
-  border-radius: 24px;
-  padding: 3rem 2.5rem;
-  box-shadow: var(--shadow-lg);
+  max-width: 440px;
+  border-radius: 8px;
+  padding: 2.5rem 2rem;
+  background: var(--surface, #121722);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: none;
   z-index: 1;
-  animation: fade-in 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: fade-in 0.3s ease;
 }
 
 .cardHeader {
   text-align: center;
-  margin-bottom: 2.5rem;
+  margin-bottom: 2rem;
 }
 
 .logoRow {
@@ -29,43 +31,43 @@
   justify-content: center;
   gap: 0.6rem;
   color: var(--primary);
-  margin-bottom: 1rem;
+  margin-bottom: 0.8rem;
 }
 
 .logoIcon {
-  animation: pulse 2s infinite alternate;
+  animation: none;
 }
 
 .cardHeader h1 {
-  font-size: 1.8rem;
+  font-size: 1.6rem;
   font-weight: 800;
   letter-spacing: -0.02em;
-  margin-bottom: 0.5rem;
-  color: var(--foreground-primary);
+  margin-bottom: 0.4rem;
+  color: #fff;
 }
 
 .cardHeader p {
   color: var(--foreground-secondary);
-  font-size: 0.95rem;
+  font-size: 0.9rem;
 }
 
 /* Tabs */
 .tabs {
   display: flex;
-  background: var(--surface-hover);
-  padding: 0.3rem;
-  border-radius: 12px;
-  margin-bottom: 2rem;
-  border: 1px solid var(--border);
+  background: rgba(8, 8, 14, 0.7);
+  padding: 0.25rem;
+  border-radius: 6px;
+  margin-bottom: 1.8rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .tabBtn {
   flex: 1;
   background: transparent;
   border: none;
-  padding: 0.6rem 0;
-  border-radius: 9px;
-  font-size: 0.9rem;
+  padding: 0.55rem 0;
+  border-radius: 4px;
+  font-size: 0.88rem;
   font-weight: 700;
   color: var(--foreground-secondary);
   cursor: pointer;
@@ -73,9 +75,9 @@
 }
 
 .activeTab {
-  background: var(--surface);
-  color: var(--primary);
-  box-shadow: var(--shadow);
+  background: var(--surface, #121722);
+  color: #fff;
+  box-shadow: none;
 }
 
 /* Form Styles */
@@ -113,19 +115,19 @@
 
 .input {
   width: 100%;
-  padding: 0.8rem 1rem 0.8rem 2.8rem;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--foreground-primary);
-  font-size: 0.95rem;
+  padding: 0.75rem 1rem 0.75rem 2.75rem;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(8, 8, 14, 0.85);
+  color: #fff;
+  font-size: 0.92rem;
   outline: none;
-  transition: all 0.2s ease;
+  transition: border-color 0.2s ease;
 }
 
 .input:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px var(--border-glow);
+  box-shadow: none;
 }
 
 /* Errors & Info Box */
@@ -134,13 +136,12 @@
   align-items: center;
   gap: 0.6rem;
   background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.2);
-  color: #f87171;
-  padding: 0.8rem 1rem;
-  border-radius: 12px;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: #ef4444;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
   font-size: 0.85rem;
   font-weight: 500;
-  animation: shake 0.4s ease;
 }
 
 .successAlert {
@@ -149,9 +150,9 @@
   gap: 0.6rem;
   background: rgba(34, 197, 94, 0.12);
   border: 1px solid rgba(34, 197, 94, 0.25);
-  color: #4ade80;
-  padding: 0.8rem 1rem;
-  border-radius: 12px;
+  color: #22c55e;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
   font-size: 0.85rem;
   font-weight: 500;
 }
@@ -167,12 +168,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 6px;
+  border-radius: 4px;
   transition: color 0.15s ease;
 }
 
 .passwordToggle:hover {
-  color: var(--foreground-primary);
+  color: #fff;
 }
 
 /* Buttons */
@@ -180,26 +181,26 @@
   background: var(--primary);
   color: #ffffff;
   border: none;
-  padding: 0.85rem;
-  border-radius: 12px;
-  font-size: 0.95rem;
+  padding: 0.8rem;
+  border-radius: 6px;
+  font-size: 0.92rem;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.2);
+  box-shadow: none;
 }
 
 .submitBtn:hover:not(:disabled) {
-  background: var(--primary-hover);
-  transform: translateY(-1px);
+  background: var(--primary-hover, #7c3aed);
+  transform: none;
 }
 
 .submitBtn:disabled {
-  opacity: 0.7;
+  opacity: 0.6;
   cursor: not-allowed;
 }
 

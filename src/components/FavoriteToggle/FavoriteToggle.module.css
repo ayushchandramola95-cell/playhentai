@@ -6,12 +6,12 @@
   background: rgba(244, 63, 94, 0.08);
   border: 1px solid rgba(244, 63, 94, 0.25);
   color: #f43f5e;
-  padding: 0.65rem 1.1rem;
-  border-radius: 30px;
+  padding: 0.65rem 1rem;
+  border-radius: 8px;
   font-weight: 700;
   font-size: 0.85rem;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background 0.18s ease, border-color 0.18s ease;
   outline: none;
   font-family: inherit;
   width: 100%;
@@ -20,14 +20,12 @@
 }
 
 .favoriteBtn:hover {
-  background: rgba(244, 63, 94, 0.18);
+  background: rgba(244, 63, 94, 0.16);
   border-color: #f43f5e;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 14px rgba(244, 63, 94, 0.25);
 }
 
 .favoriteBtn:active {
-  transform: translateY(0);
+  opacity: 0.88;
 }
 
 .active {
@@ -82,7 +80,7 @@
   padding: 0 1rem;
   font-size: 0.82rem;
   font-weight: 700;
-  border-radius: 12px;
+  border-radius: 8px;
   width: auto;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -91,22 +89,22 @@
   align-items: center;
   gap: 0.5rem;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
 }
 
 .playerVariant:hover {
   background: rgba(244, 63, 94, 0.15);
   border-color: #f43f5e;
   color: #ff758f;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(244, 63, 94, 0.25);
+  transform: none;
+  box-shadow: none;
 }
 
 .playerVariant.active {
   background: rgba(244, 63, 94, 0.22);
   border-color: #f43f5e;
   color: #ff758f;
-  box-shadow: 0 0 16px rgba(244, 63, 94, 0.3);
+  box-shadow: none;
 }
 
 @media (max-width: 640px) {
@@ -114,7 +112,7 @@
     height: 36px;
     padding: 0 0.4rem;
     font-size: 0.74rem;
-    border-radius: 10px;
+    border-radius: 8px;
     gap: 0.3rem;
     width: 100%;
   }

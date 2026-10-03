@@ -1,12 +1,12 @@
 .container {
   width: 100%;
-  padding-bottom: 5rem;
+  padding-bottom: 4rem;
 }
 
 .section {
-  max-width: 1720px;
-  margin: 1.75rem auto 0;
-  padding: 0 2rem;
+  max-width: 1680px;
+  margin: 0 auto;
+  padding: 1rem 2rem 3.5rem;
   width: 100%;
 }
 
@@ -15,9 +15,9 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.6rem;
-  margin-bottom: 2rem;
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 1rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 0.85rem;
 }
 
 .headerLeft {
@@ -297,31 +297,30 @@
   align-items: center;
   justify-content: center;
   gap: 0.4rem;
-  min-width: 40px;
-  height: 40px;
-  padding: 0 0.8rem;
-  border-radius: 10px;
-  background: var(--surface);
-  border: 1px solid var(--border);
+  min-width: 36px;
+  height: 36px;
+  padding: 0 0.75rem;
+  border-radius: 6px;
+  background: var(--surface, #121722);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--foreground-primary);
-  font-size: 0.9rem;
-  font-weight: 600;
+  font-size: 0.85rem;
+  font-weight: 700;
   text-decoration: none;
-  transition: all 0.2s ease;
+  transition: all 0.18s ease;
 }
 
 .pageBtn:hover:not(.pageBtnDisabled) {
-  background: var(--surface-hover);
-  border-color: var(--primary);
-  color: var(--primary);
-  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.22);
+  color: #ffffff;
 }
 
 .pageBtnActive {
-  background: linear-gradient(135deg, #ff5e00 0%, #f97316 100%);
-  border-color: transparent;
+  background: var(--primary, #ff2e7e) !important;
+  border-color: var(--primary, #ff2e7e) !important;
   color: #ffffff !important;
-  box-shadow: 0 4px 12px rgba(255, 94, 0, 0.35);
+  box-shadow: none;
 }
 
 .pageBtnDisabled {
@@ -364,20 +363,20 @@
 
 .filterSearchInput {
   width: 100%;
-  padding: 0.65rem 2.4rem 0.65rem 2.5rem;
-  border-radius: 12px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  color: var(--foreground-primary);
-  font-size: 0.9rem;
+  padding: 0.55rem 2.2rem 0.55rem 2.4rem;
+  border-radius: 6px;
+  background: rgba(8, 8, 14, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  font-size: 0.85rem;
   outline: none;
-  transition: all 0.2s ease;
+  transition: border-color 0.18s ease;
 }
 
 .filterSearchInput:focus {
-  border-color: var(--primary);
-  background: var(--surface-hover);
-  box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.15);
+  border-color: rgba(255, 255, 255, 0.28);
+  background: rgba(14, 11, 24, 0.95);
+  box-shadow: none;
 }
 
 .clearSearchBtn {
@@ -410,39 +409,40 @@
 }
 
 .filterSelect {
-  padding: 0.65rem 1rem;
-  border-radius: 12px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  color: var(--foreground-primary);
-  font-size: 0.88rem;
-  font-weight: 500;
+  padding: 0.45rem 0.85rem;
+  border-radius: 6px;
+  background: rgba(8, 8, 14, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  font-size: 0.84rem;
+  font-weight: 600;
   outline: none;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: border-color 0.18s ease;
 }
 
 .filterSelect:hover, .filterSelect:focus {
-  border-color: var(--primary);
-  background: var(--surface-hover);
+  border-color: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .clearAllBtn {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.65rem 1rem;
-  border-radius: 12px;
-  background: rgba(239, 68, 68, 0.12);
+  padding: 0.45rem 0.85rem;
+  border-radius: 6px;
+  background: rgba(239, 68, 68, 0.1);
   border: 1px solid rgba(239, 68, 68, 0.25);
   color: #ef4444;
-  font-size: 0.85rem;
-  font-weight: 600;
+  font-size: 0.82rem;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.18s ease;
 }
 
 .clearAllBtn:hover {
-  background: rgba(239, 68, 68, 0.22);
-  transform: translateY(-1px);
+  background: rgba(239, 68, 68, 0.18);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #ffffff;
 }

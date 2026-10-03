@@ -1,7 +1,7 @@
 .container {
-  max-width: 1440px;
+  max-width: 1680px;
   margin: 0 auto;
-  padding: 2rem 1.5rem 5rem;
+  padding: 1rem 2rem 3.5rem;
   width: 100%;
   position: relative;
   min-height: 80vh;
@@ -59,7 +59,7 @@
   color: #f472b6;
   border: 1px solid rgba(236, 72, 153, 0.25);
   padding: 0.25rem 0.65rem;
-  border-radius: 20px;
+  border-radius: 4px;
   font-size: 0.75rem;
   font-weight: 800;
   letter-spacing: 0.04em;
@@ -74,7 +74,7 @@
   color: var(--foreground-secondary);
   border: 1px solid rgba(255, 255, 255, 0.08);
   padding: 0.25rem 0.65rem;
-  border-radius: 20px;
+  border-radius: 4px;
   font-size: 0.75rem;
   font-weight: 700;
 }
@@ -90,9 +90,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
   background: rgba(236, 72, 153, 0.12);
   border: 1px solid rgba(236, 72, 153, 0.25);
   flex-shrink: 0;
@@ -116,13 +116,11 @@
 
 /* Controls Hub */
 .controlsSection {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 16px;
+  background: var(--surface, #121722);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
   padding: 1rem 1.25rem;
   margin-bottom: 2rem;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
 }
 
 .searchSortRow {
@@ -152,20 +150,18 @@
 .searchInput {
   width: 100%;
   padding: 0.55rem 2.2rem 0.55rem 2.4rem;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  border-radius: 25px;
+  background: rgba(8, 8, 14, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
   color: #ffffff;
   font-size: 0.86rem;
   font-weight: 500;
   outline: none;
-  transition: all 0.2s ease;
+  transition: border-color 0.2s ease;
 }
 
 .searchInput:focus {
-  background: rgba(255, 255, 255, 0.07);
-  border-color: var(--primary);
-  box-shadow: 0 0 12px rgba(236, 72, 153, 0.25);
+  border-color: rgba(255, 255, 255, 0.28);
 }
 
 .clearSearch {
@@ -179,7 +175,7 @@
   align-items: center;
   justify-content: center;
   padding: 0.2rem;
-  border-radius: 50%;
+  border-radius: 4px;
   transition: color 0.15s ease;
 }
 
@@ -209,26 +205,25 @@
 
 .sortSelect {
   appearance: none;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(8, 8, 14, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   color: #ffffff;
   padding: 0.5rem 2rem 0.5rem 2.2rem;
-  border-radius: 20px;
+  border-radius: 6px;
   font-size: 0.82rem;
   font-weight: 700;
   cursor: pointer;
   outline: none;
-  transition: all 0.2s ease;
+  transition: border-color 0.2s ease;
 }
 
 .sortSelect:hover,
 .sortSelect:focus {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.25);
 }
 
 .sortSelect option {
-  background: #151122;
+  background: #121722;
   color: #ffffff;
 }
 
@@ -246,19 +241,18 @@
   font-size: 0.82rem;
   font-weight: 700;
   padding: 0.5rem 0.95rem;
-  border-radius: 20px;
+  border-radius: 6px;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  transition: all 0.2s ease;
+  transition: background 0.2s ease;
 }
 
 .clearAllBtn:hover {
   background: #ef4444;
   color: #ffffff;
   border-color: #ef4444;
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
 }
 
 /* Catalog Section */
@@ -346,7 +340,7 @@
   background: rgba(15, 12, 24, 0.92);
   border: 1px solid rgba(239, 68, 68, 0.55);
   color: #fca5a5;
-  border-radius: 16px;
+  border-radius: 6px;
   padding: 0.28rem 0.62rem;
   font-size: 0.72rem;
   font-weight: 750;
@@ -354,13 +348,9 @@
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
   opacity: 0;
   pointer-events: none;
-  transform: translateY(-2px) scale(0.92);
-  transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), background 0.15s ease, border-color 0.15s ease;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
+  transition: opacity 0.2s ease, background 0.15s ease, border-color 0.15s ease;
 }
 
 .cardContainer:hover .removeBtn,
@@ -368,15 +358,12 @@
 .removeBtn:focus-visible {
   opacity: 1 !important;
   pointer-events: auto !important;
-  transform: translateY(-4px) scale(1) !important;
 }
 
 .removeBtn:hover {
   background: #ef4444 !important;
   color: #ffffff !important;
   border-color: #ef4444 !important;
-  transform: translateY(-4px) scale(1.06) !important;
-  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.55) !important;
 }
 
 .removeBtn:disabled {
@@ -390,7 +377,6 @@
   .removeBtn {
     opacity: 1;
     pointer-events: auto;
-    transform: none;
     top: 6px;
     right: 6px;
     padding: 0.22rem 0.5rem;
@@ -402,9 +388,9 @@
 .emptySearchCard {
   text-align: center;
   padding: 4rem 2rem;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 20px;
+  background: var(--surface, #121722);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
   max-width: 500px;
   margin: 2rem auto;
 }
@@ -432,37 +418,35 @@
   color: #ffffff;
   border: none;
   padding: 0.55rem 1.4rem;
-  border-radius: 20px;
+  border-radius: 6px;
   font-size: 0.85rem;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background 0.2s ease;
 }
 
 .resetBtn:hover {
   background: var(--primary-hover);
-  transform: translateY(-1px);
 }
 
 /* Empty Watchlist State */
 .emptyWatchlistCard {
   text-align: center;
   padding: 4.5rem 2rem;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 24px;
+  background: var(--surface, #121722);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
   max-width: 640px;
   margin: 3rem auto;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
 .emptyIconBadge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 80px;
-  height: 80px;
-  border-radius: 24px;
+  width: 64px;
+  height: 64px;
+  border-radius: 8px;
   background: rgba(236, 72, 153, 0.1);
   border: 1px solid rgba(236, 72, 153, 0.2);
   margin-bottom: 1.25rem;
@@ -503,7 +487,7 @@
   padding: 0.7rem 1rem;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 14px;
+  border-radius: 6px;
   color: #ffffff;
   font-size: 0.84rem;
   font-weight: 700;
@@ -512,9 +496,8 @@
 }
 
 .explorePill:hover {
-  background: rgba(255, 255, 255, 0.09);
+  background: rgba(255, 255, 255, 0.08);
   border-color: rgba(255, 255, 255, 0.2);
-  transform: translateY(-2px);
 }
 
 .primaryBtn {
@@ -524,18 +507,15 @@
   background: var(--primary);
   color: #ffffff;
   padding: 0.75rem 1.8rem;
-  border-radius: 25px;
+  border-radius: 6px;
   font-weight: 750;
   text-decoration: none;
   font-size: 0.9rem;
-  box-shadow: 0 4px 14px rgba(236, 72, 153, 0.35);
-  transition: all 0.2s ease;
+  transition: background 0.2s ease;
 }
 
 .primaryBtn:hover {
   background: var(--primary-hover);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(236, 72, 153, 0.45);
 }
 
 .secondaryBtn {
@@ -546,38 +526,36 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: #ffffff;
   padding: 0.75rem 1.8rem;
-  border-radius: 25px;
+  border-radius: 6px;
   font-weight: 750;
   text-decoration: none;
   font-size: 0.9rem;
-  transition: all 0.2s ease;
+  transition: background 0.2s ease;
 }
 
 .secondaryBtn:hover {
   background: rgba(255, 255, 255, 0.1);
   border-color: rgba(255, 255, 255, 0.2);
-  transform: translateY(-2px);
 }
 
 /* Guest View State */
 .guestCard {
   text-align: center;
   padding: 4.5rem 2rem;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 24px;
+  background: var(--surface, #121722);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
   max-width: 680px;
   margin: 3rem auto;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
 }
 
 .guestIconBadge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 76px;
-  height: 76px;
-  border-radius: 22px;
+  width: 64px;
+  height: 64px;
+  border-radius: 8px;
   background: rgba(236, 72, 153, 0.1);
   border: 1px solid rgba(236, 72, 153, 0.25);
   margin-bottom: 1.25rem;
@@ -614,7 +592,7 @@
 .guestFeature {
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 16px;
+  border-radius: 6px;
   padding: 1rem;
 }
 
@@ -624,7 +602,7 @@
   justify-content: center;
   width: 32px;
   height: 32px;
-  border-radius: 8px;
+  border-radius: 6px;
   background: rgba(236, 72, 153, 0.15);
   color: #ec4899;
   margin-bottom: 0.6rem;
@@ -668,14 +646,13 @@
 }
 
 .modalCard {
-  background: #151122;
+  background: var(--surface, #121722);
   border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 20px;
+  border-radius: 8px;
   padding: 2rem;
   max-width: 440px;
   width: 100%;
   text-align: center;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
   animation: scaleIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -683,9 +660,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 56px;
-  height: 56px;
-  border-radius: 18px;
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
   background: rgba(239, 68, 68, 0.12);
   border: 1px solid rgba(239, 68, 68, 0.25);
   margin-bottom: 1rem;

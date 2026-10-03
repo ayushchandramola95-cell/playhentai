@@ -1,7 +1,7 @@
 .container {
-  max-width: 1720px;
+  max-width: 1680px;
   margin: 0 auto;
-  padding: 1.75rem 2rem 6rem;
+  padding: 1rem 2rem 3.5rem;
   width: 100%;
   position: relative;
   min-height: 80vh;
@@ -9,7 +9,7 @@
 }
 
 .headerSection {
-  margin-bottom: 2rem;
+  margin-bottom: 1.75rem;
   text-align: left;
 }
 
@@ -26,14 +26,14 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  background: rgba(124, 58, 237, 0.14);
+  background: rgba(124, 58, 237, 0.12);
   color: #a78bfa;
-  border: 1px solid rgba(124, 58, 237, 0.35);
+  border: 1px solid rgba(124, 58, 237, 0.28);
   font-size: 0.68rem;
   font-weight: 850;
-  padding: 0.2rem 0.6rem;
-  border-radius: 20px;
-  letter-spacing: 0.08em;
+  padding: 0.18rem 0.55rem;
+  border-radius: 4px;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
@@ -55,7 +55,7 @@
 }
 
 .mainTitle {
-  font-size: 2rem;
+  font-size: 1.85rem;
   font-weight: 850;
   color: #ffffff;
   letter-spacing: -0.02em;
@@ -64,7 +64,7 @@
 }
 
 .subtext {
-  font-size: 0.92rem;
+  font-size: 0.9rem;
   color: var(--foreground-secondary);
   line-height: 1.5;
   max-width: 800px;
@@ -72,63 +72,62 @@
 
 /* Pills Navigation */
 .pillsSection {
-  margin-bottom: 3rem;
-  animation: fade-in 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  margin-bottom: 2.5rem;
+  animation: fade-in 0.4s ease-out;
 }
 
 .pillsGrid {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.8rem;
+  gap: 0.5rem;
 }
 
 .pill {
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: var(--surface, #121722);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   color: var(--foreground-secondary);
-  padding: 0.6rem 1.4rem;
-  border-radius: 30px;
-  font-size: 0.9rem;
+  padding: 0.45rem 1rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
   font-weight: 600;
   text-decoration: none;
-  transition: all 0.2s ease;
-  box-shadow: var(--shadow);
+  transition: all 0.18s ease;
 }
 
 .pill:hover {
-  background: var(--surface-hover);
-  border-color: var(--primary);
-  color: var(--foreground-primary);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
 }
 
 .activePill {
-  background: var(--primary);
-  border-color: var(--primary);
+  background: var(--primary, #ff2e7e);
+  border-color: var(--primary, #ff2e7e);
   color: #ffffff;
 }
 
 .activePill:hover {
-  background: var(--primary-hover);
+  background: var(--primary-hover, #ff1a70);
   color: #ffffff;
-  border-color: var(--primary-hover);
+  border-color: var(--primary-hover, #ff1a70);
 }
 
 /* Catalog Grid */
 .catalogSection {
-  animation: fade-in 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: fade-in 0.4s ease-out;
 }
 
 .catalogHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 1rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 0.85rem;
 }
 
 .catalogHeader h2 {
-  font-size: 1.3rem;
+  font-size: 1.25rem;
   font-weight: 800;
 }
 
@@ -146,25 +145,24 @@
 /* Grids & Cards (Shared catalog layout) */
 .seriesGrid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 1.25rem;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 1.25rem 0.95rem;
 }
 
 .seriesCard {
   display: flex;
   flex-direction: column;
-  border-radius: 16px;
+  border-radius: 8px;
   overflow: hidden;
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: var(--surface, #121722);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   position: relative;
-  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, box-shadow 0.28s ease;
+  transition: border-color 0.2s ease, background 0.2s ease;
 }
 
 .seriesCard:hover {
-  transform: translateY(-6px);
   border-color: rgba(255, 255, 255, 0.22);
-  box-shadow: 0 14px 28px -4px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
 }
 
 .cardImageLink {

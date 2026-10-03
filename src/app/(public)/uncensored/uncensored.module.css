@@ -1,7 +1,7 @@
 .container {
-  max-width: 1720px;
+  max-width: 1680px;
   margin: 0 auto;
-  padding: 1.75rem 2rem 6rem;
+  padding: 1rem 2rem 3.5rem;
   width: 100%;
   position: relative;
   min-height: 80vh;
@@ -9,7 +9,7 @@
 }
 
 .headerSection {
-  margin-bottom: 2rem;
+  margin-bottom: 1.75rem;
   text-align: left;
 }
 
@@ -26,19 +26,19 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  background: rgba(16, 185, 129, 0.14);
-  color: #34d399;
-  border: 1px solid rgba(16, 185, 129, 0.35);
+  background: rgba(34, 197, 94, 0.12);
+  color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.28);
   font-size: 0.68rem;
   font-weight: 850;
-  padding: 0.2rem 0.6rem;
-  border-radius: 20px;
-  letter-spacing: 0.08em;
+  padding: 0.18rem 0.55rem;
+  border-radius: 4px;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
 .uncensoredIconPill {
-  color: #34d399;
+  color: #4ade80;
 }
 
 .titleRow {
@@ -49,7 +49,7 @@
 }
 
 .mainTitle {
-  font-size: 2rem;
+  font-size: 1.85rem;
   font-weight: 850;
   color: #ffffff;
   letter-spacing: -0.02em;
@@ -58,7 +58,7 @@
 }
 
 .subtext {
-  font-size: 0.92rem;
+  font-size: 0.9rem;
   color: var(--foreground-secondary);
   line-height: 1.5;
   max-width: 800px;
@@ -83,9 +83,9 @@
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
   padding: 0.35rem 0.85rem;
-  border-radius: 20px;
+  border-radius: 6px;
   text-decoration: none;
-  transition: all 0.2s ease;
+  transition: all 0.18s ease;
 }
 
 .filterPill:hover {

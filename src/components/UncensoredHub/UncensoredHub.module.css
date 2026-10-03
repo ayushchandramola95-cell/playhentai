@@ -5,27 +5,22 @@
   width: 100%;
 }
 
-/* Sleek Single-Bar Filter Control Panel */
+/* Sleek Single-Bar Filter Control Panel (Flat Dark) */
 .filterBar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1.25rem;
   padding: 0.85rem 1.25rem;
-  background: rgba(15, 12, 26, 0.7);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  background: var(--surface, #121722);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
   width: 100%;
-  transition: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+  transition: border-color 0.2s ease;
 }
 
 .filterBarFocused {
-  border-color: rgba(16, 185, 129, 0.35);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55), 0 0 25px rgba(16, 185, 129, 0.15);
-  background: rgba(12, 22, 18, 0.82);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 .searchBox {
@@ -44,25 +39,25 @@
 }
 
 .searchInput {
-  height: 40px;
+  height: 38px;
   padding: 0 2.2rem 0 2.4rem;
   background: rgba(8, 8, 14, 0.85);
   border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 22px;
+  border-radius: 6px;
   color: #ffffff;
-  font-size: 0.86rem;
+  font-size: 0.85rem;
   font-weight: 600;
   outline: none;
   width: 100%;
-  transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+  transition: border-color 0.18s ease;
   font-family: inherit;
 }
 
 .searchInput:focus,
 .searchInputFocused {
-  border-color: #10b981;
+  border-color: rgba(255, 255, 255, 0.28);
   background: rgba(8, 20, 16, 0.95);
-  box-shadow: 0 0 16px rgba(16, 185, 129, 0.35);
+  box-shadow: none;
 }
 
 .clearSearch {
@@ -112,23 +107,22 @@
 .sortSelect {
   appearance: none;
   background: rgba(8, 8, 14, 0.85);
-  border: 1px solid rgba(16, 185, 129, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   color: #ffffff;
   font-size: 0.82rem;
-  font-weight: 800;
-  padding: 0.45rem 2.2rem 0.45rem 2.3rem;
-  border-radius: 22px;
+  font-weight: 700;
+  padding: 0.42rem 2.2rem 0.42rem 2.3rem;
+  border-radius: 6px;
   outline: none;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: border-color 0.18s ease;
   font-family: inherit;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
   width: 100%;
 }
 
 .sortSelect:hover {
-  border-color: #10b981;
-  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .sortSelect option {
@@ -213,24 +207,23 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 40px;
-  height: 40px;
-  padding: 0 0.85rem;
-  background: rgba(18, 14, 32, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 30px;
+  min-width: 36px;
+  height: 36px;
+  padding: 0 0.75rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
   color: #ffffff;
   font-size: 0.85rem;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.18s ease;
   text-decoration: none;
 }
 
 .pageBtn:hover:not(.pageBtnDisabled) {
   background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(16, 185, 129, 0.5);
-  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.22);
 }
 
 .pageBtnDisabled {
@@ -257,9 +250,9 @@
   justify-content: center;
   padding: 5rem 2rem;
   text-align: center;
-  background: rgba(18, 14, 28, 0.6);
+  background: var(--surface, #121722);
   border: 1px dashed rgba(255, 255, 255, 0.12);
-  border-radius: 16px;
+  border-radius: 8px;
   gap: 1rem;
 }
 
@@ -282,15 +275,21 @@
 
 .clearFiltersBtn {
   margin-top: 0.5rem;
-  padding: 0.6rem 1.4rem;
-  background: #10b981;
-  color: #ffffff;
-  border: none;
-  border-radius: 25px;
-  font-size: 0.88rem;
-  font-weight: 800;
+  padding: 0.5rem 1.25rem;
+  background: rgba(34, 197, 94, 0.15);
+  border: 1px solid rgba(34, 197, 94, 0.35);
+  color: #4ade80;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.18s ease;
+}
+
+.clearFiltersBtn:hover {
+  background: rgba(34, 197, 94, 0.25);
+  border-color: rgba(34, 197, 94, 0.5);
+  color: #ffffff;
 }
 
 .clearFiltersBtn:hover {

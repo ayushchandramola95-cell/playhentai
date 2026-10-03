@@ -13,10 +13,10 @@
 }
 
 .modalContent {
-  background: #0f121d;
+  background: var(--surface, #121722);
   border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9), 0 0 40px rgba(236, 72, 153, 0.15);
-  border-radius: 20px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9);
+  border-radius: 8px;
   width: 100%;
   max-width: 540px;
   max-height: 90vh;
@@ -110,9 +110,9 @@
 
 /* Auth Required Card */
 .authGateCard {
-  background: linear-gradient(180deg, rgba(234, 179, 8, 0.08) 0%, rgba(234, 179, 8, 0.02) 100%);
-  border: 1px solid rgba(234, 179, 8, 0.25);
-  border-radius: 16px;
+  background: rgba(234, 179, 8, 0.05);
+  border: 1px solid rgba(234, 179, 8, 0.2);
+  border-radius: 8px;
   padding: 1.5rem;
   text-align: center;
   display: flex;
@@ -122,15 +122,14 @@
 }
 
 .lockIconWrap {
-  width: 52px;
-  height: 52px;
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
-  background: rgba(234, 179, 8, 0.15);
+  background: rgba(234, 179, 8, 0.12);
   display: flex;
   align-items: center;
   justify-content: center;
   color: #facc15;
-  box-shadow: 0 0 20px rgba(234, 179, 8, 0.2);
 }
 
 .authGateTitle {
@@ -157,7 +156,7 @@
   max-width: 380px;
   background: rgba(0, 0, 0, 0.25);
   padding: 0.75rem 1rem;
-  border-radius: 10px;
+  border-radius: 6px;
   font-size: 0.82rem;
   color: #94a3b8;
 }
@@ -177,19 +176,19 @@
   width: 100%;
   max-width: 380px;
   padding: 0.85rem 1.5rem;
-  background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);
+  background: linear-gradient(135deg, #ff2e7e 0%, #e11d48 100%);
   color: #ffffff;
-  border-radius: 12px;
+  border-radius: 8px;
   font-weight: 800;
   font-size: 0.95rem;
   text-decoration: none;
-  box-shadow: 0 0 20px rgba(236, 72, 153, 0.35);
-  transition: all 0.2s ease;
+  transition: filter 0.18s ease;
 }
 
 .authLoginBtn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 0 30px rgba(236, 72, 153, 0.55);
+  filter: brightness(1.08);
+  transform: none;
+  box-shadow: none;
 }
 
 /* Cloudflare Turnstile Captcha Card */
@@ -351,24 +350,25 @@
   justify-content: center;
   gap: 0.6rem;
   width: 100%;
-  padding: 0.95rem 1.5rem;
+  padding: 0.85rem 1.5rem;
   background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   color: #ffffff;
-  border-radius: 12px;
+  border-radius: 8px;
   font-weight: 800;
-  font-size: 0.96rem;
+  font-size: 0.95rem;
   border: none;
   cursor: pointer;
-  box-shadow: 0 0 25px rgba(16, 185, 129, 0.4);
-  transition: all 0.2s ease;
+  box-shadow: none;
+  transition: filter 0.18s ease;
   text-decoration: none;
   font-family: inherit;
   box-sizing: border-box;
 }
 
 .downloadFinalBtn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 0 35px rgba(16, 185, 129, 0.6);
+  filter: brightness(1.08);
+  transform: none;
+  box-shadow: none;
 }
 
 @keyframes spin {

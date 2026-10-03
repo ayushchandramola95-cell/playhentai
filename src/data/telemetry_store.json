@@ -56,28 +56,1076 @@
       "browser": "Edge",
       "os": "Windows",
       "referrer": "http://localhost:3004/"
+    },
+    "ph_q801tlso_1790931251226": {
+      "sessionId": "ph_q801tlso_1790931251226",
+      "firstSeen": 1790931251530,
+      "lastSeen": 1790951467273,
+      "durationSeconds": 20216,
+      "pageViews": 1,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": false,
+      "visitedRoutes": [
+        "/"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Chrome",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/"
+    },
+    "ph_ca1ryeyc_1790931952649": {
+      "sessionId": "ph_ca1ryeyc_1790931952649",
+      "firstSeen": 1790931952745,
+      "lastSeen": 1790931958107,
+      "durationSeconds": 5,
+      "pageViews": 1,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": false,
+      "visitedRoutes": [
+        "/"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Edge",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/"
+    },
+    "ph_hs8soe9b_1790931996238": {
+      "sessionId": "ph_hs8soe9b_1790931996238",
+      "firstSeen": 1790931996909,
+      "lastSeen": 1790931998605,
+      "durationSeconds": 3,
+      "pageViews": 1,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": false,
+      "visitedRoutes": [
+        "/"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Edge",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/"
+    },
+    "ph_j7g2rxo8_1790932069713": {
+      "sessionId": "ph_j7g2rxo8_1790932069713",
+      "firstSeen": 1790932069789,
+      "lastSeen": 1790932071715,
+      "durationSeconds": 2,
+      "pageViews": 1,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": false,
+      "visitedRoutes": [
+        "/"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Edge",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/"
+    },
+    "ph_m2rm27o0_1790932200719": {
+      "sessionId": "ph_m2rm27o0_1790932200719",
+      "firstSeen": 1790932201214,
+      "lastSeen": 1790932202883,
+      "durationSeconds": 2,
+      "pageViews": 1,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": false,
+      "visitedRoutes": [
+        "/"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Edge",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/"
+    },
+    "ph_g5psdx23_1790932261565": {
+      "sessionId": "ph_g5psdx23_1790932261565",
+      "firstSeen": 1790932261626,
+      "lastSeen": 1790932263795,
+      "durationSeconds": 2,
+      "pageViews": 1,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": false,
+      "visitedRoutes": [
+        "/"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Edge",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/"
+    },
+    "ph_plkjj0qx_1790932643853": {
+      "sessionId": "ph_plkjj0qx_1790932643853",
+      "firstSeen": 1790932644648,
+      "lastSeen": 1790932646591,
+      "durationSeconds": 3,
+      "pageViews": 1,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": false,
+      "visitedRoutes": [
+        "/"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Edge",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/"
+    },
+    "ph_aedrbhn2_1790932682212": {
+      "sessionId": "ph_aedrbhn2_1790932682212",
+      "firstSeen": 1790932682672,
+      "lastSeen": 1790932684918,
+      "durationSeconds": 3,
+      "pageViews": 1,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": false,
+      "visitedRoutes": [
+        "/"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Edge",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/"
+    },
+    "ph_23w964xe_1790932805510": {
+      "sessionId": "ph_23w964xe_1790932805510",
+      "firstSeen": 1790932806256,
+      "lastSeen": 1790932806256,
+      "durationSeconds": 1,
+      "pageViews": 1,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": false,
+      "visitedRoutes": [
+        "/"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Edge",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/"
+    },
+    "ph_nqtgw773_1790932838661": {
+      "sessionId": "ph_nqtgw773_1790932838661",
+      "firstSeen": 1790932838738,
+      "lastSeen": 1790932838738,
+      "durationSeconds": 1,
+      "pageViews": 1,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": false,
+      "visitedRoutes": [
+        "/"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Edge",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/"
+    },
+    "ph_9szc1dt8_1790932901882": {
+      "sessionId": "ph_9szc1dt8_1790932901882",
+      "firstSeen": 1790932901958,
+      "lastSeen": 1790932901958,
+      "durationSeconds": 1,
+      "pageViews": 1,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": false,
+      "visitedRoutes": [
+        "/"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Edge",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/"
+    },
+    "ph_wz5yyrpm_1790932960831": {
+      "sessionId": "ph_wz5yyrpm_1790932960831",
+      "firstSeen": 1790932961184,
+      "lastSeen": 1790932961184,
+      "durationSeconds": 1,
+      "pageViews": 1,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": false,
+      "visitedRoutes": [
+        "/"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Edge",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/"
+    },
+    "ph_zwiuj6ej_1790932988798": {
+      "sessionId": "ph_zwiuj6ej_1790932988798",
+      "firstSeen": 1790932989183,
+      "lastSeen": 1790932989183,
+      "durationSeconds": 1,
+      "pageViews": 1,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": false,
+      "visitedRoutes": [
+        "/"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Edge",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/"
+    },
+    "ph_2ag580s9_1790933014179": {
+      "sessionId": "ph_2ag580s9_1790933014179",
+      "firstSeen": 1790933014310,
+      "lastSeen": 1790933014310,
+      "durationSeconds": 1,
+      "pageViews": 1,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": false,
+      "visitedRoutes": [
+        "/"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Edge",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/"
+    },
+    "ph_ztixqae6_1790933050457": {
+      "sessionId": "ph_ztixqae6_1790933050457",
+      "firstSeen": 1790933050536,
+      "lastSeen": 1790933050536,
+      "durationSeconds": 1,
+      "pageViews": 1,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": false,
+      "visitedRoutes": [
+        "/"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Edge",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/"
+    },
+    "ph_gz7u98gh_1790933093556": {
+      "sessionId": "ph_gz7u98gh_1790933093556",
+      "firstSeen": 1790933094222,
+      "lastSeen": 1790933094222,
+      "durationSeconds": 1,
+      "pageViews": 1,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": false,
+      "visitedRoutes": [
+        "/"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Edge",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/"
+    },
+    "ph_ou7ivjmm_1790933663998": {
+      "sessionId": "ph_ou7ivjmm_1790933663998",
+      "firstSeen": 1790933665435,
+      "lastSeen": 1790933665435,
+      "durationSeconds": 1,
+      "pageViews": 1,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": false,
+      "visitedRoutes": [
+        "/"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Edge",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/"
+    },
+    "ph_tuf30mcr_1790951786058": {
+      "sessionId": "ph_tuf30mcr_1790951786058",
+      "firstSeen": 1790951786696,
+      "lastSeen": 1790951786696,
+      "durationSeconds": 1,
+      "pageViews": 1,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": false,
+      "visitedRoutes": [
+        "/"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Edge",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/"
+    },
+    "ph_lhpmr0mn_1790953860498": {
+      "sessionId": "ph_lhpmr0mn_1790953860498",
+      "firstSeen": 1790953860676,
+      "lastSeen": 1790953860676,
+      "durationSeconds": 1,
+      "pageViews": 1,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": false,
+      "visitedRoutes": [
+        "/"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Edge",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/"
+    },
+    "ph_5uz3cvn9_1790953865363": {
+      "sessionId": "ph_5uz3cvn9_1790953865363",
+      "firstSeen": 1790953865915,
+      "lastSeen": 1790953865915,
+      "durationSeconds": 1,
+      "pageViews": 1,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": false,
+      "visitedRoutes": [
+        "/"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Edge",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/"
+    },
+    "ph_hip7vfuk_1790953962850": {
+      "sessionId": "ph_hip7vfuk_1790953962850",
+      "firstSeen": 1790953963425,
+      "lastSeen": 1790953963425,
+      "durationSeconds": 1,
+      "pageViews": 1,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": false,
+      "visitedRoutes": [
+        "/"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Edge",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/"
+    },
+    "ph_enzli2bl_1790953998200": {
+      "sessionId": "ph_enzli2bl_1790953998200",
+      "firstSeen": 1790953998906,
+      "lastSeen": 1790954000973,
+      "durationSeconds": 3,
+      "pageViews": 1,
+      "maxScrollDepth": 25,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": false,
+      "visitedRoutes": [
+        "/"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Edge",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/"
+    },
+    "ph_8h8lmbu9_1790954028611": {
+      "sessionId": "ph_8h8lmbu9_1790954028611",
+      "firstSeen": 1790954028738,
+      "lastSeen": 1790954031743,
+      "durationSeconds": 3,
+      "pageViews": 1,
+      "maxScrollDepth": 50,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": false,
+      "visitedRoutes": [
+        "/"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Edge",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/"
+    },
+    "ph_ou6vgwi3_1790954096069": {
+      "sessionId": "ph_ou6vgwi3_1790954096069",
+      "firstSeen": 1790954096127,
+      "lastSeen": 1790954096127,
+      "durationSeconds": 1,
+      "pageViews": 1,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": false,
+      "visitedRoutes": [
+        "/"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Edge",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/"
+    },
+    "ph_5lysk6ee_1790954101092": {
+      "sessionId": "ph_5lysk6ee_1790954101092",
+      "firstSeen": 1790954101412,
+      "lastSeen": 1790954101412,
+      "durationSeconds": 1,
+      "pageViews": 1,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": false,
+      "visitedRoutes": [
+        "/"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Edge",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/"
+    },
+    "ph_53qunx0v_1790955695208": {
+      "sessionId": "ph_53qunx0v_1790955695208",
+      "firstSeen": 1790955696220,
+      "lastSeen": 1790955696220,
+      "durationSeconds": 1,
+      "pageViews": 1,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": false,
+      "visitedRoutes": [
+        "/"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Edge",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/"
+    },
+    "ph_ferclb4t_1790955905200": {
+      "sessionId": "ph_ferclb4t_1790955905200",
+      "firstSeen": 1790955905918,
+      "lastSeen": 1790955905918,
+      "durationSeconds": 1,
+      "pageViews": 1,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": false,
+      "visitedRoutes": [
+        "/"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Edge",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/"
+    },
+    "ph_lbyl2l5t_1790962746458": {
+      "sessionId": "ph_lbyl2l5t_1790962746458",
+      "firstSeen": 1790962746583,
+      "lastSeen": 1790962746583,
+      "durationSeconds": 1,
+      "pageViews": 1,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": false,
+      "visitedRoutes": [
+        "/series/reginetta-san-no-bouken"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Edge",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/series/reginetta-san-no-bouken"
+    },
+    "ph_toi6n89f_1790962848059": {
+      "sessionId": "ph_toi6n89f_1790962848059",
+      "firstSeen": 1790962848760,
+      "lastSeen": 1790962848760,
+      "durationSeconds": 1,
+      "pageViews": 1,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": false,
+      "visitedRoutes": [
+        "/series/reginetta-san-no-bouken"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Edge",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/series/reginetta-san-no-bouken"
+    },
+    "ph_3hutprwn_1790962852426": {
+      "sessionId": "ph_3hutprwn_1790962852426",
+      "firstSeen": 1790962852890,
+      "lastSeen": 1790962852890,
+      "durationSeconds": 1,
+      "pageViews": 1,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": false,
+      "visitedRoutes": [
+        "/series/reginetta-san-no-bouken"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Edge",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/series/reginetta-san-no-bouken"
+    },
+    "ph_y891mbn5_1790963904639": {
+      "sessionId": "ph_y891mbn5_1790963904639",
+      "firstSeen": 1790963905061,
+      "lastSeen": 1790963905061,
+      "durationSeconds": 1,
+      "pageViews": 1,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": false,
+      "visitedRoutes": [
+        "/series/reginetta-san-no-bouken"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Edge",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/series/reginetta-san-no-bouken"
+    },
+    "ph_1el75luy_1790963908200": {
+      "sessionId": "ph_1el75luy_1790963908200",
+      "firstSeen": 1790963908657,
+      "lastSeen": 1790963908657,
+      "durationSeconds": 1,
+      "pageViews": 1,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": false,
+      "visitedRoutes": [
+        "/series/reginetta-san-no-bouken"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Edge",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/series/reginetta-san-no-bouken"
+    },
+    "ph_0wkaw6om_1790963912034": {
+      "sessionId": "ph_0wkaw6om_1790963912034",
+      "firstSeen": 1790963912516,
+      "lastSeen": 1790963912516,
+      "durationSeconds": 1,
+      "pageViews": 1,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": false,
+      "visitedRoutes": [
+        "/series/reginetta-san-no-bouken"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Edge",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/series/reginetta-san-no-bouken"
+    },
+    "ph_9iz52oqs_1790963916119": {
+      "sessionId": "ph_9iz52oqs_1790963916119",
+      "firstSeen": 1790963916656,
+      "lastSeen": 1790963916656,
+      "durationSeconds": 1,
+      "pageViews": 1,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": false,
+      "visitedRoutes": [
+        "/series/reginetta-san-no-bouken"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Edge",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/series/reginetta-san-no-bouken"
+    },
+    "ph_9p35uj5p_1790964351406": {
+      "sessionId": "ph_9p35uj5p_1790964351406",
+      "firstSeen": 1790964352017,
+      "lastSeen": 1790964352677,
+      "durationSeconds": 1,
+      "pageViews": 1,
+      "maxScrollDepth": 25,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": false,
+      "visitedRoutes": [
+        "/series/reginetta-san-no-bouken"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Edge",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/series/reginetta-san-no-bouken"
+    },
+    "ph_3b7d6kej_1790964355409": {
+      "sessionId": "ph_3b7d6kej_1790964355409",
+      "firstSeen": 1790964355844,
+      "lastSeen": 1790964356660,
+      "durationSeconds": 1,
+      "pageViews": 1,
+      "maxScrollDepth": 25,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": false,
+      "visitedRoutes": [
+        "/series/reginetta-san-no-bouken"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Edge",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/series/reginetta-san-no-bouken"
+    },
+    "ph_regeh6zt_1790964420395": {
+      "sessionId": "ph_regeh6zt_1790964420395",
+      "firstSeen": 1790964420815,
+      "lastSeen": 1790964421670,
+      "durationSeconds": 1,
+      "pageViews": 1,
+      "maxScrollDepth": 50,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": false,
+      "visitedRoutes": [
+        "/series/reginetta-san-no-bouken"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Edge",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/series/reginetta-san-no-bouken"
+    },
+    "ph_9g92hscg_1790965572361": {
+      "sessionId": "ph_9g92hscg_1790965572361",
+      "firstSeen": 1790965573869,
+      "lastSeen": 1790965573869,
+      "durationSeconds": 1,
+      "pageViews": 1,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": true,
+      "visitedRoutes": [
+        "/watch/reginetta-san-no-bouken-episode-1"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Edge",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/watch/reginetta-san-no-bouken-episode-1"
+    },
+    "ph_bq8r1jg9_1790965575749": {
+      "sessionId": "ph_bq8r1jg9_1790965575749",
+      "firstSeen": 1790965576753,
+      "lastSeen": 1790965577058,
+      "durationSeconds": 1,
+      "pageViews": 1,
+      "maxScrollDepth": 25,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": true,
+      "visitedRoutes": [
+        "/watch/reginetta-san-no-bouken-episode-1"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Edge",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/watch/reginetta-san-no-bouken-episode-1"
+    },
+    "ph_5vbzumtf_1790965580216": {
+      "sessionId": "ph_5vbzumtf_1790965580216",
+      "firstSeen": 1790965581489,
+      "lastSeen": 1790965581489,
+      "durationSeconds": 1,
+      "pageViews": 1,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": true,
+      "visitedRoutes": [
+        "/watch/reginetta-san-no-bouken-episode-1"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Edge",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/watch/reginetta-san-no-bouken-episode-1"
+    },
+    "ph_mder0oij_1790965584812": {
+      "sessionId": "ph_mder0oij_1790965584812",
+      "firstSeen": 1790965585644,
+      "lastSeen": 1790965585644,
+      "durationSeconds": 1,
+      "pageViews": 1,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": true,
+      "visitedRoutes": [
+        "/watch/reginetta-san-no-bouken-episode-1"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Edge",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/watch/reginetta-san-no-bouken-episode-1"
+    },
+    "ph_czdarutl_1790966337310": {
+      "sessionId": "ph_czdarutl_1790966337310",
+      "firstSeen": 1790966337754,
+      "lastSeen": 1790966337754,
+      "durationSeconds": 1,
+      "pageViews": 1,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": true,
+      "visitedRoutes": [
+        "/watch/reginetta-san-no-bouken-episode-1"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Edge",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/watch/reginetta-san-no-bouken-episode-1"
+    },
+    "ph_r5eevuvg_1790966341882": {
+      "sessionId": "ph_r5eevuvg_1790966341882",
+      "firstSeen": 1790966342522,
+      "lastSeen": 1790966343024,
+      "durationSeconds": 1,
+      "pageViews": 1,
+      "maxScrollDepth": 25,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": true,
+      "visitedRoutes": [
+        "/watch/reginetta-san-no-bouken-episode-1"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Edge",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/watch/reginetta-san-no-bouken-episode-1"
+    },
+    "ph_siwp7e5j_1790966346069": {
+      "sessionId": "ph_siwp7e5j_1790966346069",
+      "firstSeen": 1790966347249,
+      "lastSeen": 1790966347249,
+      "durationSeconds": 1,
+      "pageViews": 1,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": true,
+      "visitedRoutes": [
+        "/watch/reginetta-san-no-bouken-episode-1"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Edge",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/watch/reginetta-san-no-bouken-episode-1"
+    },
+    "ph_mh6aahl4_1790966350207": {
+      "sessionId": "ph_mh6aahl4_1790966350207",
+      "firstSeen": 1790966350927,
+      "lastSeen": 1790966350927,
+      "durationSeconds": 1,
+      "pageViews": 1,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": true,
+      "visitedRoutes": [
+        "/watch/reginetta-san-no-bouken-episode-1"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Edge",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/watch/reginetta-san-no-bouken-episode-1"
+    },
+    "ph_hymff4rr_1790968766101": {
+      "sessionId": "ph_hymff4rr_1790968766101",
+      "firstSeen": 1790968766529,
+      "lastSeen": 1790968766529,
+      "durationSeconds": 1,
+      "pageViews": 1,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": true,
+      "visitedRoutes": [
+        "/watch/inaka-ni-wa-kore-kurai-shika-goraku-ga-nai-episode-1"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Edge",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/watch/inaka-ni-wa-kore-kurai-shika-goraku-ga-nai-episode-1"
+    },
+    "ph_7g52can2_1790968771641": {
+      "sessionId": "ph_7g52can2_1790968771641",
+      "firstSeen": 1790968772277,
+      "lastSeen": 1790968772277,
+      "durationSeconds": 1,
+      "pageViews": 1,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": true,
+      "visitedRoutes": [
+        "/watch/inaka-ni-wa-kore-kurai-shika-goraku-ga-nai-episode-1"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Edge",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/watch/inaka-ni-wa-kore-kurai-shika-goraku-ga-nai-episode-1"
+    },
+    "ph_9mce7n3w_1790968815451": {
+      "sessionId": "ph_9mce7n3w_1790968815451",
+      "firstSeen": 1790968815858,
+      "lastSeen": 1790968815858,
+      "durationSeconds": 1,
+      "pageViews": 1,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": true,
+      "visitedRoutes": [
+        "/watch/inaka-ni-wa-kore-kurai-shika-goraku-ga-nai-episode-1"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Edge",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/watch/inaka-ni-wa-kore-kurai-shika-goraku-ga-nai-episode-1"
+    },
+    "ph_5ejtwf10_1790968821481": {
+      "sessionId": "ph_5ejtwf10_1790968821481",
+      "firstSeen": 1790968821738,
+      "lastSeen": 1790968821738,
+      "durationSeconds": 1,
+      "pageViews": 1,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": true,
+      "visitedRoutes": [
+        "/watch/inaka-ni-wa-kore-kurai-shika-goraku-ga-nai-episode-1"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Edge",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/watch/inaka-ni-wa-kore-kurai-shika-goraku-ga-nai-episode-1"
+    },
+    "ph_gvq6x5tb_1790968859512": {
+      "sessionId": "ph_gvq6x5tb_1790968859512",
+      "firstSeen": 1790968859940,
+      "lastSeen": 1790968859940,
+      "durationSeconds": 1,
+      "pageViews": 1,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": true,
+      "visitedRoutes": [
+        "/watch/inaka-ni-wa-kore-kurai-shika-goraku-ga-nai-episode-1"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Edge",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/watch/inaka-ni-wa-kore-kurai-shika-goraku-ga-nai-episode-1"
+    },
+    "ph_p9l448d3_1790968869349": {
+      "sessionId": "ph_p9l448d3_1790968869349",
+      "firstSeen": 1790968869717,
+      "lastSeen": 1790968869717,
+      "durationSeconds": 1,
+      "pageViews": 1,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": true,
+      "visitedRoutes": [
+        "/watch/inaka-ni-wa-kore-kurai-shika-goraku-ga-nai-episode-1"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Edge",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/watch/inaka-ni-wa-kore-kurai-shika-goraku-ga-nai-episode-1"
+    },
+    "ph_oh6gxypk_1790968918550": {
+      "sessionId": "ph_oh6gxypk_1790968918550",
+      "firstSeen": 1790968919013,
+      "lastSeen": 1790968919013,
+      "durationSeconds": 1,
+      "pageViews": 1,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": true,
+      "visitedRoutes": [
+        "/watch/inaka-ni-wa-kore-kurai-shika-goraku-ga-nai-episode-1"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Edge",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/watch/inaka-ni-wa-kore-kurai-shika-goraku-ga-nai-episode-1"
+    },
+    "ph_dil3wgdf_1790968929507": {
+      "sessionId": "ph_dil3wgdf_1790968929507",
+      "firstSeen": 1790968929749,
+      "lastSeen": 1790968929749,
+      "durationSeconds": 1,
+      "pageViews": 1,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": true,
+      "visitedRoutes": [
+        "/watch/inaka-ni-wa-kore-kurai-shika-goraku-ga-nai-episode-1"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Edge",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/watch/inaka-ni-wa-kore-kurai-shika-goraku-ga-nai-episode-1"
+    },
+    "ph_53u729do_1790969071294": {
+      "sessionId": "ph_53u729do_1790969071294",
+      "firstSeen": 1790969072189,
+      "lastSeen": 1790969072189,
+      "durationSeconds": 1,
+      "pageViews": 1,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": true,
+      "visitedRoutes": [
+        "/watch/inaka-ni-wa-kore-kurai-shika-goraku-ga-nai-episode-1"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Edge",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/watch/inaka-ni-wa-kore-kurai-shika-goraku-ga-nai-episode-1"
+    },
+    "ph_59q9r9t7_1790969081112": {
+      "sessionId": "ph_59q9r9t7_1790969081112",
+      "firstSeen": 1790969081507,
+      "lastSeen": 1790969081507,
+      "durationSeconds": 1,
+      "pageViews": 1,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": true,
+      "visitedRoutes": [
+        "/watch/inaka-ni-wa-kore-kurai-shika-goraku-ga-nai-episode-1"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Edge",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/watch/inaka-ni-wa-kore-kurai-shika-goraku-ga-nai-episode-1"
     }
   },
   "routeVisits": {
-    "/": 219,
+    "/": 332,
     "/series/imaizumin-chi-wa-douyara-gal-no-tamariba-ni-natteru-rashii": 2,
-    "/login": 83
+    "/login": 83,
+    "/series/reginetta-san-no-bouken": 14,
+    "/watch/reginetta-san-no-bouken-episode-1": 10,
+    "/watch/inaka-ni-wa-kore-kurai-shika-goraku-ga-nai-episode-1": 10
   },
   "scrollCounts": {
-    "depth25": 10,
-    "depth50": 0,
+    "depth25": 19,
+    "depth50": 2,
     "depth75": 0,
     "depth100": 0
   },
   "deviceCounts": {
-    "desktop": 6,
+    "desktop": 61,
     "mobile": 0,
     "tablet": 0
   },
   "adBlockCounts": {
     "blocked": 0,
-    "notBlocked": 6
+    "notBlocked": 61
   },
   "totalWatchEvents": 0,
-  "lastCleaned": 1790876659937
+  "lastCleaned": 1790953860676
 }

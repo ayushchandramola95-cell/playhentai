@@ -9,9 +9,9 @@
 /* SEO Hero Header Section (Compact, subtle, and sleek at top of homepage) */
 .seoHeroHeader {
   width: 100%;
-  max-width: 1600px;
+  max-width: 1680px;
   margin: 0 auto;
-  padding: 0.5rem 2.5rem 0.2rem;
+  padding: 0.5rem 2rem 0.2rem;
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
@@ -72,37 +72,50 @@
   .seoHeroDescription {
     font-size: 0.74rem;
   }
+  .section {
+    padding: 0 1.5rem;
+  }
 }
 
 @media (max-width: 768px) {
   .seoHeroHeader {
-    padding: 0.4rem 1rem 0.15rem;
+    padding: 0.35rem 0.85rem 0.15rem;
+    gap: 0.1rem;
   }
 
   .seoHeroTitle {
-    font-size: 0.84rem;
+    font-size: 0.82rem;
     line-height: 1.25;
   }
 
   .seoHeroDescription {
-    font-size: 0.7rem;
+    font-size: 0.68rem;
     line-height: 1.35;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }
 
 @media (max-width: 480px) {
   .seoHeroHeader {
-    padding: 0.55rem 0.75rem 0.4rem;
+    padding: 0.3rem 0.75rem 0.15rem;
   }
 
   .seoHeroTitle {
-    font-size: 1.02rem;
+    font-size: 0.8rem;
+  }
+
+  .seoHeroDescription {
+    font-size: 0.66rem;
   }
 }
 
 /* Sections */
 .section {
-  max-width: 1720px;
+  max-width: 1680px;
   margin: 2.2rem auto 0;
   padding: 0 2rem;
   width: 100%;
@@ -112,6 +125,8 @@
 
 .section:first-of-type {
   margin-top: 0.65rem;
+  content-visibility: visible !important;
+  contain-intrinsic-size: auto;
 }
 
 
@@ -941,6 +956,16 @@
 
   .latestSeriesGrid {
     grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .tagsCloudWrapper {
+    padding: 1rem 0.85rem !important;
+  }
+
+  .tagPill,
+  .studioPill {
+    padding: 0.28rem 0.55rem !important;
+    font-size: 0.74rem !important;
   }
 }
 

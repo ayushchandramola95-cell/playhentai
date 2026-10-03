@@ -1,17 +1,17 @@
 .container {
-  max-width: 1400px;
+  max-width: 1680px;
   margin: 0 auto;
-  padding: 2rem 1.5rem 4rem;
+  padding: 1rem 2rem 3.5rem;
   min-height: 100vh;
 }
 
 /* ── Hero Header ── */
 .hero {
   position: relative;
-  padding: 2.5rem 2rem;
-  border-radius: 16px;
-  background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.12) 0%, rgba(var(--primary-rgb), 0.04) 100%);
-  border: 1px solid rgba(var(--primary-rgb), 0.15);
+  padding: 2.25rem 2rem;
+  border-radius: 8px;
+  background: var(--surface, #121722);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   margin-bottom: 1.5rem;
   overflow: hidden;
 }
@@ -84,15 +84,15 @@
   font-size: 0.8rem;
   font-weight: 600;
   padding: 0.2rem 0.65rem;
-  border-radius: 999px;
+  border-radius: 4px;
   white-space: nowrap;
 }
 
 /* ── SEO Intro Text ── */
 .seoIntro {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 12px;
+  background: var(--surface, #121722);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
   padding: 1.25rem 1.5rem;
   margin-bottom: 2rem;
 }
@@ -167,7 +167,7 @@
   align-items: center;
   gap: 0.35rem;
   padding: 0.5rem 1.1rem;
-  border-radius: 8px;
+  border-radius: 6px;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--foreground);
@@ -178,9 +178,9 @@
 }
 
 .pageBtn:hover {
-  background: rgba(var(--primary-rgb), 0.15);
-  border-color: rgba(var(--primary-rgb), 0.4);
-  color: var(--primary);
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
 }
 
 .pageBtnDisabled {
@@ -198,7 +198,7 @@
 /* ── Responsive ── */
 @media (max-width: 768px) {
   .container {
-    padding: 1rem 1rem 3rem;
+    padding: 0.85rem 1rem 3rem;
   }
 
   .hero {

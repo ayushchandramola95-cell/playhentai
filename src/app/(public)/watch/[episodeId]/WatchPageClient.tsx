@@ -7,7 +7,7 @@ import {
   Tv, Star, ShieldCheck, ChevronLeft, ChevronRight,
   Share2, AlertTriangle, Lightbulb, Check, X, LayoutGrid, List,
   Calendar, Clock, Film, ChevronDown, ChevronUp, Sparkles, Subtitles,
-  ThumbsUp, ThumbsDown, Eye, MessageSquare, Copy, Download
+  ThumbsUp, ThumbsDown, Eye, MessageSquare, Copy, Download, Minimize2
 } from 'lucide-react';
 import { getR2Url } from '@/utils/r2';
 import { getEpisodeWatchUrl } from '@/utils/episodeUrl';
@@ -685,16 +685,18 @@ export default function WatchPageClient({
         videoUrl={getR2Url(activeEpisode.video_key, 'video')}
       />
 
-      {/* Breadcrumbs Section */}
-      <div className={styles.breadcrumbs}>
-        <Link href="/">Home</Link>
-        <span className={styles.breadDivider}>/</span>
-        <Link href="/categories">Series</Link>
-        <span className={styles.breadDivider}>/</span>
-        <Link href={`/series/${seriesSlug}`}>{seriesTitle}</Link>
-        <span className={styles.breadDivider}>/</span>
-        <span className={styles.breadActive}>Episode {activeEpisode.episode_number}</span>
-      </div>
+      {/* Breadcrumbs Section (Hidden in Theatre Mode) */}
+      {!isTheatreMode && (
+        <div className={styles.breadcrumbs}>
+          <Link href="/">Home</Link>
+          <span className={styles.breadDivider}>/</span>
+          <Link href="/categories">Series</Link>
+          <span className={styles.breadDivider}>/</span>
+          <Link href={`/series/${seriesSlug}`}>{seriesTitle}</Link>
+          <span className={styles.breadDivider}>/</span>
+          <span className={styles.breadActive}>Episode {activeEpisode.episode_number}</span>
+        </div>
+      )}
 
       {/* Main Theatre View Grid */}
       <div className={`${styles.playerLayout} ${isTheatreMode ? styles.theatreLayout : ''}`}>
@@ -713,6 +715,7 @@ export default function WatchPageClient({
               episodeNumber={activeEpisode.episode_number}
               nextEpisodeUrl={nextEpUrl}
               prevEpisodeUrl={prevEpUrl}
+              isTheaterMode={isTheatreMode}
               onToggleTheater={() => setIsTheatreMode(prev => !prev)}
               isLightsOff={isLightsOff}
               onToggleCinema={() => setIsLightsOff(prev => !prev)}
@@ -723,7 +726,7 @@ export default function WatchPageClient({
           </div>
 
           {/* Flanking Prev & Next Navigation Directly Below Video Box */}
-          <div className={styles.episodeNavRow}>
+          <div className={`${styles.episodeNavRow} ${isTheatreMode ? styles.theatreEpisodeNavRow : ''}`}>
             {prevEpisode ? (
               <Link href={prevEpUrl!} className={styles.episodeNavBtn} title="Previous Episode (P)">
                 <ChevronLeft size={16} className={styles.navIconLeft} />
@@ -734,6 +737,18 @@ export default function WatchPageClient({
                 <ChevronLeft size={16} className={styles.navIconLeft} />
                 <span>Prev Episode</span>
               </div>
+            )}
+
+            {isTheatreMode && (
+              <button
+                type="button"
+                onClick={() => setIsTheatreMode(false)}
+                className={styles.exitTheatreBtn}
+                title="Exit Theater Mode (T)"
+              >
+                <Minimize2 size={15} />
+                <span>Exit Theater</span>
+              </button>
             )}
 
             {nextEpisode ? (

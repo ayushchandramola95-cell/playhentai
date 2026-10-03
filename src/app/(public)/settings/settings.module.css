@@ -1,7 +1,7 @@
 .container {
-  max-width: 1100px;
+  max-width: 1280px;
   margin: 0 auto;
-  padding: 2.5rem 1.6rem 5rem;
+  padding: 1rem 2rem 3.5rem;
   min-height: 80vh;
   position: relative;
 }
@@ -23,7 +23,7 @@
 }
 
 .headerSection {
-  margin-bottom: 2.2rem;
+  margin-bottom: 2rem;
 }
 
 .titleRow {
@@ -34,8 +34,8 @@
 }
 
 .titleRow h1 {
-  font-size: 2.2rem;
-  font-weight: 850;
+  font-size: 2rem;
+  font-weight: 800;
   color: #fff;
   letter-spacing: -0.02em;
 }
@@ -46,14 +46,14 @@
 
 .subtext {
   color: var(--foreground-secondary);
-  font-size: 1.02rem;
+  font-size: 0.95rem;
   max-width: 600px;
 }
 
 .settingsGrid {
   display: grid;
   grid-template-columns: 1fr 1.3fr;
-  gap: 2rem;
+  gap: 1.5rem;
   align-items: flex-start;
 }
 
@@ -65,11 +65,11 @@
 
 .infoCard,
 .formCard {
-  border-radius: 20px;
-  padding: 2rem;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  padding: 1.75rem;
+  background: var(--surface, #121722);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: none;
 }
 
 .cardHeader {
@@ -128,7 +128,7 @@
   font-size: 0.8rem;
   font-weight: 800;
   padding: 0.25rem 0.65rem;
-  border-radius: 6px;
+  border-radius: 4px;
   width: fit-content;
 }
 
@@ -142,16 +142,16 @@
   font-size: 0.8rem;
   font-weight: 700;
   padding: 0.25rem 0.65rem;
-  border-radius: 6px;
+  border-radius: 4px;
   width: fit-content;
 }
 
 .securityNote {
   margin-top: 1.8rem;
   padding: 0.9rem;
-  border-radius: 12px;
-  background: rgba(139, 92, 246, 0.08);
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 6px;
+  background: rgba(139, 92, 246, 0.06);
+  border: 1px solid rgba(139, 92, 246, 0.18);
   display: flex;
   align-items: flex-start;
   gap: 0.6rem;
@@ -192,18 +192,18 @@
 .input {
   width: 100%;
   padding: 0.75rem 1rem;
-  border-radius: 10px;
-  background: var(--background);
-  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: rgba(8, 8, 14, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   color: #fff;
   font-size: 0.92rem;
   outline: none;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color 0.2s ease;
 }
 
 .input:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.15);
+  box-shadow: none;
 }
 
 .eyeBtn {
@@ -252,22 +252,23 @@
 }
 
 .submitBtn {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+  background: var(--primary);
   color: #fff;
   padding: 0.85rem;
-  border-radius: 12px;
+  border-radius: 6px;
   font-weight: 700;
   font-size: 0.95rem;
   border: none;
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 14px rgba(var(--primary-rgb), 0.3);
+  transition: background-color 0.2s ease;
+  box-shadow: none;
   margin-top: 0.5rem;
 }
 
 .submitBtn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(var(--primary-rgb), 0.45);
+  background: var(--primary-hover, #7c3aed);
+  transform: none;
+  box-shadow: none;
 }
 
 .submitBtn:disabled {
@@ -280,7 +281,7 @@
   align-items: center;
   gap: 0.6rem;
   padding: 0.75rem 1rem;
-  border-radius: 10px;
+  border-radius: 6px;
   background: rgba(239, 68, 68, 0.12);
   border: 1px solid rgba(239, 68, 68, 0.3);
   color: #ef4444;
@@ -294,7 +295,7 @@
   align-items: center;
   gap: 0.6rem;
   padding: 0.75rem 1rem;
-  border-radius: 10px;
+  border-radius: 6px;
   background: rgba(34, 197, 94, 0.12);
   border: 1px solid rgba(34, 197, 94, 0.3);
   color: #22c55e;
@@ -315,8 +316,11 @@
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 5rem 2rem;
-  border-radius: 24px;
+  padding: 4rem 2rem;
+  border-radius: 8px;
+  background: var(--surface, #121722);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: none;
   max-width: 500px;
   margin: 4rem auto;
   gap: 1.2rem;
@@ -330,8 +334,14 @@
   background: var(--primary);
   color: #ffffff;
   padding: 0.75rem 1.8rem;
-  border-radius: 30px;
+  border-radius: 6px;
   font-weight: 700;
   text-decoration: none;
   font-size: 0.9rem;
+  box-shadow: none;
+  transition: background-color 0.2s ease;
+}
+
+.actionBtn:hover {
+  background: var(--primary-hover, #7c3aed);
 }

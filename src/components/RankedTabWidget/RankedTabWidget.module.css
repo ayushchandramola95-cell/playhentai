@@ -1,10 +1,10 @@
 .rankedWidgetCard {
   width: 100%;
-  background: rgba(18, 14, 32, 0.85);
+  background: var(--surface, #121722);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(14px);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.6);
+  backdrop-filter: none;
   overflow: hidden;
   margin-bottom: 1.25rem;
 }
@@ -13,25 +13,26 @@
 .tabsHeader {
   display: flex;
   width: 100%;
-  background: rgba(10, 8, 18, 0.6);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(0, 0, 0, 0.25);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .tabBtn {
   flex: 1;
-  padding: 0.85rem 1rem;
+  padding: 0.75rem 1rem;
   border: none;
   background: transparent;
   color: #94a3b8;
-  font-size: 0.82rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
+  font-size: 0.8rem;
+  font-weight: 750;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: color 0.18s ease, background 0.18s ease;
   display: flex;
   align-items: center;
   justify-content: center;
+  border-bottom: 2px solid transparent;
 }
 
 .tabBtn:hover:not(.tabActive) {
@@ -40,18 +41,19 @@
 }
 
 .tabActive {
-  background: #ffb800 !important;
-  color: #0b0d17 !important;
-  font-weight: 900;
-  box-shadow: inset 0 -2px 6px rgba(0, 0, 0, 0.2);
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: #ffffff !important;
+  font-weight: 800;
+  border-bottom: 2px solid var(--primary, #ff2e7e) !important;
+  box-shadow: none;
 }
 
 /* List container */
 .listContainer {
-  padding: 0.75rem 0.8rem;
+  padding: 0.7rem;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.45rem;
 }
 
 /* Ranked Row */
@@ -61,17 +63,17 @@
   position: relative;
   padding: 0.5rem 0.65rem;
   background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.035);
-  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 8px;
   text-decoration: none;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: background 0.18s ease, border-color 0.18s ease;
   overflow: hidden;
 }
 
 .rankedRow:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.06);
   border-color: rgba(255, 255, 255, 0.1);
-  transform: translateX(3px);
+  transform: none;
 }
 
 /* Poster */
@@ -80,7 +82,7 @@
   width: 52px;
   height: 72px;
   flex-shrink: 0;
-  border-radius: 8px;
+  border-radius: 6px;
   overflow: hidden;
   background: #1c182d;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
@@ -122,11 +124,11 @@
 }
 
 .rankedRow:hover .itemTitle {
-  color: #ffffff;
+  color: var(--primary, #ff2e7e);
 }
 
 .topRankTitle {
-  color: #fbbf24 !important;
+  color: #ffffff !important;
 }
 
 .statsRow {
@@ -142,7 +144,7 @@
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.1);
   padding: 0.15rem 0.45rem;
-  border-radius: 6px;
+  border-radius: 4px;
   font-size: 0.72rem;
   font-weight: 750;
   color: #f8fafc;
@@ -164,24 +166,24 @@
   font-weight: 900;
   font-style: italic;
   font-family: inherit;
-  color: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.06);
   pointer-events: none;
   user-select: none;
   line-height: 1;
   letter-spacing: -0.05em;
   z-index: 1;
-  transition: color 0.2s ease, transform 0.2s ease;
+  transition: color 0.2s ease;
 }
 
 .rankedRow:hover .rankNumber {
-  color: rgba(255, 255, 255, 0.14);
-  transform: translateY(-50%) scale(1.04);
+  color: rgba(255, 255, 255, 0.12);
+  transform: translateY(-50%);
 }
 
 .topRankNumber {
-  color: rgba(251, 191, 36, 0.14) !important;
+  color: rgba(255, 255, 255, 0.08) !important;
 }
 
 .rankedRow:hover .topRankNumber {
-  color: rgba(251, 191, 36, 0.22) !important;
+  color: rgba(255, 255, 255, 0.14) !important;
 }

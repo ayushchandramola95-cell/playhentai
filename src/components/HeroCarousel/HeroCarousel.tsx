@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Play, ChevronLeft, ChevronRight, Star, Eye, Layers, CheckCircle2, Heart } from 'lucide-react';
+import { Play, ChevronLeft, ChevronRight, Star, Eye, Layers, CheckCircle2, Heart, Sparkles } from 'lucide-react';
 import WatchlistToggle from '../WatchlistToggle/WatchlistToggle';
 import { getR2Url } from '@/utils/r2';
 import styles from './HeroCarousel.module.css';
@@ -393,13 +393,56 @@ export default function HeroCarousel({ activeSeries, isDbEmpty, autoplaySpeed = 
 
               <Link href={`/series/${currentSeries.slug}`} className={styles.allEpisodesBtn}>
                 <Layers size={17} />
-                <span>All episodes</span>
+                <span className={styles.allEpisodesTextDesktop}>All episodes</span>
+                <span className={styles.allEpisodesTextMobile}>Episodes</span>
               </Link>
 
-              <WatchlistToggle seriesId={currentSeries.id} variant="hero" />
+              <div className={styles.watchlistWrapper}>
+                <WatchlistToggle seriesId={currentSeries.id} variant="hero" />
+              </div>
             </div>
 
-            {/* Bottom Mini Thumbnails Strip ("Latest uploads") */}
+            {/* Mobile-only Slide Indicator Dots & Chevrons (Ultra-compact, cleanly centered) */}
+            {totalSlides > 1 && (
+              <div className={styles.mobilePaginationContainer} aria-label="Carousel navigation">
+                <button 
+                  type="button" 
+                  onClick={handlePrev} 
+                  className={styles.mobileNavArrow}
+                  aria-label="Previous slide"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+
+                <div className={styles.mobileDotsTrack}>
+                  {activeSeries.map((item, idx) => {
+                    const isItemActive = idx === currentIndex;
+                    return (
+                      <button
+                        key={item.id || idx}
+                        type="button"
+                        onClick={() => setCurrentIndex(idx)}
+                        className={`${styles.mobileDot} ${isItemActive ? styles.mobileDotActive : ''}`}
+                        aria-label={`Slide ${idx + 1}`}
+                      >
+                        {isItemActive && <span key={currentIndex} className={styles.mobileDotProgress} />}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <button 
+                  type="button" 
+                  onClick={handleNext} 
+                  className={styles.mobileNavArrow}
+                  aria-label="Next slide"
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            )}
+
+            {/* Bottom Mini Thumbnails Strip ("Latest uploads") - Desktop & Tablet */}
             {totalSlides > 1 && (
               <div className={styles.thumbStripContainer}>
                 <div className={styles.thumbStripHeader}>
@@ -497,6 +540,12 @@ export default function HeroCarousel({ activeSeries, isDbEmpty, autoplaySpeed = 
                 />
                 <div className={styles.frontCardVignette} />
                 <div className={styles.cardShine} aria-hidden="true" />
+
+                {/* Mobile Spotlight Corner Tag */}
+                <div className={styles.cardCornerBadge}>
+                  <Sparkles size={11} className={styles.cornerSparkle} />
+                  <span>SPOTLIGHT</span>
+                </div>
 
                 {/* Frosted In-the-Spotlight Badge Overlay */}
                 <div className={styles.spotlightBadgeOverlay}>
