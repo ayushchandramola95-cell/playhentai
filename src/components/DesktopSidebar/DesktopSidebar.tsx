@@ -7,14 +7,17 @@ import {
   Home, 
   LayoutGrid, 
   TrendingUp, 
-  Crown,
   Shuffle, 
   Heart, 
   Clock, 
-  Bookmark,
+  Bookmark, 
   Film, 
   BadgeCheck, 
   Grid3X3,
+  Box,
+  ShieldCheck,
+  ListVideo,
+  FileText,
   Settings, 
   LogIn, 
   UserPlus, 
@@ -51,6 +54,15 @@ export default function DesktopSidebar() {
     if (path === '/studios') {
       return pathname.startsWith('/studios');
     }
+    if (path === '/3d') {
+      return pathname.startsWith('/3d');
+    }
+    if (path === '/uncensored') {
+      return pathname.startsWith('/uncensored');
+    }
+    if (path === '/random') {
+      return pathname.startsWith('/random');
+    }
     if (path === '/admin') {
       return pathname.startsWith('/admin');
     }
@@ -66,7 +78,9 @@ export default function DesktopSidebar() {
     { label: 'Home', href: '/', icon: Home },
     { label: 'Browse', href: '/categories', icon: LayoutGrid },
     { label: 'Trending', href: '/trending', icon: TrendingUp },
-    { label: 'Top rated', href: '/playlists', icon: Crown },
+    { label: '3D', href: '/3d', icon: Box },
+    { label: 'Uncensored', href: '/uncensored', icon: ShieldCheck },
+    { label: 'Playlist', href: '/playlists', icon: ListVideo },
     { label: 'Random', href: '/random', icon: Shuffle },
   ];
 
@@ -79,10 +93,8 @@ export default function DesktopSidebar() {
   const exploreItems = [
     { label: 'Series', href: '/recent/series', icon: Film },
     { label: 'Studios', href: '/studios', icon: BadgeCheck },
-    { label: 'Tags', href: '/genres', icon: Grid3X3 },
+    { label: 'Genres', href: '/genres', icon: Grid3X3 },
   ];
-
-  const allItems = [...watchItems, ...libraryItems, ...exploreItems];
 
   return (
     <aside 
@@ -116,26 +128,87 @@ export default function DesktopSidebar() {
           </div>
         )}
 
-        {/* Collapsed Mode: Single clean icon+label column (Hanime style) */}
+        {/* Collapsed Mode: Grouped sections with dividing lines (matching reference) */}
         {!isExpanded ? (
           <nav className={styles.collapsedNav}>
-            {allItems.map(item => {
-              const Icon = item.icon;
-              const active = isNavActive(item.href);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`${styles.collapsedItem} ${active ? styles.collapsedActiveItem : ''}`}
-                  aria-label={item.label}
-                >
-                  <div className={styles.collapsedIconWrapper}>
-                    <Icon size={20} className={styles.collapsedIcon} />
-                  </div>
-                  <span className={styles.collapsedLabel}>{item.label}</span>
-                </Link>
-              );
-            })}
+            <div className={styles.collapsedGroup}>
+              {watchItems.map(item => {
+                const Icon = item.icon;
+                const active = isNavActive(item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`${styles.collapsedItem} ${active ? styles.collapsedActiveItem : ''}`}
+                    aria-label={item.label}
+                  >
+                    <div className={styles.collapsedIconWrapper}>
+                      <Icon size={20} className={styles.collapsedIcon} />
+                    </div>
+                    <span className={styles.collapsedLabel}>{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+
+            <div className={styles.collapsedDivider} />
+
+            <div className={styles.collapsedGroup}>
+              {libraryItems.map(item => {
+                const Icon = item.icon;
+                const active = isNavActive(item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`${styles.collapsedItem} ${active ? styles.collapsedActiveItem : ''}`}
+                    aria-label={item.label}
+                  >
+                    <div className={styles.collapsedIconWrapper}>
+                      <Icon size={20} className={styles.collapsedIcon} />
+                    </div>
+                    <span className={styles.collapsedLabel}>{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+
+            <div className={styles.collapsedDivider} />
+
+            <div className={styles.collapsedGroup}>
+              {exploreItems.map(item => {
+                const Icon = item.icon;
+                const active = isNavActive(item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`${styles.collapsedItem} ${active ? styles.collapsedActiveItem : ''}`}
+                    aria-label={item.label}
+                  >
+                    <div className={styles.collapsedIconWrapper}>
+                      <Icon size={20} className={styles.collapsedIcon} />
+                    </div>
+                    <span className={styles.collapsedLabel}>{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+
+            <div className={styles.collapsedDivider} />
+
+            <div className={styles.collapsedGroup}>
+              <Link
+                href="/faq"
+                className={`${styles.collapsedItem} ${isNavActive('/faq') ? styles.collapsedActiveItem : ''}`}
+                aria-label="FAQ & Help"
+              >
+                <div className={styles.collapsedIconWrapper}>
+                  <FileText size={20} className={styles.collapsedIcon} />
+                </div>
+                <span className={styles.collapsedLabel}>Help</span>
+              </Link>
+            </div>
           </nav>
         ) : (
           /* Expanded Mode: Categorized Sections with Headings (Hanime drawer style) */

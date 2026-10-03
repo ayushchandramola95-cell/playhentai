@@ -1,43 +1,5 @@
 {
   "sessions": {
-    "ph_gub5dren_1790795559557": {
-      "sessionId": "ph_gub5dren_1790795559557",
-      "firstSeen": 1790795559835,
-      "lastSeen": 1790797854583,
-      "durationSeconds": 2295,
-      "pageViews": 1,
-      "maxScrollDepth": 0,
-      "device": "desktop",
-      "hasAdBlocker": false,
-      "hasWatchedVideo": false,
-      "visitedRoutes": [
-        "/"
-      ],
-      "country": "IN",
-      "region": "Asia & Pacific",
-      "browser": "Chrome",
-      "os": "Windows",
-      "referrer": "http://localhost:3004/"
-    },
-    "ph_c52cg1k1_1790799875263": {
-      "sessionId": "ph_c52cg1k1_1790799875263",
-      "firstSeen": 1790799877014,
-      "lastSeen": 1790846625977,
-      "durationSeconds": 1936,
-      "pageViews": 1,
-      "maxScrollDepth": 25,
-      "device": "desktop",
-      "hasAdBlocker": false,
-      "hasWatchedVideo": false,
-      "visitedRoutes": [
-        "/"
-      ],
-      "country": "IN",
-      "region": "Asia & Pacific",
-      "browser": "Chrome",
-      "os": "Windows",
-      "referrer": "http://localhost:3004/"
-    },
     "ph_y2fjc7w9_1790876658914": {
       "sessionId": "ph_y2fjc7w9_1790876658914",
       "firstSeen": 1790876659937,
@@ -1101,10 +1063,48 @@
       "browser": "Edge",
       "os": "Windows",
       "referrer": "http://localhost:3004/watch/inaka-ni-wa-kore-kurai-shika-goraku-ga-nai-episode-1"
+    },
+    "ph_5un3qla3_1791037952266": {
+      "sessionId": "ph_5un3qla3_1791037952266",
+      "firstSeen": 1791037954915,
+      "lastSeen": 1791037956535,
+      "durationSeconds": 4,
+      "pageViews": 1,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": false,
+      "visitedRoutes": [
+        "/"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Edge",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/"
+    },
+    "ph_k7fucks9_1791039830214": {
+      "sessionId": "ph_k7fucks9_1791039830214",
+      "firstSeen": 1791039830811,
+      "lastSeen": 1791040651550,
+      "durationSeconds": 821,
+      "pageViews": 1,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": false,
+      "visitedRoutes": [
+        "/"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Chrome",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/"
     }
   },
   "routeVisits": {
-    "/": 332,
+    "/": 355,
     "/series/imaizumin-chi-wa-douyara-gal-no-tamariba-ni-natteru-rashii": 2,
     "/login": 83,
     "/series/reginetta-san-no-bouken": 14,
@@ -1118,14 +1118,14 @@
     "depth100": 0
   },
   "deviceCounts": {
-    "desktop": 61,
+    "desktop": 63,
     "mobile": 0,
     "tablet": 0
   },
   "adBlockCounts": {
     "blocked": 0,
-    "notBlocked": 61
+    "notBlocked": 63
   },
   "totalWatchEvents": 0,
-  "lastCleaned": 1790953860676
+  "lastCleaned": 1791037954915
 }
