@@ -38,14 +38,14 @@ const getCachedVideoSitemapEpisodes = unstable_cache(
       const catalog = await getLocalCatalog();
       const seriesMap = new Map<string, any>();
       catalog.series.forEach((s: any) => {
-        if (s.is_published !== false) {
+        if (s && s.is_published === true && s.status !== 'draft' && Boolean(s.slug)) {
           seriesMap.set(s.id, s);
         }
       });
 
       const seasonMap = new Map<string, any>();
       catalog.seasons.forEach((sn: any) => {
-        if (sn.is_published !== false && seriesMap.has(sn.series_id)) {
+        if (sn && sn.is_published === true && seriesMap.has(sn.series_id)) {
           seasonMap.set(sn.id, {
             ...sn,
             series: seriesMap.get(sn.series_id)
@@ -54,7 +54,7 @@ const getCachedVideoSitemapEpisodes = unstable_cache(
       });
 
       return catalog.episodes
-        .filter((ep: any) => ep.is_published !== false && seasonMap.has(ep.season_id))
+        .filter((ep: any) => ep && ep.is_published === true && seasonMap.has(ep.season_id))
         .map((ep: any) => ({
           ...ep,
           seasons: seasonMap.get(ep.season_id)
@@ -81,11 +81,17 @@ export async function GET() {
     const episodes = await getCachedVideoSitemapEpisodes();
 
     if (episodes && episodes.length > 0) {
-      // Filter out episodes whose parent series is not published and must have video_key
+      // Filter out episodes whose parent series is not published, episode is draft, or missing video_key
       const publishedEpisodes = episodes.filter((ep: any) => {
         const season = Array.isArray(ep.seasons) ? ep.seasons[0] : ep.seasons;
         const seriesObj = season ? (Array.isArray(season.series) ? season.series[0] : season.series) : null;
-        return seriesObj?.is_published !== false && ep.video_key && ep.video_key.trim() !== '';
+        return (
+          seriesObj?.is_published === true &&
+          seriesObj?.status !== 'draft' &&
+          ep.is_published === true &&
+          ep.video_key &&
+          ep.video_key.trim() !== ''
+        );
       });
 
       for (const ep of publishedEpisodes) {
