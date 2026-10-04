@@ -301,7 +301,7 @@ export default async function AdminOverviewPage() {
                 Episode Thumbnails ({storageStats.episodeThumbs.percentage}%)
               </span>
             </div>
-            <span>Origin: media.playhentai.live</span>
+            <span>Origin: media.hentaikage.cc</span>
           </div>
         </div>
 
@@ -389,7 +389,7 @@ export default async function AdminOverviewPage() {
               <span className={styles.healthIndicator} />
             </div>
             <span style={{ fontSize: '0.74rem', color: 'var(--foreground-muted)' }}>
-              Cloudflare R2 • media.playhentai.live
+              Cloudflare R2 • media.hentaikage.cc
             </span>
           </div>
 

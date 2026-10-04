@@ -16,7 +16,7 @@ interface YearPageProps {
   searchParams: Promise<{ page?: string }>;
 }
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://hentaikage.cc';
 const PAGE_SIZE = 24;
 
 import { getLocalSeriesByYear } from '@/utils/localCatalogStore';
@@ -44,18 +44,25 @@ export async function generateMetadata({ params }: YearPageProps): Promise<Metad
 
   // Strict validation: if not a number, metadata is minimal (page will 404 anyway)
   if (isNaN(yearNum)) {
-    return { title: 'Invalid Year - Play Hentai' };
+    return { title: 'Invalid Year - HentaiKage' };
   }
 
   const seriesList = await getSeriesByYear(yearNum);
   if (seriesList.length === 0) {
-    return { title: 'Year Not Found - Play Hentai' };
+    return { title: 'Year Not Found - HentaiKage' };
   }
 
   const count = seriesList.length;
   const canonicalUrl = `${SITE_URL}/year/${year}`;
-  const title = `${year} Hentai Anime | Play Hentai`;
-  const description = `Browse ${count} hentai anime series released in ${year} on Play Hentai. Find completed and ongoing releases from ${year}.`;
+  const title = `${year} Hentai Anime – Watch Free in 1080p HD | HentaiKage`;
+  const description = `Watch the best hentai anime series released in ${year} online free in full 1080p HD with English subtitles. Complete catalog of ${year} releases on HentaiKage.`;
+  const keywords = [
+    `${year} hentai`,
+    `${year} hentai anime`,
+    `watch ${year} hentai free`,
+    `best hentai ${year}`,
+    'hentaikage'
+  ];
 
   const topImgKey = seriesList[0]?.cover_image_key || seriesList[0]?.poster_image_key;
   const ogImageUrl = topImgKey ? getR2Url(topImgKey, 'cover') : `${SITE_URL}/og-banner.png`;
@@ -63,6 +70,7 @@ export async function generateMetadata({ params }: YearPageProps): Promise<Metad
   return {
     title,
     description,
+    keywords,
     alternates: {
       canonical: `/year/${year}`,
     },
@@ -180,7 +188,7 @@ export default async function YearPage({ params, searchParams }: YearPageProps) 
       <div className={styles.seoIntro}>
         <h2 className={styles.seoIntroTitle}>{year} Hentai Anime</h2>
         <p className={styles.seoIntroText}>
-          Browse all {totalCount} hentai anime series released in {year}{statusConnector} and newly added titles available in HD on Play Hentai.
+          Browse all {totalCount} hentai anime series released in {year}{statusConnector} and newly added titles available in HD on HentaiKage.
           Explore the full {year} release schedule catalog listed below sorted by actual release date.
           All videos are streamable instantly without registration.
         </p>

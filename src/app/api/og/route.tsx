@@ -5,7 +5,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
 
-    const title = searchParams.get('title') || 'Play Hentai';
+    const title = searchParams.get('title') || 'HentaiKage';
     const subtitle = searchParams.get('subtitle') || 'Watch Anime Online Free in HD';
     const badge = searchParams.get('badge') || 'HD STREAM';
     const rating = searchParams.get('rating') || '9.5';
@@ -84,7 +84,7 @@ export async function GET(request: NextRequest) {
                     color: '#ffffff',
                   }}
                 >
-                  PLAY HENTAI
+                  HENTAIKAGE
                 </span>
                 <span
                   style={{
@@ -95,7 +95,7 @@ export async function GET(request: NextRequest) {
                     textTransform: 'uppercase',
                   }}
                 >
-                  playhentai.live
+                  hentaikage.cc
                 </span>
               </div>
             </div>

@@ -102,7 +102,7 @@ export default function DiagnosticScannerPage() {
       i.episodeNumber ?? 'N/A',
       `"${i.message.replace(/"/g, '""')}"`,
       `"${i.suggestedAction.replace(/"/g, '""')}"`,
-      `"https://playhentai.live${i.editUrl}"`,
+      `"https://hentaikage.cc${i.editUrl}"`,
     ]);
     const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
     const encodedUri = encodeURI(csvContent);

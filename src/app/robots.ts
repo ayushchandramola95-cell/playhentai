@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://hentaikage.cc';
   return {
     rules: {
       userAgent: '*',

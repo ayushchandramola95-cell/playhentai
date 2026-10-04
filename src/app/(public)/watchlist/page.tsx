@@ -4,10 +4,10 @@ import { getSeriesViewsMap } from '@/utils/views';
 import WatchlistClient from '@/components/WatchlistClient/WatchlistClient';
 
 export const metadata = {
-  title: 'My Anime Watchlist | Play Hentai',
-  description: 'Your saved series and bookmarked anime episodes on Play Hentai.',
+  title: 'My Anime Watchlist | HentaiKage',
+  description: 'Your saved series and bookmarked anime episodes on HentaiKage.',
   alternates: {
-    canonical: 'https://playhentai.live/watchlist',
+    canonical: 'https://hentaikage.cc/watchlist',
   },
   robots: {
     index: false,

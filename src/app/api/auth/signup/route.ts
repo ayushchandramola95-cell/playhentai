@@ -20,7 +20,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Password must be at least 6 characters long.' }, { status: 400 });
     }
 
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://hentaikage.cc';
     const redirectTo = `${siteUrl}/api/auth/callback`;
 
     const supabase = await createClient();

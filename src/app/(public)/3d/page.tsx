@@ -7,7 +7,7 @@ import { isThreeDSeries } from '@/utils/constants';
 import { Box } from 'lucide-react';
 import styles from './ThreeD.module.css';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://hentaikage.cc';
 
 export const revalidate = 120;
 
@@ -25,17 +25,30 @@ export async function generateMetadata({ searchParams }: PageProps) {
     ? `/3d?page=${pageParam}` 
     : '/3d';
 
+  const title = '3D Hentai Anime – Watch Free CGI in 1080p HD | HentaiKage';
+  const description = 'Watch the best 3D hentai anime and high-fidelity CGI animation series online free in 1080p HD with English subtitles. Stream 3D adult episodes on HentaiKage.';
+  const keywords = [
+    '3d hentai',
+    '3d hentai anime',
+    'watch 3d hentai free',
+    '3d cgi hentai',
+    '3d hentai 1080p',
+    'best 3d hentai',
+    'hentaikage'
+  ];
+
   return {
-    title: '3D Hentai & CGI Animations — Watch Online in HD | Play Hentai',
-    description: 'Watch 3D hentai anime and high-fidelity CGI animation series in HD with English subtitles. Browse complete 3D series and episodes on Play Hentai.',
+    title,
+    description,
+    keywords,
     alternates: {
       canonical: canonicalPath,
     },
     openGraph: {
-      title: '3D Hentai & CGI Animations — Watch Online in HD | Play Hentai',
-      description: 'Watch 3D hentai anime and high-fidelity CGI animation series in HD with English subtitles. Browse complete 3D series and episodes on Play Hentai.',
+      title,
+      description,
       url: `${SITE_URL}${canonicalPath}`,
-      siteName: 'Play Hentai',
+      siteName: 'HentaiKage',
       locale: 'en_US',
       type: 'website' as const,
       images: [
@@ -43,14 +56,14 @@ export async function generateMetadata({ searchParams }: PageProps) {
           url: `${SITE_URL}/og-banner.png`,
           width: 1200,
           height: 630,
-          alt: 'Play Hentai 3D Hentai & CGI Animations',
+          alt: 'HentaiKage 3D Hentai & CGI Animations',
         },
       ],
     },
     twitter: {
       card: 'summary_large_image',
-      title: '3D Hentai & CGI Animations — Watch Online in HD | Play Hentai',
-      description: 'Watch 3D hentai anime and high-fidelity CGI animation series in HD with English subtitles. Browse complete 3D series and episodes on Play Hentai.',
+      title,
+      description,
       images: [`${SITE_URL}/og-banner.png`],
     },
   };
@@ -145,7 +158,7 @@ export default async function ThreeDPage({ searchParams }: PageProps) {
         <div className={styles.seoCard}>
           <h2>Watch 3D Hentai Anime & CGI Animations in HD Online</h2>
           <p>
-            Welcome to the ultimate 3D hentai and CGI animation collection on Play Hentai. Explore high-framerate, beautifully rendered 3D hentai animations with English subtitles in crystal-clear 1080p and 4K HD. Discover complete series, character models, trending 3D creators, and virtual studio releases curated for an immersive streaming experience.
+            Welcome to the ultimate 3D hentai and CGI animation collection on HentaiKage. Explore high-framerate, beautifully rendered 3D hentai animations with English subtitles in crystal-clear 1080p and 4K HD. Discover complete series, character models, trending 3D creators, and virtual studio releases curated for an immersive streaming experience.
           </p>
           <div className={styles.seoGrid}>
             <div className={styles.seoFeature}>

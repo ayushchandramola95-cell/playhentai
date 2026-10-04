@@ -79,8 +79,8 @@ export default function Footer() {
             <Link href="/" prefetch={false} className={styles.logoLink}>
               <FooterLogoIcon />
               <span className={styles.logoText}>
-                <span className={styles.logoPlay}>PLAY</span>
-                <span className={styles.logoGold}>HENTAI</span>
+                <span className={styles.logoPlay}>HENTAI</span>
+                <span className={styles.logoGold}>KAGE</span>
               </span>
             </Link>
 
@@ -177,7 +177,7 @@ export default function Footer() {
           </div>
           <div className={styles.disclaimerContent}>
             <p>
-              <strong>Disclaimer &amp; Safe Harbor:</strong> PlayHentai (playhentai.live) operates strictly as an indexing, cataloging, and media aggregation platform. None of the video files, animations, or multimedia content displayed on this website are hosted on, stored in, or transmitted directly from our web servers. All media streams, video players, and embedded contents are hosted by independent, non-affiliated third-party cloud storage and video delivery services. PlayHentai does not produce, create, or own any copyrighted material indexed on this platform.
+              <strong>Disclaimer &amp; Safe Harbor:</strong> HentaiKage (hentaikage.cc) operates strictly as an indexing, cataloging, and media aggregation platform. None of the video files, animations, or multimedia content displayed on this website are hosted on, stored in, or transmitted directly from our web servers. All media streams, video players, and embedded contents are hosted by independent, non-affiliated third-party cloud storage and video delivery services. HentaiKage does not produce, create, or own any copyrighted material indexed on this platform.
             </p>
             <p>
               <strong>18 U.S.C. § 2257 Exemption Notice:</strong> All characters, depictions, and scenes appearing on this website are entirely fictional works of computer-generated illustration and 2D/3D digital animation. No actual human beings or living persons were utilized or depicted in the production of any content found on this site. Consequently, all visual media presented herein is completely exempt from the record-keeping and disclosure provisions set forth in 18 U.S.C. § 2257 and 28 C.F.R. § 75. All depicted characters are designed and intended to represent fictional adults aged 18+.
@@ -193,7 +193,7 @@ export default function Footer() {
         {/* ============================================================ */}
         <div className={styles.bottomBar}>
           <div className={styles.copyrightText}>
-            © {currentYear} <strong>PlayHentai</strong> (playhentai.live) — All rights reserved.
+            © {currentYear} <strong>HentaiKage</strong> (hentaikage.cc) — All rights reserved.
           </div>
 
           <div className={styles.bottomBadges}>

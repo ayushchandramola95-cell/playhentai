@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Download, X, Sparkles, Zap, ShieldCheck, Smartphone } from 'lucide-react';
 import styles from './PwaInstallBanner.module.css';
 
-const PlayHentaiMiniLogo = () => (
+const HentaiKageMiniLogo = () => (
   <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <rect x="2" y="7" width="20" height="14" rx="3" ry="3" stroke="#ffffff" strokeWidth="2" fill="none" />
     <path d="M17 2l-5 5-5-5" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -70,7 +70,7 @@ export default function PwaInstallBanner() {
       setShowIosTip(true);
       setTimeout(() => setShowIosTip(false), 6000);
     } else {
-      alert('To install PlayHentai as an app: Click your browser menu (⋮ or Share) and select "Install app" or "Add to Home Screen".');
+      alert('To install HentaiKage as an app: Click your browser menu (⋮ or Share) and select "Install app" or "Add to Home Screen".');
     }
   };
 
@@ -89,7 +89,7 @@ export default function PwaInstallBanner() {
         <div className={styles.leftContent}>
           <div className={styles.appIconBox}>
             <div className={styles.appIconPulse} />
-            <PlayHentaiMiniLogo />
+            <HentaiKageMiniLogo />
           </div>
 
           <div className={styles.textContent}>
@@ -101,11 +101,11 @@ export default function PwaInstallBanner() {
             </div>
 
             <h3 className={styles.bannerTitle}>
-              Install PlayHentai for Fast 1-Tap Streaming
+              Install HentaiKage for Fast 1-Tap Streaming
             </h3>
             
             <p className={styles.bannerSubtitle}>
-              Add PlayHentai to your Home Screen for instant launch, fullscreen theater mode, and zero ad redirects.
+              Add HentaiKage to your Home Screen for instant launch, fullscreen theater mode, and zero ad redirects.
             </p>
 
             <div className={styles.featuresList}>
@@ -127,7 +127,7 @@ export default function PwaInstallBanner() {
             type="button"
             onClick={handleInstall}
             className={styles.installBtn}
-            title="Install PlayHentai App"
+            title="Install HentaiKage App"
           >
             <Download size={16} />
             <span>{isIos ? 'Install on iOS' : 'Add to Home Screen'}</span>

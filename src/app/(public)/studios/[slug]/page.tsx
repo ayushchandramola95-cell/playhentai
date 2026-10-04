@@ -18,17 +18,31 @@ export const revalidate = 120;
 export async function generateMetadata({ params }: StudioDetailPageProps) {
   const { slug } = await params;
   const studio = await getStudioDetails(slug);
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://hentaikage.cc';
   const canonicalUrl = `${siteUrl}/studios/${slug}`;
-  const title = studio ? `${studio.name} Hentai Anime | Play Hentai` : 'Studio Not Found | Play Hentai';
-  const description = studio?.bio || 'Animation studio production profile, ratings, and series releases catalog on Play Hentai.';
+  const studioName = studio?.name || 'Studio';
+  const title = studio 
+    ? `${studioName} Hentai Anime – Watch Free in HD | HentaiKage` 
+    : 'Studio Not Found | HentaiKage';
+  const description = studio?.bio && studio.bio.length > 50
+    ? studio.bio.slice(0, 155)
+    : `Watch all ${studioName} hentai anime series and episodes online free in 1080p HD with English subtitles. Complete ${studioName} catalog on HentaiKage.`;
   
+  const keywords = studio ? [
+    `${studioName.toLowerCase()} hentai`,
+    `${studioName.toLowerCase()} anime`,
+    `watch ${studioName.toLowerCase()} hentai`,
+    `best ${studioName.toLowerCase()} series`,
+    'hentaikage'
+  ] : ['hentaikage'];
+
   const topSeriesImg = studio?.series?.[0]?.cover_image_key || studio?.series?.[0]?.poster_image_key;
   const ogImageUrl = topSeriesImg ? getR2Url(topSeriesImg, 'cover') : `${siteUrl}/og-banner.png`;
 
   return {
     title,
     description,
+    keywords,
     alternates: {
       canonical: `/studios/${slug}`,
     },
@@ -63,7 +77,7 @@ export default async function StudioDetailPage({ params }: StudioDetailPageProps
     notFound();
   }
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://hentaikage.cc';
   const studioUrl = `${siteUrl}/studios/${slug}`;
 
   const organizationJsonLd = {
@@ -72,7 +86,7 @@ export default async function StudioDetailPage({ params }: StudioDetailPageProps
     '@id': studioUrl,
     'url': studioUrl,
     'name': studio.name,
-    'description': studio.bio || `${studio.name} is an animation studio producing anime series on Play Hentai.`,
+    'description': studio.bio || `${studio.name} is an animation studio producing anime series on HentaiKage.`,
     'foundingDate': studio.founded ? String(studio.founded) : undefined,
     'foundingLocation': studio.country || undefined,
   };

@@ -8,7 +8,7 @@ import SeriesCard from '@/components/SeriesCard/SeriesCard';
 import JsonLd from '@/components/JsonLd/JsonLd';
 import styles from '../../collections/collections.module.css';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://hentaikage.cc';
 
 interface PlaylistDetailPageProps {
   params: Promise<{ slug: string }>;
@@ -22,18 +22,24 @@ export async function generateMetadata({ params }: PlaylistDetailPageProps) {
 
   if (!collection) {
     return {
-      title: 'Playlist Not Found | Play Hentai',
-      description: 'The requested curated hentai playlist detail view was not found on Play Hentai.',
+      title: 'Playlist Not Found | HentaiKage',
+      description: 'The requested curated hentai playlist detail view was not found on HentaiKage.',
     };
   }
 
-  const title = `${collection.name} — Hentai Playlist | Play Hentai`;
+  const title = `${collection.name} – Hentai Playlist | HentaiKage`;
   
-  // Revised dynamic description fallback strategy from Screenshot 5
   const rawDesc = collection.description || '';
-  const description = rawDesc.trim()
-    ? `${rawDesc.trim()} Explore this curated hentai anime playlist on Play Hentai and discover the series and episodes included in the collection.`
-    : `Explore the ${collection.name} hentai anime playlist on Play Hentai. Browse the curated series and available episodes in this collection.`;
+  const description = rawDesc.trim() && rawDesc.trim().length > 30
+    ? `${rawDesc.trim().slice(0, 80)}... Watch full ${collection.name} playlist online in 1080p HD free on HentaiKage.`
+    : `Watch the curated ${collection.name} hentai anime playlist online free in 1080p HD with English subtitles. Complete collection streaming on HentaiKage.`;
+
+  const keywords = [
+    `${collection.name.toLowerCase()} playlist`,
+    `${collection.name.toLowerCase()} hentai`,
+    'curated hentai anime',
+    'hentaikage'
+  ];
 
   const firstSeriesThumb = collection?.series?.[0]?.cover_image_key || collection?.series?.[0]?.poster_image_key;
   const ogImageUrl = firstSeriesThumb ? getR2Url(firstSeriesThumb, 'cover') : `${SITE_URL}/og-banner.png`;
@@ -41,6 +47,7 @@ export async function generateMetadata({ params }: PlaylistDetailPageProps) {
   return {
     title,
     description,
+    keywords,
     alternates: {
       canonical: `/playlists/${slug}`,
     },
@@ -48,7 +55,7 @@ export async function generateMetadata({ params }: PlaylistDetailPageProps) {
       title,
       description,
       url: `${SITE_URL}/playlists/${slug}`,
-      siteName: 'Play Hentai',
+      siteName: 'HentaiKage',
       locale: 'en_US',
       type: 'website' as const,
       images: [

@@ -20,7 +20,7 @@ interface ProgrammaticGenrePageProps {
 
 export const revalidate = 120;
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://hentaikage.cc';
 
 function parseRouteFilter(rawGenre: string, rawSubfilter: string) {
   const genreSlug = decodeURIComponent(rawGenre).toLowerCase().trim();
@@ -76,18 +76,18 @@ export async function generateMetadata({ params, searchParams }: ProgrammaticGen
   const { page } = await searchParams;
   const parsed = parseRouteFilter(genre, subfilter);
 
-  let title = `${parsed.formattedGenre} (${parsed.formattedSubfilter}) Anime | Play Hentai`;
-  let description = `Browse and stream ${parsed.formattedGenre} hentai anime series filtered by ${parsed.formattedSubfilter} in full 1080p HD with English subtitles free on Play Hentai.`;
+  let title = `${parsed.formattedGenre} (${parsed.formattedSubfilter}) Anime | HentaiKage`;
+  let description = `Browse and stream ${parsed.formattedGenre} hentai anime series filtered by ${parsed.formattedSubfilter} in full 1080p HD with English subtitles free on HentaiKage.`;
 
   if (parsed.isYear) {
-    title = `${parsed.formattedSubfilter} ${parsed.formattedGenre} Hentai | Play Hentai`;
-    description = `Watch the best ${parsed.formattedGenre} hentai anime series released in ${parsed.formattedSubfilter}. Stream full episodes in 1080p HD on Play Hentai.`;
+    title = `${parsed.formattedSubfilter} ${parsed.formattedGenre} Hentai | HentaiKage`;
+    description = `Watch the best ${parsed.formattedGenre} hentai anime series released in ${parsed.formattedSubfilter}. Stream full episodes in 1080p HD on HentaiKage.`;
   } else if (parsed.isStatus) {
-    title = `${parsed.formattedSubfilter} ${parsed.formattedGenre} Hentai | Play Hentai`;
-    description = `Binge watch all ${parsed.formattedSubfilter.toLowerCase()} ${parsed.formattedGenre} hentai anime series with all episodes available online in HD on Play Hentai.`;
+    title = `${parsed.formattedSubfilter} ${parsed.formattedGenre} Hentai | HentaiKage`;
+    description = `Binge watch all ${parsed.formattedSubfilter.toLowerCase()} ${parsed.formattedGenre} hentai anime series with all episodes available online in HD on HentaiKage.`;
   } else if (parsed.isUncensored) {
-    title = `Uncensored ${parsed.formattedGenre} Hentai | Play Hentai`;
-    description = `Watch 100% uncensored ${parsed.formattedGenre} hentai anime series in high definition on Play Hentai.`;
+    title = `Uncensored ${parsed.formattedGenre} Hentai | HentaiKage`;
+    description = `Watch 100% uncensored ${parsed.formattedGenre} hentai anime series in high definition on HentaiKage.`;
   }
 
   let canonicalPath = `/genres/${parsed.genreSlug}/${parsed.subfilterSlug}`;
@@ -97,9 +97,18 @@ export async function generateMetadata({ params, searchParams }: ProgrammaticGen
 
   const ogApiUrl = `${SITE_URL}/api/og?title=${encodeURIComponent(title.replace(/\s*\|.*$/, '').trim())}&subtitle=${encodeURIComponent(description.slice(0, 80))}&badge=${encodeURIComponent(parsed.formattedSubfilter.toUpperCase())}&image=${encodeURIComponent(`${SITE_URL}/hero-banner.png`)}`;
 
+    const keywords = [
+      `${parsed.formattedGenre.toLowerCase()} ${parsed.formattedSubfilter.toLowerCase()}`,
+      `${parsed.formattedSubfilter.toLowerCase()} ${parsed.formattedGenre.toLowerCase()} hentai`,
+      `watch ${parsed.formattedGenre.toLowerCase()} anime`,
+      'hentaikage',
+      'hentai kage'
+    ];
+
   return {
     title,
     description,
+    keywords,
     alternates: {
       canonical: canonicalPath,
     },
@@ -107,7 +116,7 @@ export async function generateMetadata({ params, searchParams }: ProgrammaticGen
       title,
       description,
       url: `${SITE_URL}${canonicalPath}`,
-      siteName: 'Play Hentai',
+      siteName: 'HentaiKage',
       locale: 'en_US',
       type: 'website',
       images: [
@@ -178,7 +187,7 @@ export default async function ProgrammaticGenrePage({ params, searchParams }: Pr
 
   if (parsed.isYear) {
     h1Text = `Watch ${parsed.formattedGenre} Hentai Anime (${parsed.formattedSubfilter})`;
-    introText = `Discover all ${parsed.formattedGenre} anime titles released in ${parsed.formattedSubfilter}. Stream complete episodes with English subtitles on Play Hentai.`;
+    introText = `Discover all ${parsed.formattedGenre} anime titles released in ${parsed.formattedSubfilter}. Stream complete episodes with English subtitles on HentaiKage.`;
   } else if (parsed.isStatus) {
     h1Text = `${parsed.formattedSubfilter} ${parsed.formattedGenre} Hentai Anime`;
     introText = `Stream complete ${parsed.formattedGenre} series that are ${parsed.formattedSubfilter.toLowerCase()}. Watch uninterrupted from start to finish.`;

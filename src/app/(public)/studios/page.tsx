@@ -3,22 +3,29 @@ import { getAllStudiosWithStats } from '@/utils/studiosData';
 import StudiosDirectoryClient from '@/components/StudiosDirectory/StudiosDirectoryClient';
 import JsonLd from '@/components/JsonLd/JsonLd';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://hentaikage.cc';
 
 export const revalidate = 120;
 
 export async function generateMetadata() {
   return {
-    title: 'Hentai Animation Studios Directory | Play Hentai',
-    description: 'Browse 118+ hentai animation production studios, releases, stats, ratings, and series catalogs on Play Hentai.',
+    title: 'Hentai Animation Studios Directory | HentaiKage',
+    description: 'Browse 118+ hentai animation production studios, releases, stats, ratings, and series catalogs on HentaiKage.',
+    keywords: [
+      'hentai studios',
+      'hentai animation studios',
+      'anime production companies',
+      'hentai creators',
+      'hentaikage'
+    ],
     alternates: {
       canonical: '/studios',
     },
     openGraph: {
-      title: 'Hentai Animation Studios Directory | Play Hentai',
-      description: 'Browse 118+ hentai animation production studios, releases, stats, ratings, and series catalogs on Play Hentai.',
+      title: 'Hentai Animation Studios Directory | HentaiKage',
+      description: 'Browse 118+ hentai animation production studios, releases, stats, ratings, and series catalogs on HentaiKage.',
       url: `${SITE_URL}/studios`,
-      siteName: 'Play Hentai',
+      siteName: 'HentaiKage',
       locale: 'en_US',
       type: 'website' as const,
       images: [
@@ -26,14 +33,14 @@ export async function generateMetadata() {
           url: `${SITE_URL}/og-banner.png`,
           width: 1200,
           height: 630,
-          alt: 'Play Hentai Hentai Production Studios Directory',
+          alt: 'HentaiKage Hentai Production Studios Directory',
         },
       ],
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'Hentai Production Studios Directory — 118+ Studios | Play Hentai',
-      description: 'Browse 118+ hentai animation production studios, releases, stats, ratings, and series catalogs on Play Hentai.',
+      title: 'Hentai Production Studios Directory — 118+ Studios | HentaiKage',
+      description: 'Browse 118+ hentai animation production studios, releases, stats, ratings, and series catalogs on HentaiKage.',
       images: [`${SITE_URL}/og-banner.png`],
     },
   };

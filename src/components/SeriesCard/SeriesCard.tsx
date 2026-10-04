@@ -123,7 +123,11 @@ export default function SeriesCard({ item, className = '' }: SeriesCardProps) {
       onMouseEnter={handleMouseEnter}
       data-side="right"
     >
-      <Link href={`/series/${item.slug}`} className={styles.cardImageLink}>
+      <Link 
+        href={`/series/${item.slug}`} 
+        className={styles.cardImageLink}
+        title={`Watch ${item.title} anime online free in 1080p HD`}
+      >
         <div className={styles.seriesImageWrapper}>
           <Image
             src={posterSrc}
@@ -176,9 +180,9 @@ export default function SeriesCard({ item, className = '' }: SeriesCardProps) {
 
       {/* Title and Meta (Below Card Image) */}
       <div className={styles.cardMetaContent}>
-        <h4 className={styles.seriesTitleText} title={item.title}>
-          <Link href={`/series/${item.slug}`}>{item.title}</Link>
-        </h4>
+        <h3 className={styles.seriesTitleText} title={item.title}>
+          <Link href={`/series/${item.slug}`} title={`Watch ${item.title} online in HD`}>{item.title}</Link>
+        </h3>
         <div className={styles.seriesBottomMeta}>
           {!isUpcoming ? (
             <div className={styles.seriesViewsRow}>

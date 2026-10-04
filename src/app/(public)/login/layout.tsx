@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Sign In & Register | Play Hentai',
-  description: 'Sign in to access your personal anime watchlist, favorited series, and streaming history on Play Hentai.',
+  title: 'Sign In & Register | HentaiKage',
+  description: 'Sign in to access your personal anime watchlist, favorited series, and streaming history on HentaiKage.',
   robots: {
     index: false,
     follow: true,

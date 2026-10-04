@@ -11,6 +11,14 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
+        hostname: "hentaikage.cc",
+      },
+      {
+        protocol: "https",
+        hostname: "*.hentaikage.cc",
+      },
+      {
+        protocol: "https",
         hostname: "media.playhentai.live",
       },
       {
@@ -98,10 +106,32 @@ const nextConfig: NextConfig = {
         has: [
           {
             type: 'host',
+            value: 'www.hentaikage.cc',
+          },
+        ],
+        destination: 'https://hentaikage.cc/:path*',
+        permanent: true,
+      },
+      {
+        source: '/:path*',
+        has: [
+          {
+            type: 'host',
+            value: 'playhentai.live',
+          },
+        ],
+        destination: 'https://hentaikage.cc/:path*',
+        permanent: true,
+      },
+      {
+        source: '/:path*',
+        has: [
+          {
+            type: 'host',
             value: 'www.playhentai.live',
           },
         ],
-        destination: 'https://playhentai.live/:path*',
+        destination: 'https://hentaikage.cc/:path*',
         permanent: true,
       },
       {

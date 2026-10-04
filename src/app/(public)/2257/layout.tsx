@@ -1,26 +1,26 @@
 import type { Metadata } from 'next';
 import JsonLd from '@/components/JsonLd/JsonLd';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://hentaikage.cc';
 
 export const metadata: Metadata = {
-  title: '18 U.S.C. § 2257 Record-Keeping Compliance Statement | PlayHentai',
-  description: '18 U.S.C. § 2257 statutory exemption and compliance statement for 2D/3D animated and illustrated fiction on PlayHentai.',
+  title: '18 U.S.C. § 2257 Record-Keeping Compliance Statement | HentaiKage',
+  description: '18 U.S.C. § 2257 statutory exemption and compliance statement for 2D/3D animated and illustrated fiction on HentaiKage.',
   alternates: {
     canonical: '/2257',
   },
   openGraph: {
-    title: '18 U.S.C. § 2257 Record-Keeping Compliance Statement | PlayHentai',
-    description: '18 U.S.C. § 2257 statutory exemption and compliance statement for 2D/3D animated and illustrated fiction on PlayHentai.',
+    title: '18 U.S.C. § 2257 Record-Keeping Compliance Statement | HentaiKage',
+    description: '18 U.S.C. § 2257 statutory exemption and compliance statement for 2D/3D animated and illustrated fiction on HentaiKage.',
     url: `${SITE_URL}/2257`,
-    siteName: 'PlayHentai',
+    siteName: 'HentaiKage',
     locale: 'en_US',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: '18 U.S.C. § 2257 Record-Keeping Compliance Statement | PlayHentai',
-    description: '18 U.S.C. § 2257 statutory exemption and compliance statement for 2D/3D animated and illustrated fiction on PlayHentai.',
+    title: '18 U.S.C. § 2257 Record-Keeping Compliance Statement | HentaiKage',
+    description: '18 U.S.C. § 2257 statutory exemption and compliance statement for 2D/3D animated and illustrated fiction on HentaiKage.',
   },
 };
 
@@ -34,7 +34,7 @@ export default function Exemption2257Layout({ children }: { children: React.Reac
       'url': `${SITE_URL}/2257`,
       'publisher': {
         '@type': 'Organization',
-        'name': 'PlayHentai',
+        'name': 'HentaiKage',
         'url': SITE_URL,
       },
     },

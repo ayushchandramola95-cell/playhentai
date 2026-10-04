@@ -15,7 +15,7 @@ interface TagPageProps {
   searchParams: Promise<{ page?: string }>;
 }
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://hentaikage.cc';
 const PAGE_SIZE = 24;
 
 const CORE_CATEGORY_SLUGS = new Set([
@@ -53,15 +53,22 @@ export async function generateMetadata({ params }: TagPageProps): Promise<Metada
   const exactTag = allTags.find(t => tagToSlug(t) === slug);
 
   if (!exactTag) {
-    return { title: 'Tag Not Found - Play Hentai' };
+    return { title: 'Tag Not Found - HentaiKage' };
   }
 
   const seriesList = await getSeriesByTag(exactTag);
   const count = seriesList.length;
   const canonicalUrl = `${SITE_URL}/tag/${slug}`;
 
-  const title = `${exactTag} Hentai Anime | Play Hentai`;
-  const description = `Browse ${count} ${exactTag.toLowerCase()} hentai anime series with English subtitles in HD. Find completed and ongoing ${exactTag.toLowerCase()} titles on Play Hentai.`;
+  const title = `${exactTag} Hentai Anime – Watch Free in HD | HentaiKage`;
+  const description = `Watch the best ${exactTag.toLowerCase()} hentai anime series and episodes in full 1080p HD online free with English subtitles. Complete catalog on HentaiKage.`;
+  const keywords = [
+    `${exactTag.toLowerCase()} hentai`,
+    `${exactTag.toLowerCase()} hentai anime`,
+    `watch ${exactTag.toLowerCase()} hentai`,
+    `best ${exactTag.toLowerCase()} anime`,
+    'hentaikage'
+  ];
 
   const topImgKey = seriesList[0]?.cover_image_key || seriesList[0]?.poster_image_key;
   const ogImageUrl = topImgKey ? getR2Url(topImgKey, 'cover') : `${SITE_URL}/og-banner.png`;
@@ -69,6 +76,7 @@ export async function generateMetadata({ params }: TagPageProps): Promise<Metada
   return {
     title,
     description,
+    keywords,
     alternates: {
       canonical: `/tag/${slug}`,
     },
@@ -185,7 +193,7 @@ export default async function TagPage({ params, searchParams }: TagPageProps) {
       <div className={styles.seoIntro}>
         <h2 className={styles.seoIntroTitle}>{exactTag} Hentai Anime</h2>
         <p className={styles.seoIntroText}>
-          Browse {totalCount} {exactTag.toLowerCase()} hentai anime {totalCount === 1 ? 'series' : 'series'} available on Play Hentai.
+          Browse {totalCount} {exactTag.toLowerCase()} hentai anime {totalCount === 1 ? 'series' : 'series'} available on HentaiKage.
           Discover {statusBreakdown} {exactTag.toLowerCase()} series featuring HD streaming and complete episode collections.
           All titles are available to watch instantly — no registration required.
           Use the series cards below to explore the full {exactTag.toLowerCase()} catalog, sorted by popularity.

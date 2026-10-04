@@ -13,7 +13,7 @@ import JsonLd from '@/components/JsonLd/JsonLd';
 import { buildSeoTitle, buildSeoDescription } from '@/utils/seoTitle';
 import styles from './watch.module.css';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://hentaikage.cc';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ybtbdtgtryrxrhuchlkw.supabase.co';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_HLX-SCL51o2H254WH-gN0Q_HPpNwKo5';
@@ -72,10 +72,16 @@ export async function generateMetadata({ params }: WatchPageProps): Promise<Meta
   const resolvedParams = await params;
   const episodeId = resolvedParams.episodeId;
 
-  let title = 'Watch Episode - Play Hentai';
-  let description = 'Play and watch this episode in full HD streaming on Play Hentai.';
+  let title = 'Watch Episode - HentaiKage';
+  let description = 'Play and watch this episode in full HD streaming on HentaiKage.';
   let thumbnail = '';
   let canonicalPath = `/watch/${episodeId}`;
+  let keywords: string[] = [
+    'hentai anime',
+    'watch hentai online free',
+    'hentaikage',
+    'uncensored hentai'
+  ];
 
   try {
     const resolved = await getCachedResolvedEpisode(episodeId);
@@ -86,14 +92,6 @@ export async function generateMetadata({ params }: WatchPageProps): Promise<Meta
       const isOva = /ova/i.test(seasonName);
       const isSpecial = /special/i.test(seasonName);
       const isCustomSeason = seasonName && !/^season\s*1$/i.test(seasonName);
-      
-      let titleText = resolved.seriesTitle;
-      if (series.alt_title_english && series.alt_title_english.toLowerCase() !== resolved.seriesTitle.toLowerCase()) {
-        const combined = `${resolved.seriesTitle} (${series.alt_title_english})`;
-        if (combined.length <= 60) {
-          titleText = combined;
-        }
-      }
 
       // Dynamic episode prefix (e.g. "OVA 1", "Special 1", "Episode 1")
       let epLabel = `Episode ${ep.episode_number}`;
@@ -107,32 +105,79 @@ export async function generateMetadata({ params }: WatchPageProps): Promise<Meta
       let seasonQualifier = '';
       if (isCustomSeason && !isOva && !isSpecial) {
         seasonQualifier = ` (${seasonName})`;
-      } else if (isOva && !titleText.toLowerCase().includes('ova')) {
-        seasonQualifier = ` OVA`;
-      } else if (isSpecial && !titleText.toLowerCase().includes('special')) {
-        seasonQualifier = ` Special`;
       }
-      
+
       const isUncensored = 
         series.content_rating?.toLowerCase() === 'uncensored' ||
         series.tags?.some((t: string) => t.toLowerCase() === 'uncensored');
-      
-      const titleSuffix = isUncensored ? '(Uncensored, Eng Sub)' : '(Eng Sub)';
-      title = buildSeoTitle(`Watch ${titleText}${seasonQualifier} ${epLabel}`, titleSuffix);
 
+      // CRITICAL SEO TITLE OPTIMIZATION:
+      // Front-load the exact search term: "[Series Title] [Episode X]"
+      // Protect episode number from truncation by calculating lengths accurately.
+      const rawSeriesName = (resolved.seriesTitle || '').trim();
+      const brand = 'HentaiKage';
+      const brandSuffix = ` | ${brand}`; // 14 chars
+      const maxLen = 63; // strictly under Bing's 65-char limit
+      const budget = maxLen - brandSuffix.length; // 49 chars available
+
+      // Descriptors based on uncensored & available space
+      const descriptor = isUncensored ? '– Watch Uncensored' : '– Watch Free in HD';
+      const fullCore = `${rawSeriesName}${seasonQualifier} ${epLabel}`;
+      
+      if (fullCore.length + descriptor.length + 1 <= budget) {
+        // Fits comfortably: "Kanojo Saimin Episode 1 – Watch Free in HD | HentaiKage" (56 chars)
+        // or "Floating Material Episode 1 – Watch Uncensored | HentaiKage" (60 chars)
+        title = `${fullCore} ${descriptor}${brandSuffix}`;
+      } else if (fullCore.length + ' in HD Free'.length <= budget) {
+        // Fits with shorter suffix: "Longer Series Title Episode 1 in HD Free | HentaiKage"
+        title = `${fullCore} in HD Free${brandSuffix}`;
+      } else if (fullCore.length <= budget) {
+        // Just the full series + episode label + brand:
+        title = `${fullCore}${brandSuffix}`;
+      } else {
+        // Very long series name: ensure the episode number is NEVER cut off!
+        const epSuffix = ` ${epLabel}`;
+        const availForSeries = Math.max(10, budget - epSuffix.length - 2);
+        const truncatedSeries = rawSeriesName.slice(0, availForSeries).trim() + '…';
+        title = `${truncatedSeries}${epSuffix}${brandSuffix}`;
+      }
+
+      // CRITICAL SEO META DESCRIPTION OPTIMIZATION:
+      // Front-load action query and CTA so it is NEVER cut off on mobile or desktop SERP.
       const seriesSynopsis = series.description?.trim() || '';
       const customEpDesc = ep.description?.trim();
 
-      if (customEpDesc) {
-        description = buildSeoDescription(customEpDesc);
-      } else if (seriesSynopsis) {
-        const shortSynopsis = seriesSynopsis.length > 90 ? `${seriesSynopsis.slice(0, 85).trim()}...` : seriesSynopsis;
-        description = buildSeoDescription(`${shortSynopsis} Stream ${resolved.seriesTitle}${seasonQualifier} ${epLabel} in full 1080p HD free on Play Hentai.`);
-      } else if (isUncensored) {
-        description = buildSeoDescription(`Watch ${resolved.seriesTitle}${seasonQualifier} ${epLabel} uncensored in HD with English subs free on Play Hentai.`);
-      } else {
-        description = buildSeoDescription(`Watch ${resolved.seriesTitle}${seasonQualifier} ${epLabel} online in HD with English subs free on Play Hentai.`);
+      const cta = isUncensored
+        ? `Watch ${rawSeriesName}${seasonQualifier} ${epLabel} uncensored online free in 1080p HD with English subtitles on HentaiKage.`
+        : `Watch ${rawSeriesName}${seasonQualifier} ${epLabel} online free in 1080p HD with English subtitles on HentaiKage.`;
+
+      let descContent = cta;
+      const extraText = customEpDesc || seriesSynopsis;
+      if (extraText) {
+        const remainingSpace = 155 - cta.length - 1;
+        if (remainingSpace > 25) {
+          const snippet = extraText.length > remainingSpace
+            ? `${extraText.slice(0, remainingSpace - 3).trim()}...`
+            : extraText;
+          descContent = `${cta} ${snippet}`;
+        }
       }
+      description = buildSeoDescription(descContent, 155);
+
+      // Dynamic episode-specific keywords array
+      keywords = [
+        `${rawSeriesName} ${epLabel}`,
+        `watch ${rawSeriesName} ${epLabel}`,
+        `${rawSeriesName} ${epLabel} english sub`,
+        `${rawSeriesName} ${epLabel} online free`,
+        `${rawSeriesName} ${epLabel} 1080p`,
+        `${rawSeriesName} ${epLabel} uncensored`,
+        `${rawSeriesName} hentai`,
+        `watch ${rawSeriesName} anime`,
+        'hentaikage',
+        'hentai kage',
+        ...(Array.isArray(series.tags) ? series.tags.slice(0, 6) : [])
+      ];
 
       thumbnail = ep.thumbnail_key || ep.thumbnail || '';
       canonicalPath = getEpisodeWatchUrl(ep.id, ep.episode_number, resolved.seriesSlug);
@@ -158,6 +203,7 @@ export async function generateMetadata({ params }: WatchPageProps): Promise<Meta
   return {
     title,
     description,
+    keywords,
     alternates: {
       canonical: canonicalPath,
     },
@@ -328,7 +374,7 @@ export default async function WatchPage({ params }: WatchPageProps) {
     : null;
 
   // Guaranteed thumbnailUrl fallback chain — must never be empty for valid VideoObject
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://hentaikage.cc';
   const canonicalUrl = `${siteUrl}${getEpisodeWatchUrl(activeEpisode.id, activeEpisode.episode_number, seriesSlug)}`;
 
   const tempThumb =
@@ -363,10 +409,10 @@ export default async function WatchPage({ params }: WatchPageProps) {
     ? `${seriesTitle} ${epPrefix}`
     : `${seriesTitle} ${epPrefix} — ${epTitleClean.replace(/^\[Preview\]\s*/i, '').replace(/^\[Trailer\]\s*/i, '')}`;
 
-  const fallbackDescription = `Watch ${seriesTitle} ${epPrefix} online in HD with English subtitles on Play Hentai. Free streaming anime episode with full player controls.`;
+  const fallbackDescription = `Watch ${seriesTitle} ${epPrefix} online in HD with English subtitles on HentaiKage. Free streaming anime episode with full player controls.`;
   const seriesSynopsis = seriesDetails?.description?.trim() || '';
   const episodeUniqueDescription = activeEpisode.description?.trim() 
-    || (seriesSynopsis ? `${seriesSynopsis.length > 200 ? seriesSynopsis.slice(0, 195) + '...' : seriesSynopsis} Watch ${seriesTitle} ${epPrefix} in full HD online free on Play Hentai.` : fallbackDescription);
+    || (seriesSynopsis ? `${seriesSynopsis.length > 200 ? seriesSynopsis.slice(0, 195) + '...' : seriesSynopsis} Watch ${seriesTitle} ${epPrefix} in full HD online free on HentaiKage.` : fallbackDescription);
 
   const videoJsonLd = {
     '@context': 'https://schema.org',
@@ -383,7 +429,7 @@ export default async function WatchPage({ params }: WatchPageProps) {
     'inLanguage': 'en',
     'publisher': {
       '@type': 'Organization',
-      'name': 'Play Hentai',
+      'name': 'HentaiKage',
       'url': siteUrl,
       'logo': {
         '@type': 'ImageObject',
@@ -435,8 +481,9 @@ export default async function WatchPage({ params }: WatchPageProps) {
     '@type': 'BreadcrumbList',
     'itemListElement': [
       { '@type': 'ListItem', 'position': 1, 'name': 'Home', 'item': siteUrl },
-      { '@type': 'ListItem', 'position': 2, 'name': seriesTitle, 'item': seriesPageUrl },
-      { '@type': 'ListItem', 'position': 3, 'name': epPrefix, 'item': canonicalUrl }
+      { '@type': 'ListItem', 'position': 2, 'name': 'Series', 'item': `${siteUrl}/categories` },
+      { '@type': 'ListItem', 'position': 3, 'name': seriesTitle, 'item': seriesPageUrl },
+      { '@type': 'ListItem', 'position': 4, 'name': epPrefix, 'item': canonicalUrl }
     ]
   };
 

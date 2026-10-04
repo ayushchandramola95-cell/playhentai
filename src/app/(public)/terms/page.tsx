@@ -99,7 +99,7 @@ export default function TermsPage() {
               <h1 className={styles.pageTitle}>Terms of Service</h1>
             </div>
             <p className={styles.pageSubtitle}>
-              Please review these Terms of Service carefully before utilizing PlayHentai. By accessing, browsing, or
+              Please review these Terms of Service carefully before utilizing HentaiKage. By accessing, browsing, or
               streaming content on this website, you agree to be bound by these legal conditions.
             </p>
             <div className={styles.lastModifiedBadge}>
@@ -148,8 +148,8 @@ export default function TermsPage() {
                 Certain features (such as personalized watchlists, custom collections, and viewing history) require an
                 account. You are solely responsible for maintaining the confidentiality of your login credentials and for
                 all activities that occur under your registered profile. Notify our administration immediately at{' '}
-                <a href="mailto:support@playhentai.live" className={styles.crossLink}>
-                  support@playhentai.live
+                <a href="mailto:support@hentaikage.cc" className={styles.crossLink}>
+                  support@hentaikage.cc
                 </a>{' '}
                 if you suspect unauthorized access or security breaches.
               </p>
@@ -194,7 +194,7 @@ export default function TermsPage() {
                   <span className={styles.bulletDot}>◆</span>
                   <span>
                     Download, scrape, mirror, frame, aggregate, or redistribute video streams or site metadata except
-                    through user interfaces expressly provided by PlayHentai.
+                    through user interfaces expressly provided by HentaiKage.
                   </span>
                 </li>
                 <li className={styles.bulletItem}>
@@ -245,7 +245,7 @@ export default function TermsPage() {
             <div className={styles.sectionContent}>
               <p>
                 All video streams, animated artwork, illustrations, UI components, text, and proprietary code rendered
-                on PlayHentai are owned by PlayHentai, its licensors, or respective original studio producers, and are
+                on HentaiKage are owned by HentaiKage, its licensors, or respective original studio producers, and are
                 protected by international copyright and intellectual-property treaties.
               </p>
               <p>
@@ -254,7 +254,7 @@ export default function TermsPage() {
                 property, ownership, or redistribution rights are granted or implied.
               </p>
               <p>
-                Any voluntary suggestions, feature requests, bug discoveries, or user feedback submitted to PlayHentai
+                Any voluntary suggestions, feature requests, bug discoveries, or user feedback submitted to HentaiKage
                 become our non-exclusive intellectual property and may be utilized or implemented without compensation,
                 restriction, or accounting to you.
               </p>
@@ -291,7 +291,7 @@ export default function TermsPage() {
             </div>
             <div className={styles.sectionContent}>
               <p>
-                PlayHentai complies with the Digital Millennium Copyright Act of 1998 (17 U.S.C. § 512). As an automated
+                HentaiKage complies with the Digital Millennium Copyright Act of 1998 (17 U.S.C. § 512). As an automated
                 content indexer and streaming distributor, we respond expeditiously to verified notices of alleged
                 copyright infringement.
               </p>
@@ -328,14 +328,14 @@ export default function TermsPage() {
                 fitness for a particular purpose, non-infringement, or uninterrupted, bug-free operation.
               </p>
               <p>
-                To the maximum extent permitted by applicable law, PlayHentai, its operators, hosting partners, and
+                To the maximum extent permitted by applicable law, HentaiKage, its operators, hosting partners, and
                 affiliates shall not be liable for any indirect, incidental, punitive, special, or consequential damages,
                 or any loss of profits, data, goodwill, or device integrity arising from your use of or inability to use
                 the Service.
               </p>
               <div className={styles.infoCard}>
                 <strong>Liability Cap:</strong> Our total aggregate liability for all claims arising out of or relating
-                to these terms or the Service shall not exceed the greater of the total amount paid by you to PlayHentai
+                to these terms or the Service shall not exceed the greater of the total amount paid by you to HentaiKage
                 in the twelve (12) months preceding the claim, or <strong>USD $100.00</strong>.
               </div>
             </div>
@@ -354,7 +354,7 @@ export default function TermsPage() {
               </p>
               <p>
                 We may amend these Terms of Service periodically. Material revisions will be posted directly to this
-                page with a revised &ldquo;Last Modified&rdquo; timestamp. Your continued use of PlayHentai following the
+                page with a revised &ldquo;Last Modified&rdquo; timestamp. Your continued use of HentaiKage following the
                 posting of revised terms constitutes your explicit acceptance thereof.
               </p>
               <p>
@@ -380,8 +380,8 @@ export default function TermsPage() {
               <p>
                 Before commencing formal litigation or arbitration proceedings, you agree to engage in an informal
                 dispute resolution period of at least thirty (30) days by contacting our legal department at{' '}
-                <a href="mailto:legal@playhentai.live" className={styles.crossLink}>
-                  legal@playhentai.live
+                <a href="mailto:legal@hentaikage.cc" className={styles.crossLink}>
+                  legal@hentaikage.cc
                 </a>
                 .
               </p>
@@ -410,8 +410,8 @@ export default function TermsPage() {
                     <Mail size={14} className={styles.roleIcon} />
                     <span>General Support</span>
                   </div>
-                  <a href="mailto:support@playhentai.live" className={styles.contactEmail}>
-                    support@playhentai.live
+                  <a href="mailto:support@hentaikage.cc" className={styles.contactEmail}>
+                    support@hentaikage.cc
                   </a>
                   <p className={styles.contactDesc}>
                     For account assistance, playback troubleshooting, or feedback.
@@ -423,8 +423,8 @@ export default function TermsPage() {
                     <Scale size={14} className={styles.roleIcon} />
                     <span>Legal Inquiries</span>
                   </div>
-                  <a href="mailto:legal@playhentai.live" className={styles.contactEmail}>
-                    legal@playhentai.live
+                  <a href="mailto:legal@hentaikage.cc" className={styles.contactEmail}>
+                    legal@hentaikage.cc
                   </a>
                   <p className={styles.contactDesc}>
                     For copyright notices, statutory compliance, or legal communications.

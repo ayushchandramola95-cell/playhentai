@@ -5,10 +5,10 @@ import { getLocalAllPublishedSeries } from '@/utils/localCatalogStore';
 import FavoritesClient from '@/components/FavoritesClient/FavoritesClient';
 
 export const metadata: Metadata = {
-  title: 'My Favorite Anime Series | Play Hentai',
-  description: 'Your personal collection of favorite anime series on Play Hentai.',
+  title: 'My Favorite Anime Series | HentaiKage',
+  description: 'Your personal collection of favorite anime series on HentaiKage.',
   alternates: {
-    canonical: 'https://playhentai.live/favorites',
+    canonical: 'https://hentaikage.cc/favorites',
   },
   robots: {
     index: false,

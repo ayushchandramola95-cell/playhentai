@@ -111,7 +111,7 @@ export default function StudiosDirectoryClient({ studios }: StudiosDirectoryClie
           <h1 className={styles.mainTitle}>Hentai Production Studios</h1>
         </div>
         <p className={styles.subtext}>
-          Browse full studio profiles, animation release histories, ratings, and catalogs for {studios.length}+ Japanese animation production companies on Play Hentai.
+          Browse full studio profiles, animation release histories, ratings, and catalogs for {studios.length}+ Japanese animation production companies on HentaiKage.
         </p>
       </div>
 

@@ -1,26 +1,26 @@
 import type { Metadata } from 'next';
 import JsonLd from '@/components/JsonLd/JsonLd';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://hentaikage.cc';
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy | PlayHentai',
-  description: 'Privacy Policy, data collection practices, cookie management, user privacy rights (GDPR/CCPA), and security measures at PlayHentai.',
+  title: 'Privacy Policy | HentaiKage',
+  description: 'Privacy Policy, data collection practices, cookie management, user privacy rights (GDPR/CCPA), and security measures at HentaiKage.',
   alternates: {
     canonical: '/privacy',
   },
   openGraph: {
-    title: 'Privacy Policy | PlayHentai',
-    description: 'Privacy Policy, data collection practices, cookie management, user privacy rights (GDPR/CCPA), and security measures at PlayHentai.',
+    title: 'Privacy Policy | HentaiKage',
+    description: 'Privacy Policy, data collection practices, cookie management, user privacy rights (GDPR/CCPA), and security measures at HentaiKage.',
     url: `${SITE_URL}/privacy`,
-    siteName: 'PlayHentai',
+    siteName: 'HentaiKage',
     locale: 'en_US',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Privacy Policy | PlayHentai',
-    description: 'Privacy Policy, data collection practices, cookie management, user privacy rights (GDPR/CCPA), and security measures at PlayHentai.',
+    title: 'Privacy Policy | HentaiKage',
+    description: 'Privacy Policy, data collection practices, cookie management, user privacy rights (GDPR/CCPA), and security measures at HentaiKage.',
   },
 };
 
@@ -30,11 +30,11 @@ export default function PrivacyLayout({ children }: { children: React.ReactNode 
       '@context': 'https://schema.org',
       '@type': 'WebPage',
       'name': 'Privacy Policy',
-      'description': 'User privacy rights, GDPR/CCPA compliance, and transparent data handling practices on PlayHentai.',
+      'description': 'User privacy rights, GDPR/CCPA compliance, and transparent data handling practices on HentaiKage.',
       'url': `${SITE_URL}/privacy`,
       'publisher': {
         '@type': 'Organization',
-        'name': 'PlayHentai',
+        'name': 'HentaiKage',
         'url': SITE_URL,
       },
     },

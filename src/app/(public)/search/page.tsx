@@ -10,7 +10,7 @@ import SeriesCard from '@/components/SeriesCard/SeriesCard';
 import JsonLd from '@/components/JsonLd/JsonLd';
 import styles from './search.module.css';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://hentaikage.cc';
 
 import { searchLocalSeries } from '@/utils/localCatalogStore';
 
@@ -35,8 +35,8 @@ export async function generateMetadata({ searchParams }: SearchPageProps) {
   const resolvedParams = await searchParams;
   const q = resolvedParams.q || '';
   return {
-    title: q ? `Search results for "${q}" | Play Hentai` : 'Search Hentai Anime & Series | Play Hentai',
-    description: `Find and watch anime series matching "${q}". Search by title, alternative names, studio, or genre tags on Play Hentai.`,
+    title: q ? `Search results for "${q}" | HentaiKage` : 'Search Hentai Anime & Series | HentaiKage',
+    description: `Find and watch anime series matching "${q}". Search by title, alternative names, studio, or genre tags on HentaiKage.`,
     alternates: {
       canonical: '/search',
     },

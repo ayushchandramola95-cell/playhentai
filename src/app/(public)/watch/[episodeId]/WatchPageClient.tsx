@@ -129,7 +129,7 @@ export default function WatchPageClient({
   // Load Autoplay preference from localStorage
   useEffect(() => {
     try {
-      const stored = localStorage.getItem('playhentai_autoplay');
+      const stored = localStorage.getItem('hentaikage_autoplay');
       if (stored !== null) {
         setAutoplay(stored === 'true');
       }
@@ -140,7 +140,7 @@ export default function WatchPageClient({
     setAutoplay((prev) => {
       const nextVal = !prev;
       try {
-        localStorage.setItem('playhentai_autoplay', nextVal.toString());
+        localStorage.setItem('hentaikage_autoplay', nextVal.toString());
       } catch (_) {}
       return nextVal;
     });
@@ -209,7 +209,7 @@ export default function WatchPageClient({
 
     const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
     const shareTitle = `${seriesTitle} - Episode ${activeEpisode.episode_number}`;
-    const shareText = `Watch ${seriesTitle} Episode ${activeEpisode.episode_number} on PlayHentai`;
+    const shareText = `Watch ${seriesTitle} Episode ${activeEpisode.episode_number} on HentaiKage`;
 
     // 1. Try native Web Share API on mobile / PC (triggers Windows / macOS / Android / iOS native share popup)
     if (
@@ -252,7 +252,7 @@ export default function WatchPageClient({
   // Social share dispatcher
   const handleSocialShare = (platform: 'whatsapp' | 'telegram' | 'twitter' | 'reddit' | 'facebook' | 'native') => {
     const url = typeof window !== 'undefined' ? window.location.href : '';
-    const titleText = `Watch ${seriesTitle} Episode ${activeEpisode.episode_number} on PlayHentai`;
+    const titleText = `Watch ${seriesTitle} Episode ${activeEpisode.episode_number} on HentaiKage`;
 
     switch (platform) {
       case 'whatsapp':
@@ -613,7 +613,7 @@ export default function WatchPageClient({
                     <Check size={32} color="#22c55e" />
                   </div>
                   <h4>Report Successfully Logged</h4>
-                  <p>Our team has logged this issue for quick investigation. Thank you for helping keep PlayHentai running smoothly!</p>
+                  <p>Our team has logged this issue for quick investigation. Thank you for helping keep HentaiKage running smoothly!</p>
                 </div>
               ) : (
                 <>
@@ -948,7 +948,7 @@ export default function WatchPageClient({
                   <div className={styles.detailPosterWrapper}>
                     <Image
                       src={getR2Url(seriesDetails.poster_image_key || seriesDetails.cover_image_key, 'poster')}
-                      alt={`Watch ${seriesDetails.title} Hentai online - PlayHentai`}
+                      alt={`Watch ${seriesDetails.title} Hentai online - HentaiKage`}
                       fill
                       sizes="(max-width: 768px) 90px, 120px"
                       className={styles.detailPosterImg}
@@ -1117,7 +1117,7 @@ export default function WatchPageClient({
                         <div className={styles.queueThumbWrapper}>
                           <Image
                             src={getR2Url(ep.thumbnail_key || seriesDetails?.cover_image_key, 'thumbnail')}
-                            alt={`Watch ${seriesDetails.title} Episode ${ep.episode_number} Hentai stream - PlayHentai`}
+                            alt={`Watch ${seriesDetails.title} Episode ${ep.episode_number} Hentai stream - HentaiKage`}
                             fill
                             sizes="80px"
                             className={styles.queueThumb}
@@ -1279,7 +1279,7 @@ export default function WatchPageClient({
                       <div className={styles.queueThumbWrapper}>
                         <Image
                           src={getR2Url(ep.thumbnail_key || seriesDetails?.cover_image_key, 'thumbnail')}
-                          alt={`Watch ${seriesDetails.title} Episode ${ep.episode_number} Hentai stream - PlayHentai`}
+                          alt={`Watch ${seriesDetails.title} Episode ${ep.episode_number} Hentai stream - HentaiKage`}
                           fill
                           sizes="80px"
                           className={styles.queueThumb}

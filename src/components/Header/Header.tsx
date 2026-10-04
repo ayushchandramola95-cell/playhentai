@@ -198,8 +198,8 @@ export default function Header() {
         <div className={styles.logoContainer}>
           <LogoIcon />
           <span className={styles.logoText}>
-            <span className={styles.logoTextPlay}>PLAY</span>
-            <span className={styles.logoTextGold}>HENTAI</span>
+            <span className={styles.logoTextPlay}>HENTAI</span>
+            <span className={styles.logoTextGold}>KAGE</span>
           </span>
         </div>
       </header>
@@ -208,7 +208,7 @@ export default function Header() {
 
   return (
     <header className={styles.header}>
-      {/* Left Section: [ Hamburger Menu (Desktop / Mobile) ] + [ PlayHentai Logo ] */}
+      {/* Left Section: [ Hamburger Menu (Desktop / Mobile) ] + [ HentaiKage Logo ] */}
       <div className={`${styles.leftSection} ${searchFocused ? styles.leftSectionHidden : ''}`}>
         {/* Desktop Sidebar Toggle Button (Visible >= 901px) */}
         <button
@@ -232,12 +232,12 @@ export default function Header() {
           <Menu size={22} />
         </button>
 
-        {/* PlayHentai Logo */}
-        <Link href="/" className={styles.logoContainer} aria-label="PlayHentai Home">
+        {/* HentaiKage Logo */}
+        <Link href="/" className={styles.logoContainer} aria-label="HentaiKage Home">
           <LogoIcon />
           <span className={styles.logoText}>
-            <span className={styles.logoTextPlay}>PLAY</span>
-            <span className={styles.logoTextGold}>HENTAI</span>
+            <span className={styles.logoTextPlay}>HENTAI</span>
+            <span className={styles.logoTextGold}>KAGE</span>
           </span>
         </Link>
       </div>
@@ -256,8 +256,8 @@ export default function Header() {
               type="button"
               onClick={handleInstallClick}
               className={styles.pwaInstallBtn}
-              title="Install PlayHentai App (1-Click, Ad-Free)"
-              aria-label="Install PlayHentai App"
+              title="Install HentaiKage App (1-Click, Ad-Free)"
+              aria-label="Install HentaiKage App"
             >
               <div className={styles.pwaIconBox}>
                 <Download size={14} className={styles.pwaIcon} />
@@ -271,7 +271,7 @@ export default function Header() {
               <div className={`${styles.pwaTooltip} glass`}>
                 <div className={styles.pwaTooltipHeader}>
                   <Smartphone size={16} className={styles.pwaTooltipIcon} />
-                  <span className={styles.pwaTooltipTitle}>Install PlayHentai App</span>
+                  <span className={styles.pwaTooltipTitle}>Install HentaiKage App</span>
                   <button 
                     type="button" 
                     onClick={() => setShowPwaTip(false)}
@@ -288,7 +288,7 @@ export default function Header() {
                     </p>
                   ) : (
                     <p>
-                      Click the <strong>Install icon</strong> in your browser&apos;s address bar, or click browser menu (<strong>⋮</strong>) &rarr; <strong>&quot;Install PlayHentai&quot;</strong>.
+                      Click the <strong>Install icon</strong> in your browser&apos;s address bar, or click browser menu (<strong>⋮</strong>) &rarr; <strong>&quot;Install HentaiKage&quot;</strong>.
                     </p>
                   )}
                 </div>
@@ -437,8 +437,8 @@ export default function Header() {
               <Link href="/" onClick={() => setMobileMenuOpen(false)} className={styles.drawerLogo}>
                 <LogoIcon />
                 <span className={styles.logoText}>
-                  <span className={styles.logoTextPlay}>PLAY</span>
-                  <span className={styles.logoTextGold}>HENTAI</span>
+                  <span className={styles.logoTextPlay}>HENTAI</span>
+                  <span className={styles.logoTextGold}>KAGE</span>
                 </span>
               </Link>
               <button
@@ -473,7 +473,7 @@ export default function Header() {
               ) : (
                 <div className={styles.drawerGuestCard}>
                   <div className={styles.guestText}>
-                    <div className={styles.guestTitle}>Welcome to PlayHentai</div>
+                    <div className={styles.guestTitle}>Welcome to HentaiKage</div>
                     <div className={styles.guestSubtitle}>Sign in to save favorites, sync history & watchlist</div>
                   </div>
                   <div className={styles.guestActionRow}>
@@ -506,7 +506,7 @@ export default function Header() {
                     <Download size={18} />
                   </div>
                   <div className={styles.drawerPwaText}>
-                    <div className={styles.drawerPwaTitle}>Install PlayHentai App</div>
+                    <div className={styles.drawerPwaTitle}>Install HentaiKage App</div>
                     <div className={styles.drawerPwaSubtitle}>1-Tap Launch & 100% Ad-Free</div>
                   </div>
                 </div>
@@ -764,7 +764,7 @@ export default function Header() {
 
             {/* Drawer Footer */}
             <div className={styles.drawerFooter}>
-              <div className={styles.drawerFooterText}>PlayHentai © 2026 • Free HD Streaming</div>
+              <div className={styles.drawerFooterText}>HentaiKage © 2026 • Free HD Streaming</div>
             </div>
           </div>
         </div>

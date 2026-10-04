@@ -8,7 +8,7 @@ import { isUncensoredSeries } from '@/utils/constants';
 import styles from './uncensored.module.css';
 import { MOCK_SERIES } from '@/utils/mockData';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://hentaikage.cc';
 
 export const revalidate = 120;
 
@@ -26,17 +26,30 @@ export async function generateMetadata({ searchParams }: PageProps) {
     ? `/uncensored?page=${pageParam}` 
     : '/uncensored';
 
+  const title = 'Uncensored Hentai Anime – Watch Free in 1080p HD | HentaiKage';
+  const description = 'Watch the best uncensored hentai anime series and episodes online free in 1080p HD with English subtitles. Stream full episodes without ads on HentaiKage.';
+  const keywords = [
+    'uncensored hentai',
+    'uncensored hentai anime',
+    'watch uncensored hentai free',
+    'uncensored anime 1080p',
+    'uncensored hentai english sub',
+    'best uncensored hentai',
+    'hentaikage'
+  ];
+
   return {
-    title: 'Uncensored Hentai Anime — Watch Online in HD | Play Hentai',
-    description: 'Watch uncensored hentai anime online in HD with English subtitles. Browse complete series, available episodes, new releases, and popular titles on Play Hentai.',
+    title,
+    description,
+    keywords,
     alternates: {
       canonical: canonicalPath,
     },
     openGraph: {
-      title: 'Uncensored Hentai Anime — Watch Online in HD | Play Hentai',
-      description: 'Watch uncensored hentai anime online in HD with English subtitles. Browse complete series, available episodes, new releases, and popular titles on Play Hentai.',
+      title,
+      description,
       url: `${SITE_URL}${canonicalPath}`,
-      siteName: 'Play Hentai',
+      siteName: 'HentaiKage',
       locale: 'en_US',
       type: 'website' as const,
       images: [
@@ -44,14 +57,14 @@ export async function generateMetadata({ searchParams }: PageProps) {
           url: `${SITE_URL}/og-banner.png`,
           width: 1200,
           height: 630,
-          alt: 'Play Hentai Uncensored Hentai Anime',
+          alt: 'HentaiKage Uncensored Hentai Anime',
         },
       ],
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'Uncensored Hentai Anime — Watch Online in HD | Play Hentai',
-      description: 'Watch uncensored hentai anime online in HD with English subtitles. Browse complete series, available episodes, new releases, and popular titles on Play Hentai.',
+      title,
+      description,
       images: [`${SITE_URL}/og-banner.png`],
     },
   };
@@ -174,7 +187,7 @@ export default async function UncensoredPage({ searchParams }: PageProps) {
         <div className={styles.seoCard}>
           <h2>Watch Uncensored Hentai Anime in HD Online</h2>
           <p>
-            Welcome to the ultimate uncensored hentai anime catalog on Play Hentai. Explore hundreds of full-length, high-definition hentai releases completely unfiltered and uncut. Whether you are looking for classic masterpieces, new seasonal releases, 3D CGI animations, or trending OVAs with English subtitles, our dedicated library is curated for the best streaming experience.
+            Welcome to the ultimate uncensored hentai anime catalog on HentaiKage. Explore hundreds of full-length, high-definition hentai releases completely unfiltered and uncut. Whether you are looking for classic masterpieces, new seasonal releases, 3D CGI animations, or trending OVAs with English subtitles, our dedicated library is curated for the best streaming experience.
           </p>
           <div className={styles.seoGrid}>
             <div className={styles.seoFeature}>

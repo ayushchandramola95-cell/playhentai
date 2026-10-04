@@ -186,7 +186,7 @@ export function classifyReferrer(refUrl: string): { source: string; category: 'd
   if (lower.includes('telegram.') || lower.includes('t.me')) return { source: 'Telegram', category: 'social' };
   if (lower.includes('myanimelist.')) return { source: 'MyAnimeList', category: 'referral' };
   if (lower.includes('anilist.')) return { source: 'AniList', category: 'referral' };
-  if (lower.includes('localhost') || lower.includes('playhentai')) return { source: 'Direct / Internal', category: 'direct' };
+  if (lower.includes('localhost') || lower.includes('hentaikage')) return { source: 'Direct / Internal', category: 'direct' };
 
   try {
     const u = new URL(refUrl);

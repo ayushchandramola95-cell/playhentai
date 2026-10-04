@@ -119,7 +119,7 @@ export default function SeriesEpisodesSection({
       } catch (err) {
         // Guest fallback: check local storage if available
         try {
-          const localHistory = JSON.parse(localStorage.getItem('playhentai_guest_history') || '[]');
+          const localHistory = JSON.parse(localStorage.getItem('hentaikage_guest_history') || '[]');
           if (Array.isArray(localHistory)) {
             const map: Record<string, { percentage: number; completed: boolean }> = {};
             localHistory.forEach((item: any) => {
@@ -282,12 +282,16 @@ export default function SeriesEpisodesSection({
 
             return (
               <div key={ep.id} className={styles.episodeCardWrapper}>
-                <Link href={watchUrl} className={styles.episodeCard}>
+                <Link 
+                  href={watchUrl} 
+                  className={styles.episodeCard}
+                  title={`Watch ${seriesTitle} Episode ${ep.episode_number} ${cleanTitle ? `- ${cleanTitle}` : ''} in 1080p HD (English Subtitles)`}
+                >
                   {/* Thumbnail Container */}
                   <div className={styles.thumbnailWrapper}>
                     <Image
                       src={getR2Url(ep.thumbnail_key || coverImageKey, 'thumbnail')}
-                      alt={`Watch ${seriesTitle} Episode ${ep.episode_number} ${isUncensored ? '(Uncensored, Eng Sub)' : '(Eng Sub)'} in HD - Play Hentai`}
+                      alt={`Watch ${seriesTitle} Episode ${ep.episode_number} ${isUncensored ? '(Uncensored, Eng Sub)' : '(Eng Sub)'} in HD - HentaiKage`}
                       fill
                       sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                       className={styles.thumbnailImage}

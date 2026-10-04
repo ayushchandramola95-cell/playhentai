@@ -29,7 +29,7 @@ function getTextWidth(text: string): number {
 
 // Variables dictionary description
 const VARIABLE_DESCRIPTIONS = [
-  { name: '{siteName}', desc: 'Spelled out brand name (Play Hentai)' },
+  { name: '{siteName}', desc: 'Spelled out brand name (HentaiKage)' },
   { name: '{primaryTitle}', desc: 'Primary Japanese Romaji show title' },
   { name: '{englishTitle}', desc: 'English translated name (if available)' },
   { name: '{episodeCount}', desc: 'Total episode count integer' },
@@ -81,7 +81,7 @@ export default function DeveloperSeoPage() {
   const [targetFocusKeyword, setTargetFocusKeyword] = useState<string>('');
 
   // Custom IndexNow Instant URL state
-  const [customIndexUrl, setCustomIndexUrl] = useState<string>('https://playhentai.live');
+  const [customIndexUrl, setCustomIndexUrl] = useState<string>('https://hentaikage.cc');
   const [indexBroadcastLogs, setIndexBroadcastLogs] = useState<{ url: string; status: string; time: string }[]>([]);
 
   // Robots Test URL state
@@ -146,7 +146,7 @@ export default function DeveloperSeoPage() {
       setOverrideDescription(activeSeries.meta_description || '');
       setOverrideMode(activeSeries.meta_title || activeSeries.meta_description ? 'custom' : 'automatic');
       setTargetFocusKeyword(activeSeries.tags?.[0] || activeSeries.title || '');
-      setCustomIndexUrl(`https://playhentai.live/series/${activeSeries.slug || ''}`);
+      setCustomIndexUrl(`https://hentaikage.cc/series/${activeSeries.slug || ''}`);
     }
   }, [activeSeries]);
 
@@ -203,8 +203,8 @@ export default function DeveloperSeoPage() {
       const eng = activeSeries.alt_title_english ? ` (${activeSeries.alt_title_english})` : '';
       const topTag = activeSeries.tags?.[0] || 'Anime';
       
-      const generatedTitle = `${activeSeries.title}${eng} — Watch Free in HD | Play Hentai`.slice(0, 60);
-      const generatedDesc = `Watch ${activeSeries.title} full episodes online in HD uncensored. Top ${topTag} series produced by ${studioName}. Stream in 1080p on Play Hentai.`.slice(0, 155);
+      const generatedTitle = `${activeSeries.title}${eng} — Watch Free in HD | HentaiKage`.slice(0, 60);
+      const generatedDesc = `Watch ${activeSeries.title} full episodes online in HD uncensored. Top ${topTag} series produced by ${studioName}. Stream in 1080p on HentaiKage.`.slice(0, 155);
 
       setOverrideTitle(generatedTitle);
       setOverrideDescription(generatedDesc);
@@ -234,7 +234,7 @@ export default function DeveloperSeoPage() {
       for (const s of missingItems) {
         const topTag = s.tags?.[0] || 'Anime';
         const studioName = s.studio || 'Studio';
-        const autoDesc = `Watch ${s.title} online in HD with English subtitles. Top rated ${topTag} series produced by ${studioName}. Stream high quality anime on Play Hentai.`;
+        const autoDesc = `Watch ${s.title} online in HD with English subtitles. Top rated ${topTag} series produced by ${studioName}. Stream high quality anime on HentaiKage.`;
         
         await supabase
           .from('series')
@@ -345,7 +345,7 @@ export default function DeveloperSeoPage() {
     if (!series) return '';
     let result = template;
     const variables: Record<string, string> = {
-      siteName: 'Play Hentai',
+      siteName: 'HentaiKage',
       primaryTitle: series.title || '',
       englishTitle: series.alt_title_english || '',
       episodeCount: String(series.episode_count_override || 0),
@@ -464,8 +464,8 @@ export default function DeveloperSeoPage() {
         },
         "publisher": {
           "@type": "Organization",
-          "name": "Play Hentai",
-          "url": "https://playhentai.live"
+          "name": "HentaiKage",
+          "url": "https://hentaikage.cc"
         }
       }, null, 2);
     }
@@ -479,11 +479,11 @@ export default function DeveloperSeoPage() {
         "thumbnailUrl": [activePosterUrl],
         "uploadDate": activeSeries.created_at || "2026-01-01T00:00:00Z",
         "duration": `PT${activeSeries.runtime || 24}M`,
-        "embedUrl": `https://playhentai.live/watch/${activeSeries.slug}?ep=1`,
+        "embedUrl": `https://hentaikage.cc/watch/${activeSeries.slug}?ep=1`,
         "publisher": {
           "@type": "Organization",
-          "name": "Play Hentai",
-          "url": "https://playhentai.live"
+          "name": "HentaiKage",
+          "url": "https://hentaikage.cc"
         }
       }, null, 2);
     }
@@ -497,19 +497,19 @@ export default function DeveloperSeoPage() {
             "@type": "ListItem",
             "position": 1,
             "name": "Home",
-            "item": "https://playhentai.live"
+            "item": "https://hentaikage.cc"
           },
           {
             "@type": "ListItem",
             "position": 2,
             "name": "Series Catalog",
-            "item": "https://playhentai.live/categories"
+            "item": "https://hentaikage.cc/categories"
           },
           {
             "@type": "ListItem",
             "position": 3,
             "name": activeSeries.title,
-            "item": `https://playhentai.live/series/${activeSeries.slug}`
+            "item": `https://hentaikage.cc/series/${activeSeries.slug}`
           }
         ]
       }, null, 2);
@@ -525,7 +525,7 @@ export default function DeveloperSeoPage() {
             "name": `Where can I watch ${activeSeries.title} online in HD?`,
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": `You can stream all episodes of ${activeSeries.title} free in 1080p HD on Play Hentai.`
+              "text": `You can stream all episodes of ${activeSeries.title} free in 1080p HD on HentaiKage.`
             }
           },
           {
@@ -1271,7 +1271,7 @@ export default function DeveloperSeoPage() {
                         <div className={styles.serpGoogleCard} style={{ maxWidth: deviceView === 'mobile' ? '400px' : '100%' }}>
                           <div className={styles.serpUrlRow}>
                             <span className={styles.serpFavicon}>P</span>
-                            <span>playhentai.live &rsaquo; series &rsaquo; {activeSeries.slug}</span>
+                            <span>hentaikage.cc &rsaquo; series &rsaquo; {activeSeries.slug}</span>
                           </div>
                           <h3 className={styles.serpTitle}>{currentRenderedTitle}</h3>
                           <p className={styles.serpSnippet}>{currentRenderedDescription}</p>
@@ -1290,7 +1290,7 @@ export default function DeveloperSeoPage() {
                             <img src={activePosterUrl} alt={activeSeries.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { (e.target as any).style.display = 'none'; }} />
                           </div>
                           <div style={{ padding: '0.85rem 1rem' }}>
-                            <span style={{ fontSize: '0.72rem', color: '#b0b3b8', textTransform: 'uppercase', fontWeight: 700 }}>PLAYHENTAI.LIVE</span>
+                            <span style={{ fontSize: '0.72rem', color: '#b0b3b8', textTransform: 'uppercase', fontWeight: 700 }}>HENTAIKAGE.CC</span>
                             <h4 style={{ fontSize: '0.94rem', fontWeight: 700, color: '#e4e6eb', margin: '0.2rem 0' }}>{currentRenderedTitle}</h4>
                             <p style={{ fontSize: '0.8rem', color: '#b0b3b8', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{currentRenderedDescription}</p>
                           </div>
@@ -1304,7 +1304,7 @@ export default function DeveloperSeoPage() {
                             <img src={activePosterUrl} alt={activeSeries.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { (e.target as any).style.display = 'none'; }} />
                           </div>
                           <div style={{ padding: '0.85rem 1rem' }}>
-                            <span style={{ fontSize: '0.74rem', color: '#71767b' }}>playhentai.live</span>
+                            <span style={{ fontSize: '0.74rem', color: '#71767b' }}>hentaikage.cc</span>
                             <h4 style={{ fontSize: '0.9rem', fontWeight: 700, color: '#e7e9ea', margin: '0.15rem 0' }}>{currentRenderedTitle}</h4>
                             <p style={{ fontSize: '0.82rem', color: '#71767b', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{currentRenderedDescription}</p>
                           </div>
@@ -1314,7 +1314,7 @@ export default function DeveloperSeoPage() {
                       {/* Discord Card */}
                       {socialTab === 'discord' && (
                         <div style={{ background: '#2f3136', borderLeft: '4px solid #7c3aed', padding: '1rem', borderRadius: '6px', maxWidth: '520px', textAlign: 'left' }}>
-                          <span style={{ fontSize: '0.78rem', color: '#00b0f4', fontWeight: 700, display: 'block', marginBottom: '0.25rem' }}>Play Hentai</span>
+                          <span style={{ fontSize: '0.78rem', color: '#00b0f4', fontWeight: 700, display: 'block', marginBottom: '0.25rem' }}>HentaiKage</span>
                           <h4 style={{ fontSize: '0.94rem', fontWeight: 800, color: '#ffffff', margin: '0 0 0.35rem 0' }}>{currentRenderedTitle}</h4>
                           <p style={{ fontSize: '0.82rem', color: '#dcddde', margin: 0, lineHeight: 1.4 }}>{currentRenderedDescription}</p>
                         </div>
@@ -1408,7 +1408,7 @@ export default function DeveloperSeoPage() {
                         </button>
 
                         <a
-                          href={`https://search.google.com/test/rich-results?url=${encodeURIComponent(`https://playhentai.live/series/${activeSeries.slug}`)}`}
+                          href={`https://search.google.com/test/rich-results?url=${encodeURIComponent(`https://hentaikage.cc/series/${activeSeries.slug}`)}`}
                           target="_blank"
                           rel="noreferrer"
                           className={styles.btnSecondary}
@@ -1515,7 +1515,7 @@ export default function DeveloperSeoPage() {
                       type="text"
                       value={customIndexUrl}
                       onChange={(e) => setCustomIndexUrl(e.target.value)}
-                      placeholder="https://playhentai.live/series/sample-show"
+                      placeholder="https://hentaikage.cc/series/sample-show"
                       className={styles.inputField}
                       style={{ flex: 1 }}
                     />

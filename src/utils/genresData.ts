@@ -211,7 +211,7 @@ export const getAllGenresWithStats = unstable_cache(
 
       const description =
         GENRE_DESCRIPTIONS[genreName] ||
-        `Discover popular ${genreName} hentai anime series, episodes, and complete release catalogs on Play Hentai.`;
+        `Discover popular ${genreName} hentai anime series, episodes, and complete release catalogs on HentaiKage.`;
 
       return {
         name: genreName,

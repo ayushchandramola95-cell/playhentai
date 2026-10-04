@@ -11,21 +11,30 @@ import { getSeriesViewsMap } from '@/utils/views';
 import { getR2Url } from '@/utils/r2';
 import JsonLd from '@/components/JsonLd/JsonLd';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://hentaikage.cc';
 
 export const revalidate = 120;
 
 export const metadata = {
-  title: 'Trending Hentai Anime Series | Play Hentai',
-  description: 'Discover the most popular and trending uncensored hentai anime series right now on Play Hentai.',
+  title: 'Trending Hentai Anime – Watch Most Viewed in HD | HentaiKage',
+  description: 'Discover and stream the most popular trending hentai anime series online free in full 1080p HD with English subtitles. Updated hourly on HentaiKage.',
+  keywords: [
+    'trending hentai',
+    'popular hentai anime',
+    'top rated hentai',
+    'watch trending hentai',
+    'most viewed hentai',
+    'hentaikage',
+    'best hentai online'
+  ],
   alternates: {
     canonical: '/trending',
   },
   openGraph: {
-    title: 'Trending Hentai Anime Series | Play Hentai',
-    description: 'Discover the most popular and trending uncensored hentai anime series right now on Play Hentai.',
+    title: 'Trending Hentai Anime – Watch Most Viewed in HD | HentaiKage',
+    description: 'Discover and stream the most popular trending hentai anime series online free in full 1080p HD with English subtitles. Updated hourly on HentaiKage.',
     url: `${SITE_URL}/trending`,
-    siteName: 'Play Hentai',
+    siteName: 'HentaiKage',
     locale: 'en_US',
     type: 'website' as const,
     images: [
@@ -33,15 +42,15 @@ export const metadata = {
         url: `${SITE_URL}/og-banner.png`,
         width: 1200,
         height: 630,
-        alt: 'Trending Hentai Anime Series on Play Hentai',
+        alt: 'Trending Hentai Anime Series on HentaiKage',
         type: 'image/png',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Trending Hentai Anime Series | Play Hentai',
-    description: 'Discover the most popular and trending uncensored hentai anime series right now on Play Hentai.',
+    title: 'Trending Hentai Anime – Watch Most Viewed in HD | HentaiKage',
+    description: 'Discover and stream the most popular trending hentai anime series online free in full 1080p HD with English subtitles. Updated hourly on HentaiKage.',
     images: [`${SITE_URL}/og-banner.png`],
   },
 };
@@ -157,7 +166,7 @@ export default async function TrendingPage({
   const itemListJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
-    'name': 'Trending Hentai Anime Series on Play Hentai',
+    'name': 'Trending Hentai Anime Series on HentaiKage',
     'url': `${SITE_URL}/trending`,
     'numberOfItems': paginatedItems.length,
     'itemListElement': paginatedItems.map((item: any, idx: number) => ({

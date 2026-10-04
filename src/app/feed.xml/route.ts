@@ -48,7 +48,7 @@ const getCachedFeedEpisodes = async () => {
 };
 
 export async function GET() {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://hentaikage.cc';
   const nowUtc = new Date().toUTCString();
 
   let itemsXml = '';
@@ -85,7 +85,7 @@ export async function GET() {
         const rawDesc = ep.description?.trim();
         const itemDesc = rawDesc && rawDesc.length >= 10
           ? rawDesc
-          : `Watch ${seriesTitle} Episode ${ep.episode_number} online in HD with English subtitles on Play Hentai. Free streaming anime episode with full player controls.`;
+          : `Watch ${seriesTitle} Episode ${ep.episode_number} online in HD with English subtitles on HentaiKage. Free streaming anime episode with full player controls.`;
 
         let tempThumb = getR2Url(ep.thumbnail_key, 'thumbnail');
         if (!tempThumb || tempThumb.startsWith('data:')) {
@@ -131,7 +131,7 @@ export async function GET() {
       <link>${escapeXml(watchUrl)}</link>
       <guid isPermaLink="true">${escapeXml(watchUrl)}</guid>
       <pubDate>${nowUtc}</pubDate>
-      <description><![CDATA[Watch ${escapeXml(seriesTitle)} online in HD on Play Hentai. Free anime streaming.]]></description>
+      <description><![CDATA[Watch ${escapeXml(seriesTitle)} online in HD on HentaiKage. Free anime streaming.]]></description>
       <category>Anime</category>
       <media:thumbnail url="${escapeXml(thumbUrl)}" />
     </item>`;
@@ -143,15 +143,15 @@ export async function GET() {
      xmlns:atom="http://www.w3.org/2005/Atom" 
      xmlns:media="http://search.yahoo.com/mrss/">
   <channel>
-    <title>Play Hentai — Latest Anime Episodes &amp; Series</title>
+    <title>HentaiKage — Latest Anime Episodes &amp; Series</title>
     <link>${baseUrl}</link>
-    <description>Watch the latest hentai anime series and episodes online in HD on Play Hentai. Free streaming with English subtitles and full player controls.</description>
+    <description>Watch the latest hentai anime series and episodes online in HD on HentaiKage. Free streaming with English subtitles and full player controls.</description>
     <language>en-us</language>
     <lastBuildDate>${nowUtc}</lastBuildDate>
     <atom:link href="${baseUrl}/feed.xml" rel="self" type="application/rss+xml"/>
     <image>
       <url>${baseUrl}/icon-512x512.png</url>
-      <title>Play Hentai</title>
+      <title>HentaiKage</title>
       <link>${baseUrl}</link>
     </image>
     ${itemsXml}

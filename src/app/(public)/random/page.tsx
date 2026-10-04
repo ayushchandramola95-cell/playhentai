@@ -4,7 +4,7 @@ import { MOCK_SERIES } from '@/utils/mockData';
 import RandomizerPortal from './RandomizerPortal';
 import JsonLd from '@/components/JsonLd/JsonLd';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://hentaikage.cc';
 
 interface PageProps {
   searchParams: Promise<{
@@ -23,23 +23,23 @@ export async function generateMetadata({ searchParams }: PageProps) {
     : { index: true, follow: true };
 
   return {
-    title: 'Random Hentai Anime Generator and Picker | Play Hentai',
-    description: 'Discover random hentai anime series with the Random Hentai Anime Generator. Shuffle the library, explore recommendations, and find new series to watch on Play Hentai.',
+    title: 'Random Hentai Anime Generator and Picker | HentaiKage',
+    description: 'Discover random hentai anime series with the Random Hentai Anime Generator. Shuffle the library, explore recommendations, and find new series to watch on HentaiKage.',
     alternates: {
       canonical: `${SITE_URL}/random`,
     },
     robots,
     openGraph: {
-      title: 'Random Hentai Anime Generator and Picker | Play Hentai',
-      description: 'Discover random hentai anime series with the Random Hentai Anime Generator. Shuffle the library, explore recommendations, and find new series to watch on Play Hentai.',
+      title: 'Random Hentai Anime Generator and Picker | HentaiKage',
+      description: 'Discover random hentai anime series with the Random Hentai Anime Generator. Shuffle the library, explore recommendations, and find new series to watch on HentaiKage.',
       url: `${SITE_URL}/random`,
-      siteName: 'Play Hentai',
+      siteName: 'HentaiKage',
       images: [
         {
           url: `${SITE_URL}/og-banner.png`,
           width: 1200,
           height: 630,
-          alt: 'Random Hentai Anime Generator and Picker on Play Hentai',
+          alt: 'Random Hentai Anime Generator and Picker on HentaiKage',
           type: 'image/png',
         },
       ],
@@ -47,8 +47,8 @@ export async function generateMetadata({ searchParams }: PageProps) {
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'Random Hentai Anime Generator and Picker | Play Hentai',
-      description: 'Discover random hentai anime series with the Random Hentai Anime Generator. Shuffle the library, explore recommendations, and find new series to watch on Play Hentai.',
+      title: 'Random Hentai Anime Generator and Picker | HentaiKage',
+      description: 'Discover random hentai anime series with the Random Hentai Anime Generator. Shuffle the library, explore recommendations, and find new series to watch on HentaiKage.',
       images: [`${SITE_URL}/og-banner.png`],
     },
   };
@@ -90,7 +90,7 @@ export default async function RandomPage() {
     url: `${SITE_URL}/random`,
     applicationCategory: 'EntertainmentApplication',
     operatingSystem: 'All',
-    description: 'Interactive random anime picker and series recommendation generator on Play Hentai.',
+    description: 'Interactive random anime picker and series recommendation generator on HentaiKage.',
   };
 
   const itemListJsonLd = {

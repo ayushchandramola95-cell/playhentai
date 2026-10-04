@@ -18,7 +18,7 @@ interface StudioStatusPageProps {
 
 export const revalidate = 120;
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://hentaikage.cc';
 
 function parseStudioSubfilter(status: string) {
   const clean = decodeURIComponent(status).toLowerCase().trim();
@@ -54,35 +54,43 @@ export async function generateMetadata({ params }: StudioStatusPageProps) {
 
   if (!studio || !parsed) {
     return {
-      title: 'Studio Releases Not Found | Play Hentai',
+      title: 'Studio Releases Not Found | HentaiKage',
       description: 'The requested studio releases catalog could not be found.',
     };
   }
 
-  let title = `${studio.name} (${parsed.label}) | Play Hentai`;
-  let description = `Stream ${parsed.label.toLowerCase()} hentai anime series and OVAs produced by ${studio.name} in full 1080p HD with English subtitles free on Play Hentai.`;
+  let title = `${studio.name} (${parsed.label}) | HentaiKage`;
+  let description = `Stream ${parsed.label.toLowerCase()} hentai anime series and OVAs produced by ${studio.name} in full 1080p HD with English subtitles free on HentaiKage.`;
 
   if (parsed.isCompleted) {
-    title = `${studio.name} Completed Hentai | Play Hentai`;
-    description = `Watch all completed anime series and OVAs produced by ${studio.name}. Binge watch full episodes in 1080p HD on Play Hentai.`;
+    title = `${studio.name} Completed Hentai | HentaiKage`;
+    description = `Watch all completed anime series and OVAs produced by ${studio.name}. Binge watch full episodes in 1080p HD on HentaiKage.`;
   } else if (parsed.isOngoing) {
-    title = `${studio.name} Ongoing Hentai | Play Hentai`;
-    description = `Watch ongoing and currently releasing anime series produced by ${studio.name}. Catch the newest episodes in HD on Play Hentai.`;
+    title = `${studio.name} Ongoing Hentai | HentaiKage`;
+    description = `Watch ongoing and currently releasing anime series produced by ${studio.name}. Catch the newest episodes in HD on HentaiKage.`;
   } else if (parsed.isUncensored) {
-    title = `Uncensored ${studio.name} Hentai | Play Hentai`;
-    description = `Stream 100% uncensored anime series produced by ${studio.name} in high definition with English subtitles on Play Hentai.`;
+    title = `Uncensored ${studio.name} Hentai | HentaiKage`;
+    description = `Stream 100% uncensored anime series produced by ${studio.name} in high definition with English subtitles on HentaiKage.`;
   } else if (parsed.isYear) {
-    title = `${studio.name} (${parsed.label}) Hentai | Play Hentai`;
-    description = `Browse and stream all anime releases from ${studio.name} published in ${parsed.label} in HD on Play Hentai.`;
+    title = `${studio.name} (${parsed.label}) Hentai | HentaiKage`;
+    description = `Browse and stream all anime releases from ${studio.name} published in ${parsed.label} in HD on HentaiKage.`;
   }
 
   const canonicalPath = `/studios/${slug}/${parsed.raw}`;
   const topSeriesImg = studio.series?.[0]?.cover_image_key || studio.series?.[0]?.poster_image_key;
   const ogImageUrl = topSeriesImg ? getR2Url(topSeriesImg, 'cover') : `${SITE_URL}/og-banner.png`;
 
+  const keywords = [
+    `${studio.name.toLowerCase()} ${parsed.label.toLowerCase()}`,
+    `${studio.name.toLowerCase()} hentai`,
+    `watch ${studio.name.toLowerCase()} anime`,
+    'hentaikage'
+  ];
+
   return {
     title,
     description,
+    keywords,
     alternates: {
       canonical: canonicalPath,
     },
@@ -166,7 +174,7 @@ export default async function StudioStatusPage({ params }: StudioStatusPageProps
     '@id': studioUrl,
     'url': studioUrl,
     'name': studio.name,
-    'description': studio.bio || `${studio.name} is an animation studio producing anime series on Play Hentai.`,
+    'description': studio.bio || `${studio.name} is an animation studio producing anime series on HentaiKage.`,
     'foundingDate': studio.founded ? String(studio.founded) : undefined,
     'foundingLocation': studio.country || undefined,
   };

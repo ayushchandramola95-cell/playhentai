@@ -31,7 +31,7 @@ export async function generateMetadata({ params, searchParams }: GenrePageProps)
     canonicalPath += `?page=${page}`;
   }
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://hentaikage.cc';
 
   return {
     ...metadata,

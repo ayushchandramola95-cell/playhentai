@@ -9,7 +9,7 @@ import JsonLd from '@/components/JsonLd/JsonLd';
 import { MOCK_SERIES } from '@/utils/mockData';
 import styles from './StatusCatalog.module.css';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://hentaikage.cc';
 const PAGE_SIZE = 24;
 
 import { getLocalSeriesByStatus } from '@/utils/localCatalogStore';
@@ -34,20 +34,46 @@ export async function fetchSeriesByStatus(status: string): Promise<any[]> {
 export function buildStatusMetadata(status: string, count: number): Metadata {
   const capStatus = status === 'ongoing' ? 'Ongoing' : status === 'completed' ? 'Completed' : 'Upcoming';
   const routePath = `/${status.toLowerCase()}`;
-  const title = `${capStatus} Hentai Anime Series | Play Hentai`;
-  let description = `Browse all ${count} ${status} hentai anime series available to stream in HD on Play Hentai.`;
+  let title = `${capStatus} Hentai Anime – Watch Free in HD | HentaiKage`;
+  let description = `Browse all ${count} ${status} hentai anime series available to stream in 1080p HD online free on HentaiKage.`;
+  let keywords: string[] = ['hentaikage'];
 
   if (status === 'completed') {
-    description = `Browse ${count} completed hentai anime series available to stream in 1080p HD. Watch full finished series from start to finish on Play Hentai.`;
+    title = 'Completed Hentai Anime – Watch Full Series in HD | HentaiKage';
+    description = `Watch all ${count} completed hentai anime series in full 1080p HD online free with English subtitles. Binge-watch complete series on HentaiKage.`;
+    keywords = [
+      'completed hentai',
+      'finished hentai anime',
+      'watch full hentai series',
+      'binge hentai anime',
+      'hentaikage'
+    ];
   } else if (status === 'ongoing') {
-    description = `Browse ${count} ongoing hentai anime series with fresh airing episode releases available to stream in 1080p HD on Play Hentai.`;
+    title = 'Ongoing Hentai Anime – Watch Airing Series in HD | HentaiKage';
+    description = `Watch all ${count} ongoing hentai anime series with new airing episode releases streaming in 1080p HD free on HentaiKage. Updated daily.`;
+    keywords = [
+      'ongoing hentai',
+      'airing hentai anime',
+      'currently releasing hentai',
+      'watch ongoing anime',
+      'hentaikage'
+    ];
   } else if (status === 'upcoming') {
-    description = `Browse ${count} upcoming hentai anime series scheduled for release soon. Check premiere dates and scheduled releases on Play Hentai.`;
+    title = 'Upcoming Hentai Anime – Release Dates & Trailers | HentaiKage';
+    description = `Discover ${count} upcoming hentai anime series scheduled for release soon. Check premiere dates, official trailers, and release schedules on HentaiKage.`;
+    keywords = [
+      'upcoming hentai',
+      'new hentai anime 2026',
+      'hentai trailers',
+      'scheduled hentai releases',
+      'hentaikage'
+    ];
   }
 
   return {
     title,
     description,
+    keywords,
     alternates: {
       canonical: routePath,
     },
@@ -55,7 +81,7 @@ export function buildStatusMetadata(status: string, count: number): Metadata {
       title,
       description,
       url: `${SITE_URL}${routePath}`,
-      siteName: 'Play Hentai',
+      siteName: 'HentaiKage',
       type: 'website',
       images: [
         {
@@ -127,10 +153,10 @@ export default async function StatusCatalog({ status, searchParams }: StatusCata
 
   const introText = (() => {
     if (normalizedStatus === 'completed') {
-      return `Explore all ${totalCount} completed hentai anime series on Play Hentai. These series are fully finalized and ready for high-fidelity 1080p streaming.`;
+      return `Explore all ${totalCount} completed hentai anime series on HentaiKage. These series are fully finalized and ready for high-fidelity 1080p streaming.`;
     }
     if (normalizedStatus === 'ongoing') {
-      return `Explore all ${totalCount} ongoing hentai anime series currently airing on Play Hentai. Stay updated with the latest episodes and airing releases.`;
+      return `Explore all ${totalCount} ongoing hentai anime series currently airing on HentaiKage. Stay updated with the latest episodes and airing releases.`;
     }
     return `Explore all ${totalCount} upcoming hentai anime series scheduled for release soon. Stay tuned for upcoming premiere dates and trailers.`;
   })();

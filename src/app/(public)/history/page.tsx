@@ -4,10 +4,10 @@ import { getLocalEpisodesWithSeriesHierarchy } from '@/utils/localCatalogStore';
 import HistoryClient from '@/components/HistoryClient/HistoryClient';
 
 export const metadata = {
-  title: 'Watch History | Play Hentai',
-  description: 'Resume your saved video playback locations on Play Hentai.',
+  title: 'Watch History | HentaiKage',
+  description: 'Resume your saved video playback locations on HentaiKage.',
   alternates: {
-    canonical: 'https://playhentai.live/history',
+    canonical: 'https://hentaikage.cc/history',
   },
   robots: {
     index: false,
@@ -53,7 +53,7 @@ export default async function HistoryPage() {
 
           const episode_title = dbEp?.title || `Episode ${item.episode_id}`;
           const episode_number = dbEp?.episode_number || 1;
-          const series_title = dbEp?.seasons?.series?.title || dbEp?.series_title || 'PlayHentai Series';
+          const series_title = dbEp?.seasons?.series?.title || dbEp?.series_title || 'HentaiKage Series';
           const series_slug = dbEp?.seasons?.series?.slug || '';
           const thumbnail_key = dbEp?.thumbnail_key || '';
           const duration_seconds = dbEp?.duration_seconds || item.duration_seconds || 1400;

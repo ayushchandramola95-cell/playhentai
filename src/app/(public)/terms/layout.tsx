@@ -1,26 +1,26 @@
 import type { Metadata } from 'next';
 import JsonLd from '@/components/JsonLd/JsonLd';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://hentaikage.cc';
 
 export const metadata: Metadata = {
-  title: 'Terms of Service | PlayHentai',
-  description: 'Terms of Service, acceptable use policies, age eligibility (18+), streaming licenses, and legal terms for PlayHentai.',
+  title: 'Terms of Service | HentaiKage',
+  description: 'Terms of Service, acceptable use policies, age eligibility (18+), streaming licenses, and legal terms for HentaiKage.',
   alternates: {
     canonical: '/terms',
   },
   openGraph: {
-    title: 'Terms of Service | PlayHentai',
-    description: 'Terms of Service, acceptable use policies, age eligibility (18+), streaming licenses, and legal terms for PlayHentai.',
+    title: 'Terms of Service | HentaiKage',
+    description: 'Terms of Service, acceptable use policies, age eligibility (18+), streaming licenses, and legal terms for HentaiKage.',
     url: `${SITE_URL}/terms`,
-    siteName: 'PlayHentai',
+    siteName: 'HentaiKage',
     locale: 'en_US',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Terms of Service | PlayHentai',
-    description: 'Terms of Service, acceptable use policies, age eligibility (18+), streaming licenses, and legal terms for PlayHentai.',
+    title: 'Terms of Service | HentaiKage',
+    description: 'Terms of Service, acceptable use policies, age eligibility (18+), streaming licenses, and legal terms for HentaiKage.',
   },
 };
 
@@ -30,11 +30,11 @@ export default function TermsLayout({ children }: { children: React.ReactNode })
       '@context': 'https://schema.org',
       '@type': 'WebPage',
       'name': 'Terms of Service',
-      'description': 'Terms of Service and legal agreement governing user access and streaming on PlayHentai.',
+      'description': 'Terms of Service and legal agreement governing user access and streaming on HentaiKage.',
       'url': `${SITE_URL}/terms`,
       'publisher': {
         '@type': 'Organization',
-        'name': 'PlayHentai',
+        'name': 'HentaiKage',
         'url': SITE_URL,
       },
     },

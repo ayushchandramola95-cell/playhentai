@@ -6,7 +6,7 @@ export async function GET(request: Request) {
   const code = searchParams.get('code');
   const next = searchParams.get('next') || '/';
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || origin || 'https://playhentai.live';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || origin || 'https://hentaikage.cc';
 
   if (code) {
     const supabase = await createClient();

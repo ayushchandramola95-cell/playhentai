@@ -89,9 +89,9 @@ function ContactContent() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const mailtoSubject = encodeURIComponent(`[PlayHentai ${department.toUpperCase()} - ${priority.toUpperCase()}] ${name || 'User'}`);
+    const mailtoSubject = encodeURIComponent(`[HentaiKage ${department.toUpperCase()} - ${priority.toUpperCase()}] ${name || 'User'}`);
     const mailtoBody = encodeURIComponent(
-      `PLAYHENTAI SUPPORT INQUIRY\n` +
+      `HENTAIKAGE SUPPORT INQUIRY\n` +
       `==========================\n\n` +
       `Department: ${department}\n` +
       `Priority: ${priority}\n` +
@@ -101,7 +101,7 @@ function ContactContent() {
       `\nMessage Details:\n${message}\n`
     );
 
-    window.location.href = `mailto:support@playhentai.live?subject=${mailtoSubject}&body=${mailtoBody}`;
+    window.location.href = `mailto:support@hentaikage.cc?subject=${mailtoSubject}&body=${mailtoBody}`;
     setSubmitted(true);
   };
 
@@ -171,8 +171,8 @@ function ContactContent() {
                   <p className={styles.channelDesc}>
                     For playback buffering, video errors, account logins, watchlist bookmarks, and general suggestions.
                   </p>
-                  <a href="mailto:support@playhentai.live" className={styles.channelEmail}>
-                    support@playhentai.live &rarr;
+                  <a href="mailto:support@hentaikage.cc" className={styles.channelEmail}>
+                    support@hentaikage.cc &rarr;
                   </a>
                 </div>
 
@@ -225,8 +225,8 @@ function ContactContent() {
                   <p className={styles.channelDesc}>
                     For advertising networks, sponsored placements, platform syndication, and cross-promotions.
                   </p>
-                  <a href="mailto:ads@playhentai.live" className={styles.channelEmail}>
-                    ads@playhentai.live &rarr;
+                  <a href="mailto:ads@hentaikage.cc" className={styles.channelEmail}>
+                    ads@hentaikage.cc &rarr;
                   </a>
                 </div>
               </div>
@@ -339,7 +339,7 @@ function ContactContent() {
                   <label className={styles.formLabel}>Relevant Series / Episode URL (Optional)</label>
                   <input
                     type="url"
-                    placeholder="https://playhentai.live/watch/..."
+                    placeholder="https://hentaikage.cc/watch/..."
                     value={contentUrl}
                     onChange={(e) => setContentUrl(e.target.value)}
                     className={styles.formInput}
@@ -368,7 +368,7 @@ function ContactContent() {
                     <CheckCircle2 size={24} className={styles.successIcon} />
                     <div>
                       <strong>Your support message is ready!</strong> If your email client did not automatically launch,
-                      you can email us directly at <strong>support@playhentai.live</strong>.
+                      you can email us directly at <strong>support@hentaikage.cc</strong>.
                     </div>
                   </div>
                 )}
@@ -416,10 +416,10 @@ function ContactContent() {
                 <div className={styles.faqItem}>
                   <h4 className={styles.faqQuestion}>
                     <span className={styles.faqDot}>◆</span>
-                    <span>Is PlayHentai completely free to watch?</span>
+                    <span>Is HentaiKage completely free to watch?</span>
                   </h4>
                   <p className={styles.faqAnswer}>
-                    Yes! All episodes, genres, 1080p HD streams, and search features on PlayHentai are 100% free with
+                    Yes! All episodes, genres, 1080p HD streams, and search features on HentaiKage are 100% free with
                     unlimited access.
                   </p>
                 </div>
@@ -452,7 +452,7 @@ function ContactContent() {
 
               <div className={styles.communityGrid}>
                 <a
-                  href="https://discord.gg/playhentai"
+                  href="https://discord.gg/hentaikage"
                   target="_blank"
                   rel="noopener noreferrer"
                   className={styles.communityCard}

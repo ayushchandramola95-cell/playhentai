@@ -110,7 +110,7 @@ const getCachedSitemapData = unstable_cache(
 );
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://hentaikage.cc';
   
   // 1. Core Public Indexable Static Pages
   const staticPages = [

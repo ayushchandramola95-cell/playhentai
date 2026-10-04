@@ -67,11 +67,11 @@ export default function AdminSettingsPage() {
   const [defaultServer, setDefaultServer] = useState<string>('server_1');
 
   // Tab 3: Branding, Community & Analytics
-  const [siteName, setSiteName] = useState<string>('Play Hentai');
+  const [siteName, setSiteName] = useState<string>('HentaiKage');
   const [siteTagline, setSiteTagline] = useState<string>('Watch Hentai Anime Online Free in HD');
-  const [supportEmail, setSupportEmail] = useState<string>('support@playhentai.live');
-  const [telegramUrl, setTelegramUrl] = useState<string>('https://t.me/playhentaiofficial');
-  const [discordUrl, setDiscordUrl] = useState<string>('https://discord.gg/playhentai');
+  const [supportEmail, setSupportEmail] = useState<string>('support@hentaikage.cc');
+  const [telegramUrl, setTelegramUrl] = useState<string>('https://t.me/hentaikage');
+  const [discordUrl, setDiscordUrl] = useState<string>('https://discord.gg/hentaikage');
   const [adultSplashEnabled, setAdultSplashEnabled] = useState<boolean>(true);
   const [ga4MeasurementId, setGa4MeasurementId] = useState<string>('');
   const [cloudflareAnalyticsToken, setCloudflareAnalyticsToken] = useState<string>('');

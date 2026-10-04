@@ -15,7 +15,7 @@ interface StatusPageProps {
   searchParams: Promise<{ page?: string }>;
 }
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://hentaikage.cc';
 const PAGE_SIZE = 24;
 const VALID_STATUSES = ['completed', 'ongoing', 'upcoming'];
 
@@ -49,28 +49,28 @@ function getCapitalizedStatus(status: string): string {
 
 function getMetaDescription(status: string, count: number): string {
   if (status === 'completed') {
-    return `Browse ${count} completed hentai anime series available to stream in HD. Watch full series from beginning to end on PlayHentai.`;
+    return `Browse ${count} completed hentai anime series available to stream in HD. Watch full series from beginning to end on HentaiKage.`;
   }
   if (status === 'ongoing') {
-    return `Browse ${count} ongoing hentai anime series with the latest released episodes available to stream in HD on PlayHentai.`;
+    return `Browse ${count} ongoing hentai anime series with the latest released episodes available to stream in HD on HentaiKage.`;
   }
   if (status === 'upcoming') {
-    return `Browse ${count} upcoming hentai anime series, including announced releases and scheduled premiere dates on PlayHentai.`;
+    return `Browse ${count} upcoming hentai anime series, including announced releases and scheduled premiere dates on HentaiKage.`;
   }
-  return `Browse ${count} ${status} hentai anime series available to stream in HD on PlayHentai.`;
+  return `Browse ${count} ${status} hentai anime series available to stream in HD on HentaiKage.`;
 }
 
 function getIntroText(status: string, count: number): string {
   if (status === 'completed') {
-    return `Browse all ${count} completed hentai anime series available to stream in HD on PlayHentai. These series are fully finalized and ready for binge-watching from beginning to end.`;
+    return `Browse all ${count} completed hentai anime series available to stream in HD on HentaiKage. These series are fully finalized and ready for binge-watching from beginning to end.`;
   }
   if (status === 'ongoing') {
-    return `Browse all ${count} ongoing hentai anime series currently airing on PlayHentai. Keep up with the latest episode releases and stream airing titles in HD.`;
+    return `Browse all ${count} ongoing hentai anime series currently airing on HentaiKage. Keep up with the latest episode releases and stream airing titles in HD.`;
   }
   if (status === 'upcoming') {
-    return `Browse all ${count} upcoming hentai anime series scheduled for release soon. Check out announced releases, trailers, and scheduled premiere dates on PlayHentai.`;
+    return `Browse all ${count} upcoming hentai anime series scheduled for release soon. Check out announced releases, trailers, and scheduled premiere dates on HentaiKage.`;
   }
-  return `Explore our catalog of ${count} ${status} hentai anime series on PlayHentai.`;
+  return `Explore our catalog of ${count} ${status} hentai anime series on HentaiKage.`;
 }
 
 export async function generateMetadata({ params }: StatusPageProps): Promise<Metadata> {
@@ -78,20 +78,27 @@ export async function generateMetadata({ params }: StatusPageProps): Promise<Met
   const normalizedStatus = status.toLowerCase();
 
   if (!VALID_STATUSES.includes(normalizedStatus)) {
-    return { title: 'Status Not Found - PlayHentai' };
+    return { title: 'Status Not Found - HentaiKage' };
   }
 
   const seriesList = await getSeriesByStatus(normalizedStatus);
   const count = seriesList.length || 1;
 
   const capStatus = getCapitalizedStatus(normalizedStatus);
-  const title = `${capStatus} Hentai Anime | PlayHentai`;
+  const title = `${capStatus} Hentai Anime – Watch Free in HD | HentaiKage`;
   const description = getMetaDescription(normalizedStatus, count);
+  const keywords = [
+    `${normalizedStatus} hentai`,
+    `${normalizedStatus} hentai anime`,
+    `watch ${normalizedStatus} anime`,
+    'hentaikage'
+  ];
   const canonicalUrl = `${SITE_URL}/status/${normalizedStatus}`;
 
   return {
     title,
     description,
+    keywords,
     alternates: {
       canonical: `/status/${normalizedStatus}`,
     },

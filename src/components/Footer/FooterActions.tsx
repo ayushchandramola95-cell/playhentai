@@ -31,7 +31,7 @@ export default function FooterActions() {
         setDeferredPrompt(null);
       }
     } else {
-      alert('To install PlayHentai as a Web App (PWA), tap your browser menu (⋮ or Share icon) and select "Add to Home Screen" or "Install App".');
+      alert('To install HentaiKage as a Web App (PWA), tap your browser menu (⋮ or Share icon) and select "Add to Home Screen" or "Install App".');
     }
   };
 
@@ -39,15 +39,15 @@ export default function FooterActions() {
     if (typeof navigator !== 'undefined' && navigator.share) {
       try {
         await navigator.share({
-          title: 'Play Hentai – Free HD Anime Streaming',
+          title: 'HentaiKage – Free HD Anime Streaming',
           text: 'Watch uncensored hentai anime online free in HD.',
-          url: 'https://playhentai.live',
+          url: 'https://hentaikage.cc',
         });
       } catch (err) {
         // user cancelled
       }
     } else if (typeof navigator !== 'undefined' && navigator.clipboard) {
-      await navigator.clipboard.writeText('https://playhentai.live');
+      await navigator.clipboard.writeText('https://hentaikage.cc');
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
     }
@@ -59,7 +59,7 @@ export default function FooterActions() {
         type="button"
         onClick={handleInstallClick}
         className={styles.pwaBtn}
-        title="Install PlayHentai as a Home Screen App"
+        title="Install HentaiKage as a Home Screen App"
       >
         <Download size={14} className={styles.pwaIcon} />
         <span>Install Web App (PWA)</span>
@@ -81,7 +81,7 @@ export default function FooterActions() {
           type="button"
           onClick={handleShareClick}
           className={styles.shareBtn}
-          title="Share PlayHentai link"
+          title="Share HentaiKage link"
           aria-label="Share Site Link"
         >
           {copied ? <Check size={14} color="#4ade80" /> : <Share2 size={14} />}

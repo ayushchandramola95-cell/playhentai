@@ -1,25 +1,25 @@
 import type { Metadata } from 'next';
 import JsonLd from '@/components/JsonLd/JsonLd';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://hentaikage.cc';
 
 export const metadata: Metadata = {
-  title: 'Content Removal & Creator Takedowns | PlayHentai',
+  title: 'Content Removal & Creator Takedowns | HentaiKage',
   description: 'Expedited fast-track content removal for indie animators, doujin circles, and creators without formal statutory DMCA paperwork.',
   alternates: {
     canonical: '/content-removal',
   },
   openGraph: {
-    title: 'Content Removal & Creator Takedowns | PlayHentai',
+    title: 'Content Removal & Creator Takedowns | HentaiKage',
     description: 'Expedited fast-track content removal for indie animators, doujin circles, and creators without formal statutory DMCA paperwork.',
     url: `${SITE_URL}/content-removal`,
-    siteName: 'PlayHentai',
+    siteName: 'HentaiKage',
     locale: 'en_US',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Content Removal & Creator Takedowns | PlayHentai',
+    title: 'Content Removal & Creator Takedowns | HentaiKage',
     description: 'Expedited fast-track content removal for indie animators, doujin circles, and creators without formal statutory DMCA paperwork.',
   },
 };
@@ -34,7 +34,7 @@ export default function ContentRemovalLayout({ children }: { children: React.Rea
       'url': `${SITE_URL}/content-removal`,
       'publisher': {
         '@type': 'Organization',
-        'name': 'PlayHentai',
+        'name': 'HentaiKage',
         'url': SITE_URL,
       },
     },

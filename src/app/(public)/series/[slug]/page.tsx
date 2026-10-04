@@ -27,7 +27,7 @@ import { convertStudioNameToSlug } from '@/utils/studiosData';
 import { tagToSlug } from '@/utils/constants';
 import { getSeriesViewsMap } from '@/utils/views';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://hentaikage.cc';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ybtbdtgtryrxrhuchlkw.supabase.co';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_HLX-SCL51o2H254WH-gN0Q_HPpNwKo5';
@@ -89,44 +89,79 @@ export async function generateMetadata({ params }: SeriesPageProps): Promise<Met
   const resolvedParams = await params;
   const slug = resolvedParams.slug;
 
-  let title = 'Series Details | Play Hentai';
-  let description = 'View details and watch episodes of this series on Play Hentai.';
+  let title = 'Series Details | HentaiKage';
+  let description = 'View details and watch episodes of this series on HentaiKage.';
   let ogImage = '';
+  let rawSeriesName = '';
+  let seriesTags: string[] = [];
+  let altEnglish = '';
+  let altJapanese = '';
 
   try {
     const { dbSeries } = await getCachedSeriesDetails(slug);
     const data = dbSeries;
 
     if (data) {
+      rawSeriesName = data.title || '';
+      altEnglish = data.alt_title_english || '';
+      altJapanese = data.alt_title_japanese || '';
+      seriesTags = (data.tags || [])
+        .filter((t: string) => t.toLowerCase() !== 'featured' && !t.toLowerCase().startsWith('featured:'))
+        .slice(0, 4);
       ogImage = data.cover_image_key || data.poster_image_key || '';
       
-      // Dynamic Title System (Length-Sensitive & Em-Dash)
       const isUncensored = 
         data.content_rating?.toLowerCase() === 'uncensored' ||
         data.tags?.some((t: string) => t.toLowerCase() === 'uncensored');
-      const tagLabel = isUncensored ? 'Uncensored Hentai Anime' : 'Hentai Anime';
+      
+      const epCount = (data.seasons || []).reduce((acc: number, s: any) => {
+        if (s.is_published !== false && s.episodes) {
+          return acc + (s.episodes.filter((e: any) => e.is_published !== false).length || 0);
+        }
+        return acc;
+      }, 0);
+      const epCountStr = epCount > 0 ? `${epCount} episode${epCount > 1 ? 's' : ''}` : '';
+      const statusStr = data.status ? (data.status.charAt(0).toUpperCase() + data.status.slice(1)) : '';
+      const topGenres = (data.tags || [])
+        .filter((t: string) => t.toLowerCase() !== 'featured' && !t.toLowerCase().startsWith('featured:'))
+        .slice(0, 4)
+        .join(', ');
 
-      // Dynamic Title System (Strictly <= 60 chars for SEO / Bing compliance)
+      // High-Intent Search Pattern (Matches "Watch [Title] Hentai Online Free in HD")
       if (data.meta_title) {
         title = data.meta_title;
       } else {
-        const titleSuffix = isUncensored ? '(Uncensored, Eng Sub)' : '(Eng Sub)';
-        title = buildSeoTitle(`Watch ${data.title}`, titleSuffix);
+        const candidate1 = isUncensored
+          ? `Watch ${data.title} Uncensored Hentai Free in HD — HentaiKage`
+          : `Watch ${data.title} Hentai Online Free in HD — HentaiKage`;
+
+        if (candidate1.length <= 65) {
+          title = candidate1;
+        } else {
+          const candidate2 = isUncensored
+            ? `Watch ${data.title} Uncensored Hentai in HD — HentaiKage`
+            : `Watch ${data.title} Hentai Online in HD — HentaiKage`;
+          if (candidate2.length <= 65) {
+            title = candidate2;
+          } else {
+            title = buildSeoTitle(`Watch ${data.title}`, isUncensored ? '(Uncensored Hentai)' : '(Hentai Anime)');
+          }
+        }
       }
 
-      // Description Template (Strictly <= 155 chars for SEO / Bing compliance)
+      // Description Template (High Query Match, strictly <= 155 chars)
       if (data.meta_description) {
         description = buildSeoDescription(data.meta_description);
-      } else if (data.description && data.description.trim().length >= 20) {
-        const cleanSynopsis = data.description.trim().replace(/\s+/g, ' ');
-        const shortSynopsis = cleanSynopsis.length > 90 ? `${cleanSynopsis.slice(0, 85).trim()}...` : cleanSynopsis;
-        description = buildSeoDescription(`${shortSynopsis} Watch ${data.title} ${tagLabel} with English subtitles free on Play Hentai.`);
       } else {
-        if (isUncensored) {
-          description = buildSeoDescription(`Watch ${data.title} uncensored hentai anime with English subtitles in full HD free on Play Hentai.`);
-        } else {
-          description = buildSeoDescription(`Watch ${data.title} hentai anime with English subtitles in full HD free on Play Hentai.`);
+        const metaTokens = [epCountStr, statusStr].filter(Boolean).join(', ');
+        const genreToken = topGenres ? `Genres: ${topGenres}.` : '';
+        const baseLead = `Watch ${data.title} ${isUncensored ? 'uncensored ' : ''}hentai anime online free in 1080p HD with English subtitles.`;
+        
+        let candidateDesc = `${baseLead} ${metaTokens ? metaTokens + '. ' : ''}${genreToken} Stream on HentaiKage without ads.`;
+        if (candidateDesc.length > 155) {
+          candidateDesc = `${baseLead} ${metaTokens ? metaTokens + '. ' : ''}Stream all episodes online in HD.`;
         }
+        description = buildSeoDescription(candidateDesc, 155);
       }
     } else if (MOCK_SERIES_DETAILS[slug]) {
       const mock = MOCK_SERIES_DETAILS[slug];
@@ -135,20 +170,13 @@ export async function generateMetadata({ params }: SeriesPageProps): Promise<Met
       const isUncensored = 
         mock.content_rating?.toLowerCase() === 'uncensored' ||
         mock.tags?.some((t: string) => t.toLowerCase() === 'uncensored');
-      const tagLabel = isUncensored ? 'Uncensored Hentai Anime' : 'Hentai Anime';
+      
+      const candidate1 = isUncensored
+        ? `Watch ${mock.title} Uncensored Hentai Free in HD — HentaiKage`
+        : `Watch ${mock.title} Hentai Online Free in HD — HentaiKage`;
 
-      const titleSuffix = isUncensored ? '(Uncensored, Eng Sub)' : '(Eng Sub)';
-      title = buildSeoTitle(`Watch ${mock.title}`, titleSuffix);
-
-      if (mock.description && mock.description.trim().length >= 20) {
-        const cleanSynopsis = mock.description.trim().replace(/\s+/g, ' ');
-        const shortSynopsis = cleanSynopsis.length > 90 ? `${cleanSynopsis.slice(0, 85).trim()}...` : cleanSynopsis;
-        description = buildSeoDescription(`${shortSynopsis} Watch ${mock.title} ${tagLabel} with English subtitles free on Play Hentai.`);
-      } else if (isUncensored) {
-        description = buildSeoDescription(`Watch ${mock.title} uncensored hentai anime with English subtitles in full HD free on Play Hentai.`);
-      } else {
-        description = buildSeoDescription(`Watch ${mock.title} hentai anime with English subtitles in full HD free on Play Hentai.`);
-      }
+      title = candidate1.length <= 65 ? candidate1 : buildSeoTitle(`Watch ${mock.title}`, '(Hentai Anime)');
+      description = buildSeoDescription(`Watch ${mock.title} ${isUncensored ? 'uncensored ' : ''}hentai anime online free in 1080p HD with English subtitles. Stream all episodes on HentaiKage without ads.`, 155);
     }
   } catch (err) {
     console.error('Error generating metadata:', err);
@@ -171,6 +199,21 @@ export async function generateMetadata({ params }: SeriesPageProps): Promise<Met
   return {
     title,
     description,
+    keywords: [
+      (rawSeriesName || cleanTitle.replace(/^Watch\s+/i, '')).trim(),
+      `watch ${(rawSeriesName || cleanTitle.replace(/^Watch\s+/i, '')).trim()}`,
+      `${(rawSeriesName || cleanTitle.replace(/^Watch\s+/i, '')).trim()} hentai`,
+      `${(rawSeriesName || cleanTitle.replace(/^Watch\s+/i, '')).trim()} anime`,
+      `${(rawSeriesName || cleanTitle.replace(/^Watch\s+/i, '')).trim()} online free`,
+      `${(rawSeriesName || cleanTitle.replace(/^Watch\s+/i, '')).trim()} english subtitles`,
+      `${(rawSeriesName || cleanTitle.replace(/^Watch\s+/i, '')).trim()} episodes`,
+      ...(altEnglish && altEnglish !== rawSeriesName ? [altEnglish, `${altEnglish} hentai`] : []),
+      ...(altJapanese ? [altJapanese] : []),
+      ...seriesTags.map(t => `${rawSeriesName || cleanTitle} ${t}`),
+      'hentaikage',
+      'hentai kage',
+      'hentai anime stream'
+    ],
     alternates: {
       canonical: `/series/${slug}`,
     },
@@ -446,7 +489,7 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
       },
       {
         q: `Is ${activeSeries.title} uncensored?`,
-        a: `${activeSeries.title} is available in its ${activeSeries.content_rating || 'uncensored'} version. You can watch it in full high definition (1080p) online on PlayHentai.`
+        a: `${activeSeries.title} is available in its ${activeSeries.content_rating || 'uncensored'} version. You can watch it in full high definition (1080p) online on HentaiKage.`
       },
       {
         q: `How many episodes does ${activeSeries.title} have?`,
@@ -515,16 +558,19 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
       activeSeries.alt_title_romaji,
       activeSeries.alt_title_japanese
     ].filter(Boolean),
-    'description': activeSeries.description || `Watch ${activeSeries.title} online in HD on Play Hentai.`,
+    'description': activeSeries.description || `Watch ${activeSeries.title} online in HD on HentaiKage.`,
     'image': [
       getR2Url(activeSeries.cover_image_key || activeSeries.poster_image_key, 'cover'),
       `${SITE_URL}/hero-banner.png`
     ],
-    'genre': Array.isArray(activeSeries.tags) && activeSeries.tags.length > 0 ? activeSeries.tags[0] : 'Animation',
+    'genre': Array.isArray(activeSeries.tags) && activeSeries.tags.length > 0 
+      ? activeSeries.tags.filter((t: string) => t.toLowerCase() !== 'featured' && !t.toLowerCase().startsWith('featured:')).slice(0, 5) 
+      : ['Hentai', 'Animation'],
     'numberOfSeasons': activeSeries.seasons?.length || 1,
     'numberOfEpisodes': activeSeries.episode_count_override || currentEpCount,
     'datePublished': activeSeries.created_at || activeSeries.first_air_date || undefined,
-    'inLanguage': 'en',
+    'inLanguage': ['ja', 'en'],
+    'subtitleLanguage': 'en',
     'isFamilyFriendly': false,
     ...(tvEpisodesJsonLd.length > 0 ? { 'episode': tvEpisodesJsonLd } : {}),
     ...(rating !== null && voteCount > 0 ? {
@@ -543,7 +589,7 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
     } : {}),
     'publisher': {
       '@type': 'Organization',
-      'name': 'Play Hentai',
+      'name': 'HentaiKage',
       'url': SITE_URL,
       'logo': {
         '@type': 'ImageObject',
@@ -570,7 +616,7 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
     'contentUrl': posterFullUrl,
     'thumbnailUrl': getR2Url(activeSeries.poster_image_key || activeSeries.cover_image_key, 'thumbnail'),
     'name': `${activeSeries.title} Official Anime Poster`,
-    'caption': `Watch ${activeSeries.title} full episodes on Play Hentai`,
+    'caption': `Watch ${activeSeries.title} full episodes on HentaiKage`,
     'description': activeSeries.description || `Official high definition poster artwork for ${activeSeries.title} hentai anime series.`,
     'representativeOfPage': true,
   };
@@ -584,7 +630,7 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
       <div className={styles.bannerContainer}>
         <Image
           src={getR2Url(activeSeries.banner_image_key || activeSeries.cover_image_key || activeSeries.poster_image_key, 'banner')}
-          alt={`Watch ${activeSeries.title} Hentai Anime Online - Play Hentai`}
+          alt={`Watch ${activeSeries.title} Hentai Anime Online - HentaiKage`}
           fill
           priority
           fetchPriority="high"
@@ -612,7 +658,7 @@ export default async function SeriesDetailsPage({ params }: SeriesPageProps) {
             <div className={styles.posterWrapper}>
               <Image
                 src={getR2Url(activeSeries.poster_image_key || activeSeries.cover_image_key, 'poster')}
-                alt={`Watch ${activeSeries.title} Uncensored Hentai in Full HD - PlayHentai`}
+                alt={`Watch ${activeSeries.title} Uncensored Hentai in Full HD - HentaiKage`}
                 fill
                 sizes="(max-width: 640px) 140px, (max-width: 900px) 180px, 300px"
                 priority

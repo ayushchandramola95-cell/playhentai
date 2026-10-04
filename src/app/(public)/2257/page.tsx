@@ -82,7 +82,7 @@ export default function Exemption2257Page() {
             </div>
             <div className={styles.sectionContent}>
               <p>
-                The overwhelming majority of content on PlayHentai consists of <strong>animation, illustration, and computer-generated imagery</strong>. Such works do not depict real human beings and therefore <strong>do not fall within the definition of &ldquo;actual sexually explicit conduct&rdquo;</strong> by real persons under 18 U.S.C. § 2257 and 28 C.F.R. Part 75.
+                The overwhelming majority of content on HentaiKage consists of <strong>animation, illustration, and computer-generated imagery</strong>. Such works do not depict real human beings and therefore <strong>do not fall within the definition of &ldquo;actual sexually explicit conduct&rdquo;</strong> by real persons under 18 U.S.C. § 2257 and 28 C.F.R. Part 75.
               </p>
 
               <div className={styles.calloutBox}>
@@ -102,7 +102,7 @@ export default function Exemption2257Page() {
             </div>
             <div className={styles.sectionContent}>
               <p>
-                For any content that may depict real persons engaged in actual or simulated sexually explicit conduct, the original producers — not PlayHentai — are the custodians of records required by 18 U.S.C. § 2257. PlayHentai acts as a platform that links to and indexes third-party material and is not the &ldquo;producer&rdquo; of that content as defined by the statute.
+                For any content that may depict real persons engaged in actual or simulated sexually explicit conduct, the original producers — not HentaiKage — are the custodians of records required by 18 U.S.C. § 2257. HentaiKage acts as a platform that links to and indexes third-party material and is not the &ldquo;producer&rdquo; of that content as defined by the statute.
               </p>
               <p>
                 Where we license or host such material directly, records demonstrating that all performers were over 18 at the time of production are maintained by the respective producer and available to authorities in accordance with applicable law.
@@ -118,7 +118,7 @@ export default function Exemption2257Page() {
             </div>
             <div className={styles.sectionContent}>
               <p>
-                PlayHentai may contain links to, or embed, content hosted by third parties. With respect to such material, the obligations under § 2257 rest with the third-party producers and operators. We require our partners to comply with all applicable age-verification and record-keeping laws as a condition of inclusion.
+                HentaiKage may contain links to, or embed, content hosted by third parties. With respect to such material, the obligations under § 2257 rest with the third-party producers and operators. We require our partners to comply with all applicable age-verification and record-keeping laws as a condition of inclusion.
               </p>
             </div>
           </section>
@@ -151,8 +151,8 @@ export default function Exemption2257Page() {
                     <Scale size={15} className={styles.roleIcon} />
                     <span>Compliance Officer</span>
                   </div>
-                  <a href="mailto:compliance@playhentai.live" className={styles.contactEmail}>
-                    compliance@playhentai.live
+                  <a href="mailto:compliance@hentaikage.cc" className={styles.contactEmail}>
+                    compliance@hentaikage.cc
                   </a>
                 </div>
 
@@ -161,8 +161,8 @@ export default function Exemption2257Page() {
                     <Mail size={15} className={styles.roleIcon} />
                     <span>Legal</span>
                   </div>
-                  <a href="mailto:legal@playhentai.live" className={styles.contactEmail}>
-                    legal@playhentai.live
+                  <a href="mailto:legal@hentaikage.cc" className={styles.contactEmail}>
+                    legal@hentaikage.cc
                   </a>
                 </div>
               </div>

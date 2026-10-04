@@ -285,7 +285,7 @@ export const getStudioDetails = unstable_cache(
           id: `st-${slug}`,
           name: matched,
           slug: slug,
-          bio: `${matched} is an animation production studio known for anime releases and series catalog on Play Hentai.`,
+          bio: `${matched} is an animation production studio known for anime releases and series catalog on HentaiKage.`,
           founded: 2012,
           country: 'Japan',
           logoChar: getStudioLogoChar(matched),

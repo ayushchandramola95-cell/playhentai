@@ -339,16 +339,16 @@ export default function HeroCarousel({ activeSeries, isDbEmpty, autoplaySpeed = 
               )}
             </div>
 
-            {/* Hero Main Title */}
-            <h1 className={styles.heroTitle}>
+            {/* Hero Main Title (H2 under page H1 to maintain semantic hierarchy) */}
+            <h2 className={styles.heroTitle}>
               <Link href={currentSeries.watchEpisodeUrl || `/series/${currentSeries.slug}`} title={currentSeries.title}>
                 {currentSeries.title}
               </Link>
-            </h1>
+            </h2>
 
             {/* Synopsis (2 lines clamped) */}
             <p className={styles.heroDescription}>
-              {currentSeries.description || 'Watch the latest episodes in high definition with English subtitles on PlayHentai.'}
+              {currentSeries.description || 'Watch the latest episodes in high definition with English subtitles on HentaiKage.'}
             </p>
 
             {/* Metadata Stats & Tags Row */}

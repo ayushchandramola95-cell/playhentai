@@ -5,7 +5,7 @@ import AdminSidebar from './AdminSidebar';
 import styles from './admin.module.css';
 
 export const metadata = {
-  title: 'Admin Console | PlayHentai',
+  title: 'Admin Console | HentaiKage',
   robots: {
     index: false,
     follow: false,

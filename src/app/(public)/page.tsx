@@ -41,25 +41,25 @@ const FEATURED_STUDIOS = [
   'Collaboration Works', 'White Bear', 'Studio Fantasia', 'Milky'
 ];
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://hentaikage.cc';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ybtbdtgtryrxrhuchlkw.supabase.co';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_HLX-SCL51o2H254WH-gN0Q_HPpNwKo5';
 const publicSupabaseClient = createSupabaseClient(supabaseUrl, supabaseAnonKey);
 
-const HOME_DESCRIPTION = 'Watch hentai anime online free in 1080p HD on Play Hentai. Stream uncensored series and episodes with English subtitles, new releases, and popular titles.';
+const HOME_DESCRIPTION = 'Watch free hentai anime online in 1080p HD with English subtitles. Stream uncensored episodes, 3D releases, and trending series on mobile & desktop without ads.';
 
 export const metadata = {
-  title: 'Play Hentai – Watch Free Hentai Anime Online in HD (Eng Sub)',
+  title: 'Watch Free Hentai Anime Online in 1080p HD (English Subtitles) — HentaiKage',
   description: HOME_DESCRIPTION,
   alternates: {
     canonical: '/',
   },
   openGraph: {
-    title: 'Play Hentai – Watch Free Hentai Anime Online in HD (Eng Sub)',
+    title: 'Watch Free Hentai Anime Online in 1080p HD (English Subtitles) — HentaiKage',
     description: HOME_DESCRIPTION,
     url: SITE_URL,
-    siteName: 'Play Hentai',
+    siteName: 'HentaiKage',
     locale: 'en_US',
     type: 'website' as const,
     images: [
@@ -67,14 +67,14 @@ export const metadata = {
         url: `${SITE_URL}/og-banner.png`,
         width: 1200,
         height: 630,
-        alt: 'Play Hentai – Watch Free Hentai Anime Online in HD (Eng Sub)',
+        alt: 'Watch Free Hentai Anime Online in 1080p HD (English Subtitles) — HentaiKage',
         type: 'image/png',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Play Hentai – Watch Free Hentai Anime Online in HD (Eng Sub)',
+    title: 'Watch Free Hentai Anime Online in 1080p HD (English Subtitles) — HentaiKage',
     description: HOME_DESCRIPTION,
     images: [`${SITE_URL}/og-banner.png`],
   },
@@ -344,7 +344,7 @@ export default async function HomePage() {
       const rawSynopsis = fullSeries?.description || seriesObj?.description || ep.description || '';
       const cleanSynopsis = rawSynopsis && rawSynopsis.trim().length > 0 
         ? rawSynopsis.trim() 
-        : 'Watch the latest uncensored episodes in crystal clear 1080p HD with verified English subtitles on PlayHentai.';
+        : 'Watch the latest uncensored episodes in crystal clear 1080p HD with verified English subtitles on HentaiKage.';
 
       return {
         id: ep.id,
@@ -676,7 +676,7 @@ export default async function HomePage() {
   const itemListJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
-    'name': 'Trending Hentai Series on Play Hentai',
+    'name': 'Trending Hentai Series on HentaiKage',
     'url': SITE_URL,
     'numberOfItems': trendingSeriesForSchema.length,
     'itemListElement': trendingSeriesForSchema.map((s: any, i: number) => ({
@@ -692,11 +692,11 @@ export default async function HomePage() {
   const brandImageJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'ImageObject',
-    'name': 'Play Hentai Official Banner',
+    'name': 'HentaiKage Official Banner',
     'contentUrl': `${SITE_URL}/og-banner.png`,
     'thumbnailUrl': `${SITE_URL}/hero-banner.png`,
     'url': `${SITE_URL}/`,
-    'caption': 'Play Hentai — Watch Hentai Anime Online Free in HD'
+    'caption': 'HentaiKage — Watch Hentai Anime Online Free in HD'
   };
 
   const faqJsonLd = {
@@ -705,10 +705,10 @@ export default async function HomePage() {
     'mainEntity': [
       {
         '@type': 'Question',
-        'name': 'What is Play Hentai and is it completely free?',
+        'name': 'What is HentaiKage and is it completely free?',
         'acceptedAnswer': {
           '@type': 'Answer',
-          'text': 'Play Hentai is a premier free adult animation and hentai streaming platform. You can stream full uncensored episodes and series in 1080p HD without paid subscriptions, paywalls, or intrusive popunder advertisements.'
+          'text': 'HentaiKage is a premier free adult animation and hentai streaming platform. You can stream full uncensored episodes and series in 1080p HD without paid subscriptions, paywalls, or intrusive popunder advertisements.'
         }
       },
       {
@@ -729,7 +729,7 @@ export default async function HomePage() {
       },
       {
         '@type': 'Question',
-        'name': 'How frequently is new hentai content added to Play Hentai?',
+        'name': 'How frequently is new hentai content added to HentaiKage?',
         'acceptedAnswer': {
           '@type': 'Answer',
           'text': 'Our streaming database updates daily with new episode uploads, trending releases, remastered classics, and upcoming series announcements.'
@@ -737,10 +737,10 @@ export default async function HomePage() {
       },
       {
         '@type': 'Question',
-        'name': 'Can I stream Play Hentai on mobile devices, tablets, and smart TVs?',
+        'name': 'Can I stream HentaiKage on mobile devices, tablets, and smart TVs?',
         'acceptedAnswer': {
           '@type': 'Answer',
-          'text': 'Yes. The Play Hentai HTML5 video player is fully responsive and optimized for ultra-smooth playback on mobile phones (iOS & Android), tablets, PCs, and smart TVs with zero ad interruptions.'
+          'text': 'Yes. The HentaiKage HTML5 video player is fully responsive and optimized for ultra-smooth playback on mobile phones (iOS & Android), tablets, PCs, and smart TVs with zero ad interruptions.'
         }
       }
     ]
@@ -749,7 +749,7 @@ export default async function HomePage() {
   const siteNavJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
-    'name': 'Play Hentai Navigation Sitelinks',
+    'name': 'HentaiKage Navigation Sitelinks',
     'itemListElement': [
       {
         '@type': 'SiteNavigationElement',
@@ -958,9 +958,9 @@ export default async function HomePage() {
       <JsonLd data={[itemListJsonLd, brandImageJsonLd, faqJsonLd, siteNavJsonLd]} />
 
       {/* Primary SEO H1 Heading Section */}
-      <section className={styles.seoHeroHeader} aria-label="Welcome to PlayHentai">
+      <section className={styles.seoHeroHeader} aria-label="Welcome to HentaiKage">
         <h1 className={styles.seoHeroTitle}>
-          <span className={styles.seoHeroBrand}>PLAY</span><span className={styles.seoHeroBrandGold}>HENTAI</span> — Watch Hentai Anime Online Free in HD
+          <span className={styles.seoHeroBrand}>HENTAI</span><span className={styles.seoHeroBrandGold}>KAGE</span> — Watch Hentai Anime Online Free in HD
         </h1>
         <p className={styles.seoHeroDescription}>
           Watch new and popular hentai videos in HD — stream full episodes, uncensored anime scenes, series, genres, and playlists updated daily.
@@ -988,7 +988,11 @@ export default async function HomePage() {
             const thumbUrl = getR2Url(ep.thumbnail, 'thumbnail');
             return (
               <div key={ep.id} className={`${styles.episodeCard} card-hover`}>
-                <Link href={watchUrl} className={styles.cardImageLink}>
+                <Link 
+                  href={watchUrl} 
+                  className={styles.cardImageLink}
+                  title={`Watch ${ep.fullTitle || ep.title} Episode ${ep.episode_number || ''} in 1080p HD (English Subtitles)`}
+                >
                   <div className={styles.cardImageWrapper}>
                     <Image
                       src={thumbUrl}
@@ -1245,15 +1249,15 @@ export default async function HomePage() {
           
           {/* Main Title and Expanded Intro Block */}
           <div className={styles.introContent} style={{ background: 'rgba(15, 15, 15, 0.65)', border: '1px solid rgba(245, 158, 11, 0.15)', boxShadow: '0 8px 32px rgba(245, 158, 11, 0.04)' }}>
-            <h2 className={styles.mainTitle}>Play Hentai — Hentai Anime &amp; Adult Animation</h2>
+            <h2 className={styles.mainTitle}>HentaiKage — Hentai Anime &amp; Adult Animation</h2>
             
             <p className={styles.introText}>
 
-              Welcome to <strong>Play Hentai</strong>, the premier online database and high-definition streaming platform for adult animation and hentai series. Our library catalogs an extensive range of premium uncensored hentai anime titles, ensuring you can discover legendary classics alongside the latest 3D CGI releases. We systematically organize our content by <Link href="/categories" style={{ color: '#f59e0b', textDecoration: 'underline' }}>genres</Link>, <Link href="/categories" style={{ color: '#f59e0b', textDecoration: 'underline' }}>tags</Link>, <Link href="/studios" style={{ color: '#f59e0b', textDecoration: 'underline' }}>production studios</Link>, and <Link href="/categories" style={{ color: '#f59e0b', textDecoration: 'underline' }}>release years</Link> to deliver a seamless, high-performance browsing experience.
+              Welcome to <strong>HentaiKage</strong>, the premier online database and high-definition streaming platform for adult animation and hentai series. Our library catalogs an extensive range of premium uncensored hentai anime titles, ensuring you can discover legendary classics alongside the latest 3D CGI releases. We systematically organize our content by <Link href="/categories" style={{ color: '#f59e0b', textDecoration: 'underline' }}>genres</Link>, <Link href="/categories" style={{ color: '#f59e0b', textDecoration: 'underline' }}>tags</Link>, <Link href="/studios" style={{ color: '#f59e0b', textDecoration: 'underline' }}>production studios</Link>, and <Link href="/categories" style={{ color: '#f59e0b', textDecoration: 'underline' }}>release years</Link> to deliver a seamless, high-performance browsing experience.
             </p>
             
             <p className={styles.introText}>
-              Every series profile on Play Hentai features detailed synopses, verified alternative titles (including Japanese Kanji characters and Romaji spellings), and aggregate community ratings. From there, you can access individual watch pages with our custom theater-mode HTML5 video player. Whether you prefer English subbed episodes, English dubbed releases, or raw uncensored animation, Play Hentai is fully optimized for speed, discoverability, and clean viewing.
+              Every series profile on HentaiKage features detailed synopses, verified alternative titles (including Japanese Kanji characters and Romaji spellings), and aggregate community ratings. From there, you can access individual watch pages with our custom theater-mode HTML5 video player. Whether you prefer English subbed episodes, English dubbed releases, or raw uncensored animation, HentaiKage is fully optimized for speed, discoverability, and clean viewing.
             </p>
 
             <p className={styles.introText} style={{ marginTop: '1.2rem', marginBottom: '0.8rem', fontWeight: 700, color: '#ffffff', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
@@ -1286,9 +1290,9 @@ export default async function HomePage() {
           <div className={styles.seoContentGrid}>
             
             <div className={styles.seoCard}>
-              <h3>What Is Play Hentai?</h3>
+              <h3>What Is HentaiKage?</h3>
               <p>
-                Play Hentai is a dedicated online database and streaming platform designed specifically for fans of adult animation and Japanese hentai series. Our goal is to provide a central, organized resource where users can explore comprehensive metadata, track active releases, and stream high-definition content in a clean, high-performance environment. Instead of simple link aggregates, we build rich series profiles that catalog everything from release history to studio details.
+                HentaiKage is a dedicated online database and streaming platform designed specifically for fans of adult animation and Japanese hentai series. Our goal is to provide a central, organized resource where users can explore comprehensive metadata, track active releases, and stream high-definition content in a clean, high-performance environment. Instead of simple link aggregates, we build rich series profiles that catalog everything from release history to studio details.
               </p>
             </div>
 
@@ -1302,14 +1306,14 @@ export default async function HomePage() {
             <div className={styles.seoCard}>
               <h3>Hentai Anime Series &amp; Episodes</h3>
               <p>
-                In adult animation, single shows are often split into multiple seasons or release formats. Play Hentai preserves this structure by maintaining a strict parent-child relationship between a series profile and its child episodes. When you visit a series page, you are presented with a complete overview of the show, including its global rating, total episode count, synopsis, and associated tags.
+                In adult animation, single shows are often split into multiple seasons or release formats. HentaiKage preserves this structure by maintaining a strict parent-child relationship between a series profile and its child episodes. When you visit a series page, you are presented with a complete overview of the show, including its global rating, total episode count, synopsis, and associated tags.
               </p>
             </div>
 
             <div className={styles.seoCard}>
               <h3>Find Anime by Alternative Titles</h3>
               <p>
-                Anime titles are frequently translated or romanized in multiple ways, making them difficult to track down. A single series might be known by its official Japanese Kanji name, its Romaji transliteration, or a literal English translation. Play Hentai solves this by archiving alternative titles for every series, helping you locate the correct page whether you search for a show's original Japanese title or its translated western counterpart.
+                Anime titles are frequently translated or romanized in multiple ways, making them difficult to track down. A single series might be known by its official Japanese Kanji name, its Romaji transliteration, or a literal English translation. HentaiKage solves this by archiving alternative titles for every series, helping you locate the correct page whether you search for a show's original Japanese title or its translated western counterpart.
               </p>
             </div>
 
@@ -1330,14 +1334,14 @@ export default async function HomePage() {
             <div className={styles.seoCard}>
               <h3>Trust, Safety, and Content Standards</h3>
               <p>
-                Play Hentai is committed to maintaining a safe, transparent, and compliant platform for adult audiences. All characters depicted in the animated works cataloged on our site are fictional and represented as 18 years of age or older. We maintain clear legal frameworks, including copyright DMCA policies, Terms of Service, and Privacy Policies.
+                HentaiKage is committed to maintaining a safe, transparent, and compliant platform for adult audiences. All characters depicted in the animated works cataloged on our site are fictional and represented as 18 years of age or older. We maintain clear legal frameworks, including copyright DMCA policies, Terms of Service, and Privacy Policies.
               </p>
             </div>
 
             <div className={styles.seoCard}>
               <h3>1080p Full HD &amp; Uncensored Quality</h3>
               <p>
-                Visual fidelity is paramount in adult animation. Play Hentai encodes and delivers video streams in native 1080p and 720p high-definition resolutions at 60 frames per second. For collectors of unedited content, our dedicated uncensored library preserves original animator drawings without pixelation, digital blur, or mosaic bars, ensuring a crystal-clear, true-to-source presentation.
+                Visual fidelity is paramount in adult animation. HentaiKage encodes and delivers video streams in native 1080p and 720p high-definition resolutions at 60 frames per second. For collectors of unedited content, our dedicated uncensored library preserves original animator drawings without pixelation, digital blur, or mosaic bars, ensuring a crystal-clear, true-to-source presentation.
               </p>
             </div>
 
@@ -1351,7 +1355,7 @@ export default async function HomePage() {
             <div className={styles.seoCard}>
               <h3>High-Performance HTML5 Player (Zero Ads)</h3>
               <p>
-                We believe your streaming sessions should be smooth, private, and uninterrupted. Unlike traditional streaming sites burdened with intrusive popunders, malware-prone redirects, and video prerolls, Play Hentai provides a 100% ad-free custom HTML5 video player. Enjoy lightning-fast buffering, keyboard shortcuts (Space to toggle play, arrows to scrub), theater mode, and responsive mobile playback across iOS, Android, and desktop.
+                We believe your streaming sessions should be smooth, private, and uninterrupted. Unlike traditional streaming sites burdened with intrusive popunders, malware-prone redirects, and video prerolls, HentaiKage provides a 100% ad-free custom HTML5 video player. Enjoy lightning-fast buffering, keyboard shortcuts (Space to toggle play, arrows to scrub), theater mode, and responsive mobile playback across iOS, Android, and desktop.
               </p>
             </div>
 
@@ -1366,11 +1370,11 @@ export default async function HomePage() {
             <div className={styles.faqList}>
               <details className={styles.faqItem} open>
                 <summary className={styles.faqQuestion}>
-                  <span>What is Play Hentai and is it completely free?</span>
+                  <span>What is HentaiKage and is it completely free?</span>
                   <span className={styles.faqIcon}>+</span>
                 </summary>
                 <p className={styles.faqAnswer}>
-                  Play Hentai is a premier free adult animation and hentai streaming platform. You can stream full uncensored episodes and series in 1080p HD without paid subscriptions, paywalls, or intrusive popunder advertisements.
+                  HentaiKage is a premier free adult animation and hentai streaming platform. You can stream full uncensored episodes and series in 1080p HD without paid subscriptions, paywalls, or intrusive popunder advertisements.
                 </p>
               </details>
 
@@ -1396,7 +1400,7 @@ export default async function HomePage() {
 
               <details className={styles.faqItem}>
                 <summary className={styles.faqQuestion}>
-                  <span>How frequently is new hentai content added to Play Hentai?</span>
+                  <span>How frequently is new hentai content added to HentaiKage?</span>
                   <span className={styles.faqIcon}>+</span>
                 </summary>
                 <p className={styles.faqAnswer}>
@@ -1406,11 +1410,11 @@ export default async function HomePage() {
 
               <details className={styles.faqItem}>
                 <summary className={styles.faqQuestion}>
-                  <span>Can I stream Play Hentai on mobile devices, tablets, and smart TVs?</span>
+                  <span>Can I stream HentaiKage on mobile devices, tablets, and smart TVs?</span>
                   <span className={styles.faqIcon}>+</span>
                 </summary>
                 <p className={styles.faqAnswer}>
-                  Yes. The Play Hentai HTML5 video player is fully responsive and optimized for ultra-smooth playback on mobile phones (iOS & Android), tablets, PCs, and smart TVs with zero ad interruptions.
+                  Yes. The HentaiKage HTML5 video player is fully responsive and optimized for ultra-smooth playback on mobile phones (iOS & Android), tablets, PCs, and smart TVs with zero ad interruptions.
                 </p>
               </details>
             </div>

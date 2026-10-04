@@ -37,7 +37,7 @@ export async function generateMetadata({ params, searchParams }: GenrePageProps)
     },
     openGraph: {
       ...metadata.openGraph,
-      url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live'}${canonicalPath}`
+      url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://hentaikage.cc'}${canonicalPath}`
     }
   };
 }

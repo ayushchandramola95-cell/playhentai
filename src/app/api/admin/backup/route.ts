@@ -79,7 +79,7 @@ export async function GET(request: Request) {
       return new NextResponse(csvContent, {
         headers: {
           'Content-Type': 'text/csv; charset=utf-8',
-          'Content-Disposition': `attachment; filename="playhentai_episodes_${dateFormatted}.csv"`,
+          'Content-Disposition': `attachment; filename="hentaikage_episodes_${dateFormatted}.csv"`,
         },
       });
     }
@@ -108,7 +108,7 @@ export async function GET(request: Request) {
       return new NextResponse(csvContent, {
         headers: {
           'Content-Type': 'text/csv; charset=utf-8',
-          'Content-Disposition': `attachment; filename="playhentai_series_${dateFormatted}.csv"`,
+          'Content-Disposition': `attachment; filename="hentaikage_series_${dateFormatted}.csv"`,
         },
       });
     }
@@ -118,7 +118,7 @@ export async function GET(request: Request) {
       version: '2.0',
       backupType: 'full_catalog_and_settings',
       exportedAt: timestamp,
-      siteName: 'Play Hentai',
+      siteName: 'HentaiKage',
       manifest: {
         seriesCount: seriesList.length,
         seasonsCount: seasonsList.length,
@@ -140,7 +140,7 @@ export async function GET(request: Request) {
     return new NextResponse(jsonString, {
       headers: {
         'Content-Type': 'application/json; charset=utf-8',
-        'Content-Disposition': `attachment; filename="playhentai_database_backup_${dateFormatted}.json"`,
+        'Content-Disposition': `attachment; filename="hentaikage_database_backup_${dateFormatted}.json"`,
       },
     });
   } catch (err: any) {

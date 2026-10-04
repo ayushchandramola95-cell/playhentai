@@ -108,7 +108,7 @@ export default function PrivacyPage() {
             </div>
             <p className={styles.pageSubtitle}>
               Your privacy is fundamental to our service. This Privacy Policy details the information we collect, how
-              we utilize and protect it, and the controls you have over your personal data at PlayHentai.
+              we utilize and protect it, and the controls you have over your personal data at HentaiKage.
             </p>
             <div className={styles.lastModifiedBadge}>
               <span>Last Modified: September 2026</span>
@@ -184,8 +184,8 @@ export default function PrivacyPage() {
                   <strong>Strict Underage Data Prohibition:</strong> We do not knowingly collect, solicit, or maintain
                   information from anyone under 18 years of age. If you believe a minor has provided us with personal
                   data, please contact{' '}
-                  <a href="mailto:privacy@playhentai.live" className={styles.crossLink}>
-                    privacy@playhentai.live
+                  <a href="mailto:privacy@hentaikage.cc" className={styles.crossLink}>
+                    privacy@hentaikage.cc
                   </a>{' '}
                   and we will permanently purge all associated records immediately.
                 </div>
@@ -255,7 +255,7 @@ export default function PrivacyPage() {
             </div>
             <div className={styles.sectionContent}>
               <p>
-                We share data strictly with trusted service providers who assist us in operating PlayHentai — including
+                We share data strictly with trusted service providers who assist us in operating HentaiKage — including
                 Cloudflare for global edge delivery, caching, and DDoS mitigation; secure cloud database hosting; and
                 contracted advertising networks. All service providers operate under binding data-processing agreements
                 that restrict data usage solely to authorized technical functions.
@@ -409,8 +409,8 @@ export default function PrivacyPage() {
                 <strong>How to Exercise Your Rights:</strong> You can clear your watch history, favorites, and playlists
                 directly inside your Account Settings. For a complete data export or permanent account purge, email our
                 privacy officers at{' '}
-                <a href="mailto:privacy@playhentai.live" className={styles.crossLink}>
-                  privacy@playhentai.live
+                <a href="mailto:privacy@hentaikage.cc" className={styles.crossLink}>
+                  privacy@hentaikage.cc
                 </a>
                 . We respond promptly within statutory timeframes and will never discriminate against you for exercising
                 your privacy rights.
@@ -436,8 +436,8 @@ export default function PrivacyPage() {
                     <ShieldCheck size={14} className={styles.roleIcon} />
                     <span>Privacy & Data Protection</span>
                   </div>
-                  <a href="mailto:privacy@playhentai.live" className={styles.contactEmail}>
-                    privacy@playhentai.live
+                  <a href="mailto:privacy@hentaikage.cc" className={styles.contactEmail}>
+                    privacy@hentaikage.cc
                   </a>
                   <p className={styles.contactDesc}>
                     For data access, account erasure requests, or statutory privacy inquiries.
@@ -449,8 +449,8 @@ export default function PrivacyPage() {
                     <Mail size={14} className={styles.roleIcon} />
                     <span>General Support</span>
                   </div>
-                  <a href="mailto:support@playhentai.live" className={styles.contactEmail}>
-                    support@playhentai.live
+                  <a href="mailto:support@hentaikage.cc" className={styles.contactEmail}>
+                    support@hentaikage.cc
                   </a>
                   <p className={styles.contactDesc}>
                     For account assistance, playback troubleshooting, or technical questions.

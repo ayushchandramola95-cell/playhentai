@@ -3,38 +3,38 @@ import { FAQ_DATA } from '@/utils/faqData';
 import JsonLd from '@/components/JsonLd/JsonLd';
 
 export const metadata = {
-  title: 'Frequently Asked Questions (FAQ) | PlayHentai',
-  description: 'Find comprehensive answers about 1080p HD streaming, uncensored releases, account settings, Chromecast casting, and 18+ age verification on PlayHentai.',
+  title: 'Frequently Asked Questions (FAQ) | HentaiKage',
+  description: 'Find comprehensive answers about 1080p HD streaming, uncensored releases, account settings, Chromecast casting, and 18+ age verification on HentaiKage.',
   alternates: {
     canonical: '/faq',
   },
   openGraph: {
-    title: 'Frequently Asked Questions (FAQ) | PlayHentai',
-    description: 'Find comprehensive answers about 1080p HD streaming, uncensored releases, account settings, Chromecast casting, and 18+ age verification on PlayHentai.',
-    url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live'}/faq`,
-    siteName: 'PlayHentai',
+    title: 'Frequently Asked Questions (FAQ) | HentaiKage',
+    description: 'Find comprehensive answers about 1080p HD streaming, uncensored releases, account settings, Chromecast casting, and 18+ age verification on HentaiKage.',
+    url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://hentaikage.cc'}/faq`,
+    siteName: 'HentaiKage',
     locale: 'en_US',
     type: 'website' as const,
     images: [
       {
-        url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live'}/og-banner.png`,
+        url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://hentaikage.cc'}/og-banner.png`,
         width: 1200,
         height: 630,
-        alt: 'PlayHentai FAQ',
+        alt: 'HentaiKage FAQ',
         type: 'image/png',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Frequently Asked Questions (FAQ) | PlayHentai',
-    description: 'Find comprehensive answers about 1080p HD streaming, uncensored releases, account settings, Chromecast casting, and 18+ age verification on PlayHentai.',
-    images: [`${process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live'}/og-banner.png`],
+    title: 'Frequently Asked Questions (FAQ) | HentaiKage',
+    description: 'Find comprehensive answers about 1080p HD streaming, uncensored releases, account settings, Chromecast casting, and 18+ age verification on HentaiKage.',
+    images: [`${process.env.NEXT_PUBLIC_SITE_URL || 'https://hentaikage.cc'}/og-banner.png`],
   },
 };
 
 export default function FAQPage() {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://hentaikage.cc';
 
   const faqJsonLd = {
     '@context': 'https://schema.org',

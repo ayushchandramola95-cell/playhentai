@@ -4,7 +4,7 @@ import { createClient } from '@supabase/supabase-js';
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  const host = 'playhentai.live';
+  const host = 'hentaikage.cc';
   const baseUrl = `https://${host}`;
   const key = '8f074d2b270a442e9fb05b0d6b9d62ab';
   const keyLocation = `${baseUrl}/8f074d2b270a442e9fb05b0d6b9d62ab.txt`;

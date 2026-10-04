@@ -133,7 +133,7 @@ export default function GenresDirectoryClient({ genres }: GenresDirectoryClientP
           <h1 className={styles.mainTitle}>Hentai Anime Genres Directory</h1>
         </div>
         <p className={styles.subtext}>
-          Browse visual categories, genres, and themes across the entire Play Hentai library. Explore complete catalogs for {genres.length}+ hentai anime genres with high-definition artwork.
+          Browse visual categories, genres, and themes across the entire HentaiKage library. Explore complete catalogs for {genres.length}+ hentai anime genres with high-definition artwork.
         </p>
       </div>
 
@@ -311,7 +311,7 @@ export default function GenresDirectoryClient({ genres }: GenresDirectoryClientP
         <div className={styles.seoCard}>
           <h2>Explore 100+ Hentai Anime Genres, Categories & Tropes</h2>
           <p>
-            Dive into the most comprehensive hentai anime genre library on the internet. Whether you crave sweet romance and wholesome Vanilla stories, heart-pounding 3D CGI spectacles, high-fantasy isekai adventures, or intense taboo subgenres, Play Hentai categorizes every series with precision.
+            Dive into the most comprehensive hentai anime genre library on the internet. Whether you crave sweet romance and wholesome Vanilla stories, heart-pounding 3D CGI spectacles, high-fantasy isekai adventures, or intense taboo subgenres, HentaiKage categorizes every series with precision.
           </p>
           <div className={styles.seoGrid}>
             <div className={styles.seoFeature}>

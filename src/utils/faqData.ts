@@ -37,9 +37,9 @@ export const FAQ_DATA: FAQItem[] = [
     id: 'stream-free',
     sectionId: 'streaming',
     category: 'Streaming & Playback',
-    question: 'Is PlayHentai completely free to use?',
+    question: 'Is HentaiKage completely free to use?',
     answer:
-      'Yes! All anime series, 1080p HD episodes, category hubs, and streaming features on PlayHentai are 100% free with unlimited access. No credit card, deposit, or subscription is ever required.',
+      'Yes! All anime series, 1080p HD episodes, category hubs, and streaming features on HentaiKage are 100% free with unlimited access. No credit card, deposit, or subscription is ever required.',
     highlights: ['Zero subscription fees', 'Unlimited 1080p HD video streaming', 'No hidden paywalls or credit cards'],
   },
   {
@@ -61,7 +61,7 @@ export const FAQ_DATA: FAQItem[] = [
     category: 'Streaming & Playback',
     question: 'What video resolutions and stream formats are supported?',
     answer:
-      'PlayHentai serves adaptive HLS video streams up to full 1080p HD 60fps quality. Our HTML5 video player dynamically adjusts streaming bitrate based on your local connection speed to eliminate buffering.',
+      'HentaiKage serves adaptive HLS video streams up to full 1080p HD 60fps quality. Our HTML5 video player dynamically adjusts streaming bitrate based on your local connection speed to eliminate buffering.',
     highlights: ['Full 1080p HD stream output', 'Adaptive bitrate streaming technology', 'Global Cloudflare edge CDN distribution'],
   },
   {
@@ -88,7 +88,7 @@ export const FAQ_DATA: FAQItem[] = [
     id: 'content-updates',
     sectionId: 'content',
     category: 'Uncensored & Content',
-    question: 'How frequently is new anime content added to PlayHentai?',
+    question: 'How frequently is new anime content added to HentaiKage?',
     answer:
       'Our catalog is updated daily! Newly released episodes, Blu-ray uncensored remasters, English-subtitled editions, and raw Japanese broadcasts are indexed as soon as they become available from official studios.',
     highlights: ['Daily series releases', 'Instant sitemap and search engine auto-sync', 'Subbed and original Japanese audio'],
@@ -97,7 +97,7 @@ export const FAQ_DATA: FAQItem[] = [
     id: 'content-studios',
     sectionId: 'content',
     category: 'Uncensored & Content',
-    question: 'Which animation studios are featured on PlayHentai?',
+    question: 'Which animation studios are featured on HentaiKage?',
     answer:
       'We host comprehensive catalogs from top animation studios including PoRO, Bunnywalker, Mary Jane, Studio Jack, A-1 Pictures, Studio Trigger, and independent 3D creators.',
     highlights: ['PoRO, Bunnywalker, Mary Jane & more', 'Studio profiles with complete release chronologies', 'Release years spanning 2000 to 2026'],
@@ -117,7 +117,7 @@ export const FAQ_DATA: FAQItem[] = [
     id: 'account-required',
     sectionId: 'account',
     category: 'Account & Watchlist',
-    question: 'Do I need an account to watch episodes on PlayHentai?',
+    question: 'Do I need an account to watch episodes on HentaiKage?',
     answer:
       'No account is required to stream any video on our site. You can browse anonymously as a guest with full access. However, creating a free account unlocks personalized features including saving titles to your Watchlist and tracking Watch History.',
     highlights: ['Instant guest viewing without login', 'Optional free profile creation', 'Cross-device Watchlist synchronization'],
@@ -146,9 +146,9 @@ export const FAQ_DATA: FAQItem[] = [
     id: 'devices-mobile',
     sectionId: 'devices',
     category: 'Mobile & Smart TV',
-    question: 'Can I watch PlayHentai on mobile devices or Smart TVs?',
+    question: 'Can I watch HentaiKage on mobile devices or Smart TVs?',
     answer:
-      'Yes! PlayHentai is fully responsive and optimized for mobile browsers (iOS Safari, Android Chrome), tablets, and Smart TVs. You can cast video streams using Apple AirPlay or Google Chromecast directly from the video player.',
+      'Yes! HentaiKage is fully responsive and optimized for mobile browsers (iOS Safari, Android Chrome), tablets, and Smart TVs. You can cast video streams using Apple AirPlay or Google Chromecast directly from the video player.',
     highlights: ['Native Apple AirPlay support', 'Google Chromecast casting', 'Touch-friendly mobile responsive layout'],
   },
   {
@@ -157,7 +157,7 @@ export const FAQ_DATA: FAQItem[] = [
     category: 'Mobile & Smart TV',
     question: 'Is there an app or home-screen shortcut available?',
     answer:
-      'Yes! PlayHentai is built as a Progressive Web App (PWA). On mobile, tap "Add to Home Screen" in your browser menu (or use the "Install Web App" button in our footer) for a clean, full-screen standalone app experience.',
+      'Yes! HentaiKage is built as a Progressive Web App (PWA). On mobile, tap "Add to Home Screen" in your browser menu (or use the "Install Web App" button in our footer) for a clean, full-screen standalone app experience.',
     highlights: ['Progressive Web App (PWA) support', 'One-tap home screen installation', 'Full-screen app viewing mode'],
   },
 
@@ -166,18 +166,18 @@ export const FAQ_DATA: FAQItem[] = [
     id: 'safety-age',
     sectionId: 'safety',
     category: 'Safety & Legal',
-    question: 'What is the age requirement to access PlayHentai?',
+    question: 'What is the age requirement to access HentaiKage?',
     answer:
-      'You must be at least 18 years of age (or the legal age of majority in your country or jurisdiction, whichever is higher) to access or view content on PlayHentai. We are officially labeled with the RTA (Restricted To Adults) meta tag.',
+      'You must be at least 18 years of age (or the legal age of majority in your country or jurisdiction, whichever is higher) to access or view content on HentaiKage. We are officially labeled with the RTA (Restricted To Adults) meta tag.',
     highlights: ['Strict 18+ age requirement', 'RTA (Restricted To Adults) certified tag', 'Compatible with parental filtering software'],
   },
   {
     id: 'safety-dmca',
     sectionId: 'safety',
     category: 'Safety & Legal',
-    question: 'How does PlayHentai handle copyright and DMCA takedowns?',
+    question: 'How does HentaiKage handle copyright and DMCA takedowns?',
     answer:
-      'PlayHentai adheres strictly to the Digital Millennium Copyright Act (17 U.S.C. § 512). Copyright holders can submit statutory takedown requests via our interactive DMCA Portal, which are processed expeditiously.',
+      'HentaiKage adheres strictly to the Digital Millennium Copyright Act (17 U.S.C. § 512). Copyright holders can submit statutory takedown requests via our interactive DMCA Portal, which are processed expeditiously.',
     highlights: ['Expedited DMCA notice processing (<24 hours)', 'Interactive statutory takedown form', 'Strict repeat infringer termination policy'],
   },
   {

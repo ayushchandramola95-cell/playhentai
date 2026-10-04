@@ -90,7 +90,7 @@ export default function DynamicWatchCTA({
         if (historyList.length === 0) {
           try {
             const localHist = JSON.parse(
-              localStorage.getItem('playhentai_guest_history') ||
+              localStorage.getItem('hentaikage_guest_history') ||
                 localStorage.getItem('user_history') ||
                 '[]'
             );

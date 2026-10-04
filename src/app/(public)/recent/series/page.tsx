@@ -11,21 +11,30 @@ import { getSiteSettings } from '@/utils/siteSettings';
 import JsonLd from '@/components/JsonLd/JsonLd';
 import styles from '../recent.module.css';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://hentaikage.cc';
 
 export const revalidate = 120;
 
 export const metadata = {
-  title: 'Recent Series | Play Hentai',
-  description: 'Browse the latest added series on Play Hentai, updated daily with high-definition streaming, English subtitles, and complete episode catalogs.',
+  title: 'New Hentai Anime Series – Watch Free in 1080p HD | HentaiKage',
+  description: 'Browse the newest added hentai anime series online free in full 1080p HD with English subtitles. Complete episode catalogs and new releases on HentaiKage.',
+  keywords: [
+    'new hentai series',
+    'recent hentai anime',
+    'latest hentai releases',
+    'watch new hentai',
+    'hentaikage',
+    'uncensored anime series',
+    'complete anime catalogs'
+  ],
   alternates: {
     canonical: '/recent/series',
   },
   openGraph: {
-    title: 'Recent Series | Play Hentai',
-    description: 'Browse the latest added series on Play Hentai, updated daily with high-definition streaming, English subtitles, and complete episode catalogs.',
+    title: 'New Hentai Anime Series – Watch Free in 1080p HD | HentaiKage',
+    description: 'Browse the newest added hentai anime series online free in full 1080p HD with English subtitles. Complete episode catalogs and new releases on HentaiKage.',
     url: `${SITE_URL}/recent/series`,
-    siteName: 'Play Hentai',
+    siteName: 'HentaiKage',
     locale: 'en_US',
     type: 'website',
     images: [
@@ -33,15 +42,15 @@ export const metadata = {
         url: `${SITE_URL}/hero-banner.png`,
         width: 1200,
         height: 630,
-        alt: 'Recent Series on Play Hentai',
+        alt: 'Recent Series on HentaiKage',
         type: 'image/png',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Recent Series | Play Hentai',
-    description: 'Browse the latest added series on Play Hentai, updated daily with high-definition streaming, English subtitles, and complete episode catalogs.',
+    title: 'New Hentai Anime Series – Watch Free in 1080p HD | HentaiKage',
+    description: 'Browse the newest added hentai anime series online free in full 1080p HD with English subtitles. Complete episode catalogs and new releases on HentaiKage.',
     images: [`${SITE_URL}/hero-banner.png`],
   },
 };
@@ -164,7 +173,7 @@ export default async function RecentSeriesPage({
   const itemListJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
-    'name': 'Latest Added Hentai Series on Play Hentai',
+    'name': 'Latest Added Hentai Series on HentaiKage',
     'url': `${SITE_URL}/recent/series`,
     'numberOfItems': currentSeries.length,
     'itemListElement': currentSeries.map((item: any, idx: number) => ({

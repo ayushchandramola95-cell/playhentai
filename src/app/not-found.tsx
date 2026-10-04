@@ -8,7 +8,7 @@ export default function NotFound() {
   return (
     <PublicLayout>
       <div className={styles.container}>
-        <title>Page Not Found | Play Hentai</title>
+        <title>Page Not Found | HentaiKage</title>
         <meta name="robots" content="noindex, follow" />
 
         <div className={styles.card}>

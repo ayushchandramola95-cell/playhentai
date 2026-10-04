@@ -233,12 +233,12 @@ export default function AdminSeriesPage() {
     if (title) {
       const isUnc = tagsInput.split(',').some(t => t.trim().toLowerCase() === 'uncensored');
       const titleSuffix = isUnc ? '(Uncensored, Eng Sub)' : '(Eng Sub)';
-      setMetaTitle(`${title} ${titleSuffix} | Play Hentai`);
+      setMetaTitle(`${title} ${titleSuffix} | HentaiKage`);
       if (description) {
         const cleanDesc = description.replace(/<[^>]*>?/gm, '').slice(0, 155).trim() + '...';
         setMetaDescription(cleanDesc);
       } else {
-        setMetaDescription(`Watch ${title} ${isUnc ? 'uncensored hentai anime with English subtitles' : 'hentai anime with English subtitles'} in full HD free on Play Hentai.`);
+        setMetaDescription(`Watch ${title} ${isUnc ? 'uncensored hentai anime with English subtitles' : 'hentai anime with English subtitles'} in full HD free on HentaiKage.`);
       }
     }
   };
@@ -880,12 +880,12 @@ export default function AdminSeriesPage() {
 
       // 3. Auto-fill SEO metadata
       if (item.title) {
-        setMetaTitle(`${item.title} - Watch English Sub HD | Play Hentai`);
+        setMetaTitle(`${item.title} - Watch English Sub HD | HentaiKage`);
         if (item.description) {
           const cleanDesc = item.description.replace(/<[^>]*>?/gm, '').slice(0, 155).trim() + '...';
           setMetaDescription(cleanDesc);
         } else {
-          setMetaDescription(`Watch ${item.title} with English subtitles in HD. Stream all available episodes on Play Hentai.`);
+          setMetaDescription(`Watch ${item.title} with English subtitles in HD. Stream all available episodes on HentaiKage.`);
         }
       }
 
@@ -2060,8 +2060,8 @@ export default function AdminSeriesPage() {
 
   const currentFormTags = tagsInput.split(',').map((t) => t.trim().toLowerCase());
   const isFormDubbed = currentFormTags.includes('dub') || currentFormTags.includes('dubbed');
-  const autoTitlePlaceholder = `${title || 'Series Title'} - Watch English Sub HD | PlayHentai`;
-  const autoDescriptionPlaceholder = `Watch ${title || 'Series Title'} with English subtitles in HD. Stream all available episodes, releases, and check out similar titles on PlayHentai.`;
+  const autoTitlePlaceholder = `${title || 'Series Title'} - Watch English Sub HD | HentaiKage`;
+  const autoDescriptionPlaceholder = `Watch ${title || 'Series Title'} with English subtitles in HD. Stream all available episodes, releases, and check out similar titles on HentaiKage.`;
 
   return (
     <div className={styles.panelCard}>
@@ -4212,7 +4212,7 @@ export default function AdminSeriesPage() {
                         </div>
                         <textarea
                           className={styles.textareaField}
-                          placeholder='[{"question": "Where can I watch?", "answer": "Stream in HD on Play Hentai"}]'
+                          placeholder='[{"question": "Where can I watch?", "answer": "Stream in HD on HentaiKage"}]'
                           value={faqOverrideInput}
                           onChange={(e) => setFaqOverrideInput(e.target.value)}
                           style={{ height: '70px', fontFamily: 'monospace', fontSize: '0.8rem' }}
@@ -4279,7 +4279,7 @@ export default function AdminSeriesPage() {
                           <div style={{ fontSize: '12px', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '2px' }}>
                             <span>🌐</span>
                             <span style={{ fontSize: '11px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                              https://playhentai.net/series/{slug || 'series-slug'}
+                              https://hentaikage.cc/series/{slug || 'series-slug'}
                             </span>
                           </div>
                           <div style={{ fontSize: '18px', color: '#58a6ff', lineHeight: '1.2', marginBottom: '4px', fontWeight: 600 }}>

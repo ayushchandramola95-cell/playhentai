@@ -9,7 +9,7 @@ import { getR2Url } from '@/utils/r2';
 import JsonLd from '../JsonLd/JsonLd';
 import styles from '@/app/(public)/collections/collections.module.css';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://hentaikage.cc';
 
 interface SeriesItem {
   id: string;
@@ -118,7 +118,7 @@ export default function CollectionsClient({ collections }: CollectionsClientProp
   const itemListJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
-    'name': `Curated Hentai Anime ${tabLabel} on Play Hentai`,
+    'name': `Curated Hentai Anime ${tabLabel} on HentaiKage`,
     'url': `${SITE_URL}${routePrefix}`,
     'itemListElement': filteredCollections.map((col, idx) => ({
       '@type': 'ListItem',
@@ -151,7 +151,7 @@ export default function CollectionsClient({ collections }: CollectionsClientProp
           <h1 className={styles.mainTitle}>Curated Hentai Playlists</h1>
         </div>
         <p className={styles.subtext}>
-          Explore curated hentai anime playlists organized by theme, genre, and popular series. Discover hand-picked collections on Play Hentai.
+          Explore curated hentai anime playlists organized by theme, genre, and popular series. Discover hand-picked collections on HentaiKage.
         </p>
       </div>
 

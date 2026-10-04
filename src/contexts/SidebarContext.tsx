@@ -21,7 +21,7 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('playhentai_sidebar_expanded');
+      const saved = localStorage.getItem('hentaikage_sidebar_expanded');
       if (saved !== null) {
         setIsExpanded(saved === 'true');
       }
@@ -34,7 +34,7 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
     setIsExpanded(prev => {
       const next = !prev;
       try {
-        localStorage.setItem('playhentai_sidebar_expanded', String(next));
+        localStorage.setItem('hentaikage_sidebar_expanded', String(next));
       } catch (e) {}
       return next;
     });

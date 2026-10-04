@@ -3,15 +3,15 @@ import { NextResponse } from 'next/server';
 export const dynamic = 'force-static';
 
 export async function GET() {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://hentaikage.cc';
 
   const opensearchXml = `<?xml version="1.0" encoding="UTF-8"?>
 <OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/"
                        xmlns:moz="http://www.mozilla.org/2006/browser/search/">
-  <ShortName>Play Hentai</ShortName>
-  <Description>Search anime series and episodes on Play Hentai</Description>
+  <ShortName>HentaiKage</ShortName>
+  <Description>Search anime series and episodes on HentaiKage</Description>
   <Tags>anime hentai streaming episodes series</Tags>
-  <Contact>contact@playhentai.live</Contact>
+  <Contact>contact@hentaikage.cc</Contact>
   <Url type="text/html" template="${baseUrl}/search?q={searchTerms}"/>
   <Image width="16" height="16" type="image/x-icon">${baseUrl}/favicon.ico</Image>
   <Image width="192" height="192" type="image/png">${baseUrl}/icon-192x192.png</Image>

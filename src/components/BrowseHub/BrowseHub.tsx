@@ -30,7 +30,7 @@ import SeriesCompactCard from '../SeriesCard/SeriesCompactCard';
 import JsonLd from '../JsonLd/JsonLd';
 import styles from './BrowseHub.module.css';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://hentaikage.cc';
 
 interface SeriesItem {
   id: string;
@@ -107,7 +107,7 @@ function BrowseHubContent({
   // Restore saved view mode preference
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('playhentai_browse_view_mode');
+      const saved = localStorage.getItem('hentaikage_browse_view_mode');
       if (saved === 'compact' || saved === 'grid') {
         setViewMode(saved);
       }
@@ -735,7 +735,7 @@ function BrowseHubContent({
                 type="button"
                 onClick={() => {
                   setViewMode('grid');
-                  try { localStorage.setItem('playhentai_browse_view_mode', 'grid'); } catch {}
+                  try { localStorage.setItem('hentaikage_browse_view_mode', 'grid'); } catch {}
                 }}
                 className={`${styles.viewModeBtn} ${viewMode === 'grid' ? styles.viewModeActive : ''}`}
                 aria-label="Grid View"
@@ -748,7 +748,7 @@ function BrowseHubContent({
                 type="button"
                 onClick={() => {
                   setViewMode('compact');
-                  try { localStorage.setItem('playhentai_browse_view_mode', 'compact'); } catch {}
+                  try { localStorage.setItem('hentaikage_browse_view_mode', 'compact'); } catch {}
                 }}
                 className={`${styles.viewModeBtn} ${viewMode === 'compact' ? styles.viewModeActive : ''}`}
                 aria-label="Compact View"

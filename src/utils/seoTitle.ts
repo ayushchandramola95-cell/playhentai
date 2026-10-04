@@ -7,7 +7,7 @@
 export function buildSeoTitle(
   mainText: string,
   suffix: string = '',
-  brand: string = 'Play Hentai',
+  brand: string = 'HentaiKage',
   maxLen: number = 60
 ): string {
   const brandSuffix = ` | ${brand}`;

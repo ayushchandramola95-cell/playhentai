@@ -69,7 +69,7 @@ const getCachedVideoSitemapEpisodes = unstable_cache(
 );
 
 export async function GET() {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://hentaikage.cc';
   
   let xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
@@ -127,8 +127,8 @@ export async function GET() {
         const rawVideoDescription = rawDesc && rawDesc.length >= 10
           ? rawDesc
           : seriesSynopsis
-            ? `${seriesSynopsis.length > 200 ? seriesSynopsis.slice(0, 195).trim() + '...' : seriesSynopsis} Watch ${seriesTitle} Episode ${ep.episode_number} in full HD online free on Play Hentai.`
-            : `Watch ${seriesTitle} Episode ${ep.episode_number} online in HD with English subtitles on Play Hentai. Free streaming anime episode with full player controls.`;
+            ? `${seriesSynopsis.length > 200 ? seriesSynopsis.slice(0, 195).trim() + '...' : seriesSynopsis} Watch ${seriesTitle} Episode ${ep.episode_number} in full HD online free on HentaiKage.`
+            : `Watch ${seriesTitle} Episode ${ep.episode_number} online in HD with English subtitles on HentaiKage. Free streaming anime episode with full player controls.`;
         const videoDescription = rawVideoDescription.length > 2048 ? `${rawVideoDescription.slice(0, 2045)}...` : rawVideoDescription;
 
         // 5. Video content MP4 URL (direct file URL)
@@ -196,7 +196,7 @@ export async function GET() {
       ${validTags.map((t: string) => `<video:tag>${escapeXml(t)}</video:tag>`).join('\n      ')}
       <video:category>Anime &amp; Animation</video:category>
       <video:family_friendly>no</video:family_friendly>
-      <video:uploader info="${escapeXml(baseUrl)}">Play Hentai</video:uploader>
+      <video:uploader info="${escapeXml(baseUrl)}">HentaiKage</video:uploader>
       <video:live>no</video:live>
     </video:video>
   </url>`;

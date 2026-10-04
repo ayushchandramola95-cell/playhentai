@@ -35,7 +35,7 @@ export default function FavoriteToggle({
       if (typeof window !== 'undefined') {
         localStorage.setItem('user_favorites', JSON.stringify(favs));
         window.dispatchEvent(
-          new CustomEvent('playhentai_favorites_changed', {
+          new CustomEvent('hentaikage_favorites_changed', {
             detail: { seriesId, favs },
           })
         );
@@ -89,10 +89,10 @@ export default function FavoriteToggle({
       }
     };
 
-    window.addEventListener('playhentai_favorites_changed', handleSync);
+    window.addEventListener('hentaikage_favorites_changed', handleSync);
     window.addEventListener('storage', handleSync);
     return () => {
-      window.removeEventListener('playhentai_favorites_changed', handleSync);
+      window.removeEventListener('hentaikage_favorites_changed', handleSync);
       window.removeEventListener('storage', handleSync);
     };
   }, [seriesId, readLocalFavs]);

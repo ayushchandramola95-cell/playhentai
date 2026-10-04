@@ -19,13 +19,13 @@ interface UncensoredYearPageProps {
 
 export const revalidate = 120;
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://hentaikage.cc';
 
 export async function generateMetadata({ params, searchParams }: UncensoredYearPageProps): Promise<Metadata> {
   const { year } = await params;
   if (!/^\d{4}$/.test(year)) {
     return {
-      title: 'Not Found | Play Hentai',
+      title: 'Not Found | HentaiKage',
     };
   }
 
@@ -34,14 +34,23 @@ export async function generateMetadata({ params, searchParams }: UncensoredYearP
     ? `/uncensored/${year}?page=${page}`
     : `/uncensored/${year}`;
 
-  const title = `Best Uncensored Hentai Anime (${year}) — Watch Online | Play Hentai`;
-  const description = `Watch the best uncensored hentai anime series released in ${year} in full 1080p HD with English subtitles. Complete episodes, high bitrate, free on Play Hentai.`;
+  const title = `Uncensored Hentai (${year}) – Watch Free in HD | HentaiKage`;
+  const description = `Watch the best uncensored hentai anime series released in ${year} online free in full 1080p HD with English subtitles. Stream full episodes on HentaiKage.`;
+  const keywords = [
+    `uncensored hentai ${year}`,
+    `watch uncensored hentai ${year}`,
+    `best hentai ${year}`,
+    `uncensored anime ${year}`,
+    'hentaikage',
+    'hentai kage'
+  ];
 
   const ogApiUrl = `${SITE_URL}/api/og?title=${encodeURIComponent(`Uncensored Anime (${year})`)}&subtitle=${encodeURIComponent(`Watch the best uncensored anime releases from ${year}`)}&badge=${encodeURIComponent(year)}&image=${encodeURIComponent(`${SITE_URL}/hero-banner.png`)}`;
 
   return {
     title,
     description,
+    keywords,
     alternates: {
       canonical: canonicalPath,
     },
@@ -49,7 +58,7 @@ export async function generateMetadata({ params, searchParams }: UncensoredYearP
       title,
       description,
       url: `${SITE_URL}${canonicalPath}`,
-      siteName: 'Play Hentai',
+      siteName: 'HentaiKage',
       locale: 'en_US',
       type: 'website',
       images: [
@@ -100,7 +109,7 @@ export default async function UncensoredYearPage({ params, searchParams }: Uncen
 
   const canonicalPath = `/uncensored/${year}`;
   const h1Text = `Uncensored Hentai Anime (${year})`;
-  const introText = `Browse all uncensored hentai anime series released in ${year}. Stream high-definition 1080p episodes with English subtitles free on Play Hentai.`;
+  const introText = `Browse all uncensored hentai anime series released in ${year}. Stream high-definition 1080p episodes with English subtitles free on HentaiKage.`;
 
   const breadcrumbJsonLd = {
     '@context': 'https://schema.org',
@@ -192,7 +201,7 @@ export default async function UncensoredYearPage({ params, searchParams }: Uncen
         <div className={styles.seoCard}>
           <h2>Watch {year} Uncensored Hentai Anime Releases in Full HD</h2>
           <p>
-            Explore the complete lineup of {year} uncensored anime series and OVAs on Play Hentai. All titles in this collection are completely unpixelated, featuring authentic high-bitrate visual presentations, original Japanese voice tracks, and accurate English subtitles.
+            Explore the complete lineup of {year} uncensored anime series and OVAs on HentaiKage. All titles in this collection are completely unpixelated, featuring authentic high-bitrate visual presentations, original Japanese voice tracks, and accurate English subtitles.
           </p>
           <div className={styles.seoGrid}>
             <div className={styles.seoFeature}>

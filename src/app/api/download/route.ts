@@ -6,7 +6,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const videoUrl = searchParams.get('url');
-    const rawFilename = searchParams.get('filename') || 'PlayHentai_Episode_1080p.mp4';
+    const rawFilename = searchParams.get('filename') || 'HentaiKage_Episode_1080p.mp4';
 
     if (!videoUrl) {
       return NextResponse.json(
@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     const upstreamRes = await fetch(videoUrl, {
       headers: {
         'Accept': '*/*',
-        'User-Agent': 'PlayHentaiDownloader/1.0',
+        'User-Agent': 'HentaiKageDownloader/1.0',
       },
     });
 

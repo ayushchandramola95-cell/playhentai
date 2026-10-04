@@ -26,51 +26,51 @@ const geistMono = Geist_Mono({
 export async function generateMetadata(): Promise<Metadata> {
 
   return {
-    metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live'),
+    metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://hentaikage.cc'),
     title: {
-      default: "Play Hentai – Watch Free Hentai Anime Online in HD (Eng Sub)",
+      default: "Watch Free Hentai Anime Online in 1080p HD (English Subtitles) — HentaiKage",
       template: "%s"
     },
-    description: "Watch hentai anime online free in 1080p HD on Play Hentai. Stream uncensored series and episodes with English subtitles, new releases, and popular titles.",
+    description: "Watch free hentai anime online in 1080p HD with English subtitles. Stream uncensored episodes, 3D releases, and trending series on mobile & desktop without ads.",
     keywords: [
-      'playhentai',
-      'play hentai',
+      'hentaikage',
+      'hentai kage',
       'hentai',
       'uncensored hentai',
       'hentai anime',
       'watch hentai online free',
       '3d hentai',
       'hd hentai episodes',
-      'playhentai live',
+      'hentaikage live',
     ],
-    authors: [{ name: "Play Hentai Team" }],
-    creator: "Play Hentai",
-    publisher: "Play Hentai",
+    authors: [{ name: "HentaiKage Team" }],
+    creator: "HentaiKage",
+    publisher: "HentaiKage",
     openGraph: {
-      title: "Play Hentai – Watch Free Hentai Anime Online in HD (Eng Sub)",
-      description: "Watch hentai anime online free in 1080p HD on Play Hentai. Stream uncensored series and episodes with English subtitles, new releases, and popular titles.",
-      url: "https://playhentai.live",
-      siteName: "Play Hentai",
+      title: "Watch Free Hentai Anime Online in 1080p HD (English Subtitles) — HentaiKage",
+      description: "Watch free hentai anime online in 1080p HD with English subtitles. Stream uncensored episodes, 3D releases, and trending series on mobile & desktop without ads.",
+      url: "https://hentaikage.cc",
+      siteName: "HentaiKage",
       locale: "en_US",
       type: "website",
       images: [
         {
-          url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live'}/og-banner.png`,
+          url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://hentaikage.cc'}/og-banner.png`,
           width: 1200,
           height: 630,
-          alt: "Play Hentai – Watch Free Hentai Anime Online in HD (Eng Sub)",
+          alt: "Watch Free Hentai Anime Online in 1080p HD (English Subtitles) — HentaiKage",
           type: "image/png",
         },
       ],
     },
     twitter: {
       card: "summary_large_image",
-      title: "Play Hentai – Watch Free Hentai Anime Online in HD (Eng Sub)",
-      description: "Watch hentai anime online free in 1080p HD on Play Hentai. Stream uncensored series and episodes with English subtitles, new releases, and popular titles.",
-      images: [`${process.env.NEXT_PUBLIC_SITE_URL || 'https://playhentai.live'}/og-banner.png`],
+      title: "Watch Free Hentai Anime Online in 1080p HD (English Subtitles) — HentaiKage",
+      description: "Watch free hentai anime online in 1080p HD with English subtitles. Stream uncensored episodes, 3D releases, and trending series on mobile & desktop without ads.",
+      images: [`${process.env.NEXT_PUBLIC_SITE_URL || 'https://hentaikage.cc'}/og-banner.png`],
     },
     alternates: {
-      canonical: 'https://playhentai.live',
+      canonical: 'https://hentaikage.cc',
     },
     icons: {
       icon: [
@@ -82,10 +82,10 @@ export async function generateMetadata(): Promise<Metadata> {
       apple: '/apple-icon.png',
     },
     verification: {
-      ...(process.env.GOOGLE_SITE_VERIFICATION ? { google: process.env.GOOGLE_SITE_VERIFICATION } : {}),
+      google: process.env.GOOGLE_SITE_VERIFICATION || 'OBYD4YfuuRaZC-yIlQcKuaxrhzXpkkrSHmtfeE4qRZ0',
       yandex: 'fe39af37bfe31147',
       other: {
-        ...(process.env.GOOGLE_SITE_VERIFICATION ? { 'google-site-verification': process.env.GOOGLE_SITE_VERIFICATION } : {}),
+        'google-site-verification': process.env.GOOGLE_SITE_VERIFICATION || 'OBYD4YfuuRaZC-yIlQcKuaxrhzXpkkrSHmtfeE4qRZ0',
         ...(process.env.BING_SITE_VERIFICATION ? { 'msvalidate.01': process.env.BING_SITE_VERIFICATION } : {}),
         '6a97888e-site-verification': 'ae5b610b0f4d1db35865d663bf9fa0ee',
         'yandex-verification': 'fe39af37bfe31147',
@@ -132,26 +132,26 @@ export default function RootLayout({
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    '@id': 'https://playhentai.live/#website',
-    name: 'Play Hentai',
-    alternateName: ['Play Hentai', 'playhentai.live', 'Play-Hentai', 'PlayHentai Live'],
-    url: 'https://playhentai.live',
+    '@id': 'https://hentaikage.cc/#website',
+    name: 'HentaiKage',
+    alternateName: ['HentaiKage', 'hentaikage.cc', 'Hentai Kage', 'HentaiKage Live'],
+    url: 'https://hentaikage.cc',
     inLanguage: 'en-US',
-    description: 'Welcome to Play Hentai. Stream high quality uncensored hentai anime series online for free. Watch full HD episodes, trending playlists, and popular adult animation titles.',
+    description: 'Welcome to HentaiKage. Stream high quality uncensored hentai anime series online for free. Watch full HD episodes, trending playlists, and popular adult animation titles.',
     publisher: {
       '@type': 'Organization',
-      name: 'Play Hentai',
-      url: 'https://playhentai.live',
+      name: 'HentaiKage',
+      url: 'https://hentaikage.cc',
       logo: {
         '@type': 'ImageObject',
-        url: 'https://playhentai.live/icon.png',
+        url: 'https://hentaikage.cc/icon.png',
       },
     },
     potentialAction: {
       '@type': 'SearchAction',
       target: {
         '@type': 'EntryPoint',
-        urlTemplate: 'https://playhentai.live/search?q={search_term_string}',
+        urlTemplate: 'https://hentaikage.cc/search?q={search_term_string}',
       },
       'query-input': 'required name=search_term_string',
     },
@@ -160,10 +160,13 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`} suppressHydrationWarning>
       <head>
+        <link rel="preconnect" href="https://media.hentaikage.cc" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://media.hentaikage.cc" />
         <link rel="preconnect" href="https://media.playhentai.live" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://media.playhentai.live" />
-        <link rel="search" type="application/opensearchdescription+xml" href="/opensearch.xml" title="Play Hentai" />
-        <link rel="alternate" type="application/rss+xml" title="Play Hentai — Latest Anime Releases" href="/feed.xml" />
+        <link rel="search" type="application/opensearchdescription+xml" href="/opensearch.xml" title="HentaiKage" />
+        <link rel="alternate" type="application/rss+xml" title="HentaiKage — Latest Anime Releases" href="/feed.xml" />
+        <meta name="google-site-verification" content="OBYD4YfuuRaZC-yIlQcKuaxrhzXpkkrSHmtfeE4qRZ0" />
         <meta name="6a97888e-site-verification" content="ae5b610b0f4d1db35865d663bf9fa0ee" />
         <meta name="yandex-verification" content="fe39af37bfe31147" />
         {/* Optional Google Analytics 4 (GA4) Tag */}

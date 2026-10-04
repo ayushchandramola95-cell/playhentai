@@ -71,7 +71,7 @@ export default function DmcaPage() {
       `Date: ${new Date().toISOString()}`
     );
 
-    window.location.href = `mailto:support@playhentai.live?subject=${mailtoSubject}&body=${mailtoBody}`;
+    window.location.href = `mailto:support@hentaikage.cc?subject=${mailtoSubject}&body=${mailtoBody}`;
     setSubmitted(true);
   };
 
@@ -121,14 +121,14 @@ export default function DmcaPage() {
               <h2 className={styles.sectionTitle}>Our policy</h2>
             </div>
             <p className={styles.sectionSubtitle}>
-              Understanding PlayHentai&apos;s commitment to copyright protection and statutory compliance.
+              Understanding HentaiKage&apos;s commitment to copyright protection and statutory compliance.
             </p>
             <div className={styles.card}>
               <div className={styles.noticeAlert}>
-                <strong>Safe Harbor Statement:</strong> PlayHentai (playhentai.live) operates strictly as an indexing, cataloging, and media aggregation platform. None of the video files, animations, or multimedia content displayed on this website are hosted on, stored in, or transmitted directly from our web servers. All media streams are delivered by independent, non-affiliated third-party storage providers.
+                <strong>Safe Harbor Statement:</strong> HentaiKage (hentaikage.cc) operates strictly as an indexing, cataloging, and media aggregation platform. None of the video files, animations, or multimedia content displayed on this website are hosted on, stored in, or transmitted directly from our web servers. All media streams are delivered by independent, non-affiliated third-party storage providers.
               </div>
               <p>
-                Under 17 U.S.C. § 512, PlayHentai qualifies as a service provider and maintains a strict policy to expeditiously remove or disable access to any material claimed to be infringing upon receipt of a valid statutory notification.
+                Under 17 U.S.C. § 512, HentaiKage qualifies as a service provider and maintains a strict policy to expeditiously remove or disable access to any material claimed to be infringing upon receipt of a valid statutory notification.
               </p>
               <p>
                 We also maintain a policy for terminating the accounts of subscribers and account holders who repeatedly infringe intellectual property rights in appropriate circumstances.
@@ -157,7 +157,7 @@ export default function DmcaPage() {
                   Identification of the copyrighted work claimed to have been infringed, or a representative list of such works.
                 </li>
                 <li>
-                  Identification of the material that is claimed to be infringing, with specific URLs on PlayHentai allowing us to locate the content.
+                  Identification of the material that is claimed to be infringing, with specific URLs on HentaiKage allowing us to locate the content.
                 </li>
                 <li>
                   Information reasonably sufficient to permit us to contact you (full legal name, email address, telephone number, physical address).
@@ -179,15 +179,15 @@ export default function DmcaPage() {
               <h2 className={styles.sectionTitle}>Designated agent</h2>
             </div>
             <p className={styles.sectionSubtitle}>
-              Contact details for PlayHentai&apos;s registered copyright agent.
+              Contact details for HentaiKage&apos;s registered copyright agent.
             </p>
             <div className={styles.card}>
               <p>
                 Notifications of claimed infringement should be sent directly to our designated agent:
               </p>
               <div className={styles.agentInfoBox}>
-                <div><strong>Designated Agent:</strong> PlayHentai Copyright &amp; DMCA Compliance Dept.</div>
-                <div><strong>Email:</strong> <a href="mailto:support@playhentai.live?subject=DMCA%20Notice" className={styles.agentLink}>support@playhentai.live</a></div>
+                <div><strong>Designated Agent:</strong> HentaiKage Copyright &amp; DMCA Compliance Dept.</div>
+                <div><strong>Email:</strong> <a href="mailto:support@hentaikage.cc?subject=DMCA%20Notice" className={styles.agentLink}>support@hentaikage.cc</a></div>
                 <div><strong>Standard Response Time:</strong> 24–48 business hours</div>
                 <div><strong>Alternative Web Submission:</strong> You may use the direct form below in Section 04 for immediate processing.</div>
               </div>
@@ -212,7 +212,7 @@ export default function DmcaPage() {
                     <strong>Takedown Notice Generated Successfully!</strong>
                   </div>
                   <p style={{ margin: 0 }}>
-                    Your pre-formatted DMCA notice has been launched in your email client addressed to <strong>support@playhentai.live</strong>. If your email client did not automatically open, please send the details directly to <strong>support@playhentai.live</strong>.
+                    Your pre-formatted DMCA notice has been launched in your email client addressed to <strong>support@hentaikage.cc</strong>. If your email client did not automatically open, please send the details directly to <strong>support@hentaikage.cc</strong>.
                   </p>
                 </div>
               ) : (
@@ -291,7 +291,7 @@ export default function DmcaPage() {
                       required
                       value={contentUrls}
                       onChange={(e) => setContentUrls(e.target.value)}
-                      placeholder="https://playhentai.live/series/...&#10;One URL per line"
+                      placeholder="https://hentaikage.cc/series/...&#10;One URL per line"
                       className={styles.textarea}
                     />
                   </div>

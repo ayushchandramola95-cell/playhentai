@@ -84,7 +84,7 @@ export default function DownloadModal({
   if (!isOpen) return null;
 
   const cleanSeries = seriesTitle.replace(/[^\w\s-]/g, '').trim().replace(/\s+/g, '_');
-  const downloadFileName = `[PlayHentai]_${cleanSeries}_Ep${episode.episode_number}_1080p.mp4`;
+  const downloadFileName = `[HentaiKage]_${cleanSeries}_Ep${episode.episode_number}_1080p.mp4`;
   const downloadApiUrl = `/api/download?url=${encodeURIComponent(videoUrl)}&filename=${encodeURIComponent(downloadFileName)}`;
 
   // Estimate file size based on duration (approx 2.5MB per minute at 1080p high bitrate)

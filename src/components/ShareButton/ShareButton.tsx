@@ -26,7 +26,7 @@ export default function ShareButton({
     e.stopPropagation();
 
     const shareUrl = url || (typeof window !== 'undefined' ? window.location.href : '');
-    const shareText = text || `Watch ${title} on PlayHentai`;
+    const shareText = text || `Watch ${title} on HentaiKage`;
 
     // Try native Web Share API on mobile / supported devices
     if (typeof navigator !== 'undefined' && navigator.share && navigator.canShare && navigator.canShare({ url: shareUrl })) {

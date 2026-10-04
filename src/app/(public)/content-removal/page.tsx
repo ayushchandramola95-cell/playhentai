@@ -104,7 +104,7 @@ export default function ContentRemovalPage() {
       `Creator Affirmation: Confirmed authorized creator or representative.\n`
     );
 
-    window.location.href = `mailto:takedown@playhentai.live?subject=${mailtoSubject}&body=${mailtoBody}`;
+    window.location.href = `mailto:takedown@hentaikage.cc?subject=${mailtoSubject}&body=${mailtoBody}`;
     setSubmitted(true);
   };
 
@@ -156,7 +156,7 @@ export default function ContentRemovalPage() {
             </div>
             <div className={styles.sectionContent}>
               <p>
-                At PlayHentai, we deeply respect the Japanese animation community, independent doujin circles, and
+                At HentaiKage, we deeply respect the Japanese animation community, independent doujin circles, and
                 freelance 2D/3D animators. We recognize that independent creators often find formal legal DMCA affidavits
                 (which demand real legal names, physical addresses, and statutory perjury declarations) burdensome and
                 intimidating.
@@ -242,7 +242,7 @@ export default function ContentRemovalPage() {
                 <li className={styles.bulletItem}>
                   <span className={styles.bulletDot}>1.</span>
                   <span>
-                    <strong>Submit the Request:</strong> Complete the form below with the specific PlayHentai URL(s) and
+                    <strong>Submit the Request:</strong> Complete the form below with the specific HentaiKage URL(s) and
                     a link proving your creator identity (e.g. your public Pixiv, Twitter/X, or DLsite circle page).
                   </span>
                 </li>
@@ -332,11 +332,11 @@ export default function ContentRemovalPage() {
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>PlayHentai URL(s) to Remove *</label>
+                  <label className={styles.formLabel}>HentaiKage URL(s) to Remove *</label>
                   <textarea
                     required
                     rows={4}
-                    placeholder="https://playhentai.live/series/... or https://playhentai.live/watch/... (one per line)"
+                    placeholder="https://hentaikage.cc/series/... or https://hentaikage.cc/watch/... (one per line)"
                     value={contentUrls}
                     onChange={(e) => setContentUrls(e.target.value)}
                     className={styles.formTextarea}
@@ -378,7 +378,7 @@ export default function ContentRemovalPage() {
                     <CheckCircle2 size={24} className={styles.successIcon} />
                     <div>
                       <strong>Your request has been generated!</strong> If your email client did not automatically open,
-                      you can send your request directly to <strong>takedown@playhentai.live</strong>.
+                      you can send your request directly to <strong>takedown@hentaikage.cc</strong>.
                     </div>
                   </div>
                 )}
@@ -403,8 +403,8 @@ export default function ContentRemovalPage() {
                     <Clock size={14} className={styles.roleIcon} />
                     <span>Fast-Track Removal</span>
                   </div>
-                  <a href="mailto:takedown@playhentai.live" className={styles.contactEmail}>
-                    takedown@playhentai.live
+                  <a href="mailto:takedown@hentaikage.cc" className={styles.contactEmail}>
+                    takedown@hentaikage.cc
                   </a>
                   <p className={styles.contactDesc}>
                     Dedicated to indie creators, animators, and circle courtesy takedowns (response within 24 hours).
@@ -416,8 +416,8 @@ export default function ContentRemovalPage() {
                     <Scale size={14} className={styles.roleIcon} />
                     <span>Corporate DMCA Agent</span>
                   </div>
-                  <a href="mailto:legal@playhentai.live" className={styles.contactEmail}>
-                    legal@playhentai.live
+                  <a href="mailto:legal@hentaikage.cc" className={styles.contactEmail}>
+                    legal@hentaikage.cc
                   </a>
                   <p className={styles.contactDesc}>
                     Designated agent for formal statutory 17 U.S.C. § 512 copyright notices.

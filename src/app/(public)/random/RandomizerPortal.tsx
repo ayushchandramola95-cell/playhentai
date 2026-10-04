@@ -74,7 +74,7 @@ export default function RandomizerPortal({ seriesList }: RandomizerPortalProps) 
   // Load saved viewMode
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('playhentai_random_view_mode');
+      const saved = localStorage.getItem('hentaikage_random_view_mode');
       if (saved === 'grid' || saved === 'list') {
         setViewMode(saved);
       }
@@ -271,7 +271,7 @@ export default function RandomizerPortal({ seriesList }: RandomizerPortalProps) 
                 type="button"
                 onClick={() => {
                   setViewMode('grid');
-                  try { localStorage.setItem('playhentai_random_view_mode', 'grid'); } catch {}
+                  try { localStorage.setItem('hentaikage_random_view_mode', 'grid'); } catch {}
                 }}
                 className={`${styles.viewModeBtn} ${viewMode === 'grid' ? styles.viewModeActive : ''}`}
                 title="Grid View"
@@ -284,7 +284,7 @@ export default function RandomizerPortal({ seriesList }: RandomizerPortalProps) 
                 type="button"
                 onClick={() => {
                   setViewMode('list');
-                  try { localStorage.setItem('playhentai_random_view_mode', 'list'); } catch {}
+                  try { localStorage.setItem('hentaikage_random_view_mode', 'list'); } catch {}
                 }}
                 className={`${styles.viewModeBtn} ${viewMode === 'list' ? styles.viewModeActive : ''}`}
                 title="List View"
@@ -395,7 +395,7 @@ export default function RandomizerPortal({ seriesList }: RandomizerPortalProps) 
           <div className={styles.seoCard}>
             <h2>Discover Anime with the Random Hentai Generator</h2>
             <p>
-              Looking for something new to watch? The Play Hentai Random Generator allows you to instantly discover hidden gems, top-rated masterpieces, and uncensored classics across our entire catalog of high-definition hentai anime series with English subtitles.
+              Looking for something new to watch? The HentaiKage Random Generator allows you to instantly discover hidden gems, top-rated masterpieces, and uncensored classics across our entire catalog of high-definition hentai anime series with English subtitles.
             </p>
             <div className={styles.seoGrid}>
               <div className={styles.seoFeature}>

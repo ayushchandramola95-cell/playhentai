@@ -119,7 +119,7 @@ export default function FAQClient() {
             </div>
             <p className={styles.pageSubtitle}>
               Find instant answers regarding 1080p HD streaming, uncensored releases, account bookmarks, Smart TV
-              casting, and platform safety on PlayHentai.
+              casting, and platform safety on HentaiKage.
             </p>
             <div className={styles.lastModifiedBadge}>
               <Clock size={13} />
