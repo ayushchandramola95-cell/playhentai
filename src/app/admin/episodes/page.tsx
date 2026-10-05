@@ -379,7 +379,7 @@ export default function AdminEpisodesPage() {
   // Smart Sync Handlers: Step -> Count & Count -> Step (Uncapped)
   const handleStepChange = (newStep: number, mins = focusedMinutes, win = timeframeWindow) => {
     setSerialStepSec(newStep);
-    if (newStep > 0 && isAutoCountMode) {
+    if (newStep > 0) {
       const activeSpan = getActiveTimeframeDuration(mins, win);
       const calculatedCount = Math.max(1, Math.floor(activeSpan / newStep));
       setTargetOptionCount(calculatedCount);
@@ -387,10 +387,15 @@ export default function AdminEpisodesPage() {
   };
 
   const handleCountChange = (newCount: number, mins = focusedMinutes, win = timeframeWindow) => {
+    if (newCount === 9999) {
+      setIsAutoCountMode(false);
+      setTargetOptionCount(9999);
+      return;
+    }
     if (newCount === 0) {
       setIsAutoCountMode(true);
       const activeSpan = getActiveTimeframeDuration(mins, win);
-      const step = serialStepSec > 0 ? serialStepSec : 1.0;
+      const step = serialStepSec > 0 ? serialStepSec : 5.0;
       const calculatedCount = Math.max(1, Math.floor(activeSpan / step));
       setTargetOptionCount(calculatedCount);
       return;
@@ -439,19 +444,38 @@ export default function AdminEpisodesPage() {
             setSavingThumbStudio(true);
             setThumbStudioError(null);
             try {
-              const filename = `pasted-thumb-${Date.now()}.jpg`;
+              // Convert pasted image to WebP for maximum compression & consistency
+              const img = new Image();
+              const objectUrl = URL.createObjectURL(file);
+              img.src = objectUrl;
+              await new Promise((r) => { img.onload = r; });
+              const c = document.createElement('canvas');
+              c.width = img.naturalWidth || img.width || 1280;
+              c.height = img.naturalHeight || img.height || 720;
+              const ctx = c.getContext('2d');
+              let uploadBlob: Blob = file;
+              const finalMime = 'image/webp';
+              const finalExt = 'webp';
+              if (ctx) {
+                ctx.drawImage(img, 0, 0, c.width, c.height);
+                const webpDataUrl = c.toDataURL('image/webp', 0.95);
+                uploadBlob = dataURItoBlob(webpDataUrl);
+              }
+              URL.revokeObjectURL(objectUrl);
+
+              const filename = `pasted-thumb-${Date.now()}.${finalExt}`;
               const presignRes = await fetch('/api/admin/presign', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ filename, contentType: file.type || 'image/jpeg' })
+                body: JSON.stringify({ filename, contentType: finalMime })
               });
               const presignData = await presignRes.json();
               if (!presignRes.ok) throw new Error(presignData.error || 'Failed to get upload signature');
 
               const uploadRes = await fetch(presignData.url, {
                 method: 'PUT',
-                headers: { 'Content-Type': file.type || 'image/jpeg' },
-                body: file
+                headers: { 'Content-Type': finalMime },
+                body: uploadBlob
               });
               if (!uploadRes.ok) throw new Error('Failed to upload pasted image');
 
@@ -609,18 +633,18 @@ export default function AdminEpisodesPage() {
               return;
             }
             try {
-              const filename = `auto-thumb-${Date.now()}.jpg`;
+              const filename = `auto-thumb-${Date.now()}.webp`;
               const presignRes = await fetch('/api/admin/presign', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ filename, contentType: 'image/jpeg' })
+                body: JSON.stringify({ filename, contentType: 'image/webp' })
               });
               const presignData = await presignRes.json();
               if (presignRes.ok) {
                 const { url, key } = presignData;
                 const uploadRes = await fetch(url, {
                   method: 'PUT',
-                  headers: { 'Content-Type': 'image/jpeg' },
+                  headers: { 'Content-Type': 'image/webp' },
                   body: blob
                 });
                 if (uploadRes.ok) {
@@ -634,7 +658,7 @@ export default function AdminEpisodesPage() {
               setIsGeneratingThumbnail(false);
               if (!isRemote) URL.revokeObjectURL(videoUrl);
             }
-          }, 'image/jpeg', 0.95);
+          }, 'image/webp', 0.95);
         } catch (canvasErr) {
           console.error('SecurityError or canvas drawing failed:', canvasErr);
           setError('Could not generate thumbnail from remote video due to browser security restrictions. Please select the video file locally to extract frames.');
@@ -1914,7 +1938,7 @@ export default function AdminEpisodesPage() {
     setImageSaturation(100);
     setIsThumbModalOpen(true);
 
-    // Prioritize Local File if already selected in current session
+    // Prioritize Local File if already selected in current episode form session
     if (videoFile) {
       setLocalScrubFile(videoFile);
       setIsRemoteVideoLoaded(false);
@@ -1932,27 +1956,11 @@ export default function AdminEpisodesPage() {
       setTimeout(() => {
         generateBatchThumbnailsFromUrl(URL.createObjectURL(videoFile), []);
       }, 50);
-    } else if (ep.video_key) {
-      setLocalScrubFile(null);
-      setIsRemoteVideoLoaded(true);
-      const r2Url = getR2Url(ep.video_key, 'video');
-      inspectVideoMetadata(r2Url).then(meta => {
-        setDetectedVideoStats({
-          width: meta.width,
-          height: meta.height,
-          fps: meta.fps,
-          fpsLabel: meta.fpsLabel,
-          resolutionLabel: meta.resolutionLabel,
-          aspectRatio: meta.aspectRatio,
-          durationSec: meta.duration
-        });
-      });
-      setTimeout(() => {
-        generateBatchThumbnailsFromUrl(r2Url, []);
-      }, 50);
     } else {
+      // DO NOT automatically stream or generate from R2! Require user to choose file!
       setLocalScrubFile(null);
       setIsRemoteVideoLoaded(false);
+      setDetectedVideoStats(null);
     }
   };
 
@@ -1973,15 +1981,29 @@ export default function AdminEpisodesPage() {
     return 0.85;
   };
 
-  const downloadThumbnailFile = async (key: string, filename = 'thumbnail.jpg') => {
+  const downloadThumbnailFile = async (key: string, customFilename?: string) => {
     try {
+      const ext = key.toLowerCase().endsWith('.webp')
+        ? '.webp'
+        : key.toLowerCase().endsWith('.png')
+        ? '.png'
+        : key.toLowerCase().endsWith('.jpg') || key.toLowerCase().endsWith('.jpeg')
+        ? '.jpg'
+        : '.webp';
+
+      const cleanKey = key.split('/').pop()?.split('?')[0] || key;
+      const baseName = cleanKey.replace(/\.[^/.]+$/, '');
+      const finalFilename = customFilename
+        ? (customFilename.includes('.') ? customFilename.replace(/\.[^/.]+$/, ext) : `${customFilename}${ext}`)
+        : `${baseName}${ext}`;
+
       const url = getR2Url(key, 'thumbnail');
       const res = await fetch(url);
       const blob = await res.blob();
       const blobUrl = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = blobUrl;
-      a.download = filename;
+      a.download = finalFilename;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -2008,7 +2030,8 @@ export default function AdminEpisodesPage() {
     preset: 'smart' | '24fps' | '30fps' | '60fps' = fpsPreset,
     stepSec: number = serialStepSec,
     targetCpuMode: 'eco' | 'fast' = cpuMode,
-    reqWindow: 'full' | 'first25' | 'first50' | 'first75' | 'middle50' | 'last75' | 'last50' | 'last25' = timeframeWindow
+    reqWindow: 'full' | 'first25' | 'first50' | 'first75' | 'middle50' | 'last75' | 'last50' | 'last25' = timeframeWindow,
+    countOverride?: number
   ) => {
     cancelGenerationRef.current = false;
     setIsGeneratingBatch(true);
@@ -2074,10 +2097,15 @@ export default function AdminEpisodesPage() {
         ? selectedMinutes.length * 60 * windowFraction
         : trueDuration * windowFraction;
 
+      const activeOptionCount = countOverride !== undefined ? countOverride : targetOptionCount;
+
       if (stepSec > 0) {
         effectiveCount = Math.max(1, Math.floor(activeSpan / stepSec));
+      } else if (activeOptionCount === 9999) {
+        // Full Video Uncapped: step every 3 seconds across 100% of the video duration!
+        effectiveCount = Math.max(60, Math.floor(activeSpan / 3));
       } else {
-        effectiveCount = targetOptionCount || 60;
+        effectiveCount = activeOptionCount || 60;
       }
 
       setGenProgress({ current: 0, total: effectiveCount });
@@ -2331,6 +2359,18 @@ export default function AdminEpisodesPage() {
     setLocalScrubFile(file);
     setIsRemoteVideoLoaded(false);
     setThumbStudioError(null);
+    inspectVideoMetadata(file).then(meta => {
+      setDetectedVideoStats({
+        width: meta.width,
+        height: meta.height,
+        fps: meta.fps,
+        fpsLabel: meta.fpsLabel,
+        resolutionLabel: meta.resolutionLabel,
+        aspectRatio: meta.aspectRatio,
+        durationSec: meta.duration
+      });
+      setVideoDuration(meta.duration);
+    });
     const localUrl = URL.createObjectURL(file);
     generateBatchThumbnailsFromUrl(localUrl, focusedMinutes);
   };
@@ -4589,7 +4629,7 @@ export default function AdminEpisodesPage() {
                   onClick={() => {
                     if (localScrubFile) {
                       generateBatchThumbnailsFromUrl(URL.createObjectURL(localScrubFile), focusedMinutes);
-                    } else if (thumbModalEpisode?.video_key) {
+                    } else if (isRemoteVideoLoaded && thumbModalEpisode?.video_key) {
                       generateBatchThumbnailsFromUrl(getR2Url(thumbModalEpisode.video_key, 'video'), focusedMinutes);
                     }
                   }}
@@ -4709,7 +4749,7 @@ export default function AdminEpisodesPage() {
                                     type="button"
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      downloadThumbnailFile(key, `thumbnail-${key.slice(0, 8)}.jpg`);
+                                      downloadThumbnailFile(key);
                                     }}
                                     style={{ background: 'rgba(15, 23, 42, 0.85)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '50%', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', cursor: 'pointer', padding: 0 }}
                                     title="Download Image"
@@ -4742,9 +4782,22 @@ export default function AdminEpisodesPage() {
                               </div>
 
                               <div style={{ padding: '0.5rem 0.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#0e1220' }}>
-                                <span style={{ fontSize: '0.72rem', color: isActive ? '#10b981' : '#94a3b8', fontWeight: 700 }}>
-                                  {isActive ? '✓ Selected Active' : 'Click to Select'}
-                                </span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                  <span style={{
+                                    fontSize: '0.62rem',
+                                    padding: '0.12rem 0.35rem',
+                                    borderRadius: '4px',
+                                    background: key.toLowerCase().includes('.webp') ? 'rgba(16, 185, 129, 0.2)' : 'rgba(148, 163, 184, 0.15)',
+                                    color: key.toLowerCase().includes('.webp') ? '#6ee7b7' : '#cbd5e1',
+                                    fontWeight: 800,
+                                    border: key.toLowerCase().includes('.webp') ? '1px solid rgba(16, 185, 129, 0.35)' : '1px solid #334155'
+                                  }}>
+                                    {key.toLowerCase().includes('.webp') ? 'WEBP' : key.toLowerCase().includes('.png') ? 'PNG' : 'JPG'}
+                                  </span>
+                                  <span style={{ fontSize: '0.72rem', color: isActive ? '#10b981' : '#94a3b8', fontWeight: 700 }}>
+                                    {isActive ? '✓ Selected Active' : 'Click to Select'}
+                                  </span>
+                                </div>
                                 <ImageSize r2Key={key} />
                               </div>
                             </div>
@@ -4848,7 +4901,7 @@ export default function AdminEpisodesPage() {
                                   handleStepChange(serialStepSec);
                                   if (autoGenerateOnClick) {
                                     if (localScrubFile) generateBatchThumbnailsFromUrl(URL.createObjectURL(localScrubFile), []);
-                                    else if (thumbModalEpisode?.video_key) generateBatchThumbnailsFromUrl(getR2Url(thumbModalEpisode.video_key, 'video'), []);
+                                    else if (isRemoteVideoLoaded && thumbModalEpisode?.video_key) generateBatchThumbnailsFromUrl(getR2Url(thumbModalEpisode.video_key, 'video'), []);
                                   }
                                 }}
                                 className={`${styles.studioPill} ${focusedMinutes.length === 0 ? styles.studioPillActive : ''}`}
@@ -4875,7 +4928,7 @@ export default function AdminEpisodesPage() {
                                         handleStepChange(serialStepSec);
                                         if (autoGenerateOnClick) {
                                           if (localScrubFile) generateBatchThumbnailsFromUrl(URL.createObjectURL(localScrubFile), nextMins);
-                                          else if (thumbModalEpisode?.video_key) generateBatchThumbnailsFromUrl(getR2Url(thumbModalEpisode.video_key, 'video'), nextMins);
+                                          else if (isRemoteVideoLoaded && thumbModalEpisode?.video_key) generateBatchThumbnailsFromUrl(getR2Url(thumbModalEpisode.video_key, 'video'), nextMins);
                                         }
                                       }
                                     }}
@@ -4908,7 +4961,7 @@ export default function AdminEpisodesPage() {
                                   setSkipIntroLogos(e.target.checked);
                                   if (autoGenerateOnClick) {
                                     if (localScrubFile) generateBatchThumbnailsFromUrl(URL.createObjectURL(localScrubFile), focusedMinutes);
-                                    else if (thumbModalEpisode?.video_key) generateBatchThumbnailsFromUrl(getR2Url(thumbModalEpisode.video_key, 'video'), focusedMinutes);
+                                    else if (isRemoteVideoLoaded && thumbModalEpisode?.video_key) generateBatchThumbnailsFromUrl(getR2Url(thumbModalEpisode.video_key, 'video'), focusedMinutes);
                                   }
                                 }}
                                 style={{ cursor: 'pointer', accentColor: 'var(--primary)' }}
@@ -4936,18 +4989,16 @@ export default function AdminEpisodesPage() {
                                 🛑 Stop
                               </button>
                             ) : (
-                              !autoGenerateOnClick && (
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    if (localScrubFile) generateBatchThumbnailsFromUrl(URL.createObjectURL(localScrubFile), focusedMinutes);
-                                    else if (thumbModalEpisode?.video_key) generateBatchThumbnailsFromUrl(getR2Url(thumbModalEpisode.video_key, 'video'), focusedMinutes);
-                                  }}
-                                  style={{ background: 'var(--primary)', color: 'white', border: 'none', padding: '0.35rem 0.95rem', borderRadius: '8px', fontSize: '0.76rem', fontWeight: 800, cursor: 'pointer' }}
-                                >
-                                  ⚡ Generate Now
-                                </button>
-                              )
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (localScrubFile) generateBatchThumbnailsFromUrl(URL.createObjectURL(localScrubFile), focusedMinutes);
+                                  else if (isRemoteVideoLoaded && thumbModalEpisode?.video_key) generateBatchThumbnailsFromUrl(getR2Url(thumbModalEpisode.video_key, 'video'), focusedMinutes);
+                                }}
+                                style={{ background: 'var(--primary)', color: 'white', border: 'none', padding: '0.35rem 0.95rem', borderRadius: '8px', fontSize: '0.76rem', fontWeight: 800, cursor: 'pointer' }}
+                              >
+                                ⚡ Generate Now
+                              </button>
                             )}
                           </div>
                         </div>
@@ -4982,15 +5033,29 @@ export default function AdminEpisodesPage() {
                               <span style={{ fontSize: '0.76rem', color: '#94a3b8', fontWeight: 700 }}>Options:</span>
                               <select
                                 value={targetOptionCount}
-                                onChange={(e) => handleCountChange(parseInt(e.target.value))}
+                                onChange={(e) => {
+                                  const nextVal = parseInt(e.target.value);
+                                  handleCountChange(nextVal);
+                                  if (autoGenerateOnClick) {
+                                    if (localScrubFile) generateBatchThumbnailsFromUrl(URL.createObjectURL(localScrubFile), focusedMinutes, fpsPreset, serialStepSec, cpuMode, timeframeWindow, nextVal);
+                                    else if (isRemoteVideoLoaded && thumbModalEpisode?.video_key) generateBatchThumbnailsFromUrl(getR2Url(thumbModalEpisode.video_key, 'video'), focusedMinutes, fpsPreset, serialStepSec, cpuMode, timeframeWindow, nextVal);
+                                  }
+                                }}
                                 className={styles.selectField}
                                 style={{ padding: '0.25rem 0.55rem', fontSize: '0.76rem', background: '#141724', width: 'auto' }}
                               >
-                                <option value={12}>12 Previews</option>
-                                <option value={24}>24 Previews</option>
+                                <option value={60}>60 Previews (Standard)</option>
+                                <option value={120}>120 Previews (Dense)</option>
+                                <option value={240}>240 Previews (Deep)</option>
+                                <option value={480}>480 Previews (Extensive)</option>
+                                <option value={1000}>1,000 Previews (Ultra)</option>
+                                <option value={9999}>⚡ Full Video (All Frames / Uncapped)</option>
                                 <option value={36}>36 Previews</option>
-                                <option value={48}>48 Previews</option>
-                                <option value={60}>60 Previews</option>
+                                <option value={24}>24 Previews</option>
+                                <option value={12}>12 Previews</option>
+                                {![12, 24, 36, 60, 120, 240, 480, 1000, 9999].includes(targetOptionCount) && (
+                                  <option value={targetOptionCount}>{targetOptionCount} Previews (Custom)</option>
+                                )}
                               </select>
                             </div>
 
@@ -5005,7 +5070,7 @@ export default function AdminEpisodesPage() {
                                   handleStepChange(serialStepSec);
                                   if (autoGenerateOnClick) {
                                     if (localScrubFile) generateBatchThumbnailsFromUrl(URL.createObjectURL(localScrubFile), focusedMinutes, fpsPreset, serialStepSec, cpuMode, nextWindow);
-                                    else if (thumbModalEpisode?.video_key) generateBatchThumbnailsFromUrl(getR2Url(thumbModalEpisode.video_key, 'video'), focusedMinutes, fpsPreset, serialStepSec, cpuMode, nextWindow);
+                                    else if (isRemoteVideoLoaded && thumbModalEpisode?.video_key) generateBatchThumbnailsFromUrl(getR2Url(thumbModalEpisode.video_key, 'video'), focusedMinutes, fpsPreset, serialStepSec, cpuMode, nextWindow);
                                   }
                                 }}
                                 className={styles.selectField}
@@ -5030,7 +5095,7 @@ export default function AdminEpisodesPage() {
                                   handleStepChange(nextStep);
                                   if (autoGenerateOnClick) {
                                     if (localScrubFile) generateBatchThumbnailsFromUrl(URL.createObjectURL(localScrubFile), focusedMinutes, fpsPreset, nextStep);
-                                    else if (thumbModalEpisode?.video_key) generateBatchThumbnailsFromUrl(getR2Url(thumbModalEpisode.video_key, 'video'), focusedMinutes, fpsPreset, nextStep);
+                                    else if (isRemoteVideoLoaded && thumbModalEpisode?.video_key) generateBatchThumbnailsFromUrl(getR2Url(thumbModalEpisode.video_key, 'video'), focusedMinutes, fpsPreset, nextStep);
                                   }
                                 }}
                                 className={styles.selectField}
@@ -5057,7 +5122,7 @@ export default function AdminEpisodesPage() {
                                   setThumbResolution(nextRes);
                                   if (autoGenerateOnClick) {
                                     if (localScrubFile) generateBatchThumbnailsFromUrl(URL.createObjectURL(localScrubFile), focusedMinutes);
-                                    else if (thumbModalEpisode?.video_key) generateBatchThumbnailsFromUrl(getR2Url(thumbModalEpisode.video_key, 'video'), focusedMinutes);
+                                    else if (isRemoteVideoLoaded && thumbModalEpisode?.video_key) generateBatchThumbnailsFromUrl(getR2Url(thumbModalEpisode.video_key, 'video'), focusedMinutes);
                                   }
                                 }}
                                 className={styles.selectField}
@@ -5080,7 +5145,7 @@ export default function AdminEpisodesPage() {
                                   setThumbQualityMode(nextQ);
                                   if (autoGenerateOnClick) {
                                     if (localScrubFile) generateBatchThumbnailsFromUrl(URL.createObjectURL(localScrubFile), focusedMinutes);
-                                    else if (thumbModalEpisode?.video_key) generateBatchThumbnailsFromUrl(getR2Url(thumbModalEpisode.video_key, 'video'), focusedMinutes);
+                                    else if (isRemoteVideoLoaded && thumbModalEpisode?.video_key) generateBatchThumbnailsFromUrl(getR2Url(thumbModalEpisode.video_key, 'video'), focusedMinutes);
                                   }
                                 }}
                                 className={styles.selectField}
@@ -5103,7 +5168,7 @@ export default function AdminEpisodesPage() {
                                   setThumbImageFormat(nextFmt);
                                   if (autoGenerateOnClick) {
                                     if (localScrubFile) generateBatchThumbnailsFromUrl(URL.createObjectURL(localScrubFile), focusedMinutes);
-                                    else if (thumbModalEpisode?.video_key) generateBatchThumbnailsFromUrl(getR2Url(thumbModalEpisode.video_key, 'video'), focusedMinutes);
+                                    else if (isRemoteVideoLoaded && thumbModalEpisode?.video_key) generateBatchThumbnailsFromUrl(getR2Url(thumbModalEpisode.video_key, 'video'), focusedMinutes);
                                   }
                                 }}
                                 className={styles.selectField}
@@ -5148,8 +5213,12 @@ export default function AdminEpisodesPage() {
                               {/* eslint-disable-next-line @next/next/no-img-element */}
                               <img src={opt.dataUrl} alt={`Option ${idx}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
 
-                              <div style={{ position: 'absolute', bottom: '6px', left: '6px', background: '#0f121d', padding: '0.15rem 0.4rem', borderRadius: '4px', fontSize: '0.62rem', color: '#94a3b8', fontWeight: 700, border: '1px solid #23283b' }}>
-                                {opt.sizeKb} KB
+                              <div style={{ position: 'absolute', bottom: '6px', left: '6px', background: 'rgba(15, 18, 29, 0.92)', padding: '0.15rem 0.45rem', borderRadius: '4px', fontSize: '0.62rem', fontWeight: 700, border: '1px solid #23283b', display: 'flex', alignItems: 'center', gap: '0.35rem', backdropFilter: 'blur(4px)' }}>
+                                <span style={{ color: opt.dataUrl.startsWith('data:image/webp') ? '#10b981' : opt.dataUrl.startsWith('data:image/png') ? '#60a5fa' : '#f59e0b', fontWeight: 800, letterSpacing: '0.3px' }}>
+                                  {opt.dataUrl.startsWith('data:image/webp') ? 'WEBP' : opt.dataUrl.startsWith('data:image/png') ? 'PNG' : 'JPG'}
+                                </span>
+                                <span style={{ color: '#475569' }}>•</span>
+                                <span style={{ color: '#e2e8f0' }}>{opt.sizeKb} KB</span>
                               </div>
 
                               {opt.time !== undefined && (
@@ -5191,7 +5260,7 @@ export default function AdminEpisodesPage() {
                             </div>
                           ))}
 
-                          {isGeneratingBatch && Array.from({ length: Math.max(0, targetOptionCount - batchOptions.length) }).map((_, sIdx) => (
+                          {isGeneratingBatch && Array.from({ length: Math.min(24, Math.max(0, (targetOptionCount === 9999 ? 24 : targetOptionCount) - batchOptions.length)) }).map((_, sIdx) => (
                             <div key={`skel-${sIdx}`} className={styles.studioThumbCard} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#121522', border: '1px dashed #23283b' }}>
                               <div className={styles.loadingSpinner} style={{ width: '18px', height: '18px', border: '2px solid rgba(124, 58, 237, 0.2)', borderTopColor: 'var(--primary)' }} />
                             </div>
@@ -5602,7 +5671,7 @@ export default function AdminEpisodesPage() {
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
-                            downloadThumbnailFile(key, `thumbnail-${key.slice(0, 8)}.jpg`);
+                            downloadThumbnailFile(key);
                           }}
                           style={{ position: 'absolute', bottom: '3px', left: '3px', background: 'rgba(15, 23, 42, 0.85)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '50%', width: '18px', height: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', cursor: 'pointer', padding: 0 }}
                           title="Download Image File"
