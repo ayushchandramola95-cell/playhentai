@@ -147,7 +147,8 @@ export async function uploadFileWithMultipart(options: MultipartUploadOptions): 
         etaSeconds: 0,
         stage: 'error',
       });
-      reject(new Error('Network error during video upload. Please check your internet connection.'));
+      const origin = typeof window !== 'undefined' ? window.location.origin : '';
+      reject(new Error(`Storage network/CORS error. If uploading from ${origin || 'your domain'}, ensure this domain is added to Cloudflare R2 bucket CORS settings.`));
     };
 
     xhr.onabort = () => {

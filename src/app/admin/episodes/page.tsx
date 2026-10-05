@@ -298,13 +298,24 @@ export default function AdminEpisodesPage() {
   const [focusedMinutes, setFocusedMinutes] = useState<number[]>([]);
   const [excludedMinutes, setExcludedMinutes] = useState<number[]>([]);
   const [minuteInteractionMode, setMinuteInteractionMode] = useState<'focus' | 'exclude'>('focus');
-  const [autoGenerateOnClick, setAutoGenerateOnClick] = useState<boolean>(false);
+  const [autoGenerateOnClick, setAutoGenerateOnClick] = useState<boolean>(true);
   const [skipSubtitles, setSkipSubtitles] = useState<boolean>(false);
-  const [fpsPreset, setFpsPreset] = useState<'24fps' | '30fps' | '60fps' | 'smart'>('24fps');
+  const [skipIntroLogos, setSkipIntroLogos] = useState<boolean>(true);
+  const [fpsPreset, setFpsPreset] = useState<'24fps' | '30fps' | '60fps' | 'smart'>('smart');
   const [samplingMode, setSamplingMode] = useState<'serial' | 'random'>('serial');
-  const [serialStepSec, setSerialStepSec] = useState<number>(1.0);
+  const [serialStepSec, setSerialStepSec] = useState<number>(0);
   const [targetOptionCount, setTargetOptionCount] = useState<number>(60);
   const [isAutoCountMode, setIsAutoCountMode] = useState<boolean>(true);
+  const [detectedVideoStats, setDetectedVideoStats] = useState<{
+    width: number;
+    height: number;
+    fps: number;
+    fpsLabel: string;
+    resolutionLabel: string;
+    aspectRatio: string;
+    durationSec: number;
+  } | null>(null);
+  const [isAutoThumbnailGenerating, setIsAutoThumbnailGenerating] = useState<boolean>(false);
   const [timeframeWindow, setTimeframeWindow] = useState<'full' | 'first25' | 'first50' | 'first75' | 'middle50' | 'last75' | 'last50' | 'last25'>('full');
   const [genProgress, setGenProgress] = useState<{ current: number; total: number } | null>(null);
   const [scrubIntensity, setScrubIntensity] = useState<'frame' | 'fine' | 'jog' | 'turbo'>('frame');
@@ -409,7 +420,7 @@ export default function AdminEpisodesPage() {
   const [imageSaturation, setImageSaturation] = useState<number>(100);
   const [thumbResolution, setThumbResolution] = useState<'native' | '1080p' | '720p' | '4k'>('native');
   const [thumbQualityMode, setThumbQualityMode] = useState<'ultra' | 'max' | 'high' | 'standard'>('ultra');
-  const [thumbImageFormat, setThumbImageFormat] = useState<'image/jpeg' | 'image/webp' | 'image/png'>('image/jpeg');
+  const [thumbImageFormat, setThumbImageFormat] = useState<'image/jpeg' | 'image/webp' | 'image/png'>('image/webp');
 
   // Clipboard Paste Listener for Thumbnail Studio (Press Ctrl+V to instantly paste & upload)
   useEffect(() => {
@@ -1218,26 +1229,237 @@ export default function AdminEpisodesPage() {
     setReleaseDate(formatLocalDateToMidnight(d));
   };
 
-  const extractVideoDuration = (file: File): Promise<number> => {
+  const dataURItoBlob = (dataURI: string) => {
+    const byteString = atob(dataURI.split(',')[1]);
+    const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+    const ab = new ArrayBuffer(byteString.length);
+    const ia = new Uint8Array(ab);
+    for (let i = 0; i < byteString.length; i++) {
+      ia[i] = byteString.charCodeAt(i);
+    }
+    return new Blob([ab], { type: mimeString });
+  };
+
+  const inspectVideoMetadata = async (
+    videoSrcOrFile: string | File
+  ): Promise<{
+    duration: number;
+    width: number;
+    height: number;
+    fps: number;
+    fpsLabel: string;
+    resolutionLabel: string;
+    aspectRatio: string;
+  }> => {
     return new Promise((resolve) => {
-      const videoUrl = URL.createObjectURL(file);
+      const isFile = typeof videoSrcOrFile !== 'string';
+      const url = isFile ? URL.createObjectURL(videoSrcOrFile) : videoSrcOrFile;
       const video = document.createElement('video');
-      video.src = videoUrl;
-      video.preload = 'metadata';
       video.muted = true;
       video.playsInline = true;
+      video.preload = 'metadata';
+      video.crossOrigin = 'anonymous';
 
-      video.onloadedmetadata = () => {
-        const duration = Math.round(video.duration) || 1440;
-        URL.revokeObjectURL(videoUrl);
-        resolve(duration);
+      const cleanup = () => {
+        if (isFile) URL.revokeObjectURL(url);
+      };
+
+      video.onloadedmetadata = async () => {
+        const duration = Math.round(video.duration || 1440);
+        const width = video.videoWidth || 1920;
+        const height = video.videoHeight || 1080;
+
+        let resolutionLabel = '1080p Full HD';
+        if (height >= 2160 || width >= 3840) resolutionLabel = '4K Ultra HD';
+        else if (height >= 1440 || width >= 2560) resolutionLabel = '2K QHD';
+        else if (height >= 1080 || width >= 1920) resolutionLabel = '1080p Full HD';
+        else if (height >= 720 || width >= 1280) resolutionLabel = '720p HD';
+        else if (height > 0) resolutionLabel = `${height}p SD`;
+
+        const gcd = (a: number, b: number): number => (b === 0 ? a : gcd(b, a % b));
+        const divisor = gcd(width, height);
+        let aspectRatio = `${Math.round(width / divisor)}:${Math.round(height / divisor)}`;
+        const ratioVal = width / (height || 1);
+        if (Math.abs(ratioVal - 16 / 9) < 0.05) aspectRatio = '16:9';
+        else if (Math.abs(ratioVal - 4 / 3) < 0.05) aspectRatio = '4:3';
+        else if (Math.abs(ratioVal - 21 / 9) < 0.08) aspectRatio = '21:9';
+
+        let detectedFps = 23.976;
+        let fpsLabel = '23.98 FPS (Anime Standard)';
+
+        try {
+          if ('requestVideoFrameCallback' in video && typeof (video as any).requestVideoFrameCallback === 'function') {
+            video.currentTime = Math.min(60, duration * 0.1);
+            await new Promise<void>((rSeek) => {
+              const onSeeked = () => {
+                video.removeEventListener('seeked', onSeeked);
+                rSeek();
+              };
+              video.addEventListener('seeked', onSeeked, { once: true });
+            });
+
+            const frameTimes: number[] = [];
+            let playPromise: Promise<void> | null = null;
+            try {
+              playPromise = video.play();
+            } catch (_) {}
+
+            await new Promise<void>((rFrames) => {
+              let count = 0;
+              const callback = (_now: number, metadata: any) => {
+                if (metadata && metadata.mediaTime !== undefined) {
+                  frameTimes.push(metadata.mediaTime);
+                }
+                count++;
+                if (count >= 5 || frameTimes.length >= 4) {
+                  rFrames();
+                } else {
+                  (video as any).requestVideoFrameCallback(callback);
+                }
+              };
+              (video as any).requestVideoFrameCallback(callback);
+              setTimeout(rFrames, 250);
+            });
+
+            try {
+              video.pause();
+              if (playPromise) await playPromise.catch(() => {});
+            } catch (_) {}
+
+            if (frameTimes.length >= 2) {
+              const deltas: number[] = [];
+              for (let i = 1; i < frameTimes.length; i++) {
+                const diff = frameTimes[i] - frameTimes[i - 1];
+                if (diff > 0.005 && diff < 0.2) deltas.push(diff);
+              }
+              if (deltas.length > 0) {
+                const avgDelta = deltas.reduce((a, b) => a + b, 0) / deltas.length;
+                const calcFps = 1 / avgDelta;
+                if (Math.abs(calcFps - 24) < 1.5 || Math.abs(calcFps - 23.976) < 1.5) {
+                  detectedFps = 23.976;
+                  fpsLabel = '23.98 FPS (Anime Cinema)';
+                } else if (Math.abs(calcFps - 30) < 1.5 || Math.abs(calcFps - 29.97) < 1.5) {
+                  detectedFps = 29.97;
+                  fpsLabel = '29.97 FPS (TV Broadcast)';
+                } else if (Math.abs(calcFps - 60) < 2.5 || Math.abs(calcFps - 59.94) < 2.5) {
+                  detectedFps = 59.94;
+                  fpsLabel = '60 FPS (High Frame-Rate)';
+                } else {
+                  detectedFps = Math.round(calcFps * 10) / 10;
+                  fpsLabel = `${detectedFps} FPS`;
+                }
+              }
+            }
+          }
+        } catch (_) {}
+
+        cleanup();
+        resolve({
+          duration,
+          width,
+          height,
+          fps: detectedFps,
+          fpsLabel,
+          resolutionLabel,
+          aspectRatio,
+        });
       };
 
       video.onerror = () => {
-        URL.revokeObjectURL(videoUrl);
-        resolve(1440);
+        cleanup();
+        resolve({
+          duration: 1440,
+          width: 1920,
+          height: 1080,
+          fps: 23.976,
+          fpsLabel: '24 FPS (Default)',
+          resolutionLabel: '1080p Full HD',
+          aspectRatio: '16:9',
+        });
       };
+
+      video.src = url;
     });
+  };
+
+  const extractAndUploadDefaultWebpThumbnail = async (
+    videoFile: File
+  ): Promise<{ key: string; dataUrl: string; duration: number } | null> => {
+    try {
+      setIsAutoThumbnailGenerating(true);
+      const url = URL.createObjectURL(videoFile);
+      const video = document.createElement('video');
+      video.muted = true;
+      video.playsInline = true;
+      video.preload = 'auto';
+
+      await new Promise<void>((resolve, reject) => {
+        video.onloadedmetadata = () => resolve();
+        video.onerror = () => reject(new Error('Failed to load video metadata for auto thumbnail'));
+        video.src = url;
+      });
+
+      const duration = Math.round(video.duration || 1440);
+      const seekTarget = Math.max(30, Math.min(duration - 30, duration * 0.18));
+
+      await new Promise<void>((resolve) => {
+        const onSeeked = () => {
+          video.removeEventListener('seeked', onSeeked);
+          resolve();
+        };
+        video.addEventListener('seeked', onSeeked);
+        video.currentTime = seekTarget;
+      });
+
+      const width = video.videoWidth || 1920;
+      const height = video.videoHeight || 1080;
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d', { alpha: false });
+      if (!ctx) {
+        URL.revokeObjectURL(url);
+        return null;
+      }
+
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(video, 0, 0, width, height);
+
+      const dataUrl = canvas.toDataURL('image/webp', 0.95);
+      const blob = dataURItoBlob(dataUrl);
+      URL.revokeObjectURL(url);
+
+      const filename = `thumb-${Date.now()}-${Math.floor(Math.random() * 1000)}.webp`;
+      const presignRes = await fetch('/api/admin/presign', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename, contentType: 'image/webp' })
+      });
+
+      if (!presignRes.ok) throw new Error('Failed to get presigned URL for auto-generated thumbnail');
+      const { url: r2PutUrl, key } = await presignRes.json();
+
+      const uploadRes = await fetch(r2PutUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'image/webp' },
+        body: blob
+      });
+
+      if (!uploadRes.ok) throw new Error('Failed to upload auto-generated thumbnail to storage');
+
+      return { key, dataUrl, duration };
+    } catch (err) {
+      console.warn('Auto WebP thumbnail extraction skipped:', err);
+      return null;
+    } finally {
+      setIsAutoThumbnailGenerating(false);
+    }
+  };
+
+  const extractVideoDuration = async (file: File): Promise<number> => {
+    const meta = await inspectVideoMetadata(file);
+    return meta.duration;
   };
 
   const handleOpenBatchCreate = (preselectedSeriesId?: string, preselectedSeasonId?: string) => {
@@ -1444,13 +1666,19 @@ export default function AdminEpisodesPage() {
 
     for (const item of newItems) {
       try {
-        const duration = await extractVideoDuration(item.file);
+        const meta = await inspectVideoMetadata(item.file);
+        const thumbResult = await extractAndUploadDefaultWebpThumbnail(item.file);
         setBatches(prev => prev.map(b => b.id === activeBatchId ? {
           ...b,
-          files: b.files.map(bf => bf.id === item.id ? { ...bf, durationSeconds: duration, thumbnailKey: '', status: 'pending' } : bf)
+          files: b.files.map(bf => bf.id === item.id ? { 
+            ...bf, 
+            durationSeconds: meta.duration, 
+            thumbnailKey: thumbResult?.key || '', 
+            status: 'pending' 
+          } : bf)
         } : b));
       } catch (err) {
-        console.error('Error extracting video duration:', err);
+        console.error('Error extracting video duration and auto-thumbnail:', err);
       }
     }
   };
@@ -1669,18 +1897,7 @@ export default function AdminEpisodesPage() {
     }
   };
 
-  const dataURItoBlob = (dataURI: string) => {
-    const byteString = atob(dataURI.split(',')[1]);
-    const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
-    const ab = new ArrayBuffer(byteString.length);
-    const ia = new Uint8Array(ab);
-    for (let i = 0; i < byteString.length; i++) {
-      ia[i] = byteString.charCodeAt(i);
-    }
-    return new Blob([ab], { type: mimeString });
-  };
-
-  const handleOpenThumbnailModal = (ep: Episode) => {
+  const handleOpenThumbnailModal = async (ep: Episode) => {
     setThumbModalEpisode(ep);
     setThumbStudioActiveKey(ep.thumbnail_key || '');
     setThumbStudioSavedList(ep.thumbnail_options && ep.thumbnail_options.length > 0 ? ep.thumbnail_options : (ep.thumbnail_key ? [ep.thumbnail_key] : []));
@@ -1697,12 +1914,41 @@ export default function AdminEpisodesPage() {
     setImageSaturation(100);
     setIsThumbModalOpen(true);
 
-    // Prioritize Local File as First Source!
+    // Prioritize Local File if already selected in current session
     if (videoFile) {
       setLocalScrubFile(videoFile);
       setIsRemoteVideoLoaded(false);
+      inspectVideoMetadata(videoFile).then(meta => {
+        setDetectedVideoStats({
+          width: meta.width,
+          height: meta.height,
+          fps: meta.fps,
+          fpsLabel: meta.fpsLabel,
+          resolutionLabel: meta.resolutionLabel,
+          aspectRatio: meta.aspectRatio,
+          durationSec: meta.duration
+        });
+      });
       setTimeout(() => {
         generateBatchThumbnailsFromUrl(URL.createObjectURL(videoFile), []);
+      }, 50);
+    } else if (ep.video_key) {
+      setLocalScrubFile(null);
+      setIsRemoteVideoLoaded(true);
+      const r2Url = getR2Url(ep.video_key, 'video');
+      inspectVideoMetadata(r2Url).then(meta => {
+        setDetectedVideoStats({
+          width: meta.width,
+          height: meta.height,
+          fps: meta.fps,
+          fpsLabel: meta.fpsLabel,
+          resolutionLabel: meta.resolutionLabel,
+          aspectRatio: meta.aspectRatio,
+          durationSec: meta.duration
+        });
+      });
+      setTimeout(() => {
+        generateBatchThumbnailsFromUrl(r2Url, []);
       }, 50);
     } else {
       setLocalScrubFile(null);
@@ -1769,7 +2015,10 @@ export default function AdminEpisodesPage() {
     setBatchOptions([]);
     setThumbStudioError(null);
 
-    const fpsValue = preset === '30fps' ? 30 : preset === '60fps' ? 60 : 24;
+    let fpsValue = preset === '30fps' ? 30 : preset === '60fps' ? 60 : 24;
+    if (preset === 'smart' && detectedVideoStats?.fps) {
+      fpsValue = detectedVideoStats.fps;
+    }
     const FRAME_STEP = 1 / fpsValue;
 
     const isMinuteExcluded = (sec: number) => {
@@ -1796,7 +2045,7 @@ export default function AdminEpisodesPage() {
     // Explicitly tell Chromium/Edge that getImageData is called frequently to optimize buffer memory
     const ctx = canvas.getContext('2d', { willReadFrequently: true, alpha: false });
 
-    let effectiveCount = 60;
+    let effectiveCount = targetOptionCount || 60;
 
     try {
       // Wait for video metadata to load on GPU
@@ -1828,7 +2077,7 @@ export default function AdminEpisodesPage() {
       if (stepSec > 0) {
         effectiveCount = Math.max(1, Math.floor(activeSpan / stepSec));
       } else {
-        effectiveCount = preset === 'smart' ? 24 : 60;
+        effectiveCount = targetOptionCount || 60;
       }
 
       setGenProgress({ current: 0, total: effectiveCount });
@@ -1868,11 +2117,16 @@ export default function AdminEpisodesPage() {
 
         let seekTime = 0;
 
-        // Pure Uncapped Serial Stepping
+        // Pure Uncapped Serial Stepping or Smart Uniform Distribution
         if (selectedMinutes.length === 0) {
           // Full Video Stepping
           let winStart = 0;
           let winEnd = tempVideo.duration || 1440;
+
+          // Skip studio intro logo sequence (e.g. Queen Bee logos) and black screens
+          if (skipIntroLogos && (tempVideo.duration || 0) > 90) {
+            winStart = Math.max(35, (tempVideo.duration || 600) * 0.04);
+          }
 
           if (reqWindow === 'first25') winEnd = (tempVideo.duration || 1440) * 0.25;
           else if (reqWindow === 'first50') winEnd = (tempVideo.duration || 1440) * 0.50;
@@ -1890,6 +2144,7 @@ export default function AdminEpisodesPage() {
             }
             seekTime = serialTime;
           } else {
+            // Smart Uniform Distribution across entire episode!
             const denom = effectiveCount > 1 ? effectiveCount - 1 : 1;
             seekTime = winStart + (idx / denom) * activeWindowSpan;
           }
@@ -2044,13 +2299,13 @@ export default function AdminEpisodesPage() {
             const qualityFloat = getQualityFloat(thumbQualityMode);
             const dataUrl = thumbImageFormat === 'image/png'
               ? highResCanvas.toDataURL('image/png')
-              : highResCanvas.toDataURL(thumbImageFormat, qualityFloat);
+              : highResCanvas.toDataURL(thumbImageFormat || 'image/webp', qualityFloat);
             const sizeInBytes = Math.round((dataUrl.split(',')[1].length * 3) / 4);
             const sizeKb = Math.round((sizeInBytes / 1024) * 10) / 10;
             collected.push({ dataUrl, sizeKb, time: currentTime });
           } else {
             ctx.drawImage(tempVideo, 0, 0, canvas.width, canvas.height);
-            const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+            const dataUrl = canvas.toDataURL(thumbImageFormat || 'image/webp', 0.92);
             const sizeInBytes = Math.round((dataUrl.split(',')[1].length * 3) / 4);
             const sizeKb = Math.round((sizeInBytes / 1024) * 10) / 10;
             collected.push({ dataUrl, sizeKb, time: currentTime });
@@ -3918,13 +4173,78 @@ export default function AdminEpisodesPage() {
                     onFileSelect={async (file) => {
                       setVideoFile(file);
                       try {
-                        const dur = await extractVideoDuration(file);
-                        setDurationSeconds(dur);
+                        const meta = await inspectVideoMetadata(file);
+                        setDurationSeconds(meta.duration);
+                        setDetectedVideoStats({
+                          width: meta.width,
+                          height: meta.height,
+                          fps: meta.fps,
+                          fpsLabel: meta.fpsLabel,
+                          resolutionLabel: meta.resolutionLabel,
+                          aspectRatio: meta.aspectRatio,
+                          durationSec: meta.duration
+                        });
+
+                        // Automatically extract and upload default WebP thumbnail from the video if none exists
+                        if (!thumbnailKey) {
+                          const thumbResult = await extractAndUploadDefaultWebpThumbnail(file);
+                          if (thumbResult?.key) {
+                            setThumbnailKey(thumbResult.key);
+                            setSavedThumbnails((prev) => [thumbResult.key, ...prev.filter(k => k !== thumbResult.key)]);
+                            setSessionKeys((prev) => [...prev, thumbResult.key]);
+                          }
+                        }
                       } catch (err) {
-                        console.error('Error reading video duration:', err);
+                        console.error('Error analyzing video & generating auto thumbnail:', err);
                       }
                     }}
                   />
+                  {/* Telemetry and Auto-thumbnail status alert */}
+                  {(isAutoThumbnailGenerating || detectedVideoStats) && (
+                    <div style={{ marginTop: '0.5rem', background: '#121522', border: '1px solid #23283b', borderRadius: '8px', padding: '0.5rem 0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.74rem' }}>
+                        {isAutoThumbnailGenerating ? (
+                          <>
+                            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--primary)', animation: 'pulse 1.5s infinite' }} />
+                            <span style={{ color: '#c4b5fd', fontWeight: 700 }}>⚡ Analyzing video FPS & generating WebP thumbnail...</span>
+                          </>
+                        ) : detectedVideoStats ? (
+                          <>
+                            <span style={{ color: '#34d399', fontWeight: 800 }}>✓ Video Analyzed:</span>
+                            <span style={{ color: '#f8fafc', fontWeight: 700 }}>{detectedVideoStats.resolutionLabel} ({detectedVideoStats.width}×{detectedVideoStats.height})</span>
+                            <span style={{ color: '#64748b' }}>•</span>
+                            <span style={{ color: '#93c5fd', fontWeight: 700 }}>{detectedVideoStats.fpsLabel}</span>
+                            <span style={{ color: '#64748b' }}>•</span>
+                            <span style={{ color: '#fcd34d', fontWeight: 700 }}>WebP Thumbnail Auto-Set</span>
+                          </>
+                        ) : null}
+                      </div>
+                      {videoFile && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const mockEp: Episode = {
+                              id: editingId || 'temp-preview',
+                              season_id: formSeasonId || '',
+                              episode_number: episodeNumber,
+                              title: title || 'Episode',
+                              description: description || '',
+                              video_key: videoKey || '',
+                              thumbnail_key: thumbnailKey || '',
+                              duration_seconds: durationSeconds || 1440,
+                              release_date: releaseDate || '',
+                              is_published: isPublished,
+                              created_at: new Date().toISOString()
+                            };
+                            handleOpenThumbnailModal(mockEp);
+                          }}
+                          style={{ background: 'rgba(124, 58, 237, 0.2)', border: '1px solid rgba(124, 58, 237, 0.4)', color: '#c4b5fd', borderRadius: '6px', padding: '0.2rem 0.6rem', fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer' }}
+                        >
+                          🎨 Open Thumbnail Studio
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Duration & Thumbnail Area */}
@@ -4580,6 +4900,21 @@ export default function AdminEpisodesPage() {
                               />
                               <span>⚡ Auto-Generate</span>
                             </label>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.76rem', color: '#c4b5fd', cursor: 'pointer', fontWeight: 700 }} title="Skip opening studio logo animations (e.g. Queen Bee) and black screens">
+                              <input
+                                type="checkbox"
+                                checked={skipIntroLogos}
+                                onChange={(e) => {
+                                  setSkipIntroLogos(e.target.checked);
+                                  if (autoGenerateOnClick) {
+                                    if (localScrubFile) generateBatchThumbnailsFromUrl(URL.createObjectURL(localScrubFile), focusedMinutes);
+                                    else if (thumbModalEpisode?.video_key) generateBatchThumbnailsFromUrl(getR2Url(thumbModalEpisode.video_key, 'video'), focusedMinutes);
+                                  }
+                                }}
+                                style={{ cursor: 'pointer', accentColor: 'var(--primary)' }}
+                              />
+                              <span>🛡️ Skip Studio Logos (45s)</span>
+                            </label>
                             <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.76rem', color: '#94a3b8', cursor: 'pointer', fontWeight: 600 }} title="Skip frames with burned-in subtitles">
                               <input
                                 type="checkbox"
@@ -4616,6 +4951,28 @@ export default function AdminEpisodesPage() {
                             )}
                           </div>
                         </div>
+
+                        {/* Video Telemetry HUD Banner */}
+                        {detectedVideoStats && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', background: '#0a0d16', padding: '0.4rem 0.8rem', borderRadius: '8px', border: '1px solid #1e2438', marginTop: '0.3rem' }}>
+                            <span style={{ fontSize: '0.7rem', color: '#c4b5fd', fontWeight: 800 }}>⚡ Auto-Inspected Video:</span>
+                            <span style={{ fontSize: '0.7rem', padding: '0.15rem 0.45rem', borderRadius: '4px', background: 'rgba(124, 58, 237, 0.2)', color: '#d8b4fe', fontWeight: 700, border: '1px solid rgba(124, 58, 237, 0.35)' }}>
+                              📐 {detectedVideoStats.resolutionLabel} ({detectedVideoStats.width}×{detectedVideoStats.height})
+                            </span>
+                            <span style={{ fontSize: '0.7rem', padding: '0.15rem 0.45rem', borderRadius: '4px', background: 'rgba(59, 130, 246, 0.2)', color: '#93c5fd', fontWeight: 700, border: '1px solid rgba(59, 130, 246, 0.35)' }}>
+                              🎞️ {detectedVideoStats.fpsLabel}
+                            </span>
+                            <span style={{ fontSize: '0.7rem', padding: '0.15rem 0.45rem', borderRadius: '4px', background: 'rgba(16, 185, 129, 0.2)', color: '#6ee7b7', fontWeight: 700, border: '1px solid rgba(16, 185, 129, 0.35)' }}>
+                              📺 {detectedVideoStats.aspectRatio} Aspect
+                            </span>
+                            <span style={{ fontSize: '0.7rem', padding: '0.15rem 0.45rem', borderRadius: '4px', background: 'rgba(236, 72, 153, 0.2)', color: '#f472b6', fontWeight: 700, border: '1px solid rgba(236, 72, 153, 0.35)' }}>
+                              ⏱️ {formatVideoTime(detectedVideoStats.durationSec)}
+                            </span>
+                            <span style={{ fontSize: '0.7rem', padding: '0.15rem 0.45rem', borderRadius: '4px', background: 'rgba(245, 158, 11, 0.2)', color: '#fcd34d', fontWeight: 700, border: '1px solid rgba(245, 158, 11, 0.35)', marginLeft: 'auto' }}>
+                              🌟 Format: WebP (.webp) Default
+                            </span>
+                          </div>
+                        )}
 
                         {/* Row 2: Range, Quantity, Step & Quality Settings */}
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem', borderTop: '1px solid #1a1f2e', paddingTop: '0.7rem' }}>
@@ -4679,12 +5036,12 @@ export default function AdminEpisodesPage() {
                                 className={styles.selectField}
                                 style={{ padding: '0.25rem 0.55rem', fontSize: '0.76rem', background: '#141724', width: 'auto' }}
                               >
+                                <option value={0}>⚡ Auto Uniform (Full Video)</option>
                                 <option value={0.5}>0.5s Step</option>
                                 <option value={1.0}>1.0s Step</option>
                                 <option value={2.0}>2.0s Step</option>
                                 <option value={5.0}>5.0s Step</option>
                                 <option value={10.0}>10.0s Step</option>
-                                <option value={0}>Auto Uniform</option>
                               </select>
                             </div>
 
@@ -4738,7 +5095,7 @@ export default function AdminEpisodesPage() {
 
                             {/* Format Selector */}
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                              <span style={{ fontSize: '0.76rem', color: '#94a3b8', fontWeight: 700 }}>Format:</span>
+                              <span style={{ fontSize: '0.76rem', color: '#fcd34d', fontWeight: 800 }}>Format:</span>
                               <select
                                 value={thumbImageFormat}
                                 onChange={(e) => {
@@ -4750,10 +5107,10 @@ export default function AdminEpisodesPage() {
                                   }
                                 }}
                                 className={styles.selectField}
-                                style={{ padding: '0.25rem 0.55rem', fontSize: '0.76rem', background: '#141724', width: 'auto' }}
+                                style={{ padding: '0.25rem 0.55rem', fontSize: '0.76rem', background: '#181b2c', borderColor: 'rgba(245, 158, 11, 0.4)', color: '#fcd34d', fontWeight: 700, width: 'auto' }}
                               >
+                                <option value="image/webp">WebP (.webp - Ultra Crisp & Lightweight)</option>
                                 <option value="image/jpeg">JPEG (.jpg)</option>
-                                <option value="image/webp">WebP (.webp)</option>
                                 <option value="image/png">PNG (.png Lossless)</option>
                               </select>
                             </div>
@@ -5612,11 +5969,18 @@ export default function AdminEpisodesPage() {
 
                           return (
                             <tr key={bf.id}>
-                              {/* Media Icon */}
+                              {/* Media Icon or Auto-Generated WebP Thumbnail Preview */}
                               <td style={{ textAlign: 'center' }}>
-                                <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(124, 58, 237, 0.12)', border: '1px solid rgba(124, 58, 237, 0.25)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: '#c4b5fd' }}>
-                                  <Video size={16} />
-                                </div>
+                                {bf.thumbnailKey ? (
+                                  <div style={{ width: '48px', height: '28px', borderRadius: '6px', overflow: 'hidden', border: '1px solid rgba(16, 185, 129, 0.4)', position: 'relative', display: 'inline-block' }} title="WebP Thumbnail Auto-Generated">
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img src={getR2Url(bf.thumbnailKey, 'thumbnail')} alt="Thumb" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                  </div>
+                                ) : (
+                                  <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(124, 58, 237, 0.12)', border: '1px solid rgba(124, 58, 237, 0.25)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: '#c4b5fd' }}>
+                                    <Video size={16} />
+                                  </div>
+                                )}
                               </td>
 
                               {/* File name & size */}
@@ -5624,10 +5988,16 @@ export default function AdminEpisodesPage() {
                                 <div style={{ fontWeight: 700, fontSize: '0.8rem', color: 'var(--foreground-primary)', maxWidth: '170px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={bf.file.name}>
                                   {bf.file.name}
                                 </div>
-                                <div style={{ fontSize: '0.7rem', color: 'var(--foreground-muted)', display: 'flex', gap: '0.4rem', marginTop: '0.1rem' }}>
+                                <div style={{ fontSize: '0.7rem', color: 'var(--foreground-muted)', display: 'flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.1rem', flexWrap: 'wrap' }}>
                                   <span>{fileSizeMb} MB</span>
                                   <span>•</span>
                                   <span style={{ color: '#c4b5fd' }}>{durationMin}m {durationSec}s</span>
+                                  {bf.thumbnailKey && (
+                                    <>
+                                      <span>•</span>
+                                      <span style={{ color: '#34d399', fontWeight: 700 }}>✓ WebP</span>
+                                    </>
+                                  )}
                                 </div>
                               </td>
 
