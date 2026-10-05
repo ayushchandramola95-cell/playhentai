@@ -4626,18 +4626,31 @@ export default function AdminSeriesPage() {
                     <FileUploader
                       label="Add images to library"
                       acceptedTypes="image/*"
-                      maxSizeMb={5}
+                      maxSizeMb={15}
                       multiple={true}
+                      seoSlug={slug || title || 'series'}
                       onUploadComplete={(newKey) => {
                         setImageLibrary((prev) => {
-                          const next = [...prev, newKey];
+                          const next = prev.includes(newKey) ? prev : [...prev, newKey];
                           if (!posterKey) {
                             setPosterKey(newKey);
                           }
                           return next;
                         });
                       }}
-                      previewType="thumbnail"
+                      onMultipleUploadComplete={(newKeys) => {
+                        setImageLibrary((prev) => {
+                          const next = [...prev];
+                          newKeys.forEach((k) => {
+                            if (!next.includes(k)) next.push(k);
+                          });
+                          if (!posterKey && newKeys[0]) {
+                            setPosterKey(newKeys[0]);
+                          }
+                          return next;
+                        });
+                      }}
+                      previewType="poster"
                     />
 
                     {/* Select from Episode Thumbnails Button */}

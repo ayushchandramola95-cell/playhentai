@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { UploadCloud, CheckCircle, X, AlertCircle } from 'lucide-react';
+import { UploadCloud, CheckCircle, X, AlertCircle, Sparkles } from 'lucide-react';
 import { getR2Url } from '@/utils/r2';
 import { uploadFileWithMultipart, formatUploadBytes, UploadProgressEvent } from '@/utils/multipartUploader';
+import ImageOptimizerModal from '@/components/ImageOptimizerModal/ImageOptimizerModal';
 import styles from './FileUploader.module.css';
 
 interface FileUploaderProps {
@@ -17,6 +18,8 @@ interface FileUploaderProps {
   initialValue?: string;
   previewType?: 'poster' | 'cover' | 'banner' | 'thumbnail' | 'video' | 'avatar';
   multiple?: boolean;
+  enableOptimizer?: boolean;
+  seoSlug?: string;
 }
 
 export default function FileUploader({
@@ -29,7 +32,9 @@ export default function FileUploader({
   label,
   initialValue,
   previewType,
-  multiple = false
+  multiple = false,
+  enableOptimizer = true,
+  seoSlug
 }: FileUploaderProps) {
   const [dragActive, setDragActive] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -47,6 +52,12 @@ export default function FileUploader({
   }, [initialValue]);
   const [fileSize, setFileSize] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Pre-Upload Image Optimizer Studio states
+  const [isOptimizerOpen, setIsOptimizerOpen] = useState<boolean>(false);
+  const [pendingOptimizerFiles, setPendingOptimizerFiles] = useState<File[]>([]);
+  const [autoOptimizeEnabled, setAutoOptimizeEnabled] = useState<boolean>(true);
+  const isImageUpload = acceptedTypes.includes('image') || acceptedTypes === '*/*';
   
   const inputRef = useRef<HTMLInputElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -141,20 +152,33 @@ export default function FileUploader({
     e.stopPropagation();
     setDragActive(false);
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const incoming = Array.from(e.dataTransfer.files);
+      if (isImageUpload && enableOptimizer && autoOptimizeEnabled) {
+        setPendingOptimizerFiles(incoming);
+        setIsOptimizerOpen(true);
+        return;
+      }
       if (multiple) {
-        uploadQueue(Array.from(e.dataTransfer.files));
+        uploadQueue(incoming);
       } else {
-        validateAndUpload(e.dataTransfer.files[0]);
+        validateAndUpload(incoming[0]);
       }
     }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
+      const incoming = Array.from(e.target.files);
+      if (isImageUpload && enableOptimizer && autoOptimizeEnabled) {
+        setPendingOptimizerFiles(incoming);
+        setIsOptimizerOpen(true);
+        e.target.value = '';
+        return;
+      }
       if (multiple) {
-        uploadQueue(Array.from(e.target.files));
+        uploadQueue(incoming);
       } else {
-        validateAndUpload(e.target.files[0]);
+        validateAndUpload(incoming[0]);
       }
     }
   };
@@ -324,28 +348,47 @@ export default function FileUploader({
 
       {/* Dropzone Area */}
       {!uploading && !uploadedKey && (
-        <div
-          className={`${styles.dropzone} ${dragActive ? styles.dropzoneActive : ''}`}
-          onDragEnter={handleDrag}
-          onDragOver={handleDrag}
-          onDragLeave={handleDrag}
-          onDrop={handleDrop}
-          onClick={() => inputRef.current?.click()}
-        >
-          <input
-            ref={inputRef}
-            type="file"
-            className="hidden"
-            style={{ display: 'none' }}
-            accept={acceptedTypes}
-            multiple={multiple}
-            onChange={handleFileChange}
-          />
-          <UploadCloud size={32} className={styles.icon} />
-          <div className={styles.title}>Drag & drop file or click to browse</div>
-          <div className={styles.subtitle}>
-            Max file size {maxSizeMb}MB. Supported: {acceptedTypes}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+          <div
+            className={`${styles.dropzone} ${dragActive ? styles.dropzoneActive : ''}`}
+            onDragEnter={handleDrag}
+            onDragOver={handleDrag}
+            onDragLeave={handleDrag}
+            onDrop={handleDrop}
+            onClick={() => inputRef.current?.click()}
+          >
+            <input
+              ref={inputRef}
+              type="file"
+              className="hidden"
+              style={{ display: 'none' }}
+              accept={acceptedTypes}
+              multiple={multiple}
+              onChange={handleFileChange}
+            />
+            <UploadCloud size={32} className={styles.icon} />
+            <div className={styles.title}>Drag & drop file or click to browse</div>
+            <div className={styles.subtitle}>
+              Max file size {maxSizeMb}MB. Supported: {acceptedTypes}
+            </div>
           </div>
+
+          {/* Quick Optimizer Toggle for Image Uploads */}
+          {isImageUpload && enableOptimizer && (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.2rem 0.4rem' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.72rem', color: '#c4b5fd', cursor: 'pointer', fontWeight: 700 }}>
+                <input
+                  type="checkbox"
+                  checked={autoOptimizeEnabled}
+                  onChange={(e) => setAutoOptimizeEnabled(e.target.checked)}
+                  style={{ accentColor: '#7c3aed', cursor: 'pointer' }}
+                />
+                <Sparkles size={13} style={{ color: '#a78bfa' }} />
+                <span>Format Sorter, WebP Converter & Compression Studio</span>
+              </label>
+              <span style={{ fontSize: '0.68rem', color: '#94a3b8' }}>Runs in browser before R2</span>
+            </div>
+          )}
         </div>
       )}
 
@@ -354,6 +397,35 @@ export default function FileUploader({
           <AlertCircle size={14} />
           <span>{error}</span>
         </div>
+      )}
+
+      {/* Image Processing & Optimization Modal */}
+      {isOptimizerOpen && (
+        <ImageOptimizerModal
+          isOpen={isOptimizerOpen}
+          files={pendingOptimizerFiles}
+          onClose={() => {
+            setIsOptimizerOpen(false);
+            setPendingOptimizerFiles([]);
+          }}
+          onUploadComplete={(keys, details) => {
+            setIsOptimizerOpen(false);
+            setPendingOptimizerFiles([]);
+            if (keys.length > 0) {
+              if (multiple && onMultipleUploadComplete) {
+                onMultipleUploadComplete(keys);
+              } else {
+                const finalKey = keys[keys.length - 1];
+                setUploadedKey(finalKey);
+                setFilename(details[details.length - 1]?.filename || finalKey.split('/').pop() || null);
+                onUploadComplete(finalKey);
+              }
+            }
+          }}
+          targetType={previewType === 'poster' ? 'poster' : previewType === 'cover' ? 'cover' : 'thumbnail'}
+          seoSlug={seoSlug}
+          maxSizeMb={maxSizeMb}
+        />
       )}
     </div>
   );

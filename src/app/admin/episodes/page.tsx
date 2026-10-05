@@ -4313,6 +4313,7 @@ export default function AdminEpisodesPage() {
                       acceptedTypes="image/*"
                       maxSizeMb={10}
                       initialValue={thumbnailKey}
+                      seoSlug={title ? `${title.replace(/\s+/g, '-').toLowerCase()}-thumbnail` : `episode-${episodeNumber}-thumbnail`}
                       onUploadComplete={(key) => {
                         setThumbnailKey(key);
                         setSessionKeys((prev) => [...prev, key]);
@@ -4686,6 +4687,7 @@ export default function AdminEpisodesPage() {
                       acceptedTypes="image/*"
                       maxSizeMb={10}
                       multiple={true}
+                      seoSlug={thumbModalEpisode ? `${thumbModalEpisode.title.replace(/\s+/g, '-').toLowerCase()}-thumb` : 'episode-thumbnail'}
                       onUploadComplete={handleCustomThumbnailUploadComplete}
                       onMultipleUploadComplete={handleMultipleCustomThumbnailsUploaded}
                       previewType="cover"
