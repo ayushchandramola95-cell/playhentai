@@ -516,7 +516,29 @@
   box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
 }
 
-.uploadSubmitBtn:disabled {
+.uploadOriginalBtn {
+  background: #191f33;
+  color: #cbd5e1;
+  border: 1px solid #2d3856;
+  border-radius: 10px;
+  padding: 0.65rem 1.25rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.15s ease;
+}
+
+.uploadOriginalBtn:hover:not(:disabled) {
+  background: #242d4a;
+  color: #ffffff;
+  border-color: #4b5a84;
+  transform: translateY(-1px);
+}
+
+.uploadOriginalBtn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }

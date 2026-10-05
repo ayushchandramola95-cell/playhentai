@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { 
   Sparkles, Sliders, Zap, Check, CheckCircle2, Image as ImageIcon, 
   Layers, Download, Maximize2, RotateCcw, Trash2, ArrowRight, 
-  UploadCloud, X, AlertCircle, Filter, ArrowDownUp, RefreshCw, FileText
+  UploadCloud, X, AlertCircle, Filter, ArrowDownUp, RefreshCw, FileText, FolderUp
 } from 'lucide-react';
 import styles from './ImageOptimizerModal.module.css';
 
@@ -34,7 +34,7 @@ interface ImageCardItem {
   originalWidth: number;
   originalHeight: number;
   // Controls
-  targetFormat: 'image/webp' | 'image/jpeg' | 'image/png';
+  targetFormat: 'image/webp' | 'image/jpeg' | 'image/png' | 'original';
   targetQuality: number;
   targetMaxDimension: number; // 0 = original
   // Processed Output
@@ -62,7 +62,7 @@ export default function ImageOptimizerModal({
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   
   // Global Batch Controls
-  const [globalFormat, setGlobalFormat] = useState<'image/webp' | 'image/jpeg' | 'image/png'>('image/webp');
+  const [globalFormat, setGlobalFormat] = useState<'image/webp' | 'image/jpeg' | 'image/png' | 'original'>('image/webp');
   const [globalQuality, setGlobalQuality] = useState<number>(0.88);
   const [globalDimension, setGlobalDimension] = useState<number>(0); // 0 = original
   const [seoNamingPrefix, setSeoNamingPrefix] = useState<string>(seoSlug || '');
@@ -95,7 +95,7 @@ export default function ImageOptimizerModal({
   // Convert and resize an image via HTML5 Canvas
   const processImageBlob = useCallback(async (
     file: File,
-    targetMime: 'image/webp' | 'image/jpeg' | 'image/png',
+    targetMime: 'image/webp' | 'image/jpeg' | 'image/png' | 'original',
     quality: number,
     maxDim: number
   ): Promise<{ blob: Blob; width: number; height: number; previewUrl: string }> => {
@@ -105,23 +105,32 @@ export default function ImageOptimizerModal({
       img.src = objectUrl;
 
       img.onload = () => {
-        let width = img.naturalWidth || img.width || 1280;
-        let height = img.naturalHeight || img.height || 720;
+        const width = img.naturalWidth || img.width || 1280;
+        const height = img.naturalHeight || img.height || 720;
+
+        // If keeping original, bypass canvas encoding completely
+        if (targetMime === 'original') {
+          resolve({ blob: file, width, height, previewUrl: objectUrl });
+          return;
+        }
+
+        let targetW = width;
+        let targetH = height;
 
         // Apply max dimension constraint preserving aspect ratio
         if (maxDim > 0) {
-          if (width > height && width > maxDim) {
-            height = Math.round((height * maxDim) / width);
-            width = maxDim;
-          } else if (height >= width && height > maxDim) {
-            width = Math.round((width * maxDim) / height);
-            height = maxDim;
+          if (targetW > targetH && targetW > maxDim) {
+            targetH = Math.round((targetH * maxDim) / targetW);
+            targetW = maxDim;
+          } else if (targetH >= targetW && targetH > maxDim) {
+            targetW = Math.round((targetW * maxDim) / targetH);
+            targetH = maxDim;
           }
         }
 
         const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
+        canvas.width = targetW;
+        canvas.height = targetH;
         const ctx = canvas.getContext('2d', { alpha: targetMime === 'image/png' });
 
         if (!ctx) {
@@ -132,7 +141,7 @@ export default function ImageOptimizerModal({
 
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
-        ctx.drawImage(img, 0, 0, width, height);
+        ctx.drawImage(img, 0, 0, targetW, targetH);
 
         canvas.toBlob((blob) => {
           URL.revokeObjectURL(objectUrl);
@@ -141,7 +150,7 @@ export default function ImageOptimizerModal({
             return;
           }
           const previewUrl = URL.createObjectURL(blob);
-          resolve({ blob, width, height, previewUrl });
+          resolve({ blob, width: targetW, height: targetH, previewUrl });
         }, targetMime, quality);
       };
 
@@ -413,12 +422,16 @@ export default function ImageOptimizerModal({
         const item = items[i];
         setUploadProgress({ current: i + 1, total: items.length });
 
-        const blobToUpload = item.optimizedBlob || item.originalFile;
-        const mimeType = item.targetFormat || 'image/webp';
-        const ext = mimeType === 'image/webp' ? 'webp' : mimeType === 'image/png' ? 'png' : 'jpg';
+        const isOriginal = item.targetFormat === 'original';
+        const blobToUpload = isOriginal ? item.originalFile : (item.optimizedBlob || item.originalFile);
+        const mimeType = isOriginal ? (item.originalFile.type || 'image/jpeg') : (item.targetFormat || 'image/webp');
+        const originalExt = item.originalFile.name.split('.').pop() || 'jpg';
+        const ext = isOriginal ? originalExt : (mimeType === 'image/webp' ? 'webp' : mimeType === 'image/png' ? 'png' : 'jpg');
 
         // Prepare clean filename
-        let baseFilename = item.customFilename || `upload-${Date.now()}-${i}.${ext}`;
+        let baseFilename = isOriginal
+          ? item.originalFile.name
+          : (item.customFilename || `upload-${Date.now()}-${i}.${ext}`);
         if (!baseFilename.toLowerCase().endsWith(`.${ext}`)) {
           baseFilename = baseFilename.replace(/\.[^/.]+$/, '') + `.${ext}`;
         }
@@ -457,6 +470,63 @@ export default function ImageOptimizerModal({
       onClose();
     } catch (err: any) {
       setUploadError(err.message || 'Upload failed. Please try again.');
+    } finally {
+      setIsUploading(false);
+      setUploadProgress(null);
+    }
+  };
+
+  // Direct Upload Original Images as-is (Bypass conversion & compression)
+  const handleUploadOriginalToR2 = async () => {
+    if (items.length === 0) return;
+    setIsUploading(true);
+    setUploadError(null);
+    setUploadProgress({ current: 0, total: items.length });
+
+    const uploadedKeys: string[] = [];
+    const uploadedDetails: OptimizedResultItem[] = [];
+
+    try {
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        setUploadProgress({ current: i + 1, total: items.length });
+
+        const blobToUpload = item.originalFile;
+        const mimeType = item.originalFile.type || 'image/jpeg';
+        const baseFilename = item.originalFile.name;
+
+        const presignRes = await fetch('/api/admin/presign', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ filename: baseFilename, contentType: mimeType })
+        });
+
+        const presignData = await presignRes.json();
+        if (!presignRes.ok) throw new Error(presignData.error || `Failed to get signature for ${baseFilename}`);
+
+        const { url: r2PutUrl, key } = presignData;
+
+        const uploadRes = await fetch(r2PutUrl, {
+          method: 'PUT',
+          headers: { 'Content-Type': mimeType },
+          body: blobToUpload
+        });
+
+        if (!uploadRes.ok) throw new Error(`Failed to upload ${baseFilename} to Cloudflare R2`);
+
+        uploadedKeys.push(key);
+        uploadedDetails.push({
+          key,
+          filename: baseFilename,
+          sizeBytes: blobToUpload.size,
+          format: (baseFilename.split('.').pop() || 'IMG').toUpperCase()
+        });
+      }
+
+      onUploadComplete(uploadedKeys, uploadedDetails);
+      onClose();
+    } catch (err: any) {
+      setUploadError(err.message || 'Original upload failed. Please try again.');
     } finally {
       setIsUploading(false);
       setUploadProgress(null);
@@ -595,6 +665,7 @@ export default function ImageOptimizerModal({
                 className={styles.settingSelect}
               >
                 <option value="image/webp">🌟 WebP (.webp - Recommended)</option>
+                <option value="original">📁 Keep Original (No Conversion / No Compression)</option>
                 <option value="image/jpeg">JPEG (.jpg)</option>
                 <option value="image/png">PNG (.png Lossless)</option>
               </select>
@@ -643,24 +714,39 @@ export default function ImageOptimizerModal({
               </select>
             </div>
 
-            {/* 1-Click Convert All Button */}
+            {/* Quick Batch Actions */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
               <label className={styles.settingLabel}>
-                <span>Quick Batch Action</span>
+                <span>Quick Batch Actions</span>
               </label>
-              <button
-                type="button"
-                onClick={() => {
-                  setGlobalFormat('image/webp');
-                  setGlobalQuality(0.88);
-                  applyGlobalSettingsToAll('image/webp', 0.88, globalDimension);
-                }}
-                className={styles.actionBtn}
-                style={{ width: '100%', justifyContent: 'center' }}
-              >
-                <Zap size={14} />
-                <span>Convert All to WebP</span>
-              </button>
+              <div style={{ display: 'flex', gap: '0.4rem' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setGlobalFormat('image/webp');
+                    setGlobalQuality(0.88);
+                    applyGlobalSettingsToAll('image/webp', 0.88, globalDimension);
+                  }}
+                  className={styles.actionBtn}
+                  style={{ flex: 1, justifyContent: 'center' }}
+                  title="Convert all images to optimized WebP"
+                >
+                  <Zap size={14} />
+                  <span>Convert All to WebP</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setGlobalFormat('original');
+                    applyGlobalSettingsToAll('original', globalQuality, 0);
+                  }}
+                  className={styles.actionBtnSecondary}
+                  style={{ padding: '0.45rem 0.75rem', whiteSpace: 'nowrap' }}
+                  title="Keep all images in their original untouched format without compression"
+                >
+                  <span>📁 Keep Original</span>
+                </button>
+              </div>
             </div>
           </div>
 
@@ -708,8 +794,8 @@ export default function ImageOptimizerModal({
                       <span className={styles.badgeOriginal}>
                         {item.originalFormat}
                       </span>
-                      <span className={styles.badgeTarget}>
-                        ➔ {item.targetFormat.replace('image/', '')}
+                      <span className={styles.badgeTarget} style={item.targetFormat === 'original' ? { background: '#3b82f6', boxShadow: 'none' } : {}}>
+                        {item.targetFormat === 'original' ? 'ORIGINAL' : `➔ ${item.targetFormat.replace('image/', '')}`}
                       </span>
                     </div>
 
@@ -754,17 +840,28 @@ export default function ImageOptimizerModal({
 
                     {/* Before vs After Telemetry */}
                     <div className={styles.comparisonRow}>
-                      <span className={styles.sizeOriginal}>
-                        {formatBytes(item.originalSize)}
-                      </span>
-                      <span style={{ color: '#64748b' }}>➔</span>
-                      <span className={styles.sizeOptimized}>
-                        {item.isProcessing ? 'Encoding...' : formatBytes(item.optimizedSize || item.originalSize)}
-                      </span>
-                      {pctSaved > 0 && !item.isProcessing && (
-                        <span className={styles.sizeSavingBadge}>
-                          -{pctSaved}%
-                        </span>
+                      {item.targetFormat === 'original' ? (
+                        <>
+                          <span style={{ color: '#cbd5e1', fontWeight: 600 }}>{formatBytes(item.originalSize)}</span>
+                          <span className={styles.sizeSavingBadge} style={{ background: 'rgba(59, 130, 246, 0.15)', color: '#93c5fd', borderColor: 'rgba(59, 130, 246, 0.3)' }}>
+                            Original (Uncompressed)
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <span className={styles.sizeOriginal}>
+                            {formatBytes(item.originalSize)}
+                          </span>
+                          <span style={{ color: '#64748b' }}>➔</span>
+                          <span className={styles.sizeOptimized}>
+                            {item.isProcessing ? 'Encoding...' : formatBytes(item.optimizedSize || item.originalSize)}
+                          </span>
+                          {pctSaved > 0 && !item.isProcessing && (
+                            <span className={styles.sizeSavingBadge}>
+                              -{pctSaved}%
+                            </span>
+                          )}
+                        </>
                       )}
                     </div>
 
@@ -776,6 +873,7 @@ export default function ImageOptimizerModal({
                         className={styles.miniSelect}
                       >
                         <option value="image/webp">WebP</option>
+                        <option value="original">Keep Original</option>
                         <option value="image/jpeg">JPG</option>
                         <option value="image/png">PNG</option>
                       </select>
@@ -817,6 +915,25 @@ export default function ImageOptimizerModal({
               Cancel
             </button>
 
+            {/* Direct Upload Original Files (Uncompressed & Untouched) */}
+            <button
+              type="button"
+              onClick={handleUploadOriginalToR2}
+              disabled={isUploading || items.length === 0}
+              className={styles.uploadOriginalBtn}
+              title="Upload all original files directly without any conversion or compression"
+            >
+              {isUploading ? (
+                <span>Uploading...</span>
+              ) : (
+                <>
+                  <FolderUp size={16} />
+                  <span>Upload {items.length} Original (No Changes)</span>
+                </>
+              )}
+            </button>
+
+            {/* Upload Optimized Images */}
             <button
               type="button"
               onClick={handleUploadAllToR2}
