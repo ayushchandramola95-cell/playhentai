@@ -144,23 +144,30 @@ export function resolveEpisodeMetrics(
     };
   }
 
-  const stored = config.episodes[episodeId];
-  const boostedViews = stored
-    ? stored.views
-    : getDeterministicFakeEpisodeViews(
-        episodeId,
-        config.settings.minEpisodeViews,
-        config.settings.maxEpisodeViews,
-        episodeNumber
-      );
+  let stored = config.episodes[episodeId];
+  if (!stored) {
+    const views = getDeterministicFakeEpisodeViews(
+      episodeId,
+      config.settings.minEpisodeViews,
+      config.settings.maxEpisodeViews,
+      episodeNumber
+    );
+    const rating = getDeterministicFakeRating(
+      episodeId,
+      config.settings.minRating,
+      config.settings.maxRating
+    );
+    stored = { views, rating };
+    config.episodes[episodeId] = stored;
+    try {
+      saveConfigToDisk(config);
+    } catch (e) {
+      // Non-fatal if disk write fails
+    }
+  }
 
-  const boostedRating = stored
-    ? stored.rating
-    : getDeterministicFakeRating(
-        episodeId,
-        config.settings.minRating,
-        config.settings.maxRating
-      );
+  const boostedViews = stored.views;
+  const boostedRating = stored.rating;
 
   // Add any real views on top of boosted views so real plays still increment the counter!
   return {
@@ -207,33 +214,36 @@ export function resolveSeriesMetrics(
     };
   }
 
-  const stored = config.series[seriesId];
-  let boostedViews = 0;
-
-  if (stored) {
-    boostedViews = stored.views;
-  } else if (aggregatedEpisodeViews > 0) {
-    boostedViews = aggregatedEpisodeViews;
-  } else {
-    // Standalone series views fallback
-    const h = hashString(seriesId);
-    boostedViews =
-      config.settings.minEpisodeViews * 2 +
-      (h % (config.settings.maxEpisodeViews * 2));
-    boostedViews = Math.round(boostedViews / 100) * 100;
+  let stored = config.series[seriesId];
+  if (!stored) {
+    let boostedViews = 0;
+    if (aggregatedEpisodeViews > 0) {
+      boostedViews = aggregatedEpisodeViews;
+    } else {
+      // Standalone series views fallback
+      const h = hashString(seriesId);
+      boostedViews =
+        config.settings.minEpisodeViews * 2 +
+        (h % (config.settings.maxEpisodeViews * 2));
+      boostedViews = Math.round(boostedViews / 100) * 100;
+    }
+    const boostedRating = getDeterministicFakeRating(
+      seriesId,
+      config.settings.minRating,
+      config.settings.maxRating
+    );
+    stored = { views: boostedViews, rating: boostedRating };
+    config.series[seriesId] = stored;
+    try {
+      saveConfigToDisk(config);
+    } catch (e) {
+      // Non-fatal if disk write fails
+    }
   }
 
-  const boostedRating = stored
-    ? stored.rating
-    : getDeterministicFakeRating(
-        seriesId,
-        config.settings.minRating,
-        config.settings.maxRating
-      );
-
   return {
-    views: boostedViews + (realViews || 0),
-    rating: boostedRating,
+    views: stored.views + (realViews || 0),
+    rating: stored.rating,
     isBoosted: true,
   };
 }

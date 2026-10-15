@@ -118,11 +118,17 @@ const getCachedCatalogData = async () => {
 
       const dbSeries = catalog.series
         .filter((s: any) => s.is_published !== false)
-        .map((s: any) => ({
-          ...s,
-          views: viewsMap[s.id] || s.views || 0,
-          seasons: seasonsBySeries.get(s.id) || []
-        }));
+        .map((s: any) => {
+          const isUpcoming = (s.status || '').toLowerCase() === 'upcoming' || Boolean(s.is_upcoming);
+          const rawViews = isUpcoming ? 0 : (viewsMap[s.id] || s.views || 0);
+          const resolved = resolveSeriesMetrics(s.id, rawViews, s.rating ?? null, 0, isUpcoming);
+          return {
+            ...s,
+            views: isUpcoming ? 0 : resolved.views,
+            rating: resolved.rating,
+            seasons: seasonsBySeries.get(s.id) || []
+          };
+        });
 
       // Map episodes with parent season and series
       const seriesMap = new Map<string, any>();
@@ -136,9 +142,12 @@ const getCachedCatalogData = async () => {
         .map((ep: any) => {
           const sn = seasonMap.get(ep.season_id);
           const s = sn ? seriesMap.get(sn.series_id) : null;
+          const rawViews = episodeViewsMap[ep.id] || ep.views || 0;
+          const resolved = resolveEpisodeMetrics(ep.id, rawViews, ep.rating ?? null, ep.episode_number || 1);
           return {
             ...ep,
-            views: episodeViewsMap[ep.id] || 0,
+            views: resolved.views,
+            rating: resolved.rating,
             seasons: sn ? {
               season_number: sn.season_number,
               series: s ? {
@@ -588,7 +597,7 @@ export default async function HomePage() {
           isNew,
           isUncensored,
           isSubbed,
-          views: ep.views || 0
+          views: ep.views > 0 ? ep.views : resolveEpisodeMetrics(ep.id, ep.views || 0, null, ep.episode_number || 1).views
         };
       })
       .filter(Boolean);
