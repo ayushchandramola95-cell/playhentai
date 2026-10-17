@@ -9,7 +9,7 @@
   flex: 1 0 auto;
   display: flex;
   flex-direction: column;
-  padding-top: 74px;
+  padding-top: 68px;
   width: 100%;
   transition: padding-left 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -22,12 +22,12 @@
 @media (min-width: 901px) {
   .sidebarCollapsed .mainContent,
   .sidebarCollapsed .footerSection {
-    padding-left: 72px;
+    padding-left: 76px;
   }
 
   .sidebarExpanded .mainContent,
   .sidebarExpanded .footerSection {
-    padding-left: 240px;
+    padding-left: 248px;
   }
 }
 

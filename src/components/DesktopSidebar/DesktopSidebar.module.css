@@ -26,11 +26,11 @@
   }
 
   .collapsed {
-    width: 68px;
+    width: 76px;
   }
 
   .expanded {
-    width: 236px;
+    width: 248px;
     box-shadow: 10px 0 28px rgba(0, 0, 0, 0.45);
   }
 
@@ -195,7 +195,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    width: 60px;
+    width: 68px;
     text-decoration: none;
     color: #94a3b8;
     transition: color 0.18s ease;
@@ -204,8 +204,8 @@
   }
 
   .collapsedIconWrapper {
-    width: 40px;
-    height: 32px;
+    width: 44px;
+    height: 34px;
     border-radius: 8px;
     display: flex;
     align-items: center;
