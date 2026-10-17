@@ -858,13 +858,15 @@
   align-items: center;
   justify-content: center;
   gap: 0.4rem;
-  padding: 0.5rem 0.75rem;
+  height: 38px;
+  padding: 0 0.65rem;
   background: var(--primary);
   color: #ffffff;
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   font-weight: 700;
-  border-radius: 8px;
+  border-radius: 6px;
   text-decoration: none;
+  white-space: nowrap;
   box-shadow: none;
   transition: background 0.18s ease, transform 0.18s ease;
 }
@@ -880,14 +882,16 @@
   align-items: center;
   justify-content: center;
   gap: 0.4rem;
-  padding: 0.5rem 0.75rem;
+  height: 38px;
+  padding: 0 0.65rem;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: #e2e8f0;
-  font-size: 0.8rem;
-  font-weight: 600;
-  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  border-radius: 6px;
   text-decoration: none;
+  white-space: nowrap;
   transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
 }
 
@@ -1083,12 +1087,6 @@
   color: #fb923c;
 }
 
-.badgeNew {
-  background: rgba(168, 85, 247, 0.16);
-  border: 1px solid rgba(168, 85, 247, 0.4);
-  color: #c084fc;
-}
-
 .badgeUncensored {
   background: rgba(16, 185, 129, 0.16);
   border: 1px solid rgba(16, 185, 129, 0.4);
@@ -1099,12 +1097,6 @@
   background: rgba(6, 182, 212, 0.16);
   border: 1px solid rgba(6, 182, 212, 0.4);
   color: #22d3ee;
-}
-
-.badgeOngoing {
-  background: rgba(34, 197, 94, 0.16);
-  border: 1px solid rgba(34, 197, 94, 0.4);
-  color: #4ade80;
 }
 
 .badgeAdmin {
@@ -1212,10 +1204,6 @@
     padding: 0 1rem;
     height: 64px;
     gap: 0.85rem;
-  }
-
-  .watchlistShortcut {
-    display: none !important;
   }
 
   .rightSection {

@@ -462,9 +462,13 @@
   }
   .azBar {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 0.6rem;
-    padding: 0.75rem 1rem;
+    align-items: stretch;
+    gap: 0.5rem;
+    padding: 0.75rem 0.85rem;
+  }
+  .azList {
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 2px;
   }
   .gridContainer {
     grid-template-columns: 1fr;

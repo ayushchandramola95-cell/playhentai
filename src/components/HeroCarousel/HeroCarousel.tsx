@@ -299,8 +299,8 @@ export default function HeroCarousel({ activeSeries, isDbEmpty, autoplaySpeed = 
                     fill
                     sizes="(max-width: 768px) 1px, 100vw"
                     className={styles.heroBgImage}
-                    priority={false}
-                    loading="lazy"
+                    priority={index === 0}
+                    loading={index === 0 ? 'eager' : 'lazy'}
                     unoptimized={typeof bannerUrl === 'string' && bannerUrl.startsWith('data:')}
                   />
                 )}

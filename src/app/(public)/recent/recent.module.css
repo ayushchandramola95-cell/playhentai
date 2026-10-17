@@ -329,12 +329,6 @@
   cursor: not-allowed;
 }
 
-.pageInfo {
-  font-size: 0.85rem;
-  color: var(--foreground-muted);
-  margin: 0 0.5rem;
-}
-
 /* Filter Controls Bar */
 .filterControlsBar {
   display: flex;

@@ -8,6 +8,36 @@
   overflow-x: hidden;
 }
 
+/* Breadcrumbs */
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--foreground-secondary, #94a3b8);
+  margin-bottom: 1.25rem;
+}
+
+.breadcrumbs a {
+  color: var(--foreground-secondary, #94a3b8);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.breadcrumbs a:hover {
+  color: #ffffff;
+}
+
+.crumbDivider {
+  color: rgba(255, 255, 255, 0.25);
+}
+
+.activeCrumb {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+/* Header Section */
 .headerSection {
   margin-bottom: 1.75rem;
   text-align: left;
@@ -70,291 +100,23 @@
   max-width: 800px;
 }
 
-/* Pills Navigation */
-.pillsSection {
-  margin-bottom: 2.5rem;
-  animation: fade-in 0.4s ease-out;
-}
-
-.pillsGrid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.pill {
-  background: var(--surface, #121722);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: var(--foreground-secondary);
-  padding: 0.45rem 1rem;
-  border-radius: 6px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  text-decoration: none;
-  transition: all 0.18s ease;
-}
-
-.pill:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.2);
-  color: #ffffff;
-}
-
-.activePill {
-  background: var(--primary, #ff2e7e);
-  border-color: var(--primary, #ff2e7e);
-  color: #ffffff;
-}
-
-.activePill:hover {
-  background: var(--primary-hover, #ff1a70);
-  color: #ffffff;
-  border-color: var(--primary-hover, #ff1a70);
-}
-
-/* Catalog Grid */
-.catalogSection {
-  animation: fade-in 0.4s ease-out;
-}
-
-.catalogHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  padding-bottom: 0.85rem;
-}
-
-.catalogHeader h2 {
-  font-size: 1.25rem;
-  font-weight: 800;
-}
-
-.demoBadge {
-  background: rgba(var(--primary-rgb), 0.1);
-  border: 1px solid rgba(var(--primary-rgb), 0.2);
-  color: var(--primary);
-  font-size: 0.7rem;
-  font-weight: 700;
-  padding: 0.2rem 0.6rem;
-  border-radius: 4px;
-  letter-spacing: 0.05em;
-}
-
-/* Grids & Cards (Shared catalog layout) */
-.seriesGrid {
-  display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 1.25rem 0.95rem;
-}
-
-.seriesCard {
-  display: flex;
-  flex-direction: column;
-  border-radius: 8px;
-  overflow: hidden;
-  background: var(--surface, #121722);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  position: relative;
-  transition: border-color 0.2s ease, background 0.2s ease;
-}
-
-.seriesCard:hover {
-  border-color: rgba(255, 255, 255, 0.22);
-  background: rgba(255, 255, 255, 0.03);
-}
-
-.cardImageLink {
-  width: 100%;
-  text-decoration: none;
-}
-
-.cardImageWrapper {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 2 / 3;
-  overflow: hidden;
-  background: var(--surface-hover);
-}
-
-.cardImage {
-  object-fit: cover;
-}
-
-.cardImageOverlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  z-index: 5;
-}
-
-.seriesCard:hover .cardImageOverlay {
-  opacity: 1;
-}
-
-.cardPlayIcon {
-  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5));
-  transform: scale(0.9);
-  transition: transform 0.3s ease;
-}
-
-.seriesCard:hover .cardPlayIcon {
-  transform: scale(1);
-}
-
-.cardContent {
-  padding: 0.85rem 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.cardHeader {
-  display: flex;
-  align-items: center;
-}
-
-.cardCategory {
-  font-size: 0.68rem;
-  font-weight: 800;
-  color: var(--primary);
-  text-transform: uppercase;
-}
-
-.cardTitle {
-  font-size: 0.95rem;
-  font-weight: 800;
-  line-height: 1.35;
-}
-
-.cardTitle a {
-  color: var(--foreground-primary);
-  text-decoration: none;
-}
-
-.cardSnippet {
-  font-size: 0.78rem;
-  line-height: 1.45;
-  color: var(--foreground-secondary);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* Empty State */
-.emptyState {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 5rem 2rem;
-  border-radius: 24px;
-  max-width: 600px;
-  margin: 2rem auto;
-  gap: 1.2rem;
-}
-
-.emptyIcon {
-  color: var(--foreground-muted);
-}
-
-.emptyState h3 {
-  font-size: 1.3rem;
-  font-weight: 800;
-  color: var(--foreground-primary);
-}
-
-.emptyState p {
-  font-size: 0.95rem;
-  line-height: 1.6;
-  color: var(--foreground-secondary);
-  max-width: 440px;
-}
-
-@keyframes fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 /* Responsive Rules */
-@media (max-width: 1200px) {
-  .seriesGrid {
-    grid-template-columns: repeat(5, 1fr);
-  }
-}
-
-@media (max-width: 992px) {
-  .seriesGrid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
 @media (max-width: 768px) {
   .container {
     padding: 1rem 1rem 3rem;
   }
 
-  .headerSection h1 {
+  .mainTitle {
     font-size: 1.5rem;
   }
 
   .subtext {
     font-size: 0.85rem;
   }
-
-  .seriesGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 0.75rem !important;
-  }
 }
 
 @media (max-width: 480px) {
-  .seriesGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 0.65rem !important;
+  .mainTitle {
+    font-size: 1.35rem;
   }
-}
-
-/* Breadcrumbs Styling */
-.breadcrumbs {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.9rem;
-  color: var(--foreground-secondary);
-  margin-bottom: 1.25rem;
-}
-
-.breadcrumbs a {
-  color: var(--foreground-secondary);
-  text-decoration: none;
-  transition: color 0.2s ease;
-}
-
-.breadcrumbs a:hover {
-  color: #ffffff;
-}
-
-.crumbDivider {
-  color: rgba(255, 255, 255, 0.25);
-}
-
-.activeCrumb {
-  color: #ffffff;
-  font-weight: 700;
 }

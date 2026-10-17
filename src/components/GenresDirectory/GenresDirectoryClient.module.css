@@ -267,16 +267,12 @@
   gap: 0.3rem;
   overflow-x: auto;
   padding-bottom: 0.2rem;
-  scrollbar-width: thin;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
 }
 
 .alphabetBar::-webkit-scrollbar {
-  height: 4px;
-}
-
-.alphabetBar::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 2px;
+  display: none;
 }
 
 .letterBtn {
@@ -651,3 +647,21 @@
     padding: 1.5rem;
   }
 }
+
+@media (max-width: 480px) {
+  .container {
+    padding: 0.85rem 0.85rem 3.5rem;
+  }
+  .mainTitle {
+    font-size: 1.45rem;
+  }
+  .subtext {
+    font-size: 0.82rem;
+  }
+  .letterBtn {
+    min-width: 28px;
+    height: 28px;
+    font-size: 0.72rem;
+  }
+}
+

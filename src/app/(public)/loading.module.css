@@ -57,7 +57,7 @@
 .seriesHeroBanner {
   width: 100%;
   height: 380px;
-  border-radius: 16px;
+  border-radius: 8px;
   margin-bottom: 2rem;
   composes: shimmerBase;
 }
@@ -73,7 +73,7 @@
 .seriesPosterSkeleton {
   width: 100%;
   aspect-ratio: 2 / 3;
-  border-radius: 14px;
+  border-radius: 8px;
   composes: shimmerBase;
 }
 
@@ -86,7 +86,7 @@
 
 .seriesActionBtnSkeleton {
   height: 44px;
-  border-radius: 10px;
+  border-radius: 6px;
   composes: shimmerBase;
 }
 
@@ -192,7 +192,7 @@
 
 .episodeCardSkeleton {
   aspect-ratio: 16 / 9;
-  border-radius: 10px;
+  border-radius: 8px;
   composes: shimmerBase;
 }
 

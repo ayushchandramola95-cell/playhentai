@@ -24,30 +24,29 @@ export async function GET() {
   ];
 
   try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
-    const { data: series } = await supabase
-      .from('series')
-      .select('slug, updated_at, seasons(episodes(id, episode_number, is_published, video_key, updated_at))')
-      .eq('is_published', true)
-      .order('updated_at', { ascending: false })
-      .limit(10);
-
-    if (series && series.length > 0) {
-      series.forEach((s: any) => {
-        if (s.slug) {
+    const { getLocalCatalog } = await import('@/utils/localCatalogStore');
+    const catalog = await getLocalCatalog().catch(() => null);
+    if (catalog && catalog.series && catalog.series.length > 0) {
+      const sMap = new Map();
+      catalog.series.forEach((s: any) => {
+        if (s.is_published !== false && s.slug) {
+          sMap.set(s.id, s.slug);
           urlList.push(`${baseUrl}/series/${s.slug}`);
-          const seasons = s.seasons || [];
-          seasons.forEach((sea: any) => {
-            (sea.episodes || []).forEach((ep: any) => {
-              if (ep.is_published && ep.video_key) {
-                const watchSlug = s.slug && ep.episode_number ? `${s.slug}-episode-${ep.episode_number}` : ep.id;
-                urlList.push(`${baseUrl}/watch/${watchSlug}`);
-              }
-            });
-          });
+        }
+      });
+      const seasonMap = new Map();
+      (catalog.seasons || []).forEach((sn: any) => {
+        if (sn.series_id) seasonMap.set(sn.id, sn.series_id);
+      });
+      (catalog.episodes || []).forEach((ep: any) => {
+        if (ep.is_published !== false && ep.video_key) {
+          const sId = seasonMap.get(ep.season_id);
+          const sSlug = sId ? sMap.get(sId) : null;
+          if (sSlug && ep.episode_number) {
+            urlList.push(`${baseUrl}/watch/${sSlug}-episode-${ep.episode_number}`);
+          } else if (ep.id) {
+            urlList.push(`${baseUrl}/watch/${ep.id}`);
+          }
         }
       });
     }

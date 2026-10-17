@@ -146,13 +146,13 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.resultsCount {
+.resultsCountText {
   font-size: 0.95rem;
   font-weight: 700;
   color: var(--foreground-secondary);
 }
 
-.resultsCount strong {
+.resultsCountText strong {
   color: #ffffff;
 }
 

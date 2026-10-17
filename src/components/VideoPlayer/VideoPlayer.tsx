@@ -137,6 +137,7 @@ export default function VideoPlayer({
   const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const viewLoggedRef = useRef(false);
+  const hasPrefetchedNextRef = useRef(false);
 
   // Reload video element on URL change; reset state
   useEffect(() => {
@@ -147,6 +148,7 @@ export default function VideoPlayer({
     setResumeTime(null);
     setAutoplayCountdown(null);
     viewLoggedRef.current = false;
+    hasPrefetchedNextRef.current = false;
 
     setHasStartedPlaying(false);
     if (videoRef.current) {
@@ -334,6 +336,18 @@ export default function VideoPlayer({
       setCurrentTime(cur);
       if (cur < 1) {
         viewLoggedRef.current = false;
+      }
+      // Zero-lag continuous streaming: prefetch next episode route & assets at 70% duration
+      if (
+        duration > 0 &&
+        cur / duration > 0.7 &&
+        !hasPrefetchedNextRef.current &&
+        nextEpisodeUrl
+      ) {
+        hasPrefetchedNextRef.current = true;
+        try {
+          router.prefetch(nextEpisodeUrl);
+        } catch {}
       }
     }
   };

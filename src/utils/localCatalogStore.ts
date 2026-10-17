@@ -1,10 +1,10 @@
 import fs from 'fs';
 import path from 'path';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
-import { getSeriesViewsMap, getEpisodeViewsMap } from '@/utils/views';
+import { getSeriesViewsMap } from '@/utils/views';
 import { resolveSeriesMetrics, resolveEpisodeMetrics } from '@/utils/fakeMetricsStore';
-import { MOCK_SERIES, MOCK_EPISODES, MOCK_SERIES_DETAILS } from '@/utils/mockData';
-import { STUDIOS, tagToSlug } from '@/utils/constants';
+import { MOCK_SERIES, MOCK_SERIES_DETAILS } from '@/utils/mockData';
+import { tagToSlug } from '@/utils/constants';
 
 const DATA_DIR = path.join(process.cwd(), 'src', 'data');
 const STORE_FILE = path.join(DATA_DIR, 'local_catalog.json');

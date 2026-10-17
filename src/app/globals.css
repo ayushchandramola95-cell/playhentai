@@ -97,10 +97,6 @@
   margin: 0;
 }
 
-html, body {
-  -webkit-tap-highlight-color: transparent !important;
-}
-
 * {
   -webkit-tap-highlight-color: transparent !important;
 }
@@ -147,36 +143,7 @@ body {
   background: var(--foreground-muted);
 }
 
-/* Dynamic Ambient Glow */
-.ambient-glow {
-  position: absolute;
-  top: 10%;
-  left: 5%;
-  width: 500px;
-  max-width: 80vw;
-  height: 500px;
-  background: radial-gradient(circle, rgba(var(--primary-rgb), var(--glow-opacity)) 0%, transparent 70%);
-  filter: blur(80px);
-  pointer-events: none;
-  z-index: 0;
-  animation: pulse-glow 10s infinite alternate;
-}
-
-.ambient-glow-2 {
-  position: absolute;
-  bottom: 10%;
-  right: 5%;
-  width: 400px;
-  max-width: 80vw;
-  height: 400px;
-  background: radial-gradient(circle, rgba(var(--accent-rgb), var(--glow-opacity)) 0%, transparent 70%);
-  filter: blur(80px);
-  pointer-events: none;
-  z-index: 0;
-  animation: pulse-glow-reverse 8s infinite alternate;
-}
-
-/* Ambient Glow (Disabled for clean matte flat-modern aesthetic) */
+/* Ambient Glow (Disabled for clean matte flat-modern aesthetic & CWV rendering speed) */
 .ambient-glow,
 .ambient-glow-2 {
   display: none !important;

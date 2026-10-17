@@ -63,6 +63,25 @@
   }
 }
 
+@media (max-width: 600px) {
+  .container {
+    padding: 0.85rem 1rem 3rem;
+  }
+  .infoCard,
+  .formCard {
+    padding: 1.25rem 1rem;
+  }
+  .titleRow h1 {
+    font-size: 1.45rem;
+  }
+  .subtext {
+    font-size: 0.85rem;
+  }
+  .headerSection {
+    margin-bottom: 1.25rem;
+  }
+}
+
 .infoCard,
 .formCard {
   border-radius: 8px;

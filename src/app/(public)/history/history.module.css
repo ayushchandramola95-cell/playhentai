@@ -1496,7 +1496,7 @@
   /* Empty States & Guest View */
   .guestCard,
   .emptySearchCard,
-  .emptyHistoryCard {
+  .emptyWatchlistCard {
     padding: 2.25rem 1.25rem !important;
     border-radius: 18px !important;
     margin: 1.5rem auto !important;
@@ -1511,14 +1511,14 @@
   }
 
   .guestTitle,
-  .emptyHistoryCard h3,
+  .emptyWatchlistCard h3,
   .emptySearchCard h3 {
     font-size: 1.3rem !important;
     margin-bottom: 0.5rem !important;
   }
 
   .guestDesc,
-  .emptyHistoryCard p,
+  .emptyWatchlistCard p,
   .emptySearchCard p {
     font-size: 0.82rem !important;
     line-height: 1.5 !important;

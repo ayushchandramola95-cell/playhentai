@@ -401,7 +401,7 @@ export default function WatchPageClient({
   };
 
   return (
-    <div className={`${styles.container} ${isTheatreMode ? styles.theatreContainer : ''}`}>
+    <div className={`${styles.container} ${isTheatreMode ? styles.theatreContainer : ''} ${isLightsOff ? styles.containerLightsOff : ''}`}>
       <div className="ambient-glow" />
 
       {/* Lights Off / Cinema Mode Backdrop */}

@@ -80,6 +80,32 @@ export default function SearchBar({ onFocusChange }: SearchBarProps) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [onFocusChange]);
 
+  // Global keyboard shortcut to focus search ("/" or "Ctrl+K" / "Cmd+K")
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
+
+      if (e.key === '/' || ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k')) {
+        e.preventDefault();
+        inputRef.current?.focus();
+        inputRef.current?.select();
+        setShowDropdown(true);
+        onFocusChange?.(true);
+      }
+    };
+
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, [onFocusChange]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (focusedIndex >= 0 && focusedIndex < suggestions.length) {
@@ -151,6 +177,11 @@ export default function SearchBar({ onFocusChange }: SearchBarProps) {
         />
         {isLoading && (
           <Loader2 size={16} className={`${styles.clearBtn} animate-spin`} />
+        )}
+        {!query && !isLoading && (
+          <kbd className={styles.shortcutKbd} title="Press / to search" aria-hidden="true">
+            /
+          </kbd>
         )}
         {query && !isLoading && (
           <button
