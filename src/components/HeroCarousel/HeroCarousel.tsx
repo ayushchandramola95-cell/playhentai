@@ -299,8 +299,8 @@ export default function HeroCarousel({ activeSeries, isDbEmpty, autoplaySpeed = 
                     fill
                     sizes="(max-width: 768px) 1px, 100vw"
                     className={styles.heroBgImage}
-                    priority={index === 0}
-                    loading={index === 0 ? 'eager' : 'lazy'}
+                    priority={false}
+                    loading="lazy"
                     unoptimized={typeof bannerUrl === 'string' && bannerUrl.startsWith('data:')}
                   />
                 )}
@@ -486,6 +486,7 @@ export default function HeroCarousel({ activeSeries, isDbEmpty, autoplaySpeed = 
                           fill
                           sizes="(max-width: 768px) 140px, 220px"
                           className={styles.thumbImage}
+                          loading="lazy"
                           unoptimized={typeof thumbImg === 'string' && thumbImg.startsWith('data:')}
                         />
                         <div className={styles.thumbShade} />
@@ -516,6 +517,7 @@ export default function HeroCarousel({ activeSeries, isDbEmpty, autoplaySpeed = 
                     fill
                     sizes="(max-width: 1024px) 1px, 520px"
                     className={styles.cardImage}
+                    loading="lazy"
                     unoptimized={typeof nextCoverUrl === 'string' && nextCoverUrl.startsWith('data:')}
                   />
                   <div className={styles.backCardShade} />
@@ -533,7 +535,7 @@ export default function HeroCarousel({ activeSeries, isDbEmpty, autoplaySpeed = 
                   src={currentCoverUrl}
                   alt={currentSeries.title}
                   fill
-                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 460px, 540px"
+                  sizes="(max-width: 480px) 100vw, (max-width: 768px) 90vw, (max-width: 1024px) 460px, 540px"
                   className={styles.cardImage}
                   priority={true}
                   unoptimized={typeof currentCoverUrl === 'string' && currentCoverUrl.startsWith('data:')}

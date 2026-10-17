@@ -1009,7 +1009,7 @@ export default async function HomePage() {
                       fill
                       sizes="(max-width: 480px) 50vw, (max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
                       className={styles.cardImage}
-                      loading={epIdx < 2 ? "eager" : "lazy"}
+                      loading="lazy"
                       decoding="async"
                       unoptimized={typeof thumbUrl === 'string' && thumbUrl.startsWith('data:')}
                     />
