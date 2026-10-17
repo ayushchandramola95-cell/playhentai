@@ -16,66 +16,71 @@
   align-items: center;
   width: 100%;
   height: 38px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 20px;
-  padding: 0 0.85rem;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 9999px;
+  padding: 0 0.9rem;
+  transition: background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
 }
 
 .inputWrapper:hover {
-  background: rgba(255, 255, 255, 0.07);
-  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.16);
 }
 
 .inputWrapper:focus-within {
-  background: #0c101a;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.25), 0 4px 20px rgba(0, 0, 0, 0.5);
+  background: rgba(16, 20, 30, 0.98);
+  border-color: rgba(245, 158, 11, 0.45);
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.12);
 }
 
 .searchIcon {
-  color: var(--foreground-muted);
+  color: #94a3b8;
   margin-right: 0.45rem;
   pointer-events: none;
   flex-shrink: 0;
+  transition: color 0.18s ease;
+}
+
+.inputWrapper:focus-within .searchIcon {
+  color: #f59e0b;
 }
 
 .searchInput {
   width: 100%;
-  padding: 0.45rem 0;
+  padding: 0.4rem 0;
   background: transparent;
   border: none;
-  color: var(--foreground-primary);
-  font-size: 0.84rem;
+  color: #f1f5f9;
+  font-size: 0.83rem;
   outline: none;
   font-family: inherit;
   text-overflow: ellipsis;
 }
 
 .searchInput::placeholder {
-  color: var(--foreground-muted);
+  color: #64748b;
   text-overflow: ellipsis;
 }
 
 .clearBtn {
   background: transparent;
   border: none;
-  color: var(--foreground-muted);
+  color: #64748b;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   padding: 0.2rem;
   border-radius: 50%;
-  transition: all 0.2s ease;
+  transition: color 0.15s ease, background 0.15s ease;
   margin-left: 0.35rem;
   flex-shrink: 0;
 }
 
 .clearBtn:hover {
-  background: var(--border);
-  color: var(--foreground-secondary);
+  background: rgba(255, 255, 255, 0.08);
+  color: #cbd5e1;
 }
 
 .dropdown {
@@ -85,26 +90,26 @@
   right: 0;
   width: 100%;
   min-width: 100%;
-  background: rgba(11, 15, 25, 0.96);
+  background: rgba(14, 18, 26, 0.96);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 16px;
-  box-shadow: 0 16px 45px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(59, 130, 246, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.65);
   z-index: 9999;
   max-height: 480px;
   overflow-y: auto;
-  padding: 0.75rem;
+  padding: 0.5rem;
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
-  animation: slideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  gap: 0.25rem;
+  animation: slideDown 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @keyframes slideDown {
   from {
     opacity: 0;
-    transform: translateY(-8px);
+    transform: translateY(-6px);
   }
   to {
     opacity: 1;
@@ -116,17 +121,17 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.5rem 0.75rem;
-  border-radius: 10px;
+  padding: 0.5rem 0.65rem;
+  border-radius: 8px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: background 0.15s ease, border-color 0.15s ease;
   text-decoration: none;
+  border-left: 2px solid transparent;
 }
 
 .dropdownItem:hover, .dropdownItemFocused {
-  background: rgba(99, 102, 241, 0.12);
-  border-left: 3px solid var(--primary);
-  padding-left: calc(0.75rem - 3px);
+  background: rgba(255, 255, 255, 0.04);
+  border-left: 2px solid #f59e0b;
 }
 
 .itemPoster {
