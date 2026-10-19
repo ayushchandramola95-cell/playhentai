@@ -49,6 +49,18 @@ interface Episode {
   release_date: string;
   is_published: boolean;
   created_at: string;
+  storyboard?: {
+    status?: 'completed' | 'processing' | 'failed';
+    vtt_url?: string;
+    vtt_key?: string;
+    sheet_count?: number;
+    frame_interval_seconds?: number;
+    tile_width?: number;
+    tile_height?: number;
+    grid_columns?: number;
+    grid_rows?: number;
+    generated_at?: string;
+  };
   seasons?: {
     title: string;
     series?: {
@@ -163,7 +175,7 @@ export default function AdminEpisodesPage() {
   const [selectedLaunchYear, setSelectedLaunchYear] = useState('all');
   const [selectedSeriesFilter, setSelectedSeriesFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'published' | 'draft'>('all');
-  const [mediaFilter, setMediaFilter] = useState<'all' | 'missing_video' | 'missing_thumb'>('all');
+  const [mediaFilter, setMediaFilter] = useState<'all' | 'missing_video' | 'missing_thumb' | 'has_storyboard' | 'missing_storyboard'>('all');
   const [sortBy, setSortBy] = useState<'name' | 'date' | 'episodes'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [viewMode, setViewMode] = useState<'accordion' | 'table'>('accordion');
@@ -2696,6 +2708,8 @@ export default function AdminEpisodesPage() {
 
     const missingVideoCount = episodesList.filter(e => !e.video_key || e.video_key.trim() === '').length;
     const missingThumbCount = episodesList.filter(e => !e.thumbnail_key || e.thumbnail_key.trim() === '').length;
+    const storyboardReadyCount = episodesList.filter(e => e.storyboard?.status === 'completed').length;
+    const missingStoryboardCount = episodesList.filter(e => e.video_key && e.storyboard?.status !== 'completed').length;
 
     return { 
       totalEpisodes, 
@@ -2705,7 +2719,9 @@ export default function AdminEpisodesPage() {
       coveredSeriesCount, 
       totalSeriesCount,
       missingVideoCount, 
-      missingThumbCount 
+      missingThumbCount,
+      storyboardReadyCount,
+      missingStoryboardCount,
     };
   }, [episodesList, seasonsList, seriesList]);
 
@@ -2740,6 +2756,12 @@ export default function AdminEpisodesPage() {
         if (seriesEpisodes.length === 0) return false;
       } else if (mediaFilter === 'missing_thumb') {
         seriesEpisodes = seriesEpisodes.filter(e => !e.thumbnail_key || e.thumbnail_key.trim() === '');
+        if (seriesEpisodes.length === 0) return false;
+      } else if (mediaFilter === 'has_storyboard') {
+        seriesEpisodes = seriesEpisodes.filter(e => e.storyboard?.status === 'completed');
+        if (seriesEpisodes.length === 0) return false;
+      } else if (mediaFilter === 'missing_storyboard') {
+        seriesEpisodes = seriesEpisodes.filter(e => e.video_key && e.storyboard?.status !== 'completed');
         if (seriesEpisodes.length === 0) return false;
       }
 
@@ -2786,6 +2808,8 @@ export default function AdminEpisodesPage() {
       if (statusFilter === 'draft' && ep.is_published) return false;
       if (mediaFilter === 'missing_video' && ep.video_key && ep.video_key.trim() !== '') return false;
       if (mediaFilter === 'missing_thumb' && ep.thumbnail_key && ep.thumbnail_key.trim() !== '') return false;
+      if (mediaFilter === 'has_storyboard' && ep.storyboard?.status !== 'completed') return false;
+      if (mediaFilter === 'missing_storyboard' && (!ep.video_key || ep.storyboard?.status === 'completed')) return false;
 
       if (searchTerm.trim() !== '') {
         const q = searchTerm.toLowerCase().trim();
@@ -3068,6 +3092,8 @@ export default function AdminEpisodesPage() {
               title="Filter by Media Health"
             >
               <option value="all">All Media</option>
+              <option value="has_storyboard">🎞️ Storyboard Ready ({stats.storyboardReadyCount})</option>
+              <option value="missing_storyboard">⏳ Missing Storyboard ({stats.missingStoryboardCount})</option>
               <option value="missing_video">⚠️ Missing Video ({stats.missingVideoCount})</option>
               <option value="missing_thumb">⚠️ Missing Thumb ({stats.missingThumbCount})</option>
             </select>
@@ -3402,6 +3428,23 @@ export default function AdminEpisodesPage() {
                                     <span>{ep.is_published ? 'Published' : 'Draft'}</span>
                                   </button>
 
+                                  {/* Storyboard Status Badge */}
+                                  {ep.storyboard?.status === 'completed' ? (
+                                    <span
+                                      className={styles.storyboardReadyBadge}
+                                      title={`Storyboard Ready: ${ep.storyboard.sheet_count || 1} sprite sheet(s)`}
+                                    >
+                                      🎞️ Ready
+                                    </span>
+                                  ) : (
+                                    <span
+                                      className={styles.storyboardMissingBadge}
+                                      title="No storyboard generated yet"
+                                    >
+                                      ⏳ No Storyboard
+                                    </span>
+                                  )}
+
                                   {/* Direct Player Watch Link */}
                                   <Link
                                     href={series.slug ? `/watch/${series.slug}-episode-${ep.episode_number}` : `/watch/${ep.id}`}
@@ -3473,6 +3516,7 @@ export default function AdminEpisodesPage() {
                     <th>#</th>
                     <th>Duration</th>
                     <th>Status</th>
+                    <th>Storyboard</th>
                     <th>Aired</th>
                     <th style={{ textAlign: 'right' }}>Actions</th>
                   </tr>
@@ -3529,6 +3573,17 @@ export default function AdminEpisodesPage() {
                             <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: ep.is_published ? '#10b981' : '#f59e0b' }} />
                             <span>{ep.is_published ? 'Published' : 'Draft'}</span>
                           </button>
+                        </td>
+                        <td>
+                          {ep.storyboard?.status === 'completed' ? (
+                            <span className={styles.storyboardReadyBadge} title={`${ep.storyboard.sheet_count || 1} sheet(s)`}>
+                              🎞️ Ready
+                            </span>
+                          ) : (
+                            <span className={styles.storyboardMissingBadge} title="Missing storyboard">
+                              ⏳ Missing
+                            </span>
+                          )}
                         </td>
                         <td style={{ fontSize: '0.78rem', color: 'var(--foreground-muted)' }}>
                           {formatAiredDateDisplay(ep.release_date)}
