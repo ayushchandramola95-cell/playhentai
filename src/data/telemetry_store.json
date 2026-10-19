@@ -34,7 +34,7 @@
     "ph_oi8yf9h2_1792389120851": {
       "sessionId": "ph_oi8yf9h2_1792389120851",
       "firstSeen": 1792389123132,
-      "lastSeen": 1792406801978,
+      "lastSeen": 1792423672661,
       "durationSeconds": 6815,
       "pageViews": 3,
       "maxScrollDepth": 0,
@@ -66,7 +66,7 @@
     "/studios": 4,
     "/uncensored": 5,
     "/watch/mock-ep-1": 8,
-    "/watch/oushun-jogakuen-no-danyuu-episode-1": 338,
+    "/watch/oushun-jogakuen-no-danyuu-episode-1": 339,
     "/faq": 2,
     "/nonexistent-404-test": 2,
     "/series/cyberpunk-odyssey": 28,
@@ -88,5 +88,5 @@
     "notBlocked": 65
   },
   "totalWatchEvents": 2,
-  "lastCleaned": 1792389123132
+  "lastCleaned": 1792423672661
 }

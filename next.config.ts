@@ -3,6 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   output: 'standalone',
   compress: true,
+  serverExternalPackages: ['ffmpeg-static', 'ffprobe-static'],
   typescript: {
     ignoreBuildErrors: true,
   },

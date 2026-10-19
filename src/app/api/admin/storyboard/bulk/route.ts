@@ -1,6 +1,6 @@
 import { verifyAdmin } from '@/utils/supabase/admin';
 import { getLocalCatalog } from '@/utils/localCatalogStore';
-import { processEpisodeStoryboard } from '@/utils/storyboardGenerator';
+import { processEpisodeStoryboard, getFfmpegBinary, getFfprobeBinary } from '@/utils/storyboardGenerator';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,6 +31,9 @@ export async function POST(request: Request) {
     const total = targets.length;
     const encoder = new TextEncoder();
 
+    const activeFfmpeg = getFfmpegBinary();
+    const activeFfprobe = getFfprobeBinary();
+
     const stream = new ReadableStream({
       async start(controller) {
         const sendEvent = (event: string, data: any) => {
@@ -39,7 +42,7 @@ export async function POST(request: Request) {
 
         sendEvent('start', {
           total,
-          message: `Starting bulk storyboard generation for ${total} episodes...`,
+          message: `Starting bulk storyboard generation for ${total} episodes (Binary: ${activeFfmpeg})...`,
         });
 
         let completed = 0;

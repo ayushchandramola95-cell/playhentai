@@ -86,36 +86,108 @@ export function getStorageClient(): { s3: S3Client; bucket: string; publicUrl: s
 }
 
 /**
- * Resolves FFmpeg binary from ffmpeg-static, environment variable, or PATH
+ * Ensures binary has executable permissions on Linux/Unix systems.
+ */
+function ensureExecutable(filePath: string): string {
+  if (process.platform !== 'win32' && fs.existsSync(filePath)) {
+    try {
+      fs.chmodSync(filePath, 0o755);
+    } catch {}
+  }
+  return filePath;
+}
+
+/**
+ * Resolves FFmpeg binary from system, static binaries, environment variable, or PATH
  */
 export function getFfmpegBinary(): string {
+  // 1. Explicit env var
   if (process.env.FFMPEG_PATH && fs.existsSync(process.env.FFMPEG_PATH)) {
-    return process.env.FFMPEG_PATH;
+    return ensureExecutable(process.env.FFMPEG_PATH);
   }
+
+  // 2. Known system paths (installed via mise, apt, brew)
+  const systemCandidates = [
+    '/usr/bin/ffmpeg',
+    '/usr/local/bin/ffmpeg',
+    '/bin/ffmpeg',
+    '/root/.local/share/mise/installs/ffmpeg/latest/bin/ffmpeg',
+    '/home/linuxbrew/.linuxbrew/bin/ffmpeg',
+    '/opt/homebrew/bin/ffmpeg',
+  ];
+  for (const candidate of systemCandidates) {
+    if (fs.existsSync(candidate)) {
+      return candidate;
+    }
+  }
+
+  // 3. ffmpeg-static package
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const ffmpegStatic = require('ffmpeg-static');
     if (ffmpegStatic && typeof ffmpegStatic === 'string' && fs.existsSync(ffmpegStatic)) {
-      return ffmpegStatic;
+      return ensureExecutable(ffmpegStatic);
     }
   } catch {}
+
+  // 4. CWD node_modules fallback
+  const cwdCandidates = [
+    path.join(process.cwd(), 'node_modules', 'ffmpeg-static', 'ffmpeg'),
+    path.join(process.cwd(), 'node_modules', 'ffmpeg-static', 'ffmpeg.exe'),
+  ];
+  for (const candidate of cwdCandidates) {
+    if (fs.existsSync(candidate)) {
+      return ensureExecutable(candidate);
+    }
+  }
+
   return process.platform === 'win32' ? 'ffmpeg.exe' : 'ffmpeg';
 }
 
 /**
- * Resolves FFprobe binary from ffprobe-static, environment variable, or PATH
+ * Resolves FFprobe binary from system, static binaries, environment variable, or PATH
  */
 export function getFfprobeBinary(): string {
+  // 1. Explicit env var
   if (process.env.FFPROBE_PATH && fs.existsSync(process.env.FFPROBE_PATH)) {
-    return process.env.FFPROBE_PATH;
+    return ensureExecutable(process.env.FFPROBE_PATH);
   }
+
+  // 2. Known system paths
+  const systemCandidates = [
+    '/usr/bin/ffprobe',
+    '/usr/local/bin/ffprobe',
+    '/bin/ffprobe',
+    '/root/.local/share/mise/installs/ffmpeg/latest/bin/ffprobe',
+    '/home/linuxbrew/.linuxbrew/bin/ffprobe',
+    '/opt/homebrew/bin/ffprobe',
+  ];
+  for (const candidate of systemCandidates) {
+    if (fs.existsSync(candidate)) {
+      return candidate;
+    }
+  }
+
+  // 3. ffprobe-static package
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const ffprobeStatic = require('ffprobe-static');
     if (ffprobeStatic && ffprobeStatic.path && fs.existsSync(ffprobeStatic.path)) {
-      return ffprobeStatic.path;
+      return ensureExecutable(ffprobeStatic.path);
     }
   } catch {}
+
+  // 4. CWD fallback
+  const cwdCandidates = [
+    path.join(process.cwd(), 'node_modules', 'ffprobe-static', 'bin', 'linux', 'x64', 'ffprobe'),
+    path.join(process.cwd(), 'node_modules', 'ffprobe-static', 'bin', 'win32', 'x64', 'ffprobe.exe'),
+  ];
+  for (const candidate of cwdCandidates) {
+    if (fs.existsSync(candidate)) {
+      return ensureExecutable(candidate);
+    }
+  }
+
   return process.platform === 'win32' ? 'ffprobe.exe' : 'ffprobe';
 }
 
