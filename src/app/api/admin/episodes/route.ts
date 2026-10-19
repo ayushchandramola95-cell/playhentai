@@ -69,7 +69,15 @@ export async function GET(request: Request) {
     const { data, error } = await query.order('episode_number', { ascending: true });
 
     if (error) throw error;
-    return NextResponse.json({ episodes: data });
+
+    const sbMap = new Map((catalog.episodes || []).map((e: any) => [e.id, e.storyboard]));
+    const baseList = (data && data.length > 0) ? data : (catalog.episodes || []);
+    const mergedEpisodes = baseList.map((ep: any) => ({
+      ...ep,
+      storyboard: ep.storyboard || sbMap.get(ep.id) || null,
+    }));
+
+    return NextResponse.json({ episodes: mergedEpisodes });
   } catch (err: any) {
     console.error('Error fetching admin episodes:', err);
     const status = err.message === 'Unauthorized' ? 401 : err.message === 'Forbidden' ? 403 : 500;

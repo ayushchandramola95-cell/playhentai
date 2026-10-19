@@ -88,13 +88,24 @@ export async function syncLocalCatalogWithSupabase(): Promise<LocalCatalogData> 
       if (seaErr) console.warn('[LocalStore] Error fetching seasons:', seaErr.message);
       if (epErr) console.warn('[LocalStore] Error fetching episodes:', epErr.message);
 
-      const currentCollections = memoryCatalog?.collections || loadStoreFromDisk()?.collections || [];
+      const existingStore = memoryCatalog || loadStoreFromDisk();
+      const currentCollections = memoryCatalog?.collections || existingStore?.collections || [];
+      const existingSbMap = new Map(
+        (existingStore?.episodes || [])
+          .filter((e: any) => Boolean(e.storyboard))
+          .map((e: any) => [e.id, e.storyboard])
+      );
+
+      const mergedEpisodes = (episodesData || []).map((ep: any) => ({
+        ...ep,
+        storyboard: ep.storyboard || existingSbMap.get(ep.id) || null,
+      }));
 
       const snapshot: LocalCatalogData = {
         lastSyncedAt: new Date().toISOString(),
         series: seriesData || [],
         seasons: seasonsData || [],
-        episodes: episodesData || [],
+        episodes: mergedEpisodes,
         collections: currentCollections
       };
 

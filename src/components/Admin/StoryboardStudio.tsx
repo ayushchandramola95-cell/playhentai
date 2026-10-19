@@ -312,7 +312,14 @@ export default function StoryboardStudio({ onUpdate }: StoryboardStudioProps) {
             </button>
           )}
 
-          <button onClick={fetchStoryboardData} className={styles.secondaryBtn} title="Refresh status">
+          <button
+            onClick={() => {
+              fetchStoryboardData();
+              onUpdate?.();
+            }}
+            className={styles.secondaryBtn}
+            title="Refresh status"
+          >
             <RotateCw size={15} />
             <span>Refresh</span>
           </button>
