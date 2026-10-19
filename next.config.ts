@@ -46,6 +46,10 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
+        hostname: "*.cloudfront.net",
+      },
+      {
+        protocol: "https",
         hostname: "mock-r2.streamnexus.com",
       },
     ],
