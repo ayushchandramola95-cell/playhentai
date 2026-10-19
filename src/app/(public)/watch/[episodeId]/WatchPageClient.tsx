@@ -722,6 +722,7 @@ export default function WatchPageClient({
               posterUrl={posterUrl}
               autoplay={autoplay}
               onToggleAutoplay={handleToggleAutoplay}
+              storyboard={activeEpisode.storyboard}
             />
           </div>
 

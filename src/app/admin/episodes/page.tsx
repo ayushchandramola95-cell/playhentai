@@ -15,6 +15,7 @@ import { getR2Url } from '@/utils/r2';
 import { uploadFileWithMultipart, formatUploadBytes, UploadProgressEvent } from '@/utils/multipartUploader';
 import styles from './episodes.module.css';
 import adminStyles from '../admin.module.css';
+import StoryboardStudio from '@/components/Admin/StoryboardStudio';
 
 interface Series {
   id: string;
@@ -2944,6 +2945,9 @@ export default function AdminEpisodesPage() {
           </div>
         </div>
       </div>
+
+      {/* Ultra-Fast 1-Frame-Per-Second Storyboard Studio */}
+      <StoryboardStudio onUpdate={fetchInitialData} />
 
       {/* Unsaved Draft Alert */}
       {hasDraft && (

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { verifyAdmin, createAdminClient } from '@/utils/supabase/admin';
 import { revalidateAllCatalogTags } from '@/utils/revalidateCatalog';
 import { getLocalCatalog, upsertLocalEpisode, deleteLocalEpisode } from '@/utils/localCatalogStore';
+import { processEpisodeStoryboard } from '@/utils/storyboardGenerator';
 
 export async function GET(request: Request) {
   try {
@@ -154,6 +155,14 @@ export async function POST(request: Request) {
     } catch (localErr) {
       console.warn('Local store episode upsert fallback:', localErr);
     }
+
+    // Automatically trigger 1-frame-per-second Storyboard Generation in background
+    if (data?.id && data.video_key && data.video_key.trim() !== '') {
+      processEpisodeStoryboard(data.id).catch((err: any) => {
+        console.warn(`[AutoStoryboard] Background generation failed for new episode ${data.id}:`, err?.message);
+      });
+    }
+
     revalidateAllCatalogTags();
 
     return NextResponse.json({ success: true, episode: data });

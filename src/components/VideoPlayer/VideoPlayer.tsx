@@ -23,6 +23,7 @@ interface VideoPlayerProps {
   posterUrl?: string;
   autoplay?: boolean;
   onToggleAutoplay?: () => void;
+  storyboard?: any;
 }
 
 export default function VideoPlayer({
@@ -39,6 +40,7 @@ export default function VideoPlayer({
   posterUrl,
   autoplay = true,
   onToggleAutoplay,
+  storyboard,
 }: VideoPlayerProps) {
   const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -110,6 +112,7 @@ export default function VideoPlayer({
   const hoverTimeTextRef = useRef<HTMLSpanElement>(null);
   const previewVideoRef = useRef<HTMLVideoElement>(null);
   const displayCanvasRef = useRef<HTMLCanvasElement>(null);
+  const storyboardLayerRef = useRef<HTMLDivElement>(null);
 
   // In-memory Canvas Frame Cache (key: snapped second, value: 160x90 canvas snapshot)
   const frameCacheRef = useRef<Map<number, HTMLCanvasElement>>(new Map());
@@ -532,6 +535,28 @@ export default function VideoPlayer({
       setHoverPosPercent(pct100);
     }
 
+    // 0. Primary 0ms WebP Storyboard Sprite Engine (YouTube / Netflix standard)
+    const sb = storyboard;
+    const hasStoryboard = sb && sb.status === 'completed';
+    if (hasStoryboard && storyboardLayerRef.current) {
+      const interval = sb.interval || 1;
+      const frameIndex = Math.floor(targetTime / interval);
+      const sheetIndex = Math.floor(frameIndex / 100);
+      const inSheetIndex = frameIndex % 100;
+      const col = inSheetIndex % 10;
+      const row = Math.floor(inSheetIndex / 10);
+      const x = col * 160;
+      const y = row * 90;
+
+      const cdnUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL || 'https://dmfrlqgigpmty.cloudfront.net';
+      const sheetUrl = `${cdnUrl}/${sb.prefix || `storyboards/${episodeId}`}/sheet_${String(sheetIndex).padStart(2, '0')}.webp`;
+
+      storyboardLayerRef.current.style.backgroundImage = `url("${sheetUrl}")`;
+      storyboardLayerRef.current.style.backgroundPosition = `-${x}px -${y}px`;
+      storyboardLayerRef.current.style.opacity = '1';
+      return; // 0ms instant display, skip hardware video seek!
+    }
+
     // 1. Check in-memory Canvas Frame Cache (0ms instant display from RAM)
     const snappedTime = Math.floor(targetTime / 4) * 4;
     const cachedCanvas = frameCacheRef.current.get(snappedTime);
@@ -585,6 +610,9 @@ export default function VideoPlayer({
   const handleProgressBarMouseLeave = () => {
     if (hoverTooltipRef.current) {
       hoverTooltipRef.current.classList.remove(styles.hoverTooltipVisible);
+    }
+    if (storyboardLayerRef.current) {
+      storyboardLayerRef.current.style.opacity = '0';
     }
     setHoverTime(null);
     pendingSeekRef.current = null;
@@ -1045,6 +1073,12 @@ export default function VideoPlayer({
                       opacity: hasCachedFrame ? 1 : 0,
                       transition: 'opacity 0.12s ease'
                     }}
+                  />
+
+                  {/* Primary 0ms WebP Storyboard Sprite Engine (YouTube / Netflix standard) */}
+                  <div
+                    ref={storyboardLayerRef}
+                    className={styles.hoverThumbnailStoryboard}
                   />
                 </div>
                 <span ref={hoverTimeTextRef} className={styles.hoverTimeText}>

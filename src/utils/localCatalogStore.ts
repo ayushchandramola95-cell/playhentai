@@ -888,3 +888,23 @@ export async function getLocalEpisodesWithSeriesHierarchy(): Promise<any[]> {
     });
 }
 
+/**
+ * Updates storyboard metadata and history for a specific episode in memory and on disk.
+ */
+export async function updateLocalEpisodeStoryboard(episodeId: string, storyboardData: any): Promise<any> {
+  const catalog = await getLocalCatalog();
+  const episode = catalog.episodes.find((e: any) => e.id === episodeId);
+
+  if (episode) {
+    episode.storyboard = {
+      ...(episode.storyboard || {}),
+      ...storyboardData,
+      updated_at: new Date().toISOString()
+    };
+    writeStoreToDisk(catalog);
+    return episode;
+  }
+  return null;
+}
+
+
