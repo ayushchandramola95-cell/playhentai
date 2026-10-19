@@ -26,10 +26,11 @@ export async function GET() {
         completedCount++;
         totalSizeKb += sb.size_kb || 0;
         totalFrames += sb.total_frames || 0;
-      } else if (status === 'failed') {
-        failedCount++;
       } else {
         missingCount++;
+        if (status === 'failed') {
+          failedCount++;
+        }
       }
 
       return {
