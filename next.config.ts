@@ -10,7 +10,7 @@ const nextConfig: NextConfig = {
     optimizePackageImports: ['lucide-react'],
   },
   images: {
-    unoptimized: process.env.NODE_ENV === 'development',
+    unoptimized: true,
     formats: ['image/avif', 'image/webp'],
     minimumCacheTTL: 2592000, // 30 days
     deviceSizes: [320, 420, 640, 750, 828, 1080, 1200, 1920],
@@ -43,6 +43,10 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "*.r2.dev",
+      },
+      {
+        protocol: "https",
+        hostname: "dmfrlqgigpmty.cloudfront.net",
       },
       {
         protocol: "https",
