@@ -14,7 +14,7 @@ export async function POST(request: Request) {
 
     const body = await request.json().catch(() => ({}));
     const { onlyMissing = true, episodeIds } = body;
-    const workerCount = Math.max(1, Math.min(Number(body.concurrency) || 1, 8));
+    const workerCount = Math.max(1, Math.min(Number(body.concurrency) || 1, 32));
 
     const catalog = await getLocalCatalog();
     let targets = catalog.episodes || [];

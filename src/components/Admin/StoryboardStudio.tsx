@@ -282,14 +282,14 @@ export default function StoryboardStudio({ onUpdate }: StoryboardStudioProps) {
         <div className={styles.actionsBar}>
           <div className={styles.concurrencyGroup} title="Parallel processing workers (adjust based on instance vCPUs)">
             <span className={styles.concurrencyLabel}>Workers:</span>
-            {[1, 2, 4, 6, 8].map((c) => (
+            {[1, 2, 4, 8, 16, 24].map((c) => (
               <button
                 key={c}
                 type="button"
                 className={`${styles.concurrencyBtn} ${concurrency === c ? styles.concurrencyBtnActive : ''}`}
                 onClick={() => setConcurrency(c)}
                 disabled={isBulkRunning}
-                title={`${c} parallel episode${c > 1 ? 's at the same time' : ''} (${c === 1 ? 'Safe for 1-2 vCPU' : c === 4 ? 'Optimal for 8-16 vCPU' : c >= 6 ? 'Turbo for 16+ vCPU' : ''})`}
+                title={`${c} parallel episode${c > 1 ? 's at the same time' : ''} (${c <= 2 ? 'Safe for 2-4 vCPU' : c === 4 ? 'Optimal for 8-16 vCPU' : c === 8 ? 'Turbo for 16-32 vCPU' : 'Hyper-speed for 64-96 vCPU'})`}
               >
                 {c}x
               </button>
