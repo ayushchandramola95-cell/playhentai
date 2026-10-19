@@ -86,10 +86,44 @@ export function getStorageClient(): { s3: S3Client; bucket: string; publicUrl: s
 }
 
 /**
+ * Resolves FFmpeg binary from ffmpeg-static, environment variable, or PATH
+ */
+export function getFfmpegBinary(): string {
+  if (process.env.FFMPEG_PATH && fs.existsSync(process.env.FFMPEG_PATH)) {
+    return process.env.FFMPEG_PATH;
+  }
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const ffmpegStatic = require('ffmpeg-static');
+    if (ffmpegStatic && typeof ffmpegStatic === 'string' && fs.existsSync(ffmpegStatic)) {
+      return ffmpegStatic;
+    }
+  } catch {}
+  return process.platform === 'win32' ? 'ffmpeg.exe' : 'ffmpeg';
+}
+
+/**
+ * Resolves FFprobe binary from ffprobe-static, environment variable, or PATH
+ */
+export function getFfprobeBinary(): string {
+  if (process.env.FFPROBE_PATH && fs.existsSync(process.env.FFPROBE_PATH)) {
+    return process.env.FFPROBE_PATH;
+  }
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const ffprobeStatic = require('ffprobe-static');
+    if (ffprobeStatic && ffprobeStatic.path && fs.existsSync(ffprobeStatic.path)) {
+      return ffprobeStatic.path;
+    }
+  } catch {}
+  return process.platform === 'win32' ? 'ffprobe.exe' : 'ffprobe';
+}
+
+/**
  * Runs ffprobe to inspect video stream details (FPS, duration, resolution, interlacing).
  */
 export async function probeVideo(videoUrlOrPath: string): Promise<VideoProbeInfo> {
-  const ffprobeCmd = process.platform === 'win32' ? 'ffprobe.exe' : 'ffprobe';
+  const ffprobeCmd = getFfprobeBinary();
   
   const args = [
     '-v', 'error',
@@ -164,7 +198,7 @@ export async function generateStoryboardLocal(options: {
   const probe = options.probeInfo || (await probeVideo(videoUrlOrPath));
   onProgress?.(`Probed video: ${probe.width}x${probe.height} @ ${probe.fps}fps, Duration: ${Math.round(probe.duration)}s`);
 
-  const ffmpegCmd = process.platform === 'win32' ? 'ffmpeg.exe' : 'ffmpeg';
+  const ffmpegCmd = getFfmpegBinary();
 
   // Build filter chain:
   // 1. fps=1: Exactly 1 frame per second
