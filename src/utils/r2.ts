@@ -10,7 +10,11 @@ export function getR2Url(
   }
 
   let cleanKey = key.trim();
-  const baseUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL || 'https://media.hentaikage.cc';
+  // Storyboards are uploaded to Cloudflare R2 and served publicly from media.hentaikage.cc with full CORS
+  const isStoryboard = cleanKey.startsWith('storyboards/') || cleanKey.includes('/storyboards/');
+  const baseUrl = isStoryboard
+    ? 'https://media.hentaikage.cc'
+    : (process.env.NEXT_PUBLIC_R2_PUBLIC_URL || 'https://media.hentaikage.cc');
   const sanitizedBase = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
 
   // Automatically convert any legacy .r2.dev URLs to the custom CDN domain

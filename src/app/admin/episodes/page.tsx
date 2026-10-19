@@ -61,6 +61,7 @@ interface Episode {
     grid_rows?: number;
     generated_at?: string;
   };
+  raw_provider_payload?: any;
   seasons?: {
     title: string;
     series?: {
@@ -184,6 +185,9 @@ export default function AdminEpisodesPage() {
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [storyboardModalEpisode, setStoryboardModalEpisode] = useState<Episode | null>(null);
+  const [isGeneratingSingleSb, setIsGeneratingSingleSb] = useState(false);
+  const [sbPreviewSec, setSbPreviewSec] = useState<number>(30);
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -2671,6 +2675,28 @@ export default function AdminEpisodesPage() {
     setTimeout(() => setCopiedKey(null), 2000);
   };
 
+  const handleGenerateSingleStoryboard = async (ep: Episode) => {
+    setIsGeneratingSingleSb(true);
+    try {
+      const res = await fetch('/api/admin/storyboard', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ episodeId: ep.id }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to generate storyboard');
+      setSuccessMsg(`✓ Storyboard generated for "${ep.title}" (${data.storyboard?.sheet_count || 1} sheets)!`);
+      if (data.storyboard) {
+        setEpisodesList(prev => prev.map(item => item.id === ep.id ? { ...item, storyboard: data.storyboard } : item));
+        setStoryboardModalEpisode(prev => prev && prev.id === ep.id ? { ...prev, storyboard: data.storyboard } : prev);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Error generating storyboard');
+    } finally {
+      setIsGeneratingSingleSb(false);
+    }
+  };
+
   const toggleSeriesExpand = (seriesId: string) => {
     const next = new Set(expandedSeriesIds);
     if (next.has(seriesId)) {
@@ -3429,21 +3455,24 @@ export default function AdminEpisodesPage() {
                                   </button>
 
                                   {/* Storyboard Status Badge */}
-                                  {ep.storyboard?.status === 'completed' ? (
-                                    <span
-                                      className={styles.storyboardReadyBadge}
-                                      title={`Storyboard Ready: ${ep.storyboard.sheet_count || 1} sprite sheet(s)`}
-                                    >
-                                      🎞️ Ready
-                                    </span>
-                                  ) : (
-                                    <span
-                                      className={styles.storyboardMissingBadge}
-                                      title="No storyboard generated yet"
-                                    >
-                                      ⏳ No Storyboard
-                                    </span>
-                                  )}
+                                  {(() => {
+                                    const sb = ep.storyboard || ep.raw_provider_payload?.storyboard;
+                                    const isReady = sb?.status === 'completed';
+                                    return (
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setStoryboardModalEpisode({ ...ep, storyboard: sb || null });
+                                        }}
+                                        className={isReady ? styles.storyboardReadyBadge : styles.storyboardMissingBadge}
+                                        title={isReady ? `Click to inspect Storyboard (${sb.sheet_count || 1} sheets)` : 'Click to inspect or generate storyboard'}
+                                        style={{ cursor: 'pointer', border: 'none' }}
+                                      >
+                                        {isReady ? '🎞️ Ready' : '⏳ No Storyboard'}
+                                      </button>
+                                    );
+                                  })()}
 
                                   {/* Direct Player Watch Link */}
                                   <Link
@@ -3575,15 +3604,24 @@ export default function AdminEpisodesPage() {
                           </button>
                         </td>
                         <td>
-                          {ep.storyboard?.status === 'completed' ? (
-                            <span className={styles.storyboardReadyBadge} title={`${ep.storyboard.sheet_count || 1} sheet(s)`}>
-                              🎞️ Ready
-                            </span>
-                          ) : (
-                            <span className={styles.storyboardMissingBadge} title="Missing storyboard">
-                              ⏳ Missing
-                            </span>
-                          )}
+                          {(() => {
+                            const sb = ep.storyboard || ep.raw_provider_payload?.storyboard;
+                            const isReady = sb?.status === 'completed';
+                            return (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setStoryboardModalEpisode({ ...ep, storyboard: sb || null });
+                                }}
+                                className={isReady ? styles.storyboardReadyBadge : styles.storyboardMissingBadge}
+                                title={isReady ? `Click to inspect Storyboard (${sb.sheet_count || 1} sheets)` : 'Click to inspect or generate storyboard'}
+                                style={{ cursor: 'pointer', border: 'none' }}
+                              >
+                                {isReady ? '🎞️ Ready' : '⏳ Missing'}
+                              </button>
+                            );
+                          })()}
                         </td>
                         <td style={{ fontSize: '0.78rem', color: 'var(--foreground-muted)' }}>
                           {formatAiredDateDisplay(ep.release_date)}
@@ -7157,6 +7195,229 @@ export default function AdminEpisodesPage() {
           </div>
         </div>
       )}
+
+      {/* STORYBOARD STUDIO INSPECTOR MODAL */}
+      {storyboardModalEpisode && (() => {
+        const sb = storyboardModalEpisode.storyboard || storyboardModalEpisode.raw_provider_payload?.storyboard;
+        const isReady = sb?.status === 'completed';
+
+        return (
+          <div 
+            className={styles.modalOverlay} 
+            onClick={() => setStoryboardModalEpisode(null)}
+            style={{ zIndex: 99999 }}
+          >
+            <div 
+              className={styles.modalContent}
+              onClick={(e) => e.stopPropagation()}
+              style={{ maxWidth: '780px', background: '#0e121e', border: '1px solid #2a3148', borderRadius: '16px', overflow: 'hidden', padding: '1.5rem' }}
+            >
+              {/* Modal Header */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #1f2638', paddingBottom: '1rem', marginBottom: '1.25rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                  <div style={{ background: 'rgba(139, 92, 246, 0.15)', padding: '0.5rem', borderRadius: '8px', color: '#a855f7' }}>
+                    <Film size={20} />
+                  </div>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: 'white' }}>
+                      Storyboard Inspector: {storyboardModalEpisode.title}
+                    </h3>
+                    <div style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: '0.2rem' }}>
+                      Episode #{storyboardModalEpisode.episode_number} • ID: {storyboardModalEpisode.id}
+                    </div>
+                  </div>
+                </div>
+                <button 
+                  type="button"
+                  onClick={() => setStoryboardModalEpisode(null)}
+                  style={{ background: '#1a1e2f', border: '1px solid #2a3148', color: '#94a3b8', borderRadius: '8px', padding: '0.4rem', cursor: 'pointer' }}
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Status Banner */}
+              {isReady ? (
+                <div style={{ background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.25)', borderRadius: '10px', padding: '1rem', marginBottom: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 800, color: '#34d399', fontSize: '0.92rem' }}>
+                      <CheckCircle2 size={16} />
+                      <span>Storyboard Generated & Live on CDN</span>
+                    </div>
+                    <div style={{ fontSize: '0.78rem', color: '#94a3b8', marginTop: '0.3rem' }}>
+                      {sb.sheet_count || 1} sheet(s) • 1 frame/sec • Lanczos anti-blur • {sb.size_kb || 0} KB
+                    </div>
+                  </div>
+                  {/* Watch live button */}
+                  <Link
+                    href={`/watch/${storyboardModalEpisode.id}`}
+                    target="_blank"
+                    className={styles.primaryBtn}
+                    style={{ textDecoration: 'none', padding: '0.45rem 0.9rem', fontSize: '0.8rem' }}
+                  >
+                    <Play size={14} fill="currentColor" />
+                    <span>Test in Player</span>
+                  </Link>
+                </div>
+              ) : (
+                <div style={{ background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.25)', borderRadius: '10px', padding: '1rem', marginBottom: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 800, color: '#fbbf24', fontSize: '0.92rem' }}>
+                      <Clock size={16} />
+                      <span>No Storyboard Generated Yet</span>
+                    </div>
+                    <div style={{ fontSize: '0.78rem', color: '#94a3b8', marginTop: '0.3rem' }}>
+                      Generate 1-second WebP thumbnails for 0ms scrubbing previews.
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleGenerateSingleStoryboard(storyboardModalEpisode)}
+                    disabled={isGeneratingSingleSb}
+                    className={styles.primaryBtn}
+                    style={{ padding: '0.45rem 0.9rem', fontSize: '0.8rem' }}
+                  >
+                    <Zap size={14} />
+                    <span>{isGeneratingSingleSb ? 'Generating...' : 'Generate Now'}</span>
+                  </button>
+                </div>
+              )}
+
+              {/* Interactive Timeline Scrubbing Simulator */}
+              {isReady && (
+                <div style={{ background: '#131826', border: '1px solid #1f2638', borderRadius: '12px', padding: '1.25rem', marginBottom: '1.25rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                    <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#e2e8f0', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                      <Sliders size={14} color="#a855f7" /> Live Scrubbing Simulator
+                    </span>
+                    <span style={{ fontSize: '0.8rem', color: '#a855f7', fontWeight: 800 }}>
+                      Timestamp: {Math.floor(sbPreviewSec / 60)}:{String(sbPreviewSec % 60).padStart(2, '0')} ({sbPreviewSec}s)
+                    </span>
+                  </div>
+
+                  {/* Simulated Hover Frame Box */}
+                  <div style={{ display: 'flex', justifyContent: 'center', margin: '0.75rem 0' }}>
+                    {(() => {
+                      const frameIdx = Math.floor(sbPreviewSec / (sb.interval || sb.frame_interval_seconds || 1));
+                      const totalSheets = sb.sheet_count || 1;
+                      const sheetNum = Math.min(totalSheets, Math.max(1, Math.floor(frameIdx / 100) + 1));
+                      const inSheetIdx = frameIdx % 100;
+                      const col = inSheetIdx % 10;
+                      const row = Math.floor(inSheetIdx / 10);
+                      const x = col * 160;
+                      const y = row * 90;
+                      const sheetKey = `${sb.prefix || `storyboards/${storyboardModalEpisode.id}`}/sheet_${String(sheetNum).padStart(2, '0')}.webp`;
+                      const sheetUrl = getR2Url(sheetKey);
+
+                      return (
+                        <div 
+                          style={{
+                            width: '160px',
+                            height: '90px',
+                            borderRadius: '8px',
+                            border: '2px solid #a855f7',
+                            boxShadow: '0 4px 20px rgba(168, 85, 247, 0.3)',
+                            backgroundImage: `url("${sheetUrl}")`,
+                            backgroundPosition: `-${x}px -${y}px`,
+                            backgroundRepeat: 'no-repeat',
+                            backgroundColor: '#000',
+                            position: 'relative'
+                          }}
+                        >
+                          <div style={{ position: 'absolute', bottom: '4px', right: '4px', background: 'rgba(0,0,0,0.8)', padding: '1px 4px', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 800, color: '#fff' }}>
+                            Sheet #{sheetNum}
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
+
+                  {/* Range Slider */}
+                  <input 
+                    type="range"
+                    min="0"
+                    max={Math.max(100, storyboardModalEpisode.duration_seconds || 1440)}
+                    value={sbPreviewSec}
+                    onChange={(e) => setSbPreviewSec(Number(e.target.value))}
+                    style={{ width: '100%', cursor: 'pointer', accentColor: '#a855f7' }}
+                  />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: '#64748b', marginTop: '0.25rem' }}>
+                    <span>0:00</span>
+                    <span>Drag slider to simulate cursor hovering over video player bar</span>
+                    <span>{Math.floor((storyboardModalEpisode.duration_seconds || 1440) / 60)}:00</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Generated Sprite Sheet Files Gallery */}
+              {isReady && (
+                <div>
+                  <h4 style={{ margin: '0 0 0.6rem 0', fontSize: '0.85rem', fontWeight: 700, color: '#e2e8f0' }}>
+                    Sprite Sheet Tiles ({sb.sheet_count || 1}):
+                  </h4>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '0.75rem', maxHeight: '200px', overflowY: 'auto', paddingRight: '0.25rem' }}>
+                    {Array.from({ length: sb.sheet_count || 1 }).map((_, idx) => {
+                      const sheetNum = idx + 1;
+                      const sheetKey = `${sb.prefix || `storyboards/${storyboardModalEpisode.id}`}/sheet_${String(sheetNum).padStart(2, '0')}.webp`;
+                      const sheetUrl = getR2Url(sheetKey);
+                      const startSec = idx * 100;
+                      const endSec = (idx + 1) * 100 - 1;
+
+                      return (
+                        <div key={sheetNum} style={{ background: '#131826', border: '1px solid #1f2638', borderRadius: '8px', padding: '0.6rem', textAlign: 'center' }}>
+                          <a href={sheetUrl} target="_blank" rel="noopener noreferrer">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img 
+                              src={sheetUrl} 
+                              alt={`Sheet #${sheetNum}`} 
+                              style={{ width: '100%', height: '80px', objectFit: 'cover', borderRadius: '4px', border: '1px solid #2a3148' }} 
+                            />
+                          </a>
+                          <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#cbd5e1', marginTop: '0.4rem' }}>
+                            Sheet #{sheetNum} ({startSec}s–{endSec}s)
+                          </div>
+                          <a 
+                            href={sheetUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            style={{ fontSize: '0.68rem', color: '#a855f7', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.2rem', marginTop: '0.2rem' }}
+                          >
+                            <ExternalLink size={10} /> Open Raw Sheet
+                          </a>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Footer Actions */}
+              <div style={{ borderTop: '1px solid #1f2638', marginTop: '1.25rem', paddingTop: '1rem', display: 'flex', justifyContent: 'flex-end', gap: '0.6rem' }}>
+                <button
+                  type="button"
+                  onClick={() => setStoryboardModalEpisode(null)}
+                  className={styles.secondaryBtn}
+                >
+                  Close
+                </button>
+                {isReady && (
+                  <button
+                    type="button"
+                    onClick={() => handleGenerateSingleStoryboard(storyboardModalEpisode)}
+                    disabled={isGeneratingSingleSb}
+                    className={styles.secondaryBtn}
+                    title="Force regenerate fresh WebP sheets for this episode"
+                  >
+                    <RotateCcw size={13} />
+                    <span>{isGeneratingSingleSb ? 'Regenerating...' : 'Regenerate Storyboard'}</span>
+                  </button>
+                )}
+              </div>
+
+            </div>
+          </div>
+        );
+      })()}
 
     </div>
   );

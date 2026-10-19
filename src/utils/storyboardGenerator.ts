@@ -291,6 +291,7 @@ export async function generateStoryboardLocal(options: {
     '-y',
     '-i', videoUrlOrPath,
     '-vf', vfString,
+    '-c:v', 'libwebp',
     '-q:v', '82',
     '-an',
     outPattern,

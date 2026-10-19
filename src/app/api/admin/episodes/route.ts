@@ -31,6 +31,7 @@ export async function GET(request: Request) {
         const series = season ? seriesMap.get(season.series_id) : null;
         return {
           ...ep,
+          storyboard: ep.storyboard || ep.raw_provider_payload?.storyboard || null,
           seasons: season ? {
             title: season.title,
             series: series ? { title: series.title } : undefined
