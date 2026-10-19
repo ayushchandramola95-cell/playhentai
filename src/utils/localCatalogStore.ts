@@ -98,7 +98,7 @@ export async function syncLocalCatalogWithSupabase(): Promise<LocalCatalogData> 
 
       const mergedEpisodes = (episodesData || []).map((ep: any) => ({
         ...ep,
-        storyboard: ep.storyboard || existingSbMap.get(ep.id) || null,
+        storyboard: ep.raw_provider_payload?.storyboard || existingSbMap.get(ep.id) || ep.storyboard || null,
       }));
 
       const snapshot: LocalCatalogData = {
@@ -913,6 +913,23 @@ export async function updateLocalEpisodeStoryboard(episodeId: string, storyboard
       updated_at: new Date().toISOString()
     };
     writeStoreToDisk(catalog);
+
+    // Asynchronously persist to Supabase raw_provider_payload so it permanently survives container rebuilds
+    (async () => {
+      try {
+        const supabase = getSupabaseClient();
+        const { data: row } = await supabase.from('episodes').select('raw_provider_payload').eq('id', episodeId).single();
+        await supabase.from('episodes').update({
+          raw_provider_payload: {
+            ...(row?.raw_provider_payload || {}),
+            storyboard: episode.storyboard,
+          }
+        }).eq('id', episodeId);
+      } catch (err: any) {
+        console.warn(`[StoryboardSupabaseSync] Failed to sync ${episodeId} to Supabase:`, err.message);
+      }
+    })().catch(() => {});
+
     return episode;
   }
   return null;

@@ -19,7 +19,7 @@ export async function GET() {
     let totalFrames = 0;
 
     const list = episodes.map((ep: any) => {
-      const sb = ep.storyboard;
+      const sb = ep.storyboard || ep.raw_provider_payload?.storyboard;
       const status = sb?.status || 'missing';
 
       if (status === 'completed') {
