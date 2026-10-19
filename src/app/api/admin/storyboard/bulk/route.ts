@@ -14,6 +14,7 @@ export async function POST(request: Request) {
 
     const body = await request.json().catch(() => ({}));
     const { onlyMissing = true, episodeIds } = body;
+    const workerCount = Math.max(1, Math.min(Number(body.concurrency) || 1, 8));
 
     const catalog = await getLocalCatalog();
     let targets = catalog.episodes || [];
@@ -42,57 +43,77 @@ export async function POST(request: Request) {
 
         sendEvent('start', {
           total,
-          message: `Starting bulk storyboard generation for ${total} episodes (Binary: ${activeFfmpeg})...`,
+          concurrency: workerCount,
+          message: `Starting bulk storyboard generation for ${total} episodes using ${workerCount} parallel worker(s) (Binary: ${activeFfmpeg})...`,
         });
 
+        let nextIndex = 0;
         let completed = 0;
         let failed = 0;
 
-        for (let i = 0; i < targets.length; i++) {
-          const ep = targets[i];
-          const currentIndex = i + 1;
+        async function worker(workerId: number) {
+          while (nextIndex < targets.length) {
+            const i = nextIndex++;
+            if (i >= targets.length) break;
 
-          sendEvent('progress', {
-            currentIndex,
-            total,
-            episodeId: ep.id,
-            title: ep.title || `Episode ${ep.episode_number}`,
-            percent: Math.round(((currentIndex - 1) / total) * 100),
-            status: 'processing',
-            message: `[${currentIndex}/${total}] Probing & extracting frames for "${ep.title || ep.id}"...`,
-          });
+            const ep = targets[i];
+            const currentIndex = i + 1;
 
-          try {
-            const meta = await processEpisodeStoryboard(ep.id, undefined, (logMsg) => {
-              sendEvent('log', {
-                episodeId: ep.id,
-                message: logMsg,
+            sendEvent('progress', {
+              workerId,
+              currentIndex,
+              total,
+              episodeId: ep.id,
+              title: ep.title || `Episode ${ep.episode_number}`,
+              percent: Math.round((completed / total) * 100),
+              status: 'processing',
+              message: workerCount > 1 
+                ? `[W${workerId}] [${currentIndex}/${total}] Probing & extracting "${ep.title || ep.id}"...`
+                : `[${currentIndex}/${total}] Probing & extracting "${ep.title || ep.id}"...`,
+            });
+
+            try {
+              const meta = await processEpisodeStoryboard(ep.id, undefined, (logMsg) => {
+                sendEvent('log', {
+                  workerId,
+                  episodeId: ep.id,
+                  message: workerCount > 1 ? `[W${workerId}] ${logMsg}` : logMsg,
+                });
               });
-            });
 
-            completed++;
-            sendEvent('episode_completed', {
-              currentIndex,
-              total,
-              episodeId: ep.id,
-              title: ep.title,
-              storyboard: meta,
-              percent: Math.round((currentIndex / total) * 100),
-              message: `[${currentIndex}/${total}] Done: "${ep.title}" (${meta.sheet_count} sheets, ${meta.size_kb} KB)`,
-            });
-          } catch (err: any) {
-            failed++;
-            console.error(`[BulkStoryboard] Error on episode ${ep.id}:`, err);
-            sendEvent('episode_failed', {
-              currentIndex,
-              total,
-              episodeId: ep.id,
-              title: ep.title,
-              error: err.message || 'Generation failed',
-              message: `[${currentIndex}/${total}] Failed: "${ep.title}" - ${err.message}`,
-            });
+              completed++;
+              sendEvent('episode_completed', {
+                workerId,
+                currentIndex,
+                total,
+                episodeId: ep.id,
+                title: ep.title,
+                storyboard: meta,
+                percent: Math.round((completed / total) * 100),
+                message: workerCount > 1
+                  ? `[W${workerId}] Done: "${ep.title}" (${meta.sheet_count} sheets, ${meta.size_kb} KB)`
+                  : `[${currentIndex}/${total}] Done: "${ep.title}" (${meta.sheet_count} sheets, ${meta.size_kb} KB)`,
+              });
+            } catch (err: any) {
+              failed++;
+              console.error(`[BulkStoryboard] Error on episode ${ep.id}:`, err);
+              sendEvent('episode_failed', {
+                workerId,
+                currentIndex,
+                total,
+                episodeId: ep.id,
+                title: ep.title,
+                error: err.message || 'Generation failed',
+                message: workerCount > 1
+                  ? `[W${workerId}] Failed: "${ep.title}" - ${err.message}`
+                  : `[${currentIndex}/${total}] Failed: "${ep.title}" - ${err.message}`,
+              });
+            }
           }
         }
+
+        const poolSize = Math.min(workerCount, Math.max(1, targets.length));
+        await Promise.all(Array.from({ length: poolSize }, (_, idx) => worker(idx + 1)));
 
         sendEvent('finished', {
           total,

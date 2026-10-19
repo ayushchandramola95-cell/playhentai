@@ -66,6 +66,7 @@ export default function StoryboardStudio({ onUpdate }: StoryboardStudioProps) {
     message: string;
   } | null>(null);
 
+  const [concurrency, setConcurrency] = useState<number>(2);
   const [logs, setLogs] = useState<string[]>([]);
   const [showHistory, setShowHistory] = useState(false);
   const [historyFilter, setHistoryFilter] = useState<'all' | 'ready' | 'missing' | 'failed'>('all');
@@ -111,7 +112,7 @@ export default function StoryboardStudio({ onUpdate }: StoryboardStudioProps) {
     if (isBulkRunning) return;
     setIsBulkRunning(true);
     setLogs([]);
-    appendLog('🚀 Initializing bulk storyboard generator (1 frame/sec, Lanczos anti-blur)...');
+    appendLog(`🚀 Initializing bulk generator (${concurrency} parallel worker${concurrency > 1 ? 's' : ''}, 1 frame/sec, Lanczos anti-blur)...`);
 
     const controller = new AbortController();
     abortControllerRef.current = controller;
@@ -120,7 +121,7 @@ export default function StoryboardStudio({ onUpdate }: StoryboardStudioProps) {
       const res = await fetch('/api/admin/storyboard/bulk', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ onlyMissing }),
+        body: JSON.stringify({ onlyMissing, concurrency }),
         signal: controller.signal,
       });
 
@@ -279,6 +280,22 @@ export default function StoryboardStudio({ onUpdate }: StoryboardStudioProps) {
         </div>
 
         <div className={styles.actionsBar}>
+          <div className={styles.concurrencyGroup} title="Parallel processing workers (adjust based on instance vCPUs)">
+            <span className={styles.concurrencyLabel}>Workers:</span>
+            {[1, 2, 4, 6, 8].map((c) => (
+              <button
+                key={c}
+                type="button"
+                className={`${styles.concurrencyBtn} ${concurrency === c ? styles.concurrencyBtnActive : ''}`}
+                onClick={() => setConcurrency(c)}
+                disabled={isBulkRunning}
+                title={`${c} parallel episode${c > 1 ? 's at the same time' : ''} (${c === 1 ? 'Safe for 1-2 vCPU' : c === 4 ? 'Optimal for 8-16 vCPU' : c >= 6 ? 'Turbo for 16+ vCPU' : ''})`}
+              >
+                {c}x
+              </button>
+            ))}
+          </div>
+
           {!isBulkRunning ? (
             <button
               onClick={() => handleStartBulk(true)}

@@ -112,6 +112,54 @@
   flex-wrap: wrap;
 }
 
+.concurrencyGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 0.25rem 0.35rem;
+}
+
+.concurrencyLabel {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #94a3b8;
+  padding: 0 0.4rem;
+  letter-spacing: 0.04em;
+}
+
+.concurrencyBtn {
+  background: transparent;
+  color: #94a3b8;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.concurrencyBtn:hover:not(:disabled) {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.concurrencyBtnActive {
+  background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%) !important;
+  color: #fff !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.4);
+}
+
+.concurrencyBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .primaryBtn {
   background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
   color: #fff;
