@@ -1,14 +1,50 @@
 import { NextResponse } from 'next/server';
 import { verifyAdmin, createAdminClient } from '@/utils/supabase/admin';
 import { revalidateAllCatalogTags } from '@/utils/revalidateCatalog';
-import { upsertLocalSeason, deleteLocalSeason } from '@/utils/localCatalogStore';
+import { getLocalCatalog, upsertLocalSeason, deleteLocalSeason } from '@/utils/localCatalogStore';
 
 export async function GET(request: Request) {
   try {
     await verifyAdmin();
-    const adminSupabase = createAdminClient();
     const { searchParams } = new URL(request.url);
     const seriesId = searchParams.get('series_id');
+
+    // 1. Fetch from high-speed local EC2 memory/disk store (0ms latency, instant response)
+    const catalog = await getLocalCatalog();
+    if (catalog.seasons && catalog.seasons.length > 0) {
+      const seriesMap = new Map((catalog.series || []).map((s: any) => [s.id, s]));
+      const epCountMap = new Map<string, number>();
+      (catalog.episodes || []).forEach((e: any) => {
+        if (e.season_id) {
+          epCountMap.set(e.season_id, (epCountMap.get(e.season_id) || 0) + 1);
+        }
+      });
+
+      let seasons = catalog.seasons;
+      if (seriesId) {
+        seasons = seasons.filter((s: any) => s.series_id === seriesId);
+      }
+
+      const mapped = seasons.map((s: any) => {
+        const series = seriesMap.get(s.series_id);
+        return {
+          ...s,
+          series: series ? {
+            id: series.id,
+            title: series.title,
+            slug: series.slug,
+            poster_image_key: series.poster_image_key,
+            cover_image_key: series.cover_image_key,
+            is_published: series.is_published,
+          } : null,
+          episode_count: epCountMap.get(s.id) || 0,
+        };
+      });
+
+      return NextResponse.json({ seasons: mapped, source: 'aws-local-memory' });
+    }
+
+    const adminSupabase = createAdminClient();
 
     let query = adminSupabase.from('seasons').select('*, series(id, title, slug, poster_image_key, cover_image_key, is_published), episodes(id)');
     

@@ -11,55 +11,38 @@ export async function GET(request: Request) {
     const seasonId = searchParams.get('season_id');
     const seriesId = searchParams.get('series_id');
 
-    // 1. Check AWS high-speed memory store first (0ms latency, zero egress)
+    // 1. Fetch from high-speed local EC2 memory/disk store (0ms latency, instant response)
     const catalog = await getLocalCatalog();
 
-    if (seriesId) {
-      const seasonIds = new Set((catalog.seasons || []).filter((s: any) => s.series_id === seriesId).map((s: any) => s.id));
-      const localEps = (catalog.episodes || [])
-        .filter((ep: any) => seasonIds.has(ep.season_id))
-        .sort((a: any, b: any) => (a.episode_number || 0) - (b.episode_number || 0));
+    if (catalog.episodes && catalog.episodes.length > 0) {
+      const seasonMap = new Map((catalog.seasons || []).map((s: any) => [s.id, s]));
+      const seriesMap = new Map((catalog.series || []).map((s: any) => [s.id, s]));
 
-      if (localEps.length > 0) {
-        return NextResponse.json({ episodes: localEps, source: 'aws-memory' });
+      let eps = catalog.episodes;
+      if (seasonId) {
+        eps = eps.filter((e: any) => e.season_id === seasonId);
+      } else if (seriesId) {
+        const seasonIds = new Set((catalog.seasons || []).filter((s: any) => s.series_id === seriesId).map((s: any) => s.id));
+        eps = eps.filter((e: any) => seasonIds.has(e.season_id));
       }
 
-      // Fallback to Supabase if not found locally
-      const adminSupabase = createAdminClient();
-      const { data: seasons, error: seasonsError } = await adminSupabase
-        .from('seasons')
-        .select('id')
-        .eq('series_id', seriesId);
+      const mapped = eps.map((ep: any) => {
+        const season = seasonMap.get(ep.season_id);
+        const series = season ? seriesMap.get(season.series_id) : null;
+        return {
+          ...ep,
+          seasons: season ? {
+            title: season.title,
+            series: series ? { title: series.title } : undefined
+          } : undefined
+        };
+      }).sort((a: any, b: any) => (a.episode_number || 0) - (b.episode_number || 0));
 
-      if (seasonsError) throw seasonsError;
-
-      if (!seasons || seasons.length === 0) {
-        return NextResponse.json({ episodes: [] });
-      }
-
-      const dbSeasonIds = seasons.map((s: any) => s.id);
-      const { data: episodes, error: episodesError } = await adminSupabase
-        .from('episodes')
-        .select('id, episode_number, title, duration_seconds, thumbnail_key, thumbnail_options, release_date, created_at')
-        .in('season_id', dbSeasonIds)
-        .order('episode_number', { ascending: true });
-
-      if (episodesError) throw episodesError;
-      return NextResponse.json({ episodes });
+      return NextResponse.json({ episodes: mapped, source: 'aws-local-memory' });
     }
 
-    if (seasonId) {
-      const localEps = (catalog.episodes || [])
-        .filter((ep: any) => ep.season_id === seasonId)
-        .sort((a: any, b: any) => (a.episode_number || 0) - (b.episode_number || 0));
-
-      if (localEps.length > 0) {
-        return NextResponse.json({ episodes: localEps, source: 'aws-memory' });
-      }
-    }
-
+    // 2. Fallback to Supabase only if local store is empty
     const adminSupabase = createAdminClient();
-
     let query = adminSupabase.from('episodes').select('*, seasons(title, series(title))');
     
     if (seasonId) {
@@ -67,17 +50,9 @@ export async function GET(request: Request) {
     }
     
     const { data, error } = await query.order('episode_number', { ascending: true });
-
     if (error) throw error;
 
-    const sbMap = new Map((catalog.episodes || []).map((e: any) => [e.id, e.storyboard]));
-    const baseList = (data && data.length > 0) ? data : (catalog.episodes || []);
-    const mergedEpisodes = baseList.map((ep: any) => ({
-      ...ep,
-      storyboard: ep.storyboard || sbMap.get(ep.id) || null,
-    }));
-
-    return NextResponse.json({ episodes: mergedEpisodes });
+    return NextResponse.json({ episodes: data || [], source: 'supabase-fallback' });
   } catch (err: any) {
     console.error('Error fetching admin episodes:', err);
     const status = err.message === 'Unauthorized' ? 401 : err.message === 'Forbidden' ? 403 : 500;
