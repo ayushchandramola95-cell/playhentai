@@ -102,15 +102,25 @@ export default function VideoPlayer({
   const [resumeTime, setResumeTime] = useState<number | null>(null);
   const [showResumePrompt, setShowResumePrompt] = useState(false);
 
-  // Hover seekbar scrub states
+  // Hover seekbar scrub & in-memory canvas cache states
   const [hoverTime, setHoverTime] = useState<number | null>(null);
   const [hoverPosPercent, setHoverPosPercent] = useState<number>(0);
   const progressBarRef = useRef<HTMLDivElement>(null);
+  const hoverTooltipRef = useRef<HTMLDivElement>(null);
+  const hoverTimeTextRef = useRef<HTMLSpanElement>(null);
   const previewVideoRef = useRef<HTMLVideoElement>(null);
+  const displayCanvasRef = useRef<HTMLCanvasElement>(null);
+
+  // In-memory Canvas Frame Cache (key: snapped second, value: 160x90 canvas snapshot)
+  const frameCacheRef = useRef<Map<number, HTMLCanvasElement>>(new Map());
+  const [hasCachedFrame, setHasCachedFrame] = useState(false);
+  const [previewFrameReady, setPreviewFrameReady] = useState(false);
+
   const isSeekingRef = useRef<boolean>(false);
   const pendingSeekRef = useRef<number | null>(null);
   const lastSnappedSecRef = useRef<number>(-1);
-  const [previewFrameReady, setPreviewFrameReady] = useState(false);
+  const lastCapturedPlaySecRef = useRef<number>(-1);
+  const seekDebounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Listen for custom seekToTime event (e.g. from clickable timestamp comments)
   useEffect(() => {
@@ -139,7 +149,7 @@ export default function VideoPlayer({
   const viewLoggedRef = useRef(false);
   const hasPrefetchedNextRef = useRef(false);
 
-  // Reload video element on URL change; reset state
+  // Reload video element on URL change; reset state and clear frame memory cache
   useEffect(() => {
     setIsPlaying(false);
     setCurrentTime(0);
@@ -150,11 +160,34 @@ export default function VideoPlayer({
     viewLoggedRef.current = false;
     hasPrefetchedNextRef.current = false;
 
+    // Reset frame cache & seek throttling
+    frameCacheRef.current.clear();
+    lastSnappedSecRef.current = -1;
+    lastCapturedPlaySecRef.current = -1;
+    setPreviewFrameReady(false);
+    setHasCachedFrame(false);
+    if (seekDebounceTimerRef.current) {
+      clearTimeout(seekDebounceTimerRef.current);
+    }
+    if (displayCanvasRef.current) {
+      const ctx = displayCanvasRef.current.getContext('2d');
+      ctx?.clearRect(0, 0, 160, 90);
+    }
+
     setHasStartedPlaying(false);
     if (videoRef.current) {
       videoRef.current.load();
     }
   }, [episodeId, videoUrl]);
+
+  // Clean up seek debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (seekDebounceTimerRef.current) {
+        clearTimeout(seekDebounceTimerRef.current);
+      }
+    };
+  }, []);
 
   // Autoplay countdown timer effect
   useEffect(() => {
@@ -330,6 +363,32 @@ export default function VideoPlayer({
     }
   };
 
+  // Capture a snapshot frame from any HTMLVideoElement into the off-screen canvas cache
+  const captureFrameToCache = (snappedSec: number, sourceVideo: HTMLVideoElement) => {
+    try {
+      if (!sourceVideo || sourceVideo.videoWidth === 0 || sourceVideo.videoHeight === 0) return;
+      if (frameCacheRef.current.has(snappedSec)) return;
+
+      // LRU eviction: Cap cache at 80 frames (approx 160x90 per canvas, RAM footprint < 2MB total)
+      if (frameCacheRef.current.size >= 80) {
+        const oldestKey = frameCacheRef.current.keys().next().value;
+        if (oldestKey !== undefined) {
+          frameCacheRef.current.delete(oldestKey);
+        }
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = 160;
+      canvas.height = 90;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      ctx.drawImage(sourceVideo, 0, 0, 160, 90);
+      frameCacheRef.current.set(snappedSec, canvas);
+    } catch (_) {
+      // Graceful fallback for cross-origin security
+    }
+  };
+
   const handleTimeUpdate = () => {
     if (videoRef.current) {
       const cur = videoRef.current.currentTime;
@@ -337,6 +396,15 @@ export default function VideoPlayer({
       if (cur < 1) {
         viewLoggedRef.current = false;
       }
+
+      // Automatically capture playing frames into RAM canvas cache every 4 seconds
+      // Gives instant 0ms preview for any section the user has already watched
+      const curSnap = Math.floor(cur / 4) * 4;
+      if (Math.abs(curSnap - lastCapturedPlaySecRef.current) >= 4) {
+        lastCapturedPlaySecRef.current = curSnap;
+        captureFrameToCache(curSnap, videoRef.current);
+      }
+
       // Zero-lag continuous streaming: prefetch next episode route & assets at 70% duration
       if (
         duration > 0 &&
@@ -416,36 +484,114 @@ export default function VideoPlayer({
     }
   };
 
+  const handlePreviewSeeked = () => {
+    const video = previewVideoRef.current;
+    if (video) {
+      captureFrameToCache(lastSnappedSecRef.current, video);
+      // Immediately paint to display canvas
+      if (displayCanvasRef.current) {
+        try {
+          const ctx = displayCanvasRef.current.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(video, 0, 0, 160, 90);
+            setHasCachedFrame(true);
+          }
+        } catch (_) {}
+      }
+    }
+    setPreviewFrameReady(true);
+    isSeekingRef.current = false;
+
+    if (pendingSeekRef.current !== null) {
+      const nextTarget = pendingSeekRef.current;
+      pendingSeekRef.current = null;
+      executePreviewSeek(nextTarget);
+    }
+  };
+
   const handleProgressBarMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!progressBarRef.current || !duration || duration <= 0) return;
     const rect = progressBarRef.current.getBoundingClientRect();
     const clickX = e.clientX - rect.left;
     const pct = Math.max(0, Math.min(1, clickX / rect.width));
     const targetTime = Math.max(0, Math.min(duration, pct * duration));
-    
-    // Smooth 60fps tracking for tooltip position & cursor timestamp text
-    setHoverPosPercent(pct * 100);
-    setHoverTime(targetTime);
+    const pct100 = pct * 100;
+    const clampedLeftPct = Math.max(8, Math.min(92, pct100));
 
-    // Quantize video seek to 4-second keyframe intervals (cuts redundant seeks by 80%)
+    // High-performance direct DOM updates: silky smooth 60fps tracking without triggering heavy React component re-renders
+    if (hoverTooltipRef.current) {
+      hoverTooltipRef.current.style.left = `${clampedLeftPct}%`;
+      hoverTooltipRef.current.classList.add(styles.hoverTooltipVisible);
+    }
+    if (hoverTimeTextRef.current) {
+      hoverTimeTextRef.current.textContent = formatTime(targetTime);
+    }
+
+    if (hoverTime === null) {
+      setHoverTime(targetTime);
+      setHoverPosPercent(pct100);
+    }
+
+    // 1. Check in-memory Canvas Frame Cache (0ms instant display from RAM)
     const snappedTime = Math.floor(targetTime / 4) * 4;
-    if (snappedTime === lastSnappedSecRef.current) {
-      return; // Already displaying this keyframe window
-    }
-    lastSnappedSecRef.current = snappedTime;
+    const cachedCanvas = frameCacheRef.current.get(snappedTime);
 
-    // If a seek is already in flight, queue the newest keyframe
-    if (isSeekingRef.current) {
-      pendingSeekRef.current = snappedTime;
-    } else {
-      executePreviewSeek(snappedTime);
+    if (cachedCanvas && displayCanvasRef.current) {
+      const ctx = displayCanvasRef.current.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(cachedCanvas, 0, 0, 160, 90);
+        setHasCachedFrame(true);
+        setPreviewFrameReady(true);
+        return; // Frame already in RAM, zero network seek required!
+      }
     }
+
+    // 2. Neighbor search in cache within +/- 8s as an instant visual surrogate
+    let nearestDist = Infinity;
+    let nearestCanvas: HTMLCanvasElement | null = null;
+    frameCacheRef.current.forEach((canvas, sec) => {
+      const dist = Math.abs(sec - snappedTime);
+      if (dist <= 8 && dist < nearestDist) {
+        nearestDist = dist;
+        nearestCanvas = canvas;
+      }
+    });
+    if (nearestCanvas && displayCanvasRef.current) {
+      const ctx = displayCanvasRef.current.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(nearestCanvas, 0, 0, 160, 90);
+        setHasCachedFrame(true);
+      }
+    }
+
+    // 3. Debounce background hardware video decoder seek to 75ms
+    // Prevents queuing dozens of seeks while user is rapidly scrubbing across the bar
+    if (snappedTime === lastSnappedSecRef.current) return;
+
+    if (seekDebounceTimerRef.current) {
+      clearTimeout(seekDebounceTimerRef.current);
+    }
+
+    seekDebounceTimerRef.current = setTimeout(() => {
+      lastSnappedSecRef.current = snappedTime;
+      if (isSeekingRef.current) {
+        pendingSeekRef.current = snappedTime;
+      } else {
+        executePreviewSeek(snappedTime);
+      }
+    }, 75);
   };
 
   const handleProgressBarMouseLeave = () => {
+    if (hoverTooltipRef.current) {
+      hoverTooltipRef.current.classList.remove(styles.hoverTooltipVisible);
+    }
     setHoverTime(null);
     pendingSeekRef.current = null;
     lastSnappedSecRef.current = -1;
+    if (seekDebounceTimerRef.current) {
+      clearTimeout(seekDebounceTimerRef.current);
+    }
   };
 
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -853,12 +999,31 @@ export default function VideoPlayer({
               onMouseMove={handleProgressBarMouseMove}
               onMouseLeave={handleProgressBarMouseLeave}
             >
-              {/* Persistent Hover Preview Tooltip (never unmounts to preserve hardware decoding cache) */}
+              {/* Persistent Hover Preview Tooltip (Tracks at 60fps with 0ms canvas frame cache) */}
               <div 
+                ref={hoverTooltipRef}
                 className={`${styles.hoverTimeTooltip} ${hoverTime !== null ? styles.hoverTooltipVisible : ''}`}
                 style={{ left: `${Math.max(8, Math.min(92, hoverPosPercent))}%` }}
               >
                 <div className={styles.hoverThumbnailWrap}>
+                  {/* Subtle animated shimmer background for unbuffered frames */}
+                  <div className={styles.hoverThumbnailShimmer} />
+
+                  {/* Fallback Poster Image */}
+                  {posterUrl && (
+                    <img 
+                      src={posterUrl} 
+                      alt="Seek preview fallback" 
+                      className={styles.hoverThumbnailImg} 
+                      style={{
+                        opacity: (hasCachedFrame || previewFrameReady) ? 0 : 1,
+                        transition: 'opacity 0.2s ease',
+                        pointerEvents: 'none'
+                      }}
+                    />
+                  )}
+
+                  {/* Secondary Hardware Decoder (decodes unbuffered keyframes to populate canvas cache) */}
                   <video
                     ref={previewVideoRef}
                     src={videoUrl}
@@ -866,30 +1031,25 @@ export default function VideoPlayer({
                     muted
                     playsInline
                     preload="auto"
-                    onSeeked={() => {
-                      setPreviewFrameReady(true);
-                      isSeekingRef.current = false;
-                      if (pendingSeekRef.current !== null) {
-                        const nextTarget = pendingSeekRef.current;
-                        pendingSeekRef.current = null;
-                        executePreviewSeek(nextTarget);
-                      }
+                    crossOrigin="anonymous"
+                    onSeeked={handlePreviewSeeked}
+                  />
+
+                  {/* Primary Instant Canvas Render Layer (0ms latency from in-memory cache) */}
+                  <canvas
+                    ref={displayCanvasRef}
+                    width={160}
+                    height={90}
+                    className={styles.hoverThumbnailCanvas}
+                    style={{
+                      opacity: hasCachedFrame ? 1 : 0,
+                      transition: 'opacity 0.12s ease'
                     }}
                   />
-                  {posterUrl && (
-                    <img 
-                      src={posterUrl} 
-                      alt="Seek preview fallback" 
-                      className={styles.hoverThumbnailImg} 
-                      style={{
-                        opacity: previewFrameReady ? 0 : 1,
-                        transition: 'opacity 0.2s ease',
-                        pointerEvents: 'none'
-                      }}
-                    />
-                  )}
                 </div>
-                <span className={styles.hoverTimeText}>{formatTime(hoverTime ?? 0)}</span>
+                <span ref={hoverTimeTextRef} className={styles.hoverTimeText}>
+                  {formatTime(hoverTime ?? 0)}
+                </span>
               </div>
               <input
                 type="range"

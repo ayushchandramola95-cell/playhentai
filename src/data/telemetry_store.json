@@ -30,10 +30,31 @@
       "browser": "Chrome",
       "os": "Windows",
       "referrer": "http://localhost:3004/"
+    },
+    "ph_oi8yf9h2_1792389120851": {
+      "sessionId": "ph_oi8yf9h2_1792389120851",
+      "firstSeen": 1792389123132,
+      "lastSeen": 1792398389040,
+      "durationSeconds": 4736,
+      "pageViews": 3,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": true,
+      "visitedRoutes": [
+        "/",
+        "/watch/mock-ep-1",
+        "/watch/oushun-jogakuen-no-danyuu-episode-1"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Chrome",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/"
     }
   },
   "routeVisits": {
-    "/": 393,
+    "/": 588,
     "/series/imaizumin-chi-wa-douyara-gal-no-tamariba-ni-natteru-rashii": 2,
     "/login": 145,
     "/series/reginetta-san-no-bouken": 14,
@@ -44,8 +65,8 @@
     "/genres": 3,
     "/studios": 4,
     "/uncensored": 5,
-    "/watch/mock-ep-1": 4,
-    "/watch/oushun-jogakuen-no-danyuu-episode-1": 127,
+    "/watch/mock-ep-1": 8,
+    "/watch/oushun-jogakuen-no-danyuu-episode-1": 148,
     "/faq": 2,
     "/nonexistent-404-test": 2,
     "/series/cyberpunk-odyssey": 28,
@@ -58,14 +79,14 @@
     "depth100": 4
   },
   "deviceCounts": {
-    "desktop": 64,
+    "desktop": 65,
     "mobile": 0,
     "tablet": 0
   },
   "adBlockCounts": {
     "blocked": 0,
-    "notBlocked": 64
+    "notBlocked": 65
   },
-  "totalWatchEvents": 1,
-  "lastCleaned": 1792252388786
+  "totalWatchEvents": 2,
+  "lastCleaned": 1792389123132
 }
