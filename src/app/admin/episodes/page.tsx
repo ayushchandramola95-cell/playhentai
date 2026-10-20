@@ -8,7 +8,7 @@ import {
   ExternalLink, Play, CheckCircle2, ChevronDown, ChevronUp, ChevronsLeft,
   ChevronLeft, ChevronRight, ChevronsRight, LayoutGrid, Table as TableIcon,
   Copy, Check, Layers, Sparkles, FolderOpen, Download, Sliders, RotateCcw,
-  Sun, Contrast, Eye, CheckCheck, Zap, Calendar, ArrowRight
+  Sun, Contrast, Eye, CheckCheck, Zap, Calendar, ArrowRight, Info
 } from 'lucide-react';
 import FileUploader from '@/components/FileUploader/FileUploader';
 import { getR2Url } from '@/utils/r2';
@@ -16,6 +16,7 @@ import { uploadFileWithMultipart, formatUploadBytes, UploadProgressEvent } from 
 import styles from './episodes.module.css';
 import adminStyles from '../admin.module.css';
 import StoryboardStudio from '@/components/Admin/StoryboardStudio';
+import VideoMetaModal from '@/components/Admin/VideoMetaModal';
 
 interface Series {
   id: string;
@@ -187,6 +188,7 @@ export default function AdminEpisodesPage() {
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [storyboardModalEpisode, setStoryboardModalEpisode] = useState<Episode | null>(null);
+  const [metaModalEpisode, setMetaModalEpisode] = useState<Episode | null>(null);
   const [isGeneratingSingleSb, setIsGeneratingSingleSb] = useState(false);
   const [sbPreviewSec, setSbPreviewSec] = useState<number>(30);
 
@@ -3528,7 +3530,7 @@ export default function AdminEpisodesPage() {
                                     );
                                   })()}
 
-                                  {/* Multi-Quality Renditions Badge */}
+                                  {/* Multi-Quality Renditions Badge -> Opens Video Meta Inspector */}
                                   {(() => {
                                     const q = ep.video_qualities || ep.raw_provider_payload?.video_qualities || {};
                                     const has720 = !!q['720p']?.key || !!q['720p']?.url;
@@ -3537,15 +3539,18 @@ export default function AdminEpisodesPage() {
                                     const isPartial = has720 || has480;
 
                                     return (
-                                      <Link
-                                        href="/admin/transcoder"
-                                        onClick={(e) => e.stopPropagation()}
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setMetaModalEpisode(ep);
+                                        }}
                                         style={{
                                           fontSize: '0.7rem',
                                           fontWeight: 800,
                                           padding: '0.2rem 0.55rem',
                                           borderRadius: '6px',
-                                          textDecoration: 'none',
+                                          cursor: 'pointer',
                                           display: 'inline-flex',
                                           alignItems: 'center',
                                           gap: '0.3rem',
@@ -3554,13 +3559,28 @@ export default function AdminEpisodesPage() {
                                           border: isFullyDone ? '1px solid rgba(16, 185, 129, 0.35)' : isPartial ? '1px solid rgba(56, 189, 248, 0.35)' : '1px dashed rgba(255, 255, 255, 0.12)',
                                           transition: 'all 0.2s ease',
                                         }}
-                                        title={isFullyDone ? 'All qualities live: 1080p, 720p, 480p' : isPartial ? 'Partial qualities generated' : 'Only 1080p master available. Click to transcode 720p/480p'}
+                                        title="Click to inspect video quality, FPS, audio & stream telemetry"
                                       >
                                         <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: isFullyDone ? '#10b981' : isPartial ? '#38bdf8' : '#64748b' }} />
                                         <span>{isFullyDone ? '🎬 1080p • 720p • 480p' : isPartial ? '🎬 1080p • 720p' : '🎬 1080p Only'}</span>
-                                      </Link>
+                                      </button>
                                     );
                                   })()}
+
+                                  {/* Video Meta Info Button */}
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setMetaModalEpisode(ep);
+                                    }}
+                                    className={styles.rowActionBtn}
+                                    style={{ background: 'rgba(56, 189, 248, 0.1)', borderColor: 'rgba(56, 189, 248, 0.28)', color: '#38bdf8' }}
+                                    title="Inspect video quality, FPS & stream telemetry"
+                                  >
+                                    <Info size={13} />
+                                    <span>Info</span>
+                                  </button>
 
                                   {/* Direct Player Watch Link */}
                                   <Link
@@ -3721,15 +3741,18 @@ export default function AdminEpisodesPage() {
                             const isPartial = has720 || has480;
 
                             return (
-                              <Link
-                                href="/admin/transcoder"
-                                onClick={(e) => e.stopPropagation()}
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setMetaModalEpisode(ep);
+                                }}
                                 style={{
                                   fontSize: '0.7rem',
                                   fontWeight: 800,
                                   padding: '0.2rem 0.55rem',
                                   borderRadius: '6px',
-                                  textDecoration: 'none',
+                                  cursor: 'pointer',
                                   display: 'inline-flex',
                                   alignItems: 'center',
                                   gap: '0.3rem',
@@ -3738,11 +3761,11 @@ export default function AdminEpisodesPage() {
                                   border: isFullyDone ? '1px solid rgba(16, 185, 129, 0.35)' : isPartial ? '1px solid rgba(56, 189, 248, 0.35)' : '1px dashed rgba(255, 255, 255, 0.12)',
                                   transition: 'all 0.2s ease',
                                 }}
-                                title={isFullyDone ? '1080p, 720p, 480p ready' : isPartial ? '720p ready' : 'Only 1080p master'}
+                                title="Click to inspect video quality, FPS & telemetry"
                               >
                                 <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: isFullyDone ? '#10b981' : isPartial ? '#38bdf8' : '#64748b' }} />
                                 <span>{isFullyDone ? '🎬 1080p • 720p • 480p' : isPartial ? '🎬 1080p • 720p' : '🎬 1080p Only'}</span>
-                              </Link>
+                              </button>
                             );
                           })()}
                         </td>
@@ -3751,6 +3774,18 @@ export default function AdminEpisodesPage() {
                         </td>
                         <td style={{ textAlign: 'right' }}>
                           <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'flex-end' }}>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setMetaModalEpisode(ep);
+                              }}
+                              className={styles.rowActionBtn}
+                              style={{ background: 'rgba(56, 189, 248, 0.1)', borderColor: 'rgba(56, 189, 248, 0.25)', color: '#38bdf8' }}
+                              title="Inspect Video Quality, FPS & Telemetry"
+                            >
+                              <Info size={11} />
+                            </button>
                             <Link
                               href={series?.slug ? `/watch/${series.slug}-episode-${ep.episode_number}` : `/watch/${ep.id}`}
                               target="_blank"
@@ -7542,6 +7577,18 @@ export default function AdminEpisodesPage() {
         );
       })()}
 
+      {/* Video Stream Telemetry Inspector Modal */}
+      <VideoMetaModal
+        isOpen={!!metaModalEpisode}
+        episodeId={metaModalEpisode?.id || null}
+        onClose={() => setMetaModalEpisode(null)}
+        episodeTitle={metaModalEpisode?.title}
+        episodeNumber={metaModalEpisode?.episode_number}
+        seriesTitle={metaModalEpisode?.seasons?.series?.title}
+        seasonTitle={metaModalEpisode?.seasons?.title}
+      />
+
     </div>
   );
 }
+
