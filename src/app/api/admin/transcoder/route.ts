@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { verifyAdmin } from '@/utils/supabase/admin';
-import { getLocalCatalog } from '@/utils/localCatalogStore';
-import { transcodeEpisode, probeEpisode, getStorageClient } from '@/utils/videoTranscoder';
+import { getLocalCatalog, resetLocalEpisodeQualities } from '@/utils/localCatalogStore';
+import { transcodeEpisode, probeEpisode } from '@/utils/videoTranscoder';
+import { deleteStoragePrefix } from '@/utils/s3Storage';
 
 export const dynamic = 'force-dynamic';
 
@@ -186,6 +187,39 @@ export async function POST(request: Request) {
       return NextResponse.json({
         success: true,
         episodeId,
+        probe: probeInfo
+      });
+    }
+
+    if (action === 'reset_single') {
+      // Purge 720p/480p renditions from S3
+      await deleteStoragePrefix(`videos/${episodeId}/`);
+
+      // Probe current master to read exact resolution (e.g. 1080p)
+      const probeInfo = await probeEpisode(episodeId);
+
+      // Reset episode qualities back to clean master only
+      const catalog = await getLocalCatalog();
+      const ep = catalog.episodes.find((e: any) => e.id === episodeId);
+      if (ep) {
+        await resetLocalEpisodeQualities(episodeId, {
+          source_width: probeInfo.width,
+          source_height: probeInfo.height,
+          '1080p': {
+            key: ep.video_key,
+            resolution: `${probeInfo.width}x${probeInfo.height}`,
+            width: probeInfo.width,
+            height: probeInfo.height,
+            created_at: new Date().toISOString(),
+          },
+          updated_at: new Date().toISOString(),
+        });
+      }
+
+      return NextResponse.json({
+        success: true,
+        episodeId,
+        message: 'Purged old renditions from S3 and re-probed master.',
         probe: probeInfo
       });
     }

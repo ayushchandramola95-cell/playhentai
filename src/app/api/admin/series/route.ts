@@ -3,6 +3,7 @@ import { verifyAdmin, createAdminClient } from '@/utils/supabase/admin';
 import { getSeriesViewsMap } from '@/utils/views';
 import { revalidateAllCatalogTags } from '@/utils/revalidateCatalog';
 import { getLocalCatalog, upsertLocalSeries, deleteLocalSeries, upsertLocalSeason } from '@/utils/localCatalogStore';
+import { deleteStorageObjects, deleteStoragePrefix } from '@/utils/s3Storage';
 
 export async function GET() {
   try {
@@ -260,7 +261,24 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: 'Missing series ID' }, { status: 400 });
     }
 
-    // 1. Get all seasons of this series
+    // 1. Fetch series media keys to delete from S3
+    const { data: seriesData } = await adminSupabase
+      .from('series')
+      .select('id, poster_image_key, cover_image_key, banner_image_key, image_library')
+      .eq('id', id)
+      .single();
+
+    const s3KeysToDelete: string[] = [];
+    if (seriesData) {
+      if (seriesData.poster_image_key) s3KeysToDelete.push(seriesData.poster_image_key);
+      if (seriesData.cover_image_key) s3KeysToDelete.push(seriesData.cover_image_key);
+      if (seriesData.banner_image_key) s3KeysToDelete.push(seriesData.banner_image_key);
+      if (Array.isArray(seriesData.image_library)) {
+        s3KeysToDelete.push(...seriesData.image_library.filter(Boolean));
+      }
+    }
+
+    // 2. Get all seasons of this series
     const { data: seasons } = await adminSupabase
       .from('seasons')
       .select('id')
@@ -269,35 +287,55 @@ export async function DELETE(request: Request) {
     const seasonIds = (seasons || []).map(s => s.id);
 
     if (seasonIds.length > 0) {
-      // 2. Get all episodes of these seasons
+      // 3. Get all episodes of these seasons
       const { data: episodes } = await adminSupabase
         .from('episodes')
-        .select('id')
+        .select('id, video_key, thumbnail_key, thumbnail_options')
         .in('season_id', seasonIds);
 
       const episodeIds = (episodes || []).map(e => e.id);
 
+      if (episodes && episodes.length > 0) {
+        for (const ep of episodes) {
+          if (ep.video_key) s3KeysToDelete.push(ep.video_key);
+          if (ep.thumbnail_key) s3KeysToDelete.push(ep.thumbnail_key);
+          if (Array.isArray(ep.thumbnail_options)) {
+            s3KeysToDelete.push(...ep.thumbnail_options.filter(Boolean));
+          }
+          // Clean up transcoded renditions and storyboards from S3
+          deleteStoragePrefix(`videos/${ep.id}/`).catch(() => {});
+          deleteStoragePrefix(`storyboards/${ep.id}/`).catch(() => {});
+        }
+      }
+
       if (episodeIds.length > 0) {
-        // 3. Delete user logs / relations referencing these episodes
+        // 4. Delete user logs / relations referencing these episodes
         await adminSupabase.from('watch_history').delete().in('episode_id', episodeIds);
         await adminSupabase.from('episode_views').delete().in('episode_id', episodeIds);
         await adminSupabase.from('comments').delete().in('episode_id', episodeIds);
         
-        // 4. Delete episodes themselves
+        // 5. Delete episodes themselves
         await adminSupabase.from('episodes').delete().in('id', episodeIds);
       }
 
-      // 5. Delete seasons themselves
+      // 6. Delete seasons themselves
       await adminSupabase.from('seasons').delete().in('id', seasonIds);
     }
 
-    // 6. Delete associative categories relations
+    // Purge collected media files from S3
+    if (s3KeysToDelete.length > 0) {
+      deleteStorageObjects(s3KeysToDelete).catch((s3Err) => {
+        console.warn(`[SeriesDelete] Failed to delete some S3 files for series ${id}:`, s3Err?.message);
+      });
+    }
+
+    // 7. Delete associative categories relations
     await adminSupabase.from('series_categories').delete().eq('series_id', id);
 
-    // 7. Delete watchlist associations
+    // 8. Delete watchlist associations
     await adminSupabase.from('watchlist').delete().eq('series_id', id);
 
-    // 8. Finally, delete the series record itself
+    // 9. Finally, delete the series record itself
     const { error } = await adminSupabase
       .from('series')
       .delete()

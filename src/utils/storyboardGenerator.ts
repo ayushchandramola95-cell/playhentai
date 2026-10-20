@@ -30,60 +30,9 @@ export interface StoryboardMetadata {
   error?: string;
 }
 
-/**
- * Returns S3 Client configured for S3 (ap-southeast-2) or R2 fallback.
- */
-export function getStorageClient(): { s3: S3Client; bucket: string; publicUrl: string } {
-  const publicUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL || 'https://dmfrlqgigpmty.cloudfront.net';
+import { getStorageClient } from './s3Storage';
+export { getStorageClient };
 
-  // 1. Check AWS S3 explicit credentials (e.g. EC2 / AWS Sydney)
-  const awsBucket = process.env.AWS_S3_BUCKET_NAME || 'hentaikage-media';
-  const awsRegion = process.env.AWS_REGION || 'ap-southeast-2';
-  const awsKey = process.env.AWS_ACCESS_KEY_ID;
-  const awsSecret = process.env.AWS_SECRET_ACCESS_KEY;
-
-  if (awsKey && awsSecret) {
-    return {
-      s3: new S3Client({
-        region: awsRegion,
-        credentials: {
-          accessKeyId: awsKey,
-          secretAccessKey: awsSecret,
-        },
-      }),
-      bucket: awsBucket,
-      publicUrl,
-    };
-  }
-
-  // 2. Check Cloudflare R2 / S3-compatible credentials
-  const r2Bucket = process.env.CLOUDFLARE_R2_BUCKET_NAME;
-  const r2Endpoint = process.env.CLOUDFLARE_R2_ENDPOINT;
-  const r2Key = process.env.CLOUDFLARE_R2_ACCESS_KEY_ID;
-  const r2Secret = process.env.CLOUDFLARE_R2_SECRET_ACCESS_KEY;
-
-  if (r2Bucket && r2Endpoint && r2Key && r2Secret) {
-    return {
-      s3: new S3Client({
-        region: 'auto',
-        endpoint: r2Endpoint,
-        credentials: {
-          accessKeyId: r2Key,
-          secretAccessKey: r2Secret,
-        },
-      }),
-      bucket: r2Bucket,
-      publicUrl,
-    };
-  }
-
-  // 3. Fallback to EC2 IAM Role default provider chain
-  return {
-    s3: new S3Client({ region: awsRegion }),
-    bucket: awsBucket,
-    publicUrl,
-  };
-}
 
 /**
  * Ensures binary has executable permissions on Linux/Unix systems.

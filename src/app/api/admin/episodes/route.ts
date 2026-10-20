@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server';
 import { verifyAdmin, createAdminClient } from '@/utils/supabase/admin';
 import { revalidateAllCatalogTags } from '@/utils/revalidateCatalog';
-import { getLocalCatalog, upsertLocalEpisode, deleteLocalEpisode } from '@/utils/localCatalogStore';
+import { getLocalCatalog, upsertLocalEpisode, deleteLocalEpisode, resetLocalEpisodeQualities } from '@/utils/localCatalogStore';
 import { processEpisodeStoryboard } from '@/utils/storyboardGenerator';
+import { deleteStorageObject, deleteStorageObjects, deleteStoragePrefix } from '@/utils/s3Storage';
+import { probeEpisode } from '@/utils/videoTranscoder';
 
 export async function GET(request: Request) {
   try {
@@ -141,8 +143,11 @@ export async function POST(request: Request) {
       console.warn('Local store episode upsert fallback:', localErr);
     }
 
-    // Automatically trigger 1-frame-per-second Storyboard Generation in background
+    // Automatically trigger probe & Storyboard Generation in background
     if (data?.id && data.video_key && data.video_key.trim() !== '') {
+      probeEpisode(data.id).catch((err: any) => {
+        console.warn(`[AutoProbe] Background probe failed for new episode ${data.id}:`, err?.message);
+      });
       processEpisodeStoryboard(data.id).catch((err: any) => {
         console.warn(`[AutoStoryboard] Background generation failed for new episode ${data.id}:`, err?.message);
       });
@@ -168,6 +173,39 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: 'Missing episode ID' }, { status: 400 });
     }
 
+    // 1. Fetch current episode to compare keys and clean up old S3 files if replaced
+    const { data: existingEp } = await adminSupabase
+      .from('episodes')
+      .select('id, season_id, video_key, thumbnail_key, raw_provider_payload')
+      .eq('id', payload.id)
+      .single();
+
+    const videoReplaced = payload.video_key && existingEp && payload.video_key !== existingEp.video_key;
+    const thumbReplaced = payload.thumbnail_key && existingEp && payload.thumbnail_key !== existingEp.thumbnail_key;
+
+    if (videoReplaced) {
+      // Delete old video file from S3 so it doesn't leave orphaned files or waste storage
+      if (existingEp.video_key) {
+        deleteStorageObject(existingEp.video_key).catch((err: any) => {
+          console.warn(`[VideoReplace] Failed to delete old video ${existingEp.video_key}:`, err?.message);
+        });
+      }
+      // Delete old transcoded renditions (720p, 480p) from S3 for this episode
+      deleteStoragePrefix(`videos/${payload.id}/`).catch((err: any) => {
+        console.warn(`[VideoReplace] Failed to delete old renditions for ${payload.id}:`, err?.message);
+      });
+      // Delete old storyboard sprite sheets from S3
+      deleteStoragePrefix(`storyboards/${payload.id}/`).catch((err: any) => {
+        console.warn(`[VideoReplace] Failed to delete old storyboards for ${payload.id}:`, err?.message);
+      });
+    }
+
+    if (thumbReplaced && existingEp.thumbnail_key) {
+      deleteStorageObject(existingEp.thumbnail_key).catch((err: any) => {
+        console.warn(`[ThumbReplace] Failed to delete old thumbnail ${existingEp.thumbnail_key}:`, err?.message);
+      });
+    }
+
     const updateObj: Record<string, any> = {};
     if (payload.season_id !== undefined) updateObj.season_id = payload.season_id;
     if (payload.episode_number !== undefined) updateObj.episode_number = payload.episode_number;
@@ -179,6 +217,21 @@ export async function PUT(request: Request) {
     if (payload.duration_seconds !== undefined) updateObj.duration_seconds = payload.duration_seconds;
     if (payload.release_date !== undefined) updateObj.release_date = payload.release_date;
     if (payload.is_published !== undefined) updateObj.is_published = payload.is_published;
+
+    if (videoReplaced) {
+      const existingRaw = existingEp.raw_provider_payload || {};
+      updateObj.raw_provider_payload = {
+        ...existingRaw,
+        video_qualities: {
+          '1080p': {
+            key: payload.video_key,
+            created_at: new Date().toISOString()
+          },
+          updated_at: new Date().toISOString()
+        },
+        storyboard: { status: 'missing' }
+      };
+    }
 
     const { data, error } = await adminSupabase
       .from('episodes')
@@ -199,9 +252,32 @@ export async function PUT(request: Request) {
     } catch (localErr) {
       console.warn('Local store episode update fallback:', localErr);
     }
+
+    // When video was replaced with a new 1080p master:
+    if (videoReplaced) {
+      // 1. Reset local qualities to master
+      await resetLocalEpisodeQualities(payload.id, {
+        '1080p': {
+          key: payload.video_key,
+          created_at: new Date().toISOString()
+        },
+        updated_at: new Date().toISOString()
+      });
+
+      // 2. Automatically probe new video to record exact dimensions (1080p)
+      probeEpisode(payload.id).catch((err: any) => {
+        console.warn(`[AutoProbe] Background probe failed for replaced video ${payload.id}:`, err?.message);
+      });
+
+      // 3. Automatically regenerate storyboard previews from the new 1080p master
+      processEpisodeStoryboard(payload.id).catch((err: any) => {
+        console.warn(`[AutoStoryboard] Background storyboard generation failed for replaced video ${payload.id}:`, err?.message);
+      });
+    }
+
     revalidateAllCatalogTags();
 
-    return NextResponse.json({ success: true, episode: data });
+    return NextResponse.json({ success: true, episode: data, videoReplaced: !!videoReplaced });
   } catch (err: any) {
     console.error('Error updating episode:', err);
     const status = err.message === 'Unauthorized' ? 401 : err.message === 'Forbidden' ? 403 : 500;
@@ -220,19 +296,44 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: 'Missing episode ID' }, { status: 400 });
     }
 
-    // Get season_id first so we can sync runtime after deletion
+    // 1. Fetch episode data to delete all S3 storage files and sync runtime after deletion
     const { data: epData } = await adminSupabase
       .from('episodes')
-      .select('season_id')
+      .select('id, season_id, video_key, thumbnail_key, thumbnail_options')
       .eq('id', id)
       .single();
 
-    // 1. Delete user logs / relations referencing this episode
+    if (epData) {
+      const keysToDelete: string[] = [];
+      if (epData.video_key) keysToDelete.push(epData.video_key);
+      if (epData.thumbnail_key) keysToDelete.push(epData.thumbnail_key);
+      if (Array.isArray(epData.thumbnail_options)) {
+        keysToDelete.push(...epData.thumbnail_options);
+      }
+
+      if (keysToDelete.length > 0) {
+        deleteStorageObjects(keysToDelete).catch((err: any) => {
+          console.warn(`[EpisodeDelete] Failed to delete S3 files for episode ${id}:`, err?.message);
+        });
+      }
+
+      // Delete transcoded 720p/480p files from S3
+      deleteStoragePrefix(`videos/${id}/`).catch((err: any) => {
+        console.warn(`[EpisodeDelete] Failed to delete S3 renditions prefix for episode ${id}:`, err?.message);
+      });
+
+      // Delete storyboard preview sheets from S3
+      deleteStoragePrefix(`storyboards/${id}/`).catch((err: any) => {
+        console.warn(`[EpisodeDelete] Failed to delete S3 storyboard prefix for episode ${id}:`, err?.message);
+      });
+    }
+
+    // 2. Delete user logs / relations referencing this episode
     await adminSupabase.from('watch_history').delete().eq('episode_id', id);
     await adminSupabase.from('episode_views').delete().eq('episode_id', id);
     await adminSupabase.from('comments').delete().eq('episode_id', id);
 
-    // 2. Finally, delete the episode record itself
+    // 3. Finally, delete the episode record itself
     const { error } = await adminSupabase
       .from('episodes')
       .delete()
@@ -251,7 +352,7 @@ export async function DELETE(request: Request) {
     }
     revalidateAllCatalogTags();
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, purgedFromS3: true });
   } catch (err: any) {
     console.error('Error deleting episode:', err);
     const status = err.message === 'Unauthorized' ? 401 : err.message === 'Forbidden' ? 403 : 500;

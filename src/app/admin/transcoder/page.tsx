@@ -6,7 +6,7 @@ import {
   Sliders, Video, Play, RefreshCw, CheckCircle2, AlertCircle, Clock,
   Cpu, HardDrive, ShieldCheck, Layers, Sparkles, ChevronDown, ChevronUp,
   Search, Eye, Film, SlidersHorizontal, Terminal, Zap, Check, X,
-  AlertTriangle, Square, CheckSquare
+  AlertTriangle, Square, CheckSquare, RotateCcw
 } from 'lucide-react';
 import { getR2Url } from '@/utils/r2';
 import styles from './transcoder.module.css';
@@ -236,6 +236,33 @@ export default function AdminTranscoderPage() {
       });
     }
   };
+
+  // Single Episode Reset / Re-probe (purges 720p/480p from S3 and re-probes master)
+  const handleResetEpisode = async (ep: EpisodeItem) => {
+    if (!confirm(`Reset renditions for "${ep.title}"? This will purge generated 720p and 480p videos from S3 and re-probe your current master video.`)) return;
+    setProcessingEpIds((prev) => new Set(prev).add(ep.id));
+    addLog(`Purging renditions from S3 and resetting qualities for "${ep.title}"...`, 'info');
+    try {
+      const res = await fetch('/api/admin/transcoder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'reset_single', episodeId: ep.id })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Reset failed');
+      addLog(`✓ Reset complete for "${ep.title}". Re-probed: ${data.probe.width}x${data.probe.height} @ ${data.probe.fps}fps.`, 'success');
+      await fetchData();
+    } catch (err: any) {
+      addLog(`✕ Reset failed for "${ep.title}": ${err.message}`, 'error');
+    } finally {
+      setProcessingEpIds((prev) => {
+        const next = new Set(prev);
+        next.delete(ep.id);
+        return next;
+      });
+    }
+  };
+
 
   // Single Episode Transcode
   const handleTranscodeEpisode = async (ep: EpisodeItem) => {
@@ -1050,6 +1077,18 @@ export default function AdminTranscoderPage() {
                               >
                                 <Search size={11} />
                                 <span>Probe</span>
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => handleResetEpisode(ep)}
+                                disabled={isProcessing || batchRunning}
+                                className={styles.btnProbeEp}
+                                style={{ background: 'rgba(239, 68, 68, 0.1)', borderColor: 'rgba(239, 68, 68, 0.25)', color: '#fca5a5' }}
+                                title="Purge 720p/480p renditions from S3 and re-probe master"
+                              >
+                                <RotateCcw size={11} />
+                                <span>Reset</span>
                               </button>
 
                               <Link

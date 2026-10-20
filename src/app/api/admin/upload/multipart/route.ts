@@ -8,28 +8,18 @@ import {
   AbortMultipartUploadCommand,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { getStorageClient } from '@/utils/s3Storage';
 
 function getS3Client() {
-  const bucketName = process.env.CLOUDFLARE_R2_BUCKET_NAME;
-  const accessKeyId = process.env.CLOUDFLARE_R2_ACCESS_KEY_ID;
-  const secretAccessKey = process.env.CLOUDFLARE_R2_SECRET_ACCESS_KEY;
-  const endpoint = process.env.CLOUDFLARE_R2_ENDPOINT;
-
-  if (!bucketName || !accessKeyId || !secretAccessKey || !endpoint) {
+  try {
+    const { s3, bucket } = getStorageClient();
+    return {
+      bucketName: bucket,
+      client: s3,
+    };
+  } catch {
     return null;
   }
-
-  return {
-    bucketName,
-    client: new S3Client({
-      region: 'auto',
-      endpoint,
-      credentials: {
-        accessKeyId,
-        secretAccessKey,
-      },
-    }),
-  };
 }
 
 export async function POST(request: Request) {

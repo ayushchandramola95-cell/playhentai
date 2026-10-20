@@ -977,5 +977,40 @@ export async function updateLocalEpisodeQualities(episodeId: string, qualitiesDa
   return null;
 }
 
+/**
+ * Resets multi-resolution video qualities (replaces existing map) for a specific episode in memory, on disk, and in Supabase.
+ */
+export async function resetLocalEpisodeQualities(episodeId: string, qualitiesData: any): Promise<any> {
+  const catalog = await getLocalCatalog();
+  const episode = catalog.episodes.find((e: any) => e.id === episodeId);
+
+  if (episode) {
+    episode.video_qualities = {
+      ...qualitiesData,
+      updated_at: new Date().toISOString()
+    };
+    writeStoreToDisk(catalog);
+
+    (async () => {
+      try {
+        const supabase = getSupabaseClient();
+        const { data: row } = await supabase.from('episodes').select('raw_provider_payload').eq('id', episodeId).single();
+        await supabase.from('episodes').update({
+          raw_provider_payload: {
+            ...(row?.raw_provider_payload || {}),
+            video_qualities: episode.video_qualities,
+          }
+        }).eq('id', episodeId);
+      } catch (err: any) {
+        console.warn(`[VideoQualitiesSupabaseReset] Failed to sync ${episodeId} to Supabase:`, err.message);
+      }
+    })().catch(() => {});
+
+    return episode;
+  }
+  return null;
+}
+
+
 
 

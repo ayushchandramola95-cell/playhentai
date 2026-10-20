@@ -42,53 +42,8 @@ export interface TranscodeOptions {
   onProgress?: (msg: string, pct?: number) => void;
 }
 
-/**
- * Returns configured S3/R2 storage client
- */
-export function getStorageClient(): { s3: S3Client; bucket: string; publicUrl: string } {
-  const publicUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL || 'https://media.hentaikage.cc';
-
-  // 1. Check AWS S3 explicit credentials (e.g. AWS Sydney / EC2)
-  const awsBucket = process.env.AWS_S3_BUCKET_NAME || process.env.CLOUDFLARE_R2_BUCKET_NAME || 'hentaikage-media';
-  const awsRegion = process.env.AWS_REGION || 'ap-southeast-2';
-  const awsKey = process.env.AWS_ACCESS_KEY_ID || process.env.CLOUDFLARE_R2_ACCESS_KEY_ID;
-  const awsSecret = process.env.AWS_SECRET_ACCESS_KEY || process.env.CLOUDFLARE_R2_SECRET_ACCESS_KEY;
-
-  if (process.env.CLOUDFLARE_R2_ENDPOINT && process.env.CLOUDFLARE_R2_BUCKET_NAME) {
-    return {
-      s3: new S3Client({
-        region: 'auto',
-        endpoint: process.env.CLOUDFLARE_R2_ENDPOINT,
-        credentials: {
-          accessKeyId: process.env.CLOUDFLARE_R2_ACCESS_KEY_ID || '',
-          secretAccessKey: process.env.CLOUDFLARE_R2_SECRET_ACCESS_KEY || '',
-        },
-      }),
-      bucket: process.env.CLOUDFLARE_R2_BUCKET_NAME,
-      publicUrl: 'https://media.hentaikage.cc',
-    };
-  }
-
-  if (awsKey && awsSecret) {
-    return {
-      s3: new S3Client({
-        region: awsRegion,
-        credentials: {
-          accessKeyId: awsKey,
-          secretAccessKey: awsSecret,
-        },
-      }),
-      bucket: awsBucket,
-      publicUrl,
-    };
-  }
-
-  return {
-    s3: new S3Client({ region: awsRegion }),
-    bucket: awsBucket,
-    publicUrl,
-  };
-}
+import { getStorageClient } from './s3Storage';
+export { getStorageClient };
 
 /**
  * Probes an episode video to inspect width, height, duration, and FPS
@@ -119,13 +74,14 @@ export async function probeEpisode(episodeId: string, customVideoSource?: string
       source_width: probeInfo.width,
       source_height: probeInfo.height,
       updated_at: new Date().toISOString(),
-      '1080p': existingQualities['1080p'] || {
+      '1080p': {
+        ...(existingQualities['1080p'] || {}),
         key: episode.video_key,
         url: getR2Url(episode.video_key, 'video'),
         resolution: `${probeInfo.width}x${probeInfo.height}`,
         width: probeInfo.width,
         height: probeInfo.height,
-        created_at: episode.created_at,
+        created_at: existingQualities['1080p']?.created_at || episode.created_at || new Date().toISOString(),
       }
     };
     await updateLocalEpisodeQualities(episodeId, updatedQualities);

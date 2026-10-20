@@ -1,52 +1,41 @@
 import { NextResponse } from 'next/server';
 import { verifyAdmin } from '@/utils/supabase/admin';
-import { S3Client, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import { deleteStorageObject, deleteStorageObjects, deleteStoragePrefix } from '@/utils/s3Storage';
+
+export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
   try {
-    // 1. Verify admin role
     await verifyAdmin();
 
-    const { key } = await request.json();
-    if (!key) {
-      return NextResponse.json({ error: 'Missing key parameter' }, { status: 400 });
+    const body = await request.json().catch(() => ({}));
+    const { key, keys, prefix } = body;
+
+    if (!key && (!keys || keys.length === 0) && !prefix) {
+      return NextResponse.json({ error: 'Missing key, keys, or prefix parameter.' }, { status: 400 });
     }
 
-    // Ignore mock paths (e.g. Unsplash placeholders or mock keys)
-    if (key.startsWith('http://') || key.startsWith('https://')) {
-      return NextResponse.json({ success: true, message: 'External URL bypassed' });
+    // 1. Prefix deletion (e.g. all files in a folder like "videos/ep-123/")
+    if (prefix) {
+      const deletedCount = await deleteStoragePrefix(prefix);
+      return NextResponse.json({ success: true, count: deletedCount, prefix });
     }
 
-    const bucketName = process.env.CLOUDFLARE_R2_BUCKET_NAME;
-    const accessKeyId = process.env.CLOUDFLARE_R2_ACCESS_KEY_ID;
-    const secretAccessKey = process.env.CLOUDFLARE_R2_SECRET_ACCESS_KEY;
-    const endpoint = process.env.CLOUDFLARE_R2_ENDPOINT;
-
-    // Check if R2 is configured
-    if (!bucketName || !accessKeyId || !secretAccessKey || !endpoint) {
-      console.log(`Mock R2 mode: bypassed deletion for key "${key}"`);
-      return NextResponse.json({ success: true, message: 'Simulated deletion successful' });
+    // 2. Batch deletion (array of keys)
+    if (Array.isArray(keys) && keys.length > 0) {
+      const deletedCount = await deleteStorageObjects(keys);
+      return NextResponse.json({ success: true, count: deletedCount, keys });
     }
 
-    const s3 = new S3Client({
-      region: 'auto',
-      endpoint,
-      credentials: {
-        accessKeyId,
-        secretAccessKey,
-      },
-    });
-
-    const command = new DeleteObjectCommand({
-      Bucket: bucketName,
-      Key: key,
-    });
-
-    await s3.send(command);
+    // 3. Single key deletion
+    if (key) {
+      const ok = await deleteStorageObject(key);
+      return NextResponse.json({ success: ok, key });
+    }
 
     return NextResponse.json({ success: true });
   } catch (err: any) {
-    console.error('Error deleting R2 object:', err);
+    console.error('[DeleteFileAPI] Error deleting storage object(s):', err);
     const status = err.message === 'Unauthorized' ? 401 : err.message === 'Forbidden' ? 403 : 500;
     return NextResponse.json({ error: err.message || 'Server Error' }, { status });
   }
