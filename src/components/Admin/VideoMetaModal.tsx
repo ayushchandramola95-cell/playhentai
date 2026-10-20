@@ -5,7 +5,7 @@ import Link from 'next/link';
 import {
   Film, X, RefreshCw, Copy, Check, Play, ExternalLink,
   Layers, Sliders, CheckCircle2, AlertCircle, Info, Volume2,
-  HardDrive, Sparkles, Terminal, Activity, Eye, Zap
+  HardDrive, Sparkles, Terminal, Activity, Eye, Zap, UploadCloud
 } from 'lucide-react';
 import styles from './VideoMetaModal.module.css';
 
@@ -13,6 +13,7 @@ interface VideoMetaModalProps {
   episodeId: string | null;
   isOpen: boolean;
   onClose: () => void;
+  onReplaceVideo?: () => void;
   episodeTitle?: string;
   episodeNumber?: number;
   seriesTitle?: string;
@@ -23,6 +24,7 @@ export default function VideoMetaModal({
   episodeId,
   isOpen,
   onClose,
+  onReplaceVideo,
   episodeTitle,
   episodeNumber,
   seriesTitle,
@@ -729,6 +731,22 @@ export default function VideoMetaModal({
               <Sliders size={13} />
               <span>Transcoder Studio</span>
             </Link>
+
+            {onReplaceVideo && (
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  onReplaceVideo();
+                }}
+                className={styles.btnSecondary}
+                style={{ color: '#c4b5fd', borderColor: 'rgba(139, 92, 246, 0.35)', background: 'rgba(139, 92, 246, 0.12)' }}
+                title="Replace video file or delete from S3 (keeps episode box)"
+              >
+                <UploadCloud size={13} />
+                <span>Replace Video</span>
+              </button>
+            )}
 
             <button
               type="button"

@@ -17,6 +17,7 @@ import styles from './episodes.module.css';
 import adminStyles from '../admin.module.css';
 import StoryboardStudio from '@/components/Admin/StoryboardStudio';
 import VideoMetaModal from '@/components/Admin/VideoMetaModal';
+import ReplaceVideoModal from '@/components/Admin/ReplaceVideoModal';
 
 interface Series {
   id: string;
@@ -189,6 +190,7 @@ export default function AdminEpisodesPage() {
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [storyboardModalEpisode, setStoryboardModalEpisode] = useState<Episode | null>(null);
   const [metaModalEpisode, setMetaModalEpisode] = useState<Episode | null>(null);
+  const [replaceVideoEpisode, setReplaceVideoEpisode] = useState<Episode | null>(null);
   const [isGeneratingSingleSb, setIsGeneratingSingleSb] = useState(false);
   const [sbPreviewSec, setSbPreviewSec] = useState<number>(30);
 
@@ -3582,6 +3584,21 @@ export default function AdminEpisodesPage() {
                                     <span>Info</span>
                                   </button>
 
+                                  {/* Replace / Swap Video Stream Button */}
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setReplaceVideoEpisode(ep);
+                                    }}
+                                    className={styles.rowActionBtn}
+                                    style={{ background: 'rgba(139, 92, 246, 0.12)', borderColor: 'rgba(139, 92, 246, 0.3)', color: '#c4b5fd' }}
+                                    title="Replace video file or delete from S3 (keeps episode box intact)"
+                                  >
+                                    <UploadCloud size={13} />
+                                    <span>Replace Video</span>
+                                  </button>
+
                                   {/* Direct Player Watch Link */}
                                   <Link
                                     href={series.slug ? `/watch/${series.slug}-episode-${ep.episode_number}` : `/watch/${ep.id}`}
@@ -3785,6 +3802,18 @@ export default function AdminEpisodesPage() {
                               title="Inspect Video Quality, FPS & Telemetry"
                             >
                               <Info size={11} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setReplaceVideoEpisode(ep);
+                              }}
+                              className={styles.rowActionBtn}
+                              style={{ background: 'rgba(139, 92, 246, 0.1)', borderColor: 'rgba(139, 92, 246, 0.25)', color: '#c4b5fd' }}
+                              title="Replace video file or delete from S3 (keeps episode box intact)"
+                            >
+                              <UploadCloud size={11} />
                             </button>
                             <Link
                               href={series?.slug ? `/watch/${series.slug}-episode-${ep.episode_number}` : `/watch/${ep.id}`}
@@ -7582,10 +7611,30 @@ export default function AdminEpisodesPage() {
         isOpen={!!metaModalEpisode}
         episodeId={metaModalEpisode?.id || null}
         onClose={() => setMetaModalEpisode(null)}
+        onReplaceVideo={() => setReplaceVideoEpisode(metaModalEpisode)}
         episodeTitle={metaModalEpisode?.title}
         episodeNumber={metaModalEpisode?.episode_number}
         seriesTitle={metaModalEpisode?.seasons?.series?.title}
         seasonTitle={metaModalEpisode?.seasons?.title}
+      />
+
+      {/* Replace / Swap Video Stream Modal */}
+      <ReplaceVideoModal
+        isOpen={!!replaceVideoEpisode}
+        onClose={() => setReplaceVideoEpisode(null)}
+        onSuccess={() => {
+          fetchInitialData();
+          setSuccessMsg('Video stream successfully updated in S3. Episode box preserved.');
+        }}
+        episode={replaceVideoEpisode ? {
+          id: replaceVideoEpisode.id,
+          title: replaceVideoEpisode.title,
+          episode_number: replaceVideoEpisode.episode_number,
+          video_key: replaceVideoEpisode.video_key,
+          duration_seconds: replaceVideoEpisode.duration_seconds,
+          seasonTitle: replaceVideoEpisode.seasons?.title,
+          seriesTitle: replaceVideoEpisode.seasons?.series?.title,
+        } : null}
       />
 
     </div>
