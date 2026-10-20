@@ -31,8 +31,12 @@ export async function GET(request: Request) {
       const mapped = eps.map((ep: any) => {
         const season = seasonMap.get(ep.season_id);
         const series = season ? seriesMap.get(season.series_id) : null;
+        const subtitleKey = ep.subtitle_key || ep.raw_provider_payload?.subtitle_key || null;
+        const subtitles = ep.subtitles || ep.raw_provider_payload?.subtitles || null;
         return {
           ...ep,
+          subtitle_key: subtitleKey,
+          subtitles: subtitles,
           storyboard: ep.storyboard || ep.raw_provider_payload?.storyboard || null,
           video_qualities: ep.video_qualities || ep.raw_provider_payload?.video_qualities || null,
           seasons: season ? {
@@ -128,7 +132,12 @@ export async function POST(request: Request) {
         duration_seconds: payload.duration_seconds || 0,
         release_date: payload.release_date || new Date().toISOString(),
         is_published: payload.is_published ?? false,
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
+        raw_provider_payload: {
+          ...(payload.raw_provider_payload || {}),
+          subtitle_key: payload.subtitle_key || null,
+          subtitles: payload.subtitles || null,
+        }
       })
       .select()
       .single();
@@ -138,7 +147,11 @@ export async function POST(request: Request) {
     // Auto-sync series average runtime (rounded up to nearest minute)
     await syncSeriesAverageRuntime(payload.season_id, adminSupabase);
     try {
-      await upsertLocalEpisode(data);
+      await upsertLocalEpisode({
+        ...data,
+        subtitle_key: payload.subtitle_key || null,
+        subtitles: payload.subtitles || null,
+      });
     } catch (localErr) {
       console.warn('Local store episode upsert fallback:', localErr);
     }
@@ -218,10 +231,12 @@ export async function PUT(request: Request) {
     if (payload.release_date !== undefined) updateObj.release_date = payload.release_date;
     if (payload.is_published !== undefined) updateObj.is_published = payload.is_published;
 
+    const existingRaw = existingEp?.raw_provider_payload || {};
+    let finalRaw = { ...existingRaw };
+
     if (videoReplaced) {
-      const existingRaw = existingEp.raw_provider_payload || {};
-      updateObj.raw_provider_payload = {
-        ...existingRaw,
+      finalRaw = {
+        ...finalRaw,
         video_qualities: {
           '1080p': {
             key: payload.video_key,
@@ -232,6 +247,22 @@ export async function PUT(request: Request) {
         storyboard: { status: 'missing' }
       };
     }
+
+    if (payload.subtitle_key !== undefined) {
+      finalRaw = {
+        ...finalRaw,
+        subtitle_key: payload.subtitle_key || null,
+        subtitles: payload.subtitles !== undefined ? payload.subtitles : (payload.subtitle_key ? {
+          en: {
+            key: payload.subtitle_key,
+            label: 'English',
+            url: payload.subtitle_key
+          }
+        } : null)
+      };
+    }
+
+    updateObj.raw_provider_payload = finalRaw;
 
     const { data, error } = await adminSupabase
       .from('episodes')
@@ -248,7 +279,11 @@ export async function PUT(request: Request) {
       await syncSeriesAverageRuntime(targetSeasonId, adminSupabase);
     }
     try {
-      await upsertLocalEpisode(data);
+      await upsertLocalEpisode({
+        ...data,
+        subtitle_key: payload.subtitle_key !== undefined ? payload.subtitle_key : data?.raw_provider_payload?.subtitle_key,
+        subtitles: payload.subtitles !== undefined ? payload.subtitles : data?.raw_provider_payload?.subtitles,
+      });
     } catch (localErr) {
       console.warn('Local store episode update fallback:', localErr);
     }
@@ -299,7 +334,7 @@ export async function DELETE(request: Request) {
     // 1. Fetch episode data to delete all S3 storage files and sync runtime after deletion
     const { data: epData } = await adminSupabase
       .from('episodes')
-      .select('id, season_id, video_key, thumbnail_key, thumbnail_options')
+      .select('id, season_id, video_key, thumbnail_key, thumbnail_options, raw_provider_payload')
       .eq('id', id)
       .single();
 
@@ -307,6 +342,7 @@ export async function DELETE(request: Request) {
       const keysToDelete: string[] = [];
       if (epData.video_key) keysToDelete.push(epData.video_key);
       if (epData.thumbnail_key) keysToDelete.push(epData.thumbnail_key);
+      if (epData.raw_provider_payload?.subtitle_key) keysToDelete.push(epData.raw_provider_payload.subtitle_key);
       if (Array.isArray(epData.thumbnail_options)) {
         keysToDelete.push(...epData.thumbnail_options);
       }

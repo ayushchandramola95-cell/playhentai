@@ -411,6 +411,60 @@ export default function VideoMetaModal({
                       </div>
                     </div>
                   </div>
+
+                  {/* Closed Captions & Subtitles Category */}
+                  <div className={styles.specsCategory}>
+                    <div className={styles.specsCategoryHeader}>
+                      <span style={{ fontSize: '13px' }}>💬</span>
+                      <span>Subtitles & Closed Captions (CC)</span>
+                    </div>
+                    <div className={styles.specsList}>
+                      <div className={styles.specRow}>
+                        <span className={styles.specKey}>Subtitle Delivery</span>
+                        <span className={styles.specVal}>
+                          {meta.subtitles?.hasSeparateSubtitles ? (
+                            <span style={{ color: '#c084fc', fontWeight: 800 }}>
+                              ● Separate Subtitle Stream ({meta.subtitles.format})
+                            </span>
+                          ) : (
+                            <span style={{ color: '#94a3b8' }}>
+                              Burned-in Hardsubs (In-Video Stream)
+                            </span>
+                          )}
+                        </span>
+                      </div>
+                      <div className={styles.specRow}>
+                        <span className={styles.specKey}>Player CC Toggle</span>
+                        <span className={styles.specVal}>
+                          {meta.subtitles?.hasSeparateSubtitles ? (
+                            <span style={{ color: '#34d399', fontWeight: 700 }}>
+                              ✓ Active (CC button appears in video player)
+                            </span>
+                          ) : (
+                            <span style={{ color: '#64748b' }}>
+                              Hidden (Only shown when separate subtitle file exists)
+                            </span>
+                          )}
+                        </span>
+                      </div>
+                      {meta.subtitles?.key && (
+                        <div className={styles.specRow}>
+                          <span className={styles.specKey}>S3 Subtitle Key</span>
+                          <span className={styles.specVal} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                            <code className={styles.codeVal}>{meta.subtitles.key}</code>
+                            <button
+                              type="button"
+                              onClick={() => handleCopyText(meta.subtitles.key, 'subkey')}
+                              style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: 0 }}
+                              title="Copy Subtitle Key"
+                            >
+                              {copiedKey === 'subkey' ? <Check size={12} style={{ color: '#34d399' }} /> : <Copy size={12} />}
+                            </button>
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
               )}
 

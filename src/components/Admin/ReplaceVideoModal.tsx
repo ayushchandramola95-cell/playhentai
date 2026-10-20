@@ -19,6 +19,8 @@ interface ReplaceVideoModalProps {
     title: string;
     episode_number: number;
     video_key?: string;
+    subtitle_key?: string;
+    raw_provider_payload?: any;
     duration_seconds?: number;
     seasonTitle?: string;
     seriesTitle?: string;
@@ -262,6 +264,27 @@ export default function ReplaceVideoModal({
                     {deletingOnly ? <RefreshCw size={12} className={styles.spinner} /> : <Trash2 size={12} />}
                     <span>{deletingOnly ? 'Deleting from S3...' : 'Delete Video Only (Keep Box)'}</span>
                   </button>
+                </div>
+
+                <div style={{ marginTop: '0.75rem', paddingTop: '0.6rem', borderTop: '1px solid rgba(255, 255, 255, 0.08)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.75rem' }}>
+                  <span style={{ color: '#94a3b8' }}>Subtitles Mode:</span>
+                  {(() => {
+                    const subKey = episode.subtitle_key || episode.raw_provider_payload?.subtitle_key;
+                    if (subKey) {
+                      return (
+                        <span style={{ color: '#34d399', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981' }} />
+                          Separate English CC Active ({subKey.split('/').pop()})
+                        </span>
+                      );
+                    }
+                    return (
+                      <span style={{ color: '#cbd5e1', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                        <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#64748b' }} />
+                        Hardsubbed / In-Video Subtitles
+                      </span>
+                    );
+                  })()}
                 </div>
               </>
             ) : (

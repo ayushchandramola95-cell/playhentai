@@ -985,3 +985,85 @@
   }
 }
 
+/* ============================================================================
+   CLOSED CAPTIONS (CC) & SUBTITLE OVERLAY STYLES
+   ============================================================================ */
+
+.ccBtn {
+  background: transparent;
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
+  color: #e2e8f0;
+  border-radius: 5px;
+  padding: 0.12rem 0.38rem;
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.05em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  line-height: 1.1;
+  font-family: inherit;
+  user-select: none;
+}
+
+.ccBtn:hover {
+  border-color: #a855f7;
+  color: #ffffff;
+  background: rgba(168, 85, 247, 0.15);
+  box-shadow: 0 0 10px rgba(168, 85, 247, 0.3);
+  transform: translateY(-1px);
+}
+
+.ccActiveBtn {
+  background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%) !important;
+  border-color: transparent !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 12px rgba(168, 85, 247, 0.55) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+.subtitleOverlay {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 5.6rem;
+  max-width: 86%;
+  width: auto;
+  text-align: center;
+  pointer-events: none;
+  z-index: 12;
+  transition: bottom 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  justify-content: center;
+}
+
+.subtitleOverlayControlsHidden {
+  bottom: 2.2rem;
+}
+
+.subtitleText {
+  display: inline-block;
+  color: #ffffff;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-weight: 750;
+  font-size: clamp(1.05rem, 2.3vw, 1.65rem);
+  line-height: 1.35;
+  letter-spacing: 0.02em;
+  padding: 0.2rem 0.75rem;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.58);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  text-shadow:
+    -1.5px -1.5px 0 #000,
+    1.5px -1.5px 0 #000,
+    -1.5px 1.5px 0 #000,
+    1.5px 1.5px 0 #000,
+    0 2px 8px rgba(0, 0, 0, 0.95);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+

@@ -18,6 +18,7 @@ import adminStyles from '../admin.module.css';
 import StoryboardStudio from '@/components/Admin/StoryboardStudio';
 import VideoMetaModal from '@/components/Admin/VideoMetaModal';
 import ReplaceVideoModal from '@/components/Admin/ReplaceVideoModal';
+import SubtitleUploader from '@/components/Admin/SubtitleUploader';
 
 interface Series {
   id: string;
@@ -46,6 +47,8 @@ interface Episode {
   description: string;
   video_key: string;
   thumbnail_key: string;
+  subtitle_key?: string;
+  subtitles?: any;
   thumbnail_options?: string[];
   duration_seconds: number;
   release_date: string;
@@ -179,7 +182,7 @@ export default function AdminEpisodesPage() {
   const [selectedLaunchYear, setSelectedLaunchYear] = useState('all');
   const [selectedSeriesFilter, setSelectedSeriesFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'published' | 'draft'>('all');
-  const [mediaFilter, setMediaFilter] = useState<'all' | 'missing_video' | 'missing_thumb' | 'has_storyboard' | 'missing_storyboard'>('all');
+  const [mediaFilter, setMediaFilter] = useState<'all' | 'missing_video' | 'missing_thumb' | 'has_storyboard' | 'missing_storyboard' | 'has_subtitles'>('all');
   const [sortBy, setSortBy] = useState<'name' | 'date' | 'episodes'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [viewMode, setViewMode] = useState<'accordion' | 'table'>('accordion');
@@ -223,6 +226,7 @@ export default function AdminEpisodesPage() {
   const [description, setDescription] = useState('');
   const [videoKey, setVideoKey] = useState('');
   const [thumbnailKey, setThumbnailKey] = useState('');
+  const [subtitleKey, setSubtitleKey] = useState('');
   const [durationSeconds, setDurationSeconds] = useState<number>(1440); // 24 mins default
   const [releaseDate, setReleaseDate] = useState('');
   const [isPublished, setIsPublished] = useState(false);
@@ -561,6 +565,7 @@ export default function AdminEpisodesPage() {
         description,
         videoKey,
         thumbnailKey,
+        subtitleKey,
         durationSeconds,
         releaseDate,
         isPublished,
@@ -571,7 +576,7 @@ export default function AdminEpisodesPage() {
     }
   }, [
     isModalOpen, editingId, formSeriesId, formSeasonId, episodeNumber, title,
-    description, videoKey, thumbnailKey, durationSeconds, releaseDate, isPublished,
+    description, videoKey, thumbnailKey, subtitleKey, durationSeconds, releaseDate, isPublished,
     savedThumbnails, isPreview
   ]);
 
@@ -588,6 +593,7 @@ export default function AdminEpisodesPage() {
         setDescription(d.description || '');
         setVideoKey(d.videoKey || '');
         setThumbnailKey(d.thumbnailKey || '');
+        setSubtitleKey(d.subtitleKey || '');
         setDurationSeconds(d.durationSeconds || 1440);
         setReleaseDate(d.releaseDate || '');
         setIsPublished(d.isPublished || false);
@@ -766,6 +772,7 @@ export default function AdminEpisodesPage() {
     setDescription('');
     setVideoKey('');
     setThumbnailKey('');
+    setSubtitleKey('');
     setDurationSeconds(1440);
     setVideoFile(null);
     setIsGeneratingThumbnail(false);
@@ -799,11 +806,12 @@ export default function AdminEpisodesPage() {
     setDescription(ep.description || '');
     setVideoKey(ep.video_key);
     setThumbnailKey(ep.thumbnail_key || '');
+    setSubtitleKey(ep.subtitle_key || ep.raw_provider_payload?.subtitle_key || '');
     setDurationSeconds(ep.duration_seconds || 1440);
     setVideoFile(null);
     setIsGeneratingThumbnail(false);
     setSavedThumbnails(ep.thumbnail_options && ep.thumbnail_options.length > 0 ? ep.thumbnail_options : (ep.thumbnail_key ? [ep.thumbnail_key] : []));
-    originalKeysRef.current = [ep.video_key, ep.thumbnail_key, ...(ep.thumbnail_options || [])].filter(Boolean);
+    originalKeysRef.current = [ep.video_key, ep.thumbnail_key, ep.subtitle_key || ep.raw_provider_payload?.subtitle_key, ...(ep.thumbnail_options || [])].filter(Boolean) as string[];
     setSessionKeys([]);
     
     // Format release date for input at midnight
@@ -1135,6 +1143,14 @@ export default function AdminEpisodesPage() {
       description,
       video_key: videoKey,
       thumbnail_key: thumbnailKey,
+      subtitle_key: subtitleKey || '',
+      subtitles: subtitleKey ? {
+        en: {
+          key: subtitleKey,
+          label: 'English',
+          url: getR2Url(subtitleKey)
+        }
+      } : null,
       thumbnail_options: savedThumbnails,
       duration_seconds: durationSeconds,
       release_date: finalReleaseDate,
@@ -1142,7 +1158,16 @@ export default function AdminEpisodesPage() {
       metadata_locks: {},
       metadata_provenance: {},
       metadata_versions: [],
-      raw_provider_payload: {}
+      raw_provider_payload: {
+        subtitle_key: subtitleKey || '',
+        subtitles: subtitleKey ? {
+          en: {
+            key: subtitleKey,
+            label: 'English',
+            url: getR2Url(subtitleKey)
+          }
+        } : null
+      }
     };
 
     try {
@@ -1159,7 +1184,7 @@ export default function AdminEpisodesPage() {
       if (!res.ok) throw new Error(data.error || 'Failed to save episode');
 
       // Clean up unused/discarded files from Cloudflare R2
-      const finalKeysToKeep = new Set([videoKey, thumbnailKey, ...savedThumbnails]);
+      const finalKeysToKeep = new Set([videoKey, thumbnailKey, subtitleKey, ...savedThumbnails].filter(Boolean));
       const keysToCheck = [...originalKeysRef.current, ...sessionKeys];
       const keysToDelete = keysToCheck.filter((key) => key && !finalKeysToKeep.has(key));
 
@@ -2741,6 +2766,7 @@ export default function AdminEpisodesPage() {
     const missingThumbCount = episodesList.filter(e => !e.thumbnail_key || e.thumbnail_key.trim() === '').length;
     const storyboardReadyCount = episodesList.filter(e => e.storyboard?.status === 'completed').length;
     const missingStoryboardCount = episodesList.filter(e => e.video_key && e.storyboard?.status !== 'completed').length;
+    const hasSubtitlesCount = episodesList.filter(e => Boolean(e.subtitle_key || e.raw_provider_payload?.subtitle_key)).length;
 
     return { 
       totalEpisodes, 
@@ -2753,6 +2779,7 @@ export default function AdminEpisodesPage() {
       missingThumbCount,
       storyboardReadyCount,
       missingStoryboardCount,
+      hasSubtitlesCount,
     };
   }, [episodesList, seasonsList, seriesList]);
 
@@ -2793,6 +2820,9 @@ export default function AdminEpisodesPage() {
         if (seriesEpisodes.length === 0) return false;
       } else if (mediaFilter === 'missing_storyboard') {
         seriesEpisodes = seriesEpisodes.filter(e => e.video_key && e.storyboard?.status !== 'completed');
+        if (seriesEpisodes.length === 0) return false;
+      } else if (mediaFilter === 'has_subtitles') {
+        seriesEpisodes = seriesEpisodes.filter(e => Boolean(e.subtitle_key || e.raw_provider_payload?.subtitle_key));
         if (seriesEpisodes.length === 0) return false;
       }
 
@@ -2841,6 +2871,7 @@ export default function AdminEpisodesPage() {
       if (mediaFilter === 'missing_thumb' && ep.thumbnail_key && ep.thumbnail_key.trim() !== '') return false;
       if (mediaFilter === 'has_storyboard' && ep.storyboard?.status !== 'completed') return false;
       if (mediaFilter === 'missing_storyboard' && (!ep.video_key || ep.storyboard?.status === 'completed')) return false;
+      if (mediaFilter === 'has_subtitles' && !Boolean(ep.subtitle_key || ep.raw_provider_payload?.subtitle_key)) return false;
 
       if (searchTerm.trim() !== '') {
         const q = searchTerm.toLowerCase().trim();
@@ -3123,6 +3154,7 @@ export default function AdminEpisodesPage() {
               title="Filter by Media Health"
             >
               <option value="all">All Media</option>
+              <option value="has_subtitles">💬 Soft Subtitles ({stats.hasSubtitlesCount})</option>
               <option value="has_storyboard">🎞️ Storyboard Ready ({stats.storyboardReadyCount})</option>
               <option value="missing_storyboard">⏳ Missing Storyboard ({stats.missingStoryboardCount})</option>
               <option value="missing_video">⚠️ Missing Video ({stats.missingVideoCount})</option>
@@ -3569,6 +3601,31 @@ export default function AdminEpisodesPage() {
                                     );
                                   })()}
 
+                                  {/* Subtitle Track Badge */}
+                                  {(() => {
+                                    const hasSub = Boolean(ep.subtitle_key || ep.raw_provider_payload?.subtitle_key);
+                                    return (
+                                      <span
+                                        style={{
+                                          fontSize: '0.7rem',
+                                          fontWeight: 800,
+                                          padding: '0.2rem 0.55rem',
+                                          borderRadius: '6px',
+                                          display: 'inline-flex',
+                                          alignItems: 'center',
+                                          gap: '0.3rem',
+                                          background: hasSub ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255, 255, 255, 0.04)',
+                                          color: hasSub ? '#34d399' : '#94a3b8',
+                                          border: hasSub ? '1px solid rgba(16, 185, 129, 0.35)' : '1px solid rgba(255, 255, 255, 0.08)',
+                                        }}
+                                        title={hasSub ? 'Separate English subtitles active (CC toggle available)' : 'Hardsubbed in video'}
+                                      >
+                                        <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: hasSub ? '#10b981' : '#64748b' }} />
+                                        <span>{hasSub ? 'CC En' : 'Hardsub'}</span>
+                                      </span>
+                                    );
+                                  })()}
+
                                   {/* Video Meta Info Button */}
                                   <button
                                     type="button"
@@ -3672,6 +3729,7 @@ export default function AdminEpisodesPage() {
                     <th>Status</th>
                     <th>Storyboard</th>
                     <th>Qualities</th>
+                    <th>Subs</th>
                     <th>Aired</th>
                     <th style={{ textAlign: 'right' }}>Actions</th>
                   </tr>
@@ -3783,6 +3841,31 @@ export default function AdminEpisodesPage() {
                                 <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: isFullyDone ? '#10b981' : isPartial ? '#38bdf8' : '#64748b' }} />
                                 <span>{isFullyDone ? '🎬 1080p • 720p • 480p' : isPartial ? '🎬 1080p • 720p' : '🎬 1080p Only'}</span>
                               </button>
+                            );
+                          })()}
+                        </td>
+                        <td>
+                          {(() => {
+                            const hasSub = Boolean(ep.subtitle_key || ep.raw_provider_payload?.subtitle_key);
+                            return (
+                              <span
+                                style={{
+                                  fontSize: '0.68rem',
+                                  fontWeight: 800,
+                                  padding: '0.18rem 0.5rem',
+                                  borderRadius: '6px',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '0.28rem',
+                                  background: hasSub ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255, 255, 255, 0.04)',
+                                  color: hasSub ? '#34d399' : '#94a3b8',
+                                  border: hasSub ? '1px solid rgba(16, 185, 129, 0.35)' : '1px solid rgba(255, 255, 255, 0.08)',
+                                }}
+                                title={hasSub ? 'Separate English subtitles active (CC toggle available)' : 'Hardsubbed in video'}
+                              >
+                                <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: hasSub ? '#10b981' : '#64748b' }} />
+                                <span>{hasSub ? 'CC En' : 'Hardsub'}</span>
+                              </span>
                             );
                           })()}
                         </td>
@@ -4606,6 +4689,19 @@ export default function AdminEpisodesPage() {
                       previewType="cover"
                     />
                   </div>
+                </div>
+
+                {/* Subtitle Track Uploader (Optional for episodes with separate soft subtitles) */}
+                <div className={styles.formGroup} style={{ marginTop: '0.75rem', marginBottom: '0.5rem' }}>
+                  <SubtitleUploader
+                    initialKey={subtitleKey}
+                    episodeTitle={title || `Episode ${episodeNumber}`}
+                    onUploadComplete={(key) => {
+                      setSubtitleKey(key);
+                      setSessionKeys((prev) => [...prev, key]);
+                    }}
+                    onClear={() => setSubtitleKey('')}
+                  />
                 </div>
 
                 {/* Scheduled Release Date with Quick Presets */}

@@ -112,6 +112,15 @@ export async function GET(request: Request) {
       generatedAt: sb?.generated_at || null,
     };
 
+    // 5.5 Subtitle stream status
+    const subtitleKey = episode.subtitle_key || episode.raw_provider_payload?.subtitle_key || null;
+    const subtitlesInfo = {
+      hasSeparateSubtitles: Boolean(subtitleKey || episode.subtitles || episode.raw_provider_payload?.subtitles),
+      key: subtitleKey,
+      url: subtitleKey ? getR2Url(subtitleKey) : null,
+      format: subtitleKey ? (subtitleKey.endsWith('.vtt') ? 'WebVTT (.vtt)' : subtitleKey.endsWith('.srt') ? 'SubRip (.srt)' : 'External Subtitle') : 'Burned-in Hardsubs (In-Video)',
+    };
+
     const assembledMeta = {
       ...probe,
       videoKey: episode.video_key,
@@ -130,6 +139,7 @@ export async function GET(request: Request) {
       },
       renditions,
       storyboard: storyboardInfo,
+      subtitles: subtitlesInfo,
     };
 
     // 6. Cache metadata into episode payload and local store in background

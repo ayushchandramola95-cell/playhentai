@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import styles from './VideoPlayer.module.css';
 import { getR2Url } from '@/utils/r2';
+import { parseSubtitleText, findActiveCue, SubtitleCue } from '@/utils/subtitleParser';
 
 interface VideoPlayerProps {
   episodeId: string;
@@ -27,6 +28,7 @@ interface VideoPlayerProps {
   onToggleAutoplay?: () => void;
   storyboard?: any;
   videoQualities?: any;
+  subtitleUrl?: string | null;
 }
 
 export default function VideoPlayer({
@@ -45,6 +47,7 @@ export default function VideoPlayer({
   onToggleAutoplay,
   storyboard,
   videoQualities,
+  subtitleUrl,
 }: VideoPlayerProps) {
   const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -171,6 +174,78 @@ export default function VideoPlayer({
       video.removeEventListener('leavepictureinpicture', onLeavePip);
     };
   }, []);
+
+  // Separate English Subtitles (Closed Captions) State Management
+  const hasSubtitles = Boolean(subtitleUrl && subtitleUrl.trim() !== '');
+  const [isCcActive, setIsCcActive] = useState<boolean>(true);
+  const [subtitleCues, setSubtitleCues] = useState<SubtitleCue[]>([]);
+
+  // Hydrate persistent CC on/off preference
+  useEffect(() => {
+    try {
+      const savedCc = localStorage.getItem('hentai_player_cc');
+      if (savedCc !== null) {
+        setIsCcActive(savedCc === 'true');
+      }
+    } catch (_) {}
+  }, []);
+
+  const toggleCc = () => {
+    setIsCcActive((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem('hentai_player_cc', String(next));
+      } catch (_) {}
+      return next;
+    });
+  };
+
+  // Fetch & parse subtitle file when subtitleUrl changes
+  useEffect(() => {
+    if (!subtitleUrl || subtitleUrl.trim() === '') {
+      setSubtitleCues([]);
+      return;
+    }
+
+    let isMounted = true;
+    const fetchSubtitles = async () => {
+      try {
+        // Attempt direct fetch first
+        let res = await fetch(subtitleUrl);
+        if (!res.ok) {
+          res = await fetch(`/api/subtitles/proxy?url=${encodeURIComponent(subtitleUrl)}`);
+        }
+        if (res.ok) {
+          const text = await res.text();
+          if (isMounted) {
+            setSubtitleCues(parseSubtitleText(text));
+          }
+        }
+      } catch {
+        // Fallback to internal proxy if browser CORS blocks external asset
+        try {
+          const proxyRes = await fetch(`/api/subtitles/proxy?url=${encodeURIComponent(subtitleUrl)}`);
+          if (proxyRes.ok && isMounted) {
+            const text = await proxyRes.text();
+            setSubtitleCues(parseSubtitleText(text));
+          }
+        } catch (proxyErr) {
+          console.warn('[VideoPlayer] Failed to load subtitles:', proxyErr);
+        }
+      }
+    };
+
+    fetchSubtitles();
+    return () => {
+      isMounted = false;
+    };
+  }, [subtitleUrl]);
+
+  // Active Subtitle Cue for Current Playback Time
+  const activeCue = useMemo(() => {
+    if (!hasSubtitles || !isCcActive || subtitleCues.length === 0) return null;
+    return findActiveCue(subtitleCues, currentTime);
+  }, [hasSubtitles, isCcActive, subtitleCues, currentTime]);
 
   // Resume prompt state
   const [resumeTime, setResumeTime] = useState<number | null>(null);
@@ -817,8 +892,10 @@ export default function VideoPlayer({
           toggleTheater();
           break;
         case 'KeyC':
-          if (onToggleCinema) {
-            e.preventDefault();
+          e.preventDefault();
+          if (hasSubtitles) {
+            toggleCc();
+          } else if (onToggleCinema) {
             onToggleCinema();
           }
           break;
@@ -951,11 +1028,28 @@ export default function VideoPlayer({
         className={styles.videoElement}
         preload="metadata"
         playsInline
-      />
+      >
+        {hasSubtitles && subtitleUrl && (
+          <track
+            kind="subtitles"
+            src={subtitleUrl}
+            srcLang="en"
+            label="English"
+            default={isCcActive}
+          />
+        )}
+      </video>
 
       {/* Pure Black Screen Backdrop Before Video Plays */}
       {!hasStartedPlaying && (
         <div className={styles.blackScreenBackdrop} />
+      )}
+
+      {/* Dedicated Anime Subtitle Overlay - ONLY rendered if separate subtitle file exists & CC is active */}
+      {hasSubtitles && isCcActive && activeCue && (
+        <div className={`${styles.subtitleOverlay} ${!showControls ? styles.subtitleOverlayControlsHidden : ''}`}>
+          <span className={styles.subtitleText}>{activeCue.text}</span>
+        </div>
       )}
 
       {/* Floating Resume Prompt */}
@@ -1045,10 +1139,17 @@ export default function VideoPlayer({
                 <span>Theater Mode</span>
                 <span className={styles.shortcutKey}>T</span>
               </div>
-              <div className={styles.shortcutItem}>
-                <span>Cinema Mode</span>
-                <span className={styles.shortcutKey}>C</span>
-              </div>
+              {hasSubtitles ? (
+                <div className={styles.shortcutItem}>
+                  <span>Closed Captions (CC)</span>
+                  <span className={styles.shortcutKey}>C</span>
+                </div>
+              ) : (
+                <div className={styles.shortcutItem}>
+                  <span>Cinema Mode</span>
+                  <span className={styles.shortcutKey}>C</span>
+                </div>
+              )}
               <div className={styles.shortcutItem}>
                 <span>Picture-in-Picture</span>
                 <span className={styles.shortcutKey}>I</span>
@@ -1341,6 +1442,22 @@ export default function VideoPlayer({
                     </div>
                   )}
                 </div>
+
+                {/* Closed Captions (CC) Toggle Button - ONLY rendered when separate subtitle file exists */}
+                {hasSubtitles && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleCc();
+                    }}
+                    className={`${styles.ccBtn} ${isCcActive ? styles.ccActiveBtn : ''}`}
+                    title={isCcActive ? 'Closed Captions: ON (C)' : 'Closed Captions: OFF (C)'}
+                    aria-label="Toggle Closed Captions"
+                  >
+                    <span>CC</span>
+                  </button>
+                )}
 
                 <button
                   type="button"
