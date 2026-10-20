@@ -723,6 +723,7 @@ export default function WatchPageClient({
               autoplay={autoplay}
               onToggleAutoplay={handleToggleAutoplay}
               storyboard={activeEpisode.storyboard || activeEpisode.raw_provider_payload?.storyboard}
+              videoQualities={activeEpisode.video_qualities || activeEpisode.raw_provider_payload?.video_qualities}
             />
           </div>
 

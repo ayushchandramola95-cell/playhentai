@@ -92,6 +92,8 @@ interface Series {
   about_text?: string;
   about_data?: any;
   faq_override?: any;
+  multi_quality_ready_count?: number;
+  storyboard_ready_count?: number;
 }
 
 export default function AdminSeriesPage() {
@@ -2451,6 +2453,133 @@ export default function AdminSeriesPage() {
                         <span style={{ fontSize: '0.68rem', fontWeight: 700, background: 'rgba(168, 85, 247, 0.12)', color: '#c084fc', border: '1px solid rgba(168, 85, 247, 0.25)', padding: '0.15rem 0.55rem', borderRadius: '12px' }}>
                           +{galleryCount} Gallery Imgs
                         </span>
+                      )}
+
+                      {/* Multi-Quality Video Rollup Badge */}
+                      {totalEpisodes > 0 && (
+                        (s.multi_quality_ready_count || 0) === totalEpisodes ? (
+                          <Link
+                            href="/admin/transcoder"
+                            style={{
+                              fontSize: '0.68rem',
+                              fontWeight: 800,
+                              background: 'rgba(16, 185, 129, 0.15)',
+                              color: '#34d399',
+                              border: '1px solid rgba(16, 185, 129, 0.35)',
+                              padding: '0.15rem 0.6rem',
+                              borderRadius: '12px',
+                              textDecoration: 'none',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '0.25rem',
+                              transition: 'all 0.2s ease',
+                            }}
+                            title="All episodes have multi-quality video renditions (1080p, 720p, 480p) ready"
+                          >
+                            🎬 Multi-Quality: {s.multi_quality_ready_count}/{totalEpisodes} Ready
+                          </Link>
+                        ) : (s.multi_quality_ready_count || 0) > 0 ? (
+                          <Link
+                            href="/admin/transcoder"
+                            style={{
+                              fontSize: '0.68rem',
+                              fontWeight: 800,
+                              background: 'rgba(59, 130, 246, 0.15)',
+                              color: '#60a5fa',
+                              border: '1px solid rgba(59, 130, 246, 0.35)',
+                              padding: '0.15rem 0.6rem',
+                              borderRadius: '12px',
+                              textDecoration: 'none',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '0.25rem',
+                              transition: 'all 0.2s ease',
+                            }}
+                            title="Some episodes have multi-quality video renditions"
+                          >
+                            🎬 Multi-Quality: {s.multi_quality_ready_count}/{totalEpisodes} Partial
+                          </Link>
+                        ) : (
+                          <Link
+                            href="/admin/transcoder"
+                            style={{
+                              fontSize: '0.68rem',
+                              fontWeight: 700,
+                              background: 'rgba(255, 255, 255, 0.05)',
+                              color: '#94a3b8',
+                              border: '1px dashed rgba(255, 255, 255, 0.15)',
+                              padding: '0.15rem 0.6rem',
+                              borderRadius: '12px',
+                              textDecoration: 'none',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '0.25rem',
+                              transition: 'all 0.2s ease',
+                            }}
+                            title="Click to open Transcoder Studio and generate 720p/480p renditions"
+                          >
+                            🎬 0/{totalEpisodes} Transcoded
+                          </Link>
+                        )
+                      )}
+
+                      {/* Preview Image (Storyboard) Rollup Badge */}
+                      {totalEpisodes > 0 && (
+                        (s.storyboard_ready_count || 0) === totalEpisodes ? (
+                          <span
+                            style={{
+                              fontSize: '0.68rem',
+                              fontWeight: 800,
+                              background: 'rgba(168, 85, 247, 0.15)',
+                              color: '#c084fc',
+                              border: '1px solid rgba(168, 85, 247, 0.35)',
+                              padding: '0.15rem 0.6rem',
+                              borderRadius: '12px',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '0.25rem',
+                            }}
+                            title="All episode preview storyboards are generated"
+                          >
+                            🎞️ Previews: {s.storyboard_ready_count}/{totalEpisodes} Ready
+                          </span>
+                        ) : (s.storyboard_ready_count || 0) > 0 ? (
+                          <span
+                            style={{
+                              fontSize: '0.68rem',
+                              fontWeight: 800,
+                              background: 'rgba(245, 158, 11, 0.15)',
+                              color: '#fbbf24',
+                              border: '1px solid rgba(245, 158, 11, 0.35)',
+                              padding: '0.15rem 0.6rem',
+                              borderRadius: '12px',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '0.25rem',
+                            }}
+                            title="Some episode preview storyboards are ready"
+                          >
+                            🎞️ Previews: {s.storyboard_ready_count}/{totalEpisodes} Partial
+                          </span>
+                        ) : (
+                          <span
+                            style={{
+                              fontSize: '0.68rem',
+                              fontWeight: 700,
+                              background: 'rgba(255, 255, 255, 0.05)',
+                              color: '#94a3b8',
+                              border: '1px dashed rgba(255, 255, 255, 0.15)',
+                              padding: '0.15rem 0.6rem',
+                              borderRadius: '12px',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '0.25rem',
+                            }}
+                            title="No preview storyboards generated yet"
+                          >
+                            ⏳ Previews: 0/{totalEpisodes} Missing
+                          </span>
+                        )
                       )}
                     </div>
 

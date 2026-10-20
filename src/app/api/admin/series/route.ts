@@ -30,9 +30,12 @@ export async function GET() {
       }
     }
 
-    // Count episodes per series
+    // Count episodes, multi-quality, and storyboards per series
     const epCountMap: Record<string, number> = {};
+    const multiQualityCountMap: Record<string, number> = {};
+    const storyboardCountMap: Record<string, number> = {};
     const seasonToSeriesMap: Record<string, string> = {};
+
     (catalog.seasons || []).forEach((season: any) => {
       if (season.id && season.series_id) {
         seasonToSeriesMap[season.id] = season.series_id;
@@ -43,6 +46,16 @@ export async function GET() {
       const seriesId = ep.seasons?.series?.id || ep.seasons?.series_id || (ep.season_id ? seasonToSeriesMap[ep.season_id] : null);
       if (seriesId) {
         epCountMap[seriesId] = (epCountMap[seriesId] || 0) + 1;
+
+        const q = ep.video_qualities || ep.raw_provider_payload?.video_qualities || {};
+        if (q['720p'] || q['480p']) {
+          multiQualityCountMap[seriesId] = (multiQualityCountMap[seriesId] || 0) + 1;
+        }
+
+        const sb = ep.storyboard || ep.raw_provider_payload?.storyboard;
+        if (sb?.status === 'completed') {
+          storyboardCountMap[seriesId] = (storyboardCountMap[seriesId] || 0) + 1;
+        }
       }
     });
 
@@ -57,6 +70,8 @@ export async function GET() {
       ...s,
       views: (viewsMap as Record<string, number>)[s.id] || 0,
       actual_episode_count: epCountMap[s.id] || 0,
+      multi_quality_ready_count: multiQualityCountMap[s.id] || 0,
+      storyboard_ready_count: storyboardCountMap[s.id] || 0,
     }));
 
     return NextResponse.json({ series: enriched, source: 'aws-memory' });

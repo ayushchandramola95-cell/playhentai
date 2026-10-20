@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Play, Pause, Volume2, VolumeX, Maximize, Minimize,
   Settings, Layout, RotateCcw, RotateCw,
-  HelpCircle, X, Clock, Keyboard, Lightbulb, PictureInPicture
+  HelpCircle, X, Clock, Keyboard, Lightbulb, PictureInPicture,
+  Sliders, Check
 } from 'lucide-react';
 import styles from './VideoPlayer.module.css';
 import { getR2Url } from '@/utils/r2';
@@ -25,6 +26,7 @@ interface VideoPlayerProps {
   autoplay?: boolean;
   onToggleAutoplay?: () => void;
   storyboard?: any;
+  videoQualities?: any;
 }
 
 export default function VideoPlayer({
@@ -42,6 +44,7 @@ export default function VideoPlayer({
   autoplay = true,
   onToggleAutoplay,
   storyboard,
+  videoQualities,
 }: VideoPlayerProps) {
   const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -60,6 +63,74 @@ export default function VideoPlayer({
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
   const [showShortcutsModal, setShowShortcutsModal] = useState(false);
   const [isPip, setIsPip] = useState(false);
+
+  // Multi-Quality state management
+  const [selectedQuality, setSelectedQuality] = useState<string>('1080p');
+  const [showQualityMenu, setShowQualityMenu] = useState<boolean>(false);
+  const [currentVideoSrc, setCurrentVideoSrc] = useState<string>(videoUrl);
+  const pendingSeekTimeRef = useRef<number | null>(null);
+  const wasPlayingBeforeSwitchRef = useRef<boolean>(false);
+
+  // Available qualities mapping
+  const availableQualities = useMemo(() => {
+    const list: Array<{ label: string; keyName: string; url: string; subtext: string }> = [];
+    const qMap = videoQualities || {};
+
+    // 1080p (Master)
+    const url1080 = qMap['1080p']?.url || (qMap['1080p']?.key ? getR2Url(qMap['1080p'].key, 'video') : null) || videoUrl;
+    list.push({ label: '1080p', keyName: '1080p', url: url1080, subtext: 'Full HD Master' });
+
+    // 720p (HD)
+    const url720 = qMap['720p']?.url || (qMap['720p']?.key ? getR2Url(qMap['720p'].key, 'video') : null);
+    if (url720) {
+      list.push({ label: '720p', keyName: '720p', url: url720, subtext: 'HD Quality' });
+    }
+
+    // 480p (SD Mobile)
+    const url480 = qMap['480p']?.url || (qMap['480p']?.key ? getR2Url(qMap['480p'].key, 'video') : null);
+    if (url480) {
+      list.push({ label: '480p', keyName: '480p', url: url480, subtext: 'Data Saver SD' });
+    }
+
+    return list;
+  }, [videoQualities, videoUrl]);
+
+  // Sync videoUrl or preferred quality when episode changes
+  useEffect(() => {
+    try {
+      const savedQuality = localStorage.getItem('player-preferred-quality');
+      const match = availableQualities.find((q) => q.keyName === savedQuality);
+      if (match) {
+        setSelectedQuality(match.keyName);
+        setCurrentVideoSrc(match.url);
+        return;
+      }
+    } catch (_) {}
+
+    setSelectedQuality('1080p');
+    setCurrentVideoSrc(videoUrl);
+  }, [videoUrl, availableQualities]);
+
+  const handleQualityChange = (targetKeyName: string) => {
+    const match = availableQualities.find((q) => q.keyName === targetKeyName);
+    if (!match || match.keyName === selectedQuality) {
+      setShowQualityMenu(false);
+      return;
+    }
+
+    if (videoRef.current) {
+      pendingSeekTimeRef.current = videoRef.current.currentTime;
+      wasPlayingBeforeSwitchRef.current = !videoRef.current.paused;
+    }
+
+    setSelectedQuality(match.keyName);
+    setCurrentVideoSrc(match.url);
+    setShowQualityMenu(false);
+
+    try {
+      localStorage.setItem('player-preferred-quality', match.keyName);
+    } catch (_) {}
+  };
 
   useEffect(() => {
     if (isTheaterMode !== undefined) {
@@ -428,6 +499,18 @@ export default function VideoPlayer({
     if (videoRef.current) {
       const dur = videoRef.current.duration;
       setDuration(dur);
+
+      // Quality switch timestamp restoration
+      if (pendingSeekTimeRef.current !== null) {
+        const seekTime = pendingSeekTimeRef.current;
+        pendingSeekTimeRef.current = null;
+        videoRef.current.currentTime = seekTime;
+        setCurrentTime(seekTime);
+        if (wasPlayingBeforeSwitchRef.current) {
+          videoRef.current.play().catch(() => {});
+        }
+        return;
+      }
 
       // 1. Check URL ?t= query parameter for Google Key Moments & timestamp seeking
       try {
@@ -860,7 +943,7 @@ export default function VideoPlayer({
     >
       <video
         ref={videoRef}
-        src={videoUrl}
+        src={currentVideoSrc}
         onPlay={() => setHasStartedPlaying(true)}
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
@@ -1185,10 +1268,57 @@ export default function VideoPlayer({
                   </button>
                 )}
 
+                {/* Quality Selector Dropdown */}
+                <div className={styles.qualitySelectorContainer}>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowQualityMenu(!showQualityMenu);
+                      if (showSpeedMenu) setShowSpeedMenu(false);
+                    }}
+                    className={styles.controlBtn}
+                    title="Video Quality"
+                    aria-label="Video Quality"
+                  >
+                    <Sliders size={18} />
+                    <span className={styles.qualityLabel}>{selectedQuality}</span>
+                  </button>
+
+                  {showQualityMenu && (
+                    <div className={`${styles.qualityDropdown} glass`}>
+                      {availableQualities.map((q) => {
+                        const isSelected = selectedQuality === q.keyName;
+                        return (
+                          <button
+                            key={q.keyName}
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleQualityChange(q.keyName);
+                            }}
+                            className={`${styles.qualityOption} ${isSelected ? styles.activeQuality : ''}`}
+                          >
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
+                              <span style={{ fontWeight: 800 }}>{q.label}</span>
+                              <span className={styles.qualitySubtext}>{q.subtext}</span>
+                            </div>
+                            {isSelected && <Check size={14} style={{ color: '#a78bfa' }} />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
                 <div className={styles.speedSelectorContainer}>
                   <button
                     type="button"
-                    onClick={(e) => { e.stopPropagation(); setShowSpeedMenu(!showSpeedMenu); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowSpeedMenu(!showSpeedMenu);
+                      if (showQualityMenu) setShowQualityMenu(false);
+                    }}
                     className={styles.controlBtn}
                     title="Playback Speed"
                   >

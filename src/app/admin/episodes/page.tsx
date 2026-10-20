@@ -61,6 +61,7 @@ interface Episode {
     grid_rows?: number;
     generated_at?: string;
   };
+  video_qualities?: any;
   raw_provider_payload?: any;
   seasons?: {
     title: string;
@@ -3299,6 +3300,59 @@ export default function AdminEpisodesPage() {
                                 </span>
                               </>
                             )}
+                            {seriesEpisodes.length > 0 && (() => {
+                              const transCount = seriesEpisodes.filter((e) => {
+                                const q = e.video_qualities || e.raw_provider_payload?.video_qualities || {};
+                                return !!q['720p'] || !!q['480p'];
+                              }).length;
+                              const sbCount = seriesEpisodes.filter((e) => {
+                                const sb = e.storyboard || e.raw_provider_payload?.storyboard;
+                                return sb?.status === 'completed';
+                              }).length;
+
+                              return (
+                                <>
+                                  <span>•</span>
+                                  <Link
+                                    href="/admin/transcoder"
+                                    onClick={(e) => e.stopPropagation()}
+                                    style={{
+                                      fontSize: '0.68rem',
+                                      fontWeight: 800,
+                                      background: transCount === seriesEpisodes.length ? 'rgba(16, 185, 129, 0.15)' : transCount > 0 ? 'rgba(59, 130, 246, 0.15)' : 'rgba(255, 255, 255, 0.05)',
+                                      color: transCount === seriesEpisodes.length ? '#34d399' : transCount > 0 ? '#60a5fa' : '#94a3b8',
+                                      border: transCount === seriesEpisodes.length ? '1px solid rgba(16, 185, 129, 0.35)' : '1px solid rgba(255, 255, 255, 0.12)',
+                                      padding: '0.12rem 0.5rem',
+                                      borderRadius: '10px',
+                                      textDecoration: 'none',
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '3px',
+                                    }}
+                                    title="Click to manage multi-quality renditions in Transcoder Studio"
+                                  >
+                                    🎬 Multi-Quality: {transCount}/{seriesEpisodes.length}
+                                  </Link>
+                                  <span
+                                    style={{
+                                      fontSize: '0.68rem',
+                                      fontWeight: 800,
+                                      background: sbCount === seriesEpisodes.length ? 'rgba(168, 85, 247, 0.15)' : sbCount > 0 ? 'rgba(245, 158, 11, 0.15)' : 'rgba(255, 255, 255, 0.05)',
+                                      color: sbCount === seriesEpisodes.length ? '#c084fc' : sbCount > 0 ? '#fbbf24' : '#94a3b8',
+                                      border: sbCount === seriesEpisodes.length ? '1px solid rgba(168, 85, 247, 0.35)' : '1px solid rgba(255, 255, 255, 0.12)',
+                                      padding: '0.12rem 0.5rem',
+                                      borderRadius: '10px',
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '3px',
+                                    }}
+                                    title="Preview storyboards status"
+                                  >
+                                    🎞️ Previews: {sbCount}/{seriesEpisodes.length}
+                                  </span>
+                                </>
+                              );
+                            })()}
                           </div>
                         </div>
                       </div>
@@ -3474,6 +3528,40 @@ export default function AdminEpisodesPage() {
                                     );
                                   })()}
 
+                                  {/* Multi-Quality Renditions Badge */}
+                                  {(() => {
+                                    const q = ep.video_qualities || ep.raw_provider_payload?.video_qualities || {};
+                                    const has720 = !!q['720p']?.key || !!q['720p']?.url;
+                                    const has480 = !!q['480p']?.key || !!q['480p']?.url;
+                                    const isFullyDone = has720 && has480;
+                                    const isPartial = has720 || has480;
+
+                                    return (
+                                      <Link
+                                        href="/admin/transcoder"
+                                        onClick={(e) => e.stopPropagation()}
+                                        style={{
+                                          fontSize: '0.7rem',
+                                          fontWeight: 800,
+                                          padding: '0.2rem 0.55rem',
+                                          borderRadius: '6px',
+                                          textDecoration: 'none',
+                                          display: 'inline-flex',
+                                          alignItems: 'center',
+                                          gap: '0.3rem',
+                                          background: isFullyDone ? 'rgba(16, 185, 129, 0.15)' : isPartial ? 'rgba(56, 189, 248, 0.15)' : 'rgba(255, 255, 255, 0.04)',
+                                          color: isFullyDone ? '#34d399' : isPartial ? '#38bdf8' : '#94a3b8',
+                                          border: isFullyDone ? '1px solid rgba(16, 185, 129, 0.35)' : isPartial ? '1px solid rgba(56, 189, 248, 0.35)' : '1px dashed rgba(255, 255, 255, 0.12)',
+                                          transition: 'all 0.2s ease',
+                                        }}
+                                        title={isFullyDone ? 'All qualities live: 1080p, 720p, 480p' : isPartial ? 'Partial qualities generated' : 'Only 1080p master available. Click to transcode 720p/480p'}
+                                      >
+                                        <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: isFullyDone ? '#10b981' : isPartial ? '#38bdf8' : '#64748b' }} />
+                                        <span>{isFullyDone ? '🎬 1080p • 720p • 480p' : isPartial ? '🎬 1080p • 720p' : '🎬 1080p Only'}</span>
+                                      </Link>
+                                    );
+                                  })()}
+
                                   {/* Direct Player Watch Link */}
                                   <Link
                                     href={series.slug ? `/watch/${series.slug}-episode-${ep.episode_number}` : `/watch/${ep.id}`}
@@ -3546,6 +3634,7 @@ export default function AdminEpisodesPage() {
                     <th>Duration</th>
                     <th>Status</th>
                     <th>Storyboard</th>
+                    <th>Qualities</th>
                     <th>Aired</th>
                     <th style={{ textAlign: 'right' }}>Actions</th>
                   </tr>
@@ -3620,6 +3709,40 @@ export default function AdminEpisodesPage() {
                               >
                                 {isReady ? '🎞️ Ready' : '⏳ Missing'}
                               </button>
+                            );
+                          })()}
+                        </td>
+                        <td>
+                          {(() => {
+                            const q = ep.video_qualities || ep.raw_provider_payload?.video_qualities || {};
+                            const has720 = !!q['720p']?.key || !!q['720p']?.url;
+                            const has480 = !!q['480p']?.key || !!q['480p']?.url;
+                            const isFullyDone = has720 && has480;
+                            const isPartial = has720 || has480;
+
+                            return (
+                              <Link
+                                href="/admin/transcoder"
+                                onClick={(e) => e.stopPropagation()}
+                                style={{
+                                  fontSize: '0.7rem',
+                                  fontWeight: 800,
+                                  padding: '0.2rem 0.55rem',
+                                  borderRadius: '6px',
+                                  textDecoration: 'none',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '0.3rem',
+                                  background: isFullyDone ? 'rgba(16, 185, 129, 0.15)' : isPartial ? 'rgba(56, 189, 248, 0.15)' : 'rgba(255, 255, 255, 0.04)',
+                                  color: isFullyDone ? '#34d399' : isPartial ? '#38bdf8' : '#94a3b8',
+                                  border: isFullyDone ? '1px solid rgba(16, 185, 129, 0.35)' : isPartial ? '1px solid rgba(56, 189, 248, 0.35)' : '1px dashed rgba(255, 255, 255, 0.12)',
+                                  transition: 'all 0.2s ease',
+                                }}
+                                title={isFullyDone ? '1080p, 720p, 480p ready' : isPartial ? '720p ready' : 'Only 1080p master'}
+                              >
+                                <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: isFullyDone ? '#10b981' : isPartial ? '#38bdf8' : '#64748b' }} />
+                                <span>{isFullyDone ? '🎬 1080p • 720p • 480p' : isPartial ? '🎬 1080p • 720p' : '🎬 1080p Only'}</span>
+                              </Link>
                             );
                           })()}
                         </td>

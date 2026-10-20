@@ -32,6 +32,7 @@ export async function GET(request: Request) {
         return {
           ...ep,
           storyboard: ep.storyboard || ep.raw_provider_payload?.storyboard || null,
+          video_qualities: ep.video_qualities || ep.raw_provider_payload?.video_qualities || null,
           seasons: season ? {
             title: season.title,
             series: series ? { title: series.title } : undefined
