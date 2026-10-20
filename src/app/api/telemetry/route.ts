@@ -290,16 +290,34 @@ export async function getTelemetryStore(): Promise<TelemetryStore> {
   return emptyStore;
 }
 
+let saveTimeout: NodeJS.Timeout | null = null;
+let isSaving = false;
+
 async function saveStore(store: TelemetryStore) {
   memoryStore = store;
 
-  try {
-    const dir = path.dirname(STORE_PATH);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(STORE_PATH, JSON.stringify(store, null, 2), 'utf-8');
-  } catch (err) {
-    console.error('Error saving local telemetry store:', err);
-  }
+  // Debounce disk writes to avoid concurrent write lock collisions on Windows
+  if (saveTimeout) clearTimeout(saveTimeout);
+  saveTimeout = setTimeout(() => {
+    if (isSaving) return;
+    isSaving = true;
+    try {
+      const dir = path.dirname(STORE_PATH);
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+      const tempPath = `${STORE_PATH}.${Date.now()}.tmp`;
+      fs.writeFileSync(tempPath, JSON.stringify(memoryStore || store, null, 2), 'utf-8');
+      try {
+        fs.renameSync(tempPath, STORE_PATH);
+      } catch {
+        fs.copyFileSync(tempPath, STORE_PATH);
+        try { fs.unlinkSync(tempPath); } catch {}
+      }
+    } catch (_) {
+      // Gracefully ignore transient disk lock errors since in-memory store is always up to date
+    } finally {
+      isSaving = false;
+    }
+  }, 2000);
 }
 
 const getStore = getTelemetryStore;
