@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
+import { normalizeSubtitlesToVtt } from '@/utils/subtitleParser';
 
 export const dynamic = 'force-dynamic';
 
 /**
  * GET /api/subtitles/proxy?url=<encoded-url>
- * Fetches subtitle files (.vtt / .srt) server-side and returns standard WebVTT
+ * Fetches subtitle files (.ass / .ssa / .vtt / .srt) server-side and returns standard WebVTT
  * with full CORS headers, preventing cross-origin browser blocking.
  */
 export async function GET(request: Request) {
@@ -32,11 +33,8 @@ export async function GET(request: Request) {
 
     const rawText = await res.text();
 
-    // Auto-convert SRT to standard WebVTT if needed
-    let vttContent = rawText;
-    if (!vttContent.trim().startsWith('WEBVTT')) {
-      vttContent = 'WEBVTT\n\n' + vttContent.replace(/(\d{2}:\d{2}:\d{2}),(\d{3})/g, '$1.$2');
-    }
+    // Auto-normalize any format (ASS/SSA, SRT, VTT) to standard WebVTT
+    const vttContent = normalizeSubtitlesToVtt(rawText, decodedUrl);
 
     return new NextResponse(vttContent, {
       status: 200,

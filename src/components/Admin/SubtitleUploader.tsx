@@ -5,7 +5,7 @@ import {
   FileText, UploadCloud, CheckCircle2, AlertCircle, Trash2,
   Eye, RefreshCw, Sparkles, X
 } from 'lucide-react';
-import { convertSrtToVtt, parseSubtitleText, SubtitleCue } from '@/utils/subtitleParser';
+import { normalizeSubtitlesToVtt, parseSubtitleText, SubtitleCue } from '@/utils/subtitleParser';
 import { getR2Url } from '@/utils/r2';
 import styles from './SubtitleUploader.module.css';
 
@@ -56,19 +56,23 @@ export default function SubtitleUploader({
 
     try {
       const fileNameLower = file.name.toLowerCase();
-      const isSrt = fileNameLower.endsWith('.srt');
-      const isVtt = fileNameLower.endsWith('.vtt');
+      const isSupported =
+        fileNameLower.endsWith('.vtt') ||
+        fileNameLower.endsWith('.srt') ||
+        fileNameLower.endsWith('.ass') ||
+        fileNameLower.endsWith('.ssa') ||
+        fileNameLower.endsWith('.txt');
 
-      if (!isSrt && !isVtt && !fileNameLower.endsWith('.ass') && !fileNameLower.endsWith('.txt')) {
-        throw new Error('Unsupported subtitle format. Please upload a .vtt or .srt file.');
+      if (!isSupported) {
+        throw new Error('Unsupported subtitle format. Please upload an Aegisub (.ass), .ssa, .srt, or .vtt file.');
       }
 
       // Read file content
       const rawText = await file.text();
       setProgress(35);
 
-      // Normalize into clean WebVTT
-      const vttContent = isSrt ? convertSrtToVtt(rawText) : rawText;
+      // Normalize into clean WebVTT (handles ASS/SSA, SRT, and VTT)
+      const vttContent = normalizeSubtitlesToVtt(rawText, file.name);
       const parsedCues = parseSubtitleText(vttContent);
 
       if (parsedCues.length === 0) {
@@ -264,10 +268,10 @@ export default function SubtitleUploader({
               <UploadCloud className={styles.dropIcon} />
               <div>
                 <div className={styles.dropTitle}>
-                  Upload English Subtitles (.vtt or .srt)
+                  Upload English Subtitles (.ass, .ssa, .vtt, or .srt)
                 </div>
                 <div className={styles.dropHint}>
-                  Drag & drop here or click to browse. SRT files are automatically converted to standard WebVTT.
+                  Drag & drop here or click to browse. Aegisub (.ass) and SubRip (.srt) files are automatically converted to standard WebVTT.
                 </div>
               </div>
             </>
@@ -279,7 +283,7 @@ export default function SubtitleUploader({
       <input
         ref={fileInputRef}
         type="file"
-        accept=".vtt,.srt,.ass,.txt,text/vtt,application/x-subrip"
+        accept=".ass,.ssa,.vtt,.srt,.txt,text/vtt,application/x-subrip,text/x-ssa,text/x-ass"
         onChange={handleFileChange}
         className={styles.fileInput}
       />
