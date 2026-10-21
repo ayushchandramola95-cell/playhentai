@@ -10,16 +10,20 @@ export function getR2Url(
   }
 
   let cleanKey = key.trim();
-  // Storyboards are uploaded to Cloudflare R2 and served publicly from media.hentaikage.cc with full CORS
-  const isStoryboard = cleanKey.startsWith('storyboards/') || cleanKey.includes('/storyboards/');
-  const baseUrl = isStoryboard
-    ? 'https://media.hentaikage.cc'
-    : (process.env.NEXT_PUBLIC_R2_PUBLIC_URL || 'https://media.hentaikage.cc');
+
+  // The primary, high-performance R2 CDN is media.hentaikage.cc
+  // Note: dmfrlqgigpmty.cloudfront.net was an old AWS S3 distribution that returns 403 Access Denied on new R2 media.
+  const baseUrl = (process.env.NEXT_PUBLIC_R2_PUBLIC_URL && !process.env.NEXT_PUBLIC_R2_PUBLIC_URL.includes('cloudfront.net'))
+    ? process.env.NEXT_PUBLIC_R2_PUBLIC_URL
+    : 'https://media.hentaikage.cc';
   const sanitizedBase = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
 
-  // Automatically convert any legacy .r2.dev URLs to the custom CDN domain
+  // Automatically migrate any legacy CloudFront or .r2.dev URLs to media.hentaikage.cc
+  if (cleanKey.includes('dmfrlqgigpmty.cloudfront.net/')) {
+    cleanKey = cleanKey.replace(/^https?:\/\/dmfrlqgigpmty\.cloudfront\.net\//, '');
+  }
   if (cleanKey.includes('.r2.dev/')) {
-    cleanKey = cleanKey.replace(/^https?:\/\/[^/]+\.r2\.dev\//, '/');
+    cleanKey = cleanKey.replace(/^https?:\/\/[^/]+\.r2\.dev\//, '');
   }
 
   // If the key is already a full external URL (e.g. Unsplash, GCP, etc.)

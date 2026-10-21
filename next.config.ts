@@ -57,6 +57,10 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "mock-r2.streamnexus.com",
       },
+      {
+        protocol: "https",
+        hostname: "media.hentaikage.cc",
+      },
     ],
   },
   async headers() {

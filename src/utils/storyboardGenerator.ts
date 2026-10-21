@@ -5,6 +5,7 @@ import * as os from 'os';
 import { promisify } from 'util';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { getLocalCatalog, updateLocalEpisodeStoryboard } from '@/utils/localCatalogStore';
+import { getR2Url } from '@/utils/r2';
 
 const execFileAsync = promisify(execFile);
 
@@ -343,12 +344,7 @@ export async function processEpisodeStoryboard(
   let videoSource = customVideoSource;
   if (!videoSource && episode) {
     const rawKey = episode.video_key || '';
-    if (rawKey.startsWith('http://') || rawKey.startsWith('https://')) {
-      videoSource = rawKey;
-    } else {
-      const publicUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL || 'https://dmfrlqgigpmty.cloudfront.net';
-      videoSource = `${publicUrl.replace(/\/$/, '')}/${rawKey.replace(/^\//, '')}`;
-    }
+    videoSource = getR2Url(rawKey, 'video');
   }
 
   if (!videoSource) {

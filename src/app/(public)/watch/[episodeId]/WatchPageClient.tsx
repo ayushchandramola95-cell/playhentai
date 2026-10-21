@@ -728,7 +728,7 @@ export default function WatchPageClient({
                 const rawKey = activeEpisode.subtitle_key || activeEpisode.raw_provider_payload?.subtitle_key;
                 if (rawKey && rawKey.trim() !== '') return getR2Url(rawKey);
                 const rawSubObj = activeEpisode.subtitles?.en?.url || activeEpisode.raw_provider_payload?.subtitles?.en?.url;
-                if (rawSubObj) return rawSubObj;
+                if (rawSubObj) return getR2Url(rawSubObj);
                 const rawSubKey = activeEpisode.subtitles?.en?.key || activeEpisode.raw_provider_payload?.subtitles?.en?.key;
                 if (rawSubKey) return getR2Url(rawSubKey);
                 return null;

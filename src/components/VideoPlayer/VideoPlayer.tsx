@@ -6,7 +6,7 @@ import {
   Play, Pause, Volume2, VolumeX, Maximize, Minimize,
   Settings, Layout, RotateCcw, RotateCw,
   HelpCircle, X, Clock, Keyboard, Lightbulb, PictureInPicture,
-  Sliders, Check
+  Sliders, Check, AlertCircle, RefreshCw
 } from 'lucide-react';
 import styles from './VideoPlayer.module.css';
 import { getR2Url } from '@/utils/r2';
@@ -73,6 +73,7 @@ export default function VideoPlayer({
   const [currentVideoSrc, setCurrentVideoSrc] = useState<string>(videoUrl);
   const pendingSeekTimeRef = useRef<number | null>(null);
   const wasPlayingBeforeSwitchRef = useRef<boolean>(false);
+  const [playbackError, setPlaybackError] = useState<string | null>(null);
 
   // Available qualities mapping
   const availableQualities = useMemo(() => {
@@ -80,19 +81,20 @@ export default function VideoPlayer({
     const qMap = videoQualities || {};
 
     // 1080p (Master)
-    const url1080 = qMap['1080p']?.url || (qMap['1080p']?.key ? getR2Url(qMap['1080p'].key, 'video') : null) || videoUrl;
+    const rawUrl1080 = qMap['1080p']?.url || (qMap['1080p']?.key ? getR2Url(qMap['1080p'].key, 'video') : null) || videoUrl;
+    const url1080 = getR2Url(rawUrl1080, 'video');
     list.push({ label: '1080p', keyName: '1080p', url: url1080, subtext: 'Full HD Master' });
 
     // 720p (HD)
-    const url720 = qMap['720p']?.url || (qMap['720p']?.key ? getR2Url(qMap['720p'].key, 'video') : null);
-    if (url720) {
-      list.push({ label: '720p', keyName: '720p', url: url720, subtext: 'HD Quality' });
+    const rawUrl720 = qMap['720p']?.url || (qMap['720p']?.key ? getR2Url(qMap['720p'].key, 'video') : null);
+    if (rawUrl720) {
+      list.push({ label: '720p', keyName: '720p', url: getR2Url(rawUrl720, 'video'), subtext: 'HD Quality' });
     }
 
     // 480p (SD Mobile)
-    const url480 = qMap['480p']?.url || (qMap['480p']?.key ? getR2Url(qMap['480p'].key, 'video') : null);
-    if (url480) {
-      list.push({ label: '480p', keyName: '480p', url: url480, subtext: 'Data Saver SD' });
+    const rawUrl480 = qMap['480p']?.url || (qMap['480p']?.key ? getR2Url(qMap['480p'].key, 'video') : null);
+    if (rawUrl480) {
+      list.push({ label: '480p', keyName: '480p', url: getR2Url(rawUrl480, 'video'), subtext: 'Data Saver SD' });
     }
 
     return list;
@@ -362,10 +364,23 @@ export default function VideoPlayer({
   const playMainVideo = () => {
     if (videoRef.current) {
       setHasStartedPlaying(true);
+      setPlaybackError(null);
       videoRef.current.play().then(() => {
         setIsPlaying(true);
       }).catch((err) => {
         console.error('Playback error:', err);
+        if (currentVideoSrc && currentVideoSrc.includes('dmfrlqgigpmty.cloudfront.net')) {
+          const fallback = currentVideoSrc.replace('dmfrlqgigpmty.cloudfront.net', 'media.hentaikage.cc');
+          console.log('[VideoPlayer] Retrying with media.hentaikage.cc:', fallback);
+          setCurrentVideoSrc(fallback);
+          setTimeout(() => {
+            if (videoRef.current) {
+              videoRef.current.play().then(() => setIsPlaying(true)).catch(() => {});
+            }
+          }, 300);
+        } else {
+          handleVideoError();
+        }
       });
     }
   };
@@ -571,6 +586,7 @@ export default function VideoPlayer({
   };
 
   const handleLoadedMetadata = () => {
+    setPlaybackError(null);
     if (videoRef.current) {
       const dur = videoRef.current.duration;
       setDuration(dur);
@@ -617,6 +633,48 @@ export default function VideoPlayer({
         }
       } catch (_) {}
     }
+  };
+
+  const handleVideoError = () => {
+    const video = videoRef.current;
+    const mediaErr = video?.error;
+    console.warn('[VideoPlayer] Video error encountered:', mediaErr?.code, mediaErr?.message, currentVideoSrc);
+
+    // If currently using CloudFront and it fails (e.g. 403 Forbidden), automatically fallback to media.hentaikage.cc
+    if (currentVideoSrc && currentVideoSrc.includes('dmfrlqgigpmty.cloudfront.net')) {
+      const fallbackUrl = currentVideoSrc.replace('dmfrlqgigpmty.cloudfront.net', 'media.hentaikage.cc');
+      console.log('[VideoPlayer] Seamlessly falling back to media.hentaikage.cc:', fallbackUrl);
+      setCurrentVideoSrc(fallbackUrl);
+      setPlaybackError(null);
+      setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.load();
+        }
+      }, 50);
+      return;
+    }
+
+    // If current quality failed (e.g. unplayable container or codec), try fallback to next quality (e.g. 720p or 480p)
+    const currentQualityIndex = availableQualities.findIndex((q) => q.keyName === selectedQuality);
+    const nextQuality = availableQualities.find((q, idx) => idx > currentQualityIndex && q.url && q.url !== currentVideoSrc);
+    if (nextQuality) {
+      console.log(`[VideoPlayer] Quality ${selectedQuality} failed, automatically failing over to ${nextQuality.keyName}:`, nextQuality.url);
+      setSelectedQuality(nextQuality.keyName);
+      setCurrentVideoSrc(nextQuality.url);
+      setPlaybackError(null);
+      setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.load();
+          videoRef.current.play().catch(() => {});
+        }
+      }, 100);
+      return;
+    }
+
+    const errorMsg = mediaErr?.code === 4
+      ? 'The video stream format is not natively supported by your browser or is currently being processed. Please refresh in a moment.'
+      : mediaErr ? `Video stream failed to load (Error code ${mediaErr.code}).` : 'Failed to load video stream.';
+    setPlaybackError(errorMsg);
   };
 
   const handleSeekChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1024,6 +1082,7 @@ export default function VideoPlayer({
         onPlay={() => setHasStartedPlaying(true)}
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
+        onError={handleVideoError}
         onEnded={handleVideoEnded}
         className={styles.videoElement}
         preload="metadata"
@@ -1040,8 +1099,62 @@ export default function VideoPlayer({
         )}
       </video>
 
+      {/* Playback Error Recovery Banner */}
+      {playbackError && (
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'rgba(10, 12, 20, 0.94)',
+          backdropFilter: 'blur(8px)',
+          zIndex: 35,
+          padding: '1.5rem',
+          textAlign: 'center',
+        }}>
+          <AlertCircle size={40} style={{ color: '#ef4444', marginBottom: '0.8rem' }} />
+          <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#ffffff', marginBottom: '0.4rem' }}>
+            Video Stream Failed to Load
+          </h3>
+          <p style={{ fontSize: '0.8rem', color: '#94a3b8', maxWidth: '400px', marginBottom: '1.2rem', lineHeight: 1.5 }}>
+            {playbackError}
+          </p>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setPlaybackError(null);
+              if (currentVideoSrc && currentVideoSrc.includes('dmfrlqgigpmty.cloudfront.net')) {
+                setCurrentVideoSrc(currentVideoSrc.replace('dmfrlqgigpmty.cloudfront.net', 'media.hentaikage.cc'));
+              } else if (videoRef.current) {
+                videoRef.current.load();
+                videoRef.current.play().catch(() => {});
+              }
+            }}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              background: '#a855f7',
+              color: '#ffffff',
+              border: 'none',
+              padding: '0.55rem 1.2rem',
+              borderRadius: '8px',
+              fontWeight: 700,
+              fontSize: '0.82rem',
+              cursor: 'pointer',
+            }}
+          >
+            <RefreshCw size={14} />
+            <span>Retry Playback</span>
+          </button>
+        </div>
+      )}
+
       {/* Pure Black Screen Backdrop Before Video Plays */}
-      {!hasStartedPlaying && (
+      {!hasStartedPlaying && !playbackError && (
         <div className={styles.blackScreenBackdrop} />
       )}
 
