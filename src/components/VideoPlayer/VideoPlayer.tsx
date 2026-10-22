@@ -591,6 +591,13 @@ export default function VideoPlayer({
       const dur = videoRef.current.duration;
       setDuration(dur);
 
+      // Suppress native browser cue drawing so custom fansub overlay renders cleanly
+      if (videoRef.current.textTracks) {
+        for (let i = 0; i < videoRef.current.textTracks.length; i++) {
+          videoRef.current.textTracks[i].mode = 'hidden';
+        }
+      }
+
       // Quality switch timestamp restoration
       if (pendingSeekTimeRef.current !== null) {
         const seekTime = pendingSeekTimeRef.current;
@@ -1094,7 +1101,7 @@ export default function VideoPlayer({
             src={subtitleUrl}
             srcLang="en"
             label="English"
-            default={isCcActive}
+            default={false}
           />
         )}
       </video>

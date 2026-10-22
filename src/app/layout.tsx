@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist } from "next/font/google";
+import { Geist, Lato } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import Script from "next/script";
@@ -14,6 +14,13 @@ export const viewport: Viewport = {
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+  display: "swap",
+});
+
+const lato = Lato({
+  variable: "--font-lato",
+  subsets: ["latin"],
+  weight: ["400", "700", "900"],
   display: "swap",
 });
 
@@ -152,7 +159,7 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="en" className={geistSans.variable} suppressHydrationWarning>
+    <html lang="en" className={`${geistSans.variable} ${lato.variable}`} suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://media.hentaikage.cc" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://media.hentaikage.cc" />
