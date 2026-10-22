@@ -144,12 +144,39 @@
   transform: translate(-50%, -50%) scale(1.08);
 }
 
-/* Bottom Controls */
+/* Bottom Controls - Single Line Cinema Layout (Image 1 Specs) */
 .bottomControls {
-  padding: 0.65rem 1.1rem 0.85rem;
+  padding: 0.85rem 1.25rem 1.1rem;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.88) 0%, rgba(0, 0, 0, 0.45) 60%, transparent 100%);
   display: flex;
   flex-direction: column;
-  gap: 0.55rem;
+  justify-content: flex-end;
+}
+
+.singleControlsRow {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  width: 100%;
+  color: #ffffff;
+}
+
+.playPauseBtn {
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+  flex-shrink: 0;
+}
+
+.playPauseBtn:hover {
+  transform: scale(1.1);
+  opacity: 0.9;
 }
 
 .progressBarRow {
@@ -289,50 +316,179 @@
   border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
-.seekSlider {
-  -webkit-appearance: none;
-  width: 100%;
-  height: 4px;
-  border-radius: 2px;
-  outline: none;
+/* ==========================================================================
+   Single-Line Player Controls Layout (Image 1 & Image 2 Specs)
+   - Center seekbar with Buffer Ahead downloaded range indicator
+   - Vibrant anime pink accent (#e11d48) matching screenshots
+   - Pure white floating Settings popup with submenus and pointer arrow
+   ========================================================================== */
+
+/* Timeline Container (flex: 1 on single line) */
+.timelineContainer {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  height: 28px;
   cursor: pointer;
-  transition: height 0.1s ease;
+  margin: 0 0.25rem;
 }
 
-.seekSlider:hover {
+.timelineTrack {
+  position: relative;
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.22);
+  border-radius: 2px;
+  overflow: visible;
+  transition: height 0.15s ease;
+}
+
+.timelineContainer:hover .timelineTrack {
   height: 6px;
 }
 
-.seekSlider::-webkit-slider-thumb {
-  -webkit-appearance: none;
+/* Downloaded / Buffered Range Bar Ahead */
+.bufferedBar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.48);
+  border-radius: 2px;
+  transition: width 0.2s linear;
+  pointer-events: none;
+}
+
+/* Played Progress Bar (Vibrant Pink #e11d48 matching Image 1) */
+.playedBar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: #e11d48;
+  border-radius: 2px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Scrubber Thumb (White circle) */
+.scrubberThumb {
+  position: absolute;
+  top: 50%;
   width: 12px;
   height: 12px;
-  border-radius: 50%;
   background: #ffffff;
-  cursor: pointer;
-  box-shadow: 0 0 8px rgba(0, 0, 0, 0.6);
-  border: 2px solid var(--primary);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+  z-index: 3;
+  pointer-events: none;
   transition: transform 0.1s ease;
 }
 
-.seekSlider:hover::-webkit-slider-thumb {
-  transform: scale(1.2);
+.timelineContainer:hover .scrubberThumb {
+  transform: translate(-50%, -50%) scale(1.3);
 }
 
-/* Controls Buttons Row */
-.controlsRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+/* Hidden Native Range Slider for touch & drag interactions */
+.seekSlider {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  margin: 0;
+  z-index: 4;
+}
+
+/* Time Display (e.g. 08:47 / 16:36) */
+.timeDisplay {
+  font-size: 0.82rem;
+  font-weight: 600;
   color: #ffffff;
-}
-
-.leftControls, .rightControls {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  letter-spacing: 0.02em;
   display: flex;
   align-items: center;
-  gap: 0.65rem;
+  gap: 0.35rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+  user-select: none;
 }
 
+.timeDivider {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+/* Volume Group */
+.volumeGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+.volumeTrackWrap {
+  position: relative;
+  width: 52px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: width 0.2s ease;
+}
+
+.volumeGroup:hover .volumeTrackWrap {
+  width: 66px;
+}
+
+.volumeTrackWrap::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3.5px;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 2px;
+}
+
+.volumeFill {
+  position: absolute;
+  left: 0;
+  height: 3.5px;
+  background: #e11d48;
+  border-radius: 2px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.volumeThumb {
+  position: absolute;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  background: #ffffff;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+  z-index: 3;
+  pointer-events: none;
+}
+
+.volumeSlider {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  margin: 0;
+  z-index: 4;
+}
+
+/* Control Icon Buttons */
 .controlBtn {
   background: transparent;
   border: none;
@@ -341,285 +497,206 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.3rem;
-  border-radius: 50%;
-  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
-  position: relative;
+  padding: 0.35rem;
+  border-radius: 6px;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+  flex-shrink: 0;
 }
 
 .controlBtn:hover {
-  background: rgba(255, 255, 255, 0.18);
-  color: #c084fc;
-}
-
-.cinemaActiveBtn {
-  color: #fbbf24 !important;
-  background: rgba(251, 191, 36, 0.2) !important;
-}
-
-.pipActiveBtn {
-  color: var(--primary, #7c3aed) !important;
-  background: rgba(124, 58, 237, 0.25) !important;
-}
-
-.theaterActiveBtn {
-  color: var(--primary, #ff2e7e) !important;
-  background: rgba(255, 46, 126, 0.2) !important;
-}
-
-.seekStepBtn {
-  background: transparent;
-  border: none;
-  color: #e2e8f0;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.15rem;
-  padding: 0.2rem 0.35rem;
-  border-radius: 6px;
-  font-size: 0.75rem;
-  font-weight: 750;
-  font-family: inherit;
-  transition: background 0.15s ease, color 0.15s ease;
-}
-
-.seekStepBtn:hover {
-  background: rgba(255, 255, 255, 0.14);
-  color: #ffffff;
-}
-
-.timeDisplay {
-  font-size: 0.82rem;
-  font-weight: 750;
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  color: #e2e8f0;
-  margin-left: 0.15rem;
-}
-
-.timeDivider {
-  color: #64748b;
-}
-
-/* Volume Group */
-.volumeGroup {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.volumeSlider {
-  -webkit-appearance: none;
-  width: 52px;
-  height: 3.5px;
-  border-radius: 2px;
-  outline: none;
-  cursor: pointer;
-}
-
-.volumeSlider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: #ffffff;
-  cursor: pointer;
-}
-
-/* In-Player Autoplay Switch */
-.inPlayerAutoplayBtn {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 20px;
-  padding: 0.2rem 0.5rem;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  cursor: pointer;
-  color: #e2e8f0;
-  transition: all 0.2s ease;
-  font-family: inherit;
-  outline: none;
-}
-
-.inPlayerAutoplayBtn:hover {
   background: rgba(255, 255, 255, 0.16);
-  border-color: rgba(255, 255, 255, 0.3);
   color: #ffffff;
 }
 
-.inPlayerAutoplayText {
-  font-size: 0.7rem;
-  font-weight: 800;
-  letter-spacing: 0.02em;
-}
-
-.inPlayerToggleTrack {
-  width: 22px;
-  height: 12px;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
-  position: relative;
-  transition: background 0.25s ease;
-}
-
-.inPlayerToggleTrackActive {
-  background: #a855f7;
-}
-
-.inPlayerToggleThumb {
-  width: 8px;
-  height: 8px;
-  background: #ffffff;
-  border-radius: 50%;
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.inPlayerToggleThumbActive {
-  transform: translateX(10px);
-}
-
-/* Speed Dropdown Menu */
-.speedSelectorContainer {
-  position: relative;
-}
-
-.speedLabel {
-  font-size: 0.75rem;
-  font-weight: 800;
-  margin-left: 0.3rem;
-}
-
-.speedDropdown {
-  position: absolute;
-  bottom: calc(100% + 12px);
-  right: 0;
-  width: 95px;
-  border-radius: 12px;
-  padding: 0.35rem;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-  animation: slide-up-dropdown 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  background: rgba(18, 14, 32, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(16px);
-  z-index: 30;
-}
-
-/* Quality Dropdown Menu */
-.qualitySelectorContainer {
-  position: relative;
-}
-
-.qualityLabel {
-  font-size: 0.75rem;
-  font-weight: 800;
-  margin-left: 0.3rem;
-  color: #38bdf8;
-}
-
-.qualityDropdown {
-  position: absolute;
-  bottom: calc(100% + 12px);
-  right: 0;
-  width: 165px;
-  border-radius: 12px;
-  padding: 0.4rem;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  animation: slide-up-dropdown 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  background: rgba(18, 14, 32, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(16px);
-  z-index: 30;
-}
-
-.qualityOption {
+/* Closed Captions CC Button */
+.ccBtn {
   background: transparent;
-  border: none;
-  color: #cbd5e1;
-  font-size: 0.8rem;
-  font-weight: 700;
-  padding: 0.45rem 0.65rem;
-  border-radius: 8px;
-  width: 100%;
-  text-align: left;
+  border: 1.5px solid rgba(255, 255, 255, 0.7);
+  color: #ffffff;
+  border-radius: 4px;
+  padding: 0.12rem 0.35rem;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.ccBtn:hover {
+  border-color: #ffffff;
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.ccActiveBtn {
+  border-color: #e11d48;
+  color: #ffffff;
+  background: #e11d48 !important;
+}
+
+/* Settings Button Container & Popup (Image 2) */
+.settingsMenuContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.settingsBtn {
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.settingsBtnActive {
+  background: #e11d48 !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 10px rgba(225, 29, 72, 0.5);
+}
+
+/* Floating Settings Popup (Image 2 Exact Replica) */
+.settingsPopup {
+  position: absolute;
+  bottom: calc(100% + 14px);
+  right: -8px;
+  width: 250px;
+  background: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  color: #334155;
+  padding: 0.45rem 0;
+  z-index: 50;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  animation: settingsPopupFadeIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes settingsPopupFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.settingsPopupArrow {
+  position: absolute;
+  bottom: -6px;
+  right: 14px;
+  width: 12px;
+  height: 12px;
+  background: #ffffff;
+  transform: rotate(45deg);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  border-right: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.settingsMenuList,
+.settingsSubmenuList {
+  display: flex;
+  flex-direction: column;
+}
+
+.settingsMenuItem {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  transition: all 0.15s ease;
-}
-
-.qualityOption:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: #ffffff;
-}
-
-.activeQuality {
-  background: rgba(139, 92, 246, 0.25);
-  color: #a78bfa;
-}
-
-.qualitySubtext {
-  font-size: 0.65rem;
+  padding: 0.62rem 1.15rem;
+  cursor: pointer;
+  font-size: 0.88rem;
   font-weight: 500;
-  color: #94a3b8;
+  transition: background 0.15s ease, color 0.15s ease;
+  user-select: none;
 }
 
-.speedOption {
-  background: transparent;
-  border: none;
-  color: #cbd5e1;
-  font-size: 0.8rem;
-  font-weight: 700;
-  padding: 0.4rem 0.6rem;
-  border-radius: 6px;
-  width: 100%;
-  text-align: left;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  font-family: inherit;
+.settingsMenuItem:hover {
+  background: #fdf2f8; /* Soft pink tint like Image 2 */
+  color: #e11d48;
 }
 
-.speedOption:hover {
-  background: rgba(255, 255, 255, 0.15);
-  color: #ffffff;
+.settingsMenuLabel {
+  color: inherit;
+  font-weight: 550;
 }
 
-.activeSpeed {
-  color: var(--primary);
-  background: rgba(168, 85, 247, 0.15) !important;
-}
-
-/* Quick Seek Buttons (10s back/fwd) */
-.seekStepBtn {
-  background: transparent;
-  border: none;
-  color: #cbd5e1;
-  cursor: pointer;
-  display: inline-flex;
+.settingsMenuValue {
+  display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 2px;
-  padding: 0.35rem 0.5rem;
-  border-radius: 6px;
-  font-size: 0.72rem;
-  font-weight: 700;
-  transition: all 0.15s ease;
+  gap: 0.3rem;
+  color: #64748b;
+  font-size: 0.86rem;
+  font-weight: 500;
 }
 
-.seekStepBtn:hover {
-  background: rgba(255, 255, 255, 0.15);
-  color: #ffffff;
+.settingsMenuItem:hover .settingsMenuValue {
+  color: #e11d48;
+}
+
+.settingsChevron {
+  color: #94a3b8;
+  transition: transform 0.15s ease;
+}
+
+.settingsMenuItem:hover .settingsChevron {
+  color: #e11d48;
+  transform: translateX(2px);
+}
+
+/* Submenu Headers & Items */
+.settingsSubmenuHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.55rem 1rem;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: #0f172a;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.settingsSubmenuHeader:hover {
+  background: #f8fafc;
+  color: #e11d48;
+}
+
+.settingsSubmenuItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 1.15rem;
+  font-size: 0.86rem;
+  font-weight: 500;
+  cursor: pointer;
+  color: #334155;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.settingsSubmenuItem:hover {
+  background: #fdf2f8;
+  color: #e11d48;
+}
+
+.settingsSubmenuItemActive {
+  color: #e11d48;
+  font-weight: 700;
+  background: rgba(225, 29, 72, 0.05);
+}
+
+.submenuCheck {
+  color: #e11d48;
+}
+
+.qualityMiniSubtext {
+  font-size: 0.76rem;
+  color: #94a3b8;
+  font-weight: normal;
 }
 
 /* Floating Resume Playback Pill */

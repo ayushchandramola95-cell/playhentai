@@ -6,7 +6,7 @@ import {
   Play, Pause, Volume2, VolumeX, Maximize, Minimize,
   Settings, Layout, RotateCcw, RotateCw,
   HelpCircle, X, Clock, Keyboard, Lightbulb, PictureInPicture,
-  Sliders, Check, AlertCircle, RefreshCw
+  Sliders, Check, AlertCircle, RefreshCw, ChevronRight, ChevronLeft
 } from 'lucide-react';
 import styles from './VideoPlayer.module.css';
 import { getR2Url } from '@/utils/r2';
@@ -63,13 +63,21 @@ export default function VideoPlayer({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isTheater, setIsTheater] = useState(isTheaterMode ?? false);
   const [playbackRate, setPlaybackRate] = useState(1);
-  const [showSpeedMenu, setShowSpeedMenu] = useState(false);
   const [showShortcutsModal, setShowShortcutsModal] = useState(false);
   const [isPip, setIsPip] = useState(false);
 
+  // Buffer progress ahead
+  const [bufferedPercent, setBufferedPercent] = useState<number>(0);
+
+  // Settings Menu Popup State (Image 2)
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [settingsView, setSettingsView] = useState<'main' | 'captions' | 'quality' | 'speed' | 'server'>('main');
+  const [selectedServer, setSelectedServer] = useState<'CDN 1' | 'CDN 2'>('CDN 1');
+  const [fallbackServerEnabled, setFallbackServerEnabled] = useState<boolean>(true);
+  const settingsContainerRef = useRef<HTMLDivElement>(null);
+
   // Multi-Quality state management
   const [selectedQuality, setSelectedQuality] = useState<string>('1080p');
-  const [showQualityMenu, setShowQualityMenu] = useState<boolean>(false);
   const [currentVideoSrc, setCurrentVideoSrc] = useState<string>(videoUrl);
   const pendingSeekTimeRef = useRef<number | null>(null);
   const wasPlayingBeforeSwitchRef = useRef<boolean>(false);
@@ -119,7 +127,7 @@ export default function VideoPlayer({
   const handleQualityChange = (targetKeyName: string) => {
     const match = availableQualities.find((q) => q.keyName === targetKeyName);
     if (!match || match.keyName === selectedQuality) {
-      setShowQualityMenu(false);
+      setSettingsView('main');
       return;
     }
 
@@ -130,7 +138,7 @@ export default function VideoPlayer({
 
     setSelectedQuality(match.keyName);
     setCurrentVideoSrc(match.url);
-    setShowQualityMenu(false);
+    setSettingsView('main');
 
     try {
       localStorage.setItem('player-preferred-quality', match.keyName);
@@ -201,6 +209,49 @@ export default function VideoPlayer({
       return next;
     });
   };
+
+  // Track buffered/downloaded ranges ahead for seekbar indicator
+  const updateBufferedProgress = () => {
+    const v = videoRef.current;
+    if (!v || !v.duration || v.duration === 0) return;
+    const buf = v.buffered;
+    const cur = v.currentTime;
+    let currentBufferEnd = 0;
+    for (let i = 0; i < buf.length; i++) {
+      if (buf.start(i) <= cur && cur <= buf.end(i)) {
+        currentBufferEnd = buf.end(i);
+        break;
+      }
+    }
+    if (currentBufferEnd === 0 && buf.length > 0) {
+      for (let i = 0; i < buf.length; i++) {
+        if (buf.end(i) > currentBufferEnd) {
+          currentBufferEnd = buf.end(i);
+        }
+      }
+    }
+    const pct = Math.min(100, Math.max(0, (currentBufferEnd / v.duration) * 100));
+    setBufferedPercent(pct);
+  };
+
+  // Close Settings menu when clicking outside anywhere on document
+  useEffect(() => {
+    const handleDocClick = (e: MouseEvent) => {
+      if (
+        settingsContainerRef.current &&
+        !settingsContainerRef.current.contains(e.target as Node)
+      ) {
+        setIsSettingsOpen(false);
+        setSettingsView('main');
+      }
+    };
+    if (isSettingsOpen) {
+      document.addEventListener('mousedown', handleDocClick);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleDocClick);
+    };
+  }, [isSettingsOpen]);
 
   // Fetch & parse subtitle file when subtitleUrl changes
   useEffect(() => {
@@ -446,7 +497,7 @@ export default function VideoPlayer({
     controlsTimeoutRef.current = setTimeout(() => {
       if (isPlaying && !showShortcutsModal) {
         setShowControls(false);
-        setShowSpeedMenu(false);
+        setIsSettingsOpen(false);
       }
     }, 3000);
   };
@@ -486,9 +537,10 @@ export default function VideoPlayer({
 
     const target = e.target as HTMLElement;
 
-    if (showSpeedMenu) {
-      if (!target.closest(`.${styles.speedDropdown}`)) {
-        setShowSpeedMenu(false);
+    if (isSettingsOpen) {
+      if (!target.closest(`.${styles.settingsPopup}`) && !target.closest(`.${styles.settingsBtn}`)) {
+        setIsSettingsOpen(false);
+        setSettingsView('main');
         return;
       }
     }
@@ -519,7 +571,7 @@ export default function VideoPlayer({
         controlsTimeoutRef.current = setTimeout(() => {
           if (isPlaying && !showShortcutsModal) {
             setShowControls(false);
-            setShowSpeedMenu(false);
+            setIsSettingsOpen(false);
           }
         }, 3000);
       }
@@ -558,6 +610,7 @@ export default function VideoPlayer({
     if (videoRef.current) {
       const cur = videoRef.current.currentTime;
       setCurrentTime(cur);
+      updateBufferedProgress();
       if (cur < 1) {
         viewLoggedRef.current = false;
       }
@@ -590,6 +643,7 @@ export default function VideoPlayer({
     if (videoRef.current) {
       const dur = videoRef.current.duration;
       setDuration(dur);
+      updateBufferedProgress();
 
       // Suppress native browser cue drawing so custom fansub overlay renders cleanly
       if (videoRef.current.textTracks) {
@@ -890,7 +944,7 @@ export default function VideoPlayer({
     if (videoRef.current) {
       videoRef.current.playbackRate = rate;
     }
-    setShowSpeedMenu(false);
+    setSettingsView('main');
   };
 
   const toggleFullscreen = () => {
@@ -1089,6 +1143,7 @@ export default function VideoPlayer({
         onPlay={() => setHasStartedPlaying(true)}
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
+        onProgress={updateBufferedProgress}
         onError={handleVideoError}
         onEnded={handleVideoEnded}
         className={styles.videoElement}
@@ -1306,10 +1361,9 @@ export default function VideoPlayer({
       {/* Premium overlay controls */}
       <div className={`${styles.controlsOverlay} ${showControls ? styles.visible : ''}`}>
 
-          {/* Top Header details */}
+          {/* Top Header details - EP badge removed per request */}
           <div className={styles.topHeader}>
             <div className={styles.titleInfo}>
-              <span className={styles.badge}>EP {episodeNumber}</span>
               {cleanTitle && cleanTitle.toLowerCase() !== `episode ${episodeNumber}` && (
                 <h3>{cleanTitle}</h3>
               )}
@@ -1326,130 +1380,135 @@ export default function VideoPlayer({
             {isPlaying ? <Pause size={38} fill="white" /> : <Play size={38} fill="white" style={{ marginLeft: '3px' }} />}
           </button>
 
-          {/* Bottom Panel */}
+          {/* Bottom Panel - Single Line Layout (Matching Anime Player Specs) */}
           <div className={styles.bottomControls}>
-            {/* Progress Slider (Seekbar with Hover Thumbnail & Timestamp Preview) */}
-            <div 
-              ref={progressBarRef}
-              className={styles.progressBarRow}
-              onMouseMove={handleProgressBarMouseMove}
-              onMouseLeave={handleProgressBarMouseLeave}
-            >
-              {/* Persistent Hover Preview Tooltip (Tracks at 60fps with 0ms canvas frame cache) */}
-              <div 
-                ref={hoverTooltipRef}
-                className={`${styles.hoverTimeTooltip} ${hoverTime !== null ? styles.hoverTooltipVisible : ''}`}
-                style={{ left: `${Math.max(8, Math.min(92, hoverPosPercent))}%` }}
+            <div className={styles.singleControlsRow}>
+              {/* 1. Play / Pause Button */}
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); togglePlay(); }}
+                className={styles.playPauseBtn}
+                aria-label={isPlaying ? 'Pause' : 'Play'}
+                title="Play / Pause (Space)"
               >
-                <div className={styles.hoverThumbnailWrap}>
-                  {/* Subtle animated shimmer background for unbuffered frames */}
-                  <div className={styles.hoverThumbnailShimmer} />
+                {isPlaying ? <Pause size={20} fill="white" /> : <Play size={20} fill="white" style={{ marginLeft: '2px' }} />}
+              </button>
 
-                  {/* Fallback Poster Image */}
-                  {posterUrl && (
-                    <img 
-                      src={posterUrl} 
-                      alt="Seek preview fallback" 
-                      className={styles.hoverThumbnailImg} 
+              {/* 2. Main Scrubber / Timeline Bar with Buffer Ahead Indicator & Storyboard Preview */}
+              <div 
+                ref={progressBarRef}
+                className={styles.timelineContainer}
+                onMouseMove={handleProgressBarMouseMove}
+                onMouseLeave={handleProgressBarMouseLeave}
+              >
+                {/* Persistent Hover Preview Tooltip (Tracks at 60fps with 0ms canvas frame cache) */}
+                <div 
+                  ref={hoverTooltipRef}
+                  className={`${styles.hoverTimeTooltip} ${hoverTime !== null ? styles.hoverTooltipVisible : ''}`}
+                  style={{ left: `${Math.max(8, Math.min(92, hoverPosPercent))}%` }}
+                >
+                  <div className={styles.hoverThumbnailWrap}>
+                    <div className={styles.hoverThumbnailShimmer} />
+                    {posterUrl && (
+                      <img 
+                        src={posterUrl} 
+                        alt="Seek preview fallback" 
+                        className={styles.hoverThumbnailImg} 
+                        style={{
+                          opacity: (hasCachedFrame || previewFrameReady) ? 0 : 1,
+                          transition: 'opacity 0.2s ease',
+                          pointerEvents: 'none'
+                        }}
+                      />
+                    )}
+                    <video
+                      ref={previewVideoRef}
+                      src={videoUrl}
+                      className={styles.hoverThumbnailVideo}
+                      muted
+                      playsInline
+                      preload="auto"
+                      crossOrigin="anonymous"
+                      onSeeked={handlePreviewSeeked}
+                    />
+                    <canvas
+                      ref={displayCanvasRef}
+                      width={160}
+                      height={90}
+                      className={styles.hoverThumbnailCanvas}
                       style={{
-                        opacity: (hasCachedFrame || previewFrameReady) ? 0 : 1,
-                        transition: 'opacity 0.2s ease',
-                        pointerEvents: 'none'
+                        opacity: hasCachedFrame ? 1 : 0,
+                        transition: 'opacity 0.12s ease'
                       }}
                     />
-                  )}
+                    <div
+                      ref={storyboardLayerRef}
+                      className={styles.hoverThumbnailStoryboard}
+                    />
+                  </div>
+                  <span ref={hoverTimeTextRef} className={styles.hoverTimeText}>
+                    {formatTime(hoverTime ?? 0)}
+                  </span>
+                </div>
 
-                  {/* Secondary Hardware Decoder (decodes unbuffered keyframes to populate canvas cache) */}
-                  <video
-                    ref={previewVideoRef}
-                    src={videoUrl}
-                    className={styles.hoverThumbnailVideo}
-                    muted
-                    playsInline
-                    preload="auto"
-                    crossOrigin="anonymous"
-                    onSeeked={handlePreviewSeeked}
+                {/* Visual Tracks: Background, Buffered Range Ahead, Played Progress, Scrubber Thumb */}
+                <div className={styles.timelineTrack}>
+                  {/* Downloaded / Buffered Range Bar */}
+                  <div 
+                    className={styles.bufferedBar} 
+                    style={{ width: `${bufferedPercent}%` }} 
                   />
-
-                  {/* Primary Instant Canvas Render Layer (0ms latency from in-memory cache) */}
-                  <canvas
-                    ref={displayCanvasRef}
-                    width={160}
-                    height={90}
-                    className={styles.hoverThumbnailCanvas}
-                    style={{
-                      opacity: hasCachedFrame ? 1 : 0,
-                      transition: 'opacity 0.12s ease'
-                    }}
+                  {/* Played Progress Bar (Vibrant Pink #e11d48) */}
+                  <div 
+                    className={styles.playedBar} 
+                    style={{ width: `${(currentTime / (duration || 1)) * 100}%` }} 
                   />
-
-                  {/* Primary 0ms WebP Storyboard Sprite Engine (YouTube / Netflix standard) */}
-                  <div
-                    ref={storyboardLayerRef}
-                    className={styles.hoverThumbnailStoryboard}
+                  {/* White Scrubber Thumb */}
+                  <div 
+                    className={styles.scrubberThumb} 
+                    style={{ left: `${(currentTime / (duration || 1)) * 100}%` }} 
                   />
                 </div>
-                <span ref={hoverTimeTextRef} className={styles.hoverTimeText}>
-                  {formatTime(hoverTime ?? 0)}
-                </span>
+
+                {/* Transparent Range Input for standard drag/seek interactions */}
+                <input
+                  type="range"
+                  min={0}
+                  max={duration || 100}
+                  value={currentTime}
+                  onChange={handleSeekChange}
+                  className={styles.seekSlider}
+                  aria-label="Seek Video"
+                />
               </div>
-              <input
-                type="range"
-                min={0}
-                max={duration || 100}
-                value={currentTime}
-                onChange={handleSeekChange}
-                className={styles.seekSlider}
-                style={{
-                  background: `linear-gradient(to right, var(--primary) ${(currentTime / (duration || 1)) * 100}%, #475569 ${(currentTime / (duration || 1)) * 100}%)`
-                }}
-              />
-            </div>
 
-            <div className={styles.controlsRow}>
-              {/* Play/Pause, 10s Rewind/Forward & Volume */}
-              <div className={styles.leftControls}>
+              {/* 3. Time Display (e.g. 08:47 / 16:36) */}
+              <div className={styles.timeDisplay}>
+                <span>{formatTime(currentTime)}</span>
+                <span className={styles.timeDivider}>/</span>
+                <span>{formatTime(duration)}</span>
+              </div>
+
+              {/* 4. Volume Group: Speaker Icon + Horizontal Slider */}
+              <div className={styles.volumeGroup}>
                 <button
                   type="button"
-                  onClick={(e) => { e.stopPropagation(); togglePlay(); }}
+                  onClick={(e) => { e.stopPropagation(); toggleMute(); }}
                   className={styles.controlBtn}
-                  aria-label={isPlaying ? 'Pause' : 'Play'}
-                  title="Play / Pause (Space)"
+                  aria-label={isMuted ? 'Unmute' : 'Mute'}
+                  title="Mute / Unmute (M)"
                 >
-                  {isPlaying ? <Pause size={18} fill="currentColor" /> : <Play size={18} fill="currentColor" />}
+                  {isMuted ? <VolumeX size={19} /> : <Volume2 size={19} />}
                 </button>
-
-                {/* 10s Rewind & Forward Seek */}
-                <button
-                  type="button"
-                  onClick={(e) => { e.stopPropagation(); seekRelative(-10); }}
-                  className={styles.seekStepBtn}
-                  title="Rewind 10 seconds (J)"
-                >
-                  <RotateCcw size={15} />
-                  <span>10s</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={(e) => { e.stopPropagation(); seekRelative(10); }}
-                  className={styles.seekStepBtn}
-                  title="Forward 10 seconds (L)"
-                >
-                  <RotateCw size={15} />
-                  <span>10s</span>
-                </button>
-
-                <div className={styles.volumeGroup}>
-                  <button
-                    type="button"
-                    onClick={(e) => { e.stopPropagation(); toggleMute(); }}
-                    className={styles.controlBtn}
-                    aria-label={isMuted ? 'Unmute' : 'Mute'}
-                    title="Mute / Unmute (M)"
-                  >
-                    {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
-                  </button>
+                <div className={styles.volumeTrackWrap}>
+                  <div 
+                    className={styles.volumeFill} 
+                    style={{ width: `${(isMuted ? 0 : volume) * 100}%` }} 
+                  />
+                  <div 
+                    className={styles.volumeThumb} 
+                    style={{ left: `${(isMuted ? 0 : volume) * 100}%` }} 
+                  />
                   <input
                     type="range"
                     min={0}
@@ -1458,181 +1517,287 @@ export default function VideoPlayer({
                     value={isMuted ? 0 : volume}
                     onChange={handleVolumeChange}
                     className={styles.volumeSlider}
-                    style={{
-                      background: `linear-gradient(to right, #ffffff ${(isMuted ? 0 : volume) * 100}%, #475569 ${(isMuted ? 0 : volume) * 100}%)`
-                    }}
+                    aria-label="Volume"
                   />
                 </div>
-
-                <div className={styles.timeDisplay}>
-                  <span>{formatTime(currentTime)}</span>
-                  <span className={styles.timeDivider}>/</span>
-                  <span>{formatTime(duration)}</span>
-                </div>
               </div>
 
-              {/* Speeds, Shortcuts, Theater, Fullscreen */}
-              <div className={styles.rightControls}>
-                {/* In-Player Autoplay Switch */}
-                {onToggleAutoplay && (
-                  <button
-                    type="button"
-                    onClick={(e) => { e.stopPropagation(); onToggleAutoplay(); }}
-                    className={styles.inPlayerAutoplayBtn}
-                    title={`Autoplay next episode: ${autoplay ? 'ON' : 'OFF'}`}
-                    aria-label="Toggle Autoplay"
-                  >
-                    <span className={styles.inPlayerAutoplayText}>Auto</span>
-                    <div className={`${styles.inPlayerToggleTrack} ${autoplay ? styles.inPlayerToggleTrackActive : ''}`}>
-                      <div className={`${styles.inPlayerToggleThumb} ${autoplay ? styles.inPlayerToggleThumbActive : ''}`} />
-                    </div>
-                  </button>
-                )}
+              {/* 5. Closed Captions [CC] Toggle Button */}
+              {hasSubtitles && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleCc();
+                  }}
+                  className={`${styles.ccBtn} ${isCcActive ? styles.ccActiveBtn : ''}`}
+                  title={isCcActive ? 'Closed Captions: ON (C)' : 'Closed Captions: OFF (C)'}
+                  aria-label="Toggle Closed Captions"
+                >
+                  <span>CC</span>
+                </button>
+              )}
 
-                {/* Quality Selector Dropdown */}
-                <div className={styles.qualitySelectorContainer}>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowQualityMenu(!showQualityMenu);
-                      if (showSpeedMenu) setShowSpeedMenu(false);
-                    }}
-                    className={styles.controlBtn}
-                    title="Video Quality"
-                    aria-label="Video Quality"
-                  >
-                    <Sliders size={18} />
-                    <span className={styles.qualityLabel}>{selectedQuality}</span>
-                  </button>
+              {/* 6. Settings Gear Button & Popup Menu (Image 2) */}
+              <div ref={settingsContainerRef} className={styles.settingsMenuContainer}>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsSettingsOpen(!isSettingsOpen);
+                    setSettingsView('main');
+                  }}
+                  className={`${styles.controlBtn} ${styles.settingsBtn} ${isSettingsOpen ? styles.settingsBtnActive : ''}`}
+                  title="Settings"
+                  aria-label="Settings"
+                >
+                  <Settings size={19} />
+                </button>
 
-                  {showQualityMenu && (
-                    <div className={`${styles.qualityDropdown} glass`}>
-                      {availableQualities.map((q) => {
-                        const isSelected = selectedQuality === q.keyName;
-                        return (
-                          <button
-                            key={q.keyName}
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleQualityChange(q.keyName);
-                            }}
-                            className={`${styles.qualityOption} ${isSelected ? styles.activeQuality : ''}`}
-                          >
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
-                              <span style={{ fontWeight: 800 }}>{q.label}</span>
-                              <span className={styles.qualitySubtext}>{q.subtext}</span>
-                            </div>
-                            {isSelected && <Check size={14} style={{ color: '#a78bfa' }} />}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
+                {/* Settings Popup Menu (Image 2) */}
+                {isSettingsOpen && (
+                  <div className={styles.settingsPopup} onClick={(e) => e.stopPropagation()}>
+                    {/* Pointer arrow pointing to gear button */}
+                    <div className={styles.settingsPopupArrow} />
 
-                <div className={styles.speedSelectorContainer}>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowSpeedMenu(!showSpeedMenu);
-                      if (showQualityMenu) setShowQualityMenu(false);
-                    }}
-                    className={styles.controlBtn}
-                    title="Playback Speed"
-                  >
-                    <Settings size={18} />
-                    <span className={styles.speedLabel}>{playbackRate}x</span>
-                  </button>
-
-                  {showSpeedMenu && (
-                    <div className={`${styles.speedDropdown} glass`}>
-                      {[0.5, 0.75, 1, 1.25, 1.5, 2].map((rate) => (
-                        <button
-                          key={rate}
-                          type="button"
-                          onClick={(e) => { e.stopPropagation(); handleSpeedChange(rate); }}
-                          className={`${styles.speedOption} ${playbackRate === rate ? styles.activeSpeed : ''}`}
+                    {settingsView === 'main' && (
+                      <div className={styles.settingsMenuList}>
+                        {/* Captions */}
+                        <div 
+                          className={styles.settingsMenuItem} 
+                          onClick={() => setSettingsView('captions')}
                         >
-                          {rate}x
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                          <span className={styles.settingsMenuLabel}>Captions</span>
+                          <span className={styles.settingsMenuValue}>
+                            {hasSubtitles ? (isCcActive ? 'English' : 'Off') : 'None'}
+                            <ChevronRight size={15} className={styles.settingsChevron} />
+                          </span>
+                        </div>
 
-                {/* Closed Captions (CC) Toggle Button - ONLY rendered when separate subtitle file exists */}
-                {hasSubtitles && (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleCc();
-                    }}
-                    className={`${styles.ccBtn} ${isCcActive ? styles.ccActiveBtn : ''}`}
-                    title={isCcActive ? 'Closed Captions: ON (C)' : 'Closed Captions: OFF (C)'}
-                    aria-label="Toggle Closed Captions"
-                  >
-                    <span>CC</span>
-                  </button>
+                        {/* Quality */}
+                        <div 
+                          className={styles.settingsMenuItem} 
+                          onClick={() => setSettingsView('quality')}
+                        >
+                          <span className={styles.settingsMenuLabel}>Quality</span>
+                          <span className={styles.settingsMenuValue}>
+                            {selectedQuality}
+                            <ChevronRight size={15} className={styles.settingsChevron} />
+                          </span>
+                        </div>
+
+                        {/* Speed */}
+                        <div 
+                          className={styles.settingsMenuItem} 
+                          onClick={() => setSettingsView('speed')}
+                        >
+                          <span className={styles.settingsMenuLabel}>Speed</span>
+                          <span className={styles.settingsMenuValue}>
+                            {playbackRate === 1 ? 'Normal' : `${playbackRate}x`}
+                            <ChevronRight size={15} className={styles.settingsChevron} />
+                          </span>
+                        </div>
+
+                        {/* Server */}
+                        <div 
+                          className={styles.settingsMenuItem} 
+                          onClick={() => setSettingsView('server')}
+                        >
+                          <span className={styles.settingsMenuLabel}>Server</span>
+                          <span className={styles.settingsMenuValue}>
+                            {selectedServer}
+                            <ChevronRight size={15} className={styles.settingsChevron} />
+                          </span>
+                        </div>
+
+                        {/* Fallback Server */}
+                        <div 
+                          className={styles.settingsMenuItem} 
+                          onClick={() => setFallbackServerEnabled(!fallbackServerEnabled)}
+                        >
+                          <span className={styles.settingsMenuLabel}>Fallback Server</span>
+                          <span className={styles.settingsMenuValue}>
+                            {fallbackServerEnabled ? 'On' : 'Off'}
+                          </span>
+                        </div>
+
+                        {/* Ambient Mode */}
+                        <div 
+                          className={styles.settingsMenuItem} 
+                          onClick={() => onToggleCinema?.()}
+                        >
+                          <span className={styles.settingsMenuLabel}>Ambient Mode</span>
+                          <span className={styles.settingsMenuValue}>
+                            {isLightsOff ? 'On' : 'Off'}
+                          </span>
+                        </div>
+
+                        {/* Autoplay Next */}
+                        {onToggleAutoplay && (
+                          <div 
+                            className={styles.settingsMenuItem} 
+                            onClick={() => onToggleAutoplay()}
+                          >
+                            <span className={styles.settingsMenuLabel}>Autoplay Next</span>
+                            <span className={styles.settingsMenuValue}>
+                              {autoplay ? 'On' : 'Off'}
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Keyboard Shortcuts */}
+                        <div 
+                          className={styles.settingsMenuItem} 
+                          onClick={() => {
+                            setIsSettingsOpen(false);
+                            setShowShortcutsModal(true);
+                          }}
+                        >
+                          <span className={styles.settingsMenuLabel}>Keyboard Shortcuts</span>
+                          <span className={styles.settingsMenuValue}>
+                            ?
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Submenu: Captions */}
+                    {settingsView === 'captions' && (
+                      <div className={styles.settingsSubmenuList}>
+                        <div 
+                          className={styles.settingsSubmenuHeader} 
+                          onClick={() => setSettingsView('main')}
+                        >
+                          <ChevronLeft size={16} />
+                          <span>Captions</span>
+                        </div>
+                        <div 
+                          className={`${styles.settingsSubmenuItem} ${!isCcActive ? styles.settingsSubmenuItemActive : ''}`}
+                          onClick={() => {
+                            if (isCcActive) toggleCc();
+                            setSettingsView('main');
+                          }}
+                        >
+                          <span>Off</span>
+                          {!isCcActive && <Check size={14} className={styles.submenuCheck} />}
+                        </div>
+                        {hasSubtitles && (
+                          <div 
+                            className={`${styles.settingsSubmenuItem} ${isCcActive ? styles.settingsSubmenuItemActive : ''}`}
+                            onClick={() => {
+                              if (!isCcActive) toggleCc();
+                              setSettingsView('main');
+                            }}
+                          >
+                            <span>English</span>
+                            {isCcActive && <Check size={14} className={styles.submenuCheck} />}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Submenu: Quality */}
+                    {settingsView === 'quality' && (
+                      <div className={styles.settingsSubmenuList}>
+                        <div 
+                          className={styles.settingsSubmenuHeader} 
+                          onClick={() => setSettingsView('main')}
+                        >
+                          <ChevronLeft size={16} />
+                          <span>Quality</span>
+                        </div>
+                        {availableQualities.map((q) => {
+                          const isSelected = selectedQuality === q.keyName;
+                          return (
+                            <div 
+                              key={q.keyName}
+                              className={`${styles.settingsSubmenuItem} ${isSelected ? styles.settingsSubmenuItemActive : ''}`}
+                              onClick={() => {
+                                handleQualityChange(q.keyName);
+                              }}
+                            >
+                              <span>{q.label} <small className={styles.qualityMiniSubtext}>({q.subtext})</small></span>
+                              {isSelected && <Check size={14} className={styles.submenuCheck} />}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* Submenu: Speed */}
+                    {settingsView === 'speed' && (
+                      <div className={styles.settingsSubmenuList}>
+                        <div 
+                          className={styles.settingsSubmenuHeader} 
+                          onClick={() => setSettingsView('main')}
+                        >
+                          <ChevronLeft size={16} />
+                          <span>Playback Speed</span>
+                        </div>
+                        {[0.5, 0.75, 1, 1.25, 1.5, 2].map((rate) => {
+                          const isSelected = playbackRate === rate;
+                          return (
+                            <div 
+                              key={rate}
+                              className={`${styles.settingsSubmenuItem} ${isSelected ? styles.settingsSubmenuItemActive : ''}`}
+                              onClick={() => {
+                                handleSpeedChange(rate);
+                              }}
+                            >
+                              <span>{rate === 1 ? 'Normal' : `${rate}x`}</span>
+                              {isSelected && <Check size={14} className={styles.submenuCheck} />}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* Submenu: Server */}
+                    {settingsView === 'server' && (
+                      <div className={styles.settingsSubmenuList}>
+                        <div 
+                          className={styles.settingsSubmenuHeader} 
+                          onClick={() => setSettingsView('main')}
+                        >
+                          <ChevronLeft size={16} />
+                          <span>Server</span>
+                        </div>
+                        <div 
+                          className={`${styles.settingsSubmenuItem} ${selectedServer === 'CDN 1' ? styles.settingsSubmenuItemActive : ''}`}
+                          onClick={() => {
+                            setSelectedServer('CDN 1');
+                            setSettingsView('main');
+                          }}
+                        >
+                          <span>CDN 1 (Primary High-Speed)</span>
+                          {selectedServer === 'CDN 1' && <Check size={14} className={styles.submenuCheck} />}
+                        </div>
+                        <div 
+                          className={`${styles.settingsSubmenuItem} ${selectedServer === 'CDN 2' ? styles.settingsSubmenuItemActive : ''}`}
+                          onClick={() => {
+                            setSelectedServer('CDN 2');
+                            setSettingsView('main');
+                          }}
+                        >
+                          <span>CDN 2 (Edge Fallback)</span>
+                          {selectedServer === 'CDN 2' && <Check size={14} className={styles.submenuCheck} />}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 )}
-
-                <button
-                  type="button"
-                  onClick={(e) => { e.stopPropagation(); setShowShortcutsModal(true); }}
-                  className={`${styles.controlBtn} ${styles.shortcutsBtn}`}
-                  title="Keyboard Shortcuts (?)"
-                  aria-label="Keyboard Shortcuts"
-                >
-                  <HelpCircle size={18} />
-                </button>
-
-                {/* Cinema Mode (Lights Off) Toggle */}
-                {onToggleCinema && (
-                  <button
-                    type="button"
-                    onClick={(e) => { e.stopPropagation(); onToggleCinema(); }}
-                    className={`${styles.controlBtn} ${styles.cinemaBtn} ${isLightsOff ? styles.cinemaActiveBtn : ''}`}
-                    title={isLightsOff ? 'Cinema Mode: Turn Lights On (C)' : 'Cinema Mode: Turn Lights Off (C)'}
-                    aria-label="Toggle Cinema Mode"
-                  >
-                    <Lightbulb size={18} color={isLightsOff ? '#fbbf24' : 'currentColor'} />
-                  </button>
-                )}
-
-                {/* Picture-in-Picture Toggle */}
-                <button
-                  type="button"
-                  onClick={(e) => { e.stopPropagation(); togglePip(); }}
-                  className={`${styles.controlBtn} ${isPip ? styles.pipActiveBtn : ''}`}
-                  title={isPip ? 'Exit Picture-in-Picture (I)' : 'Picture-in-Picture (I)'}
-                  aria-label="Toggle Picture-in-Picture"
-                >
-                  <PictureInPicture size={18} />
-                </button>
-
-                <button
-                  type="button"
-                  onClick={(e) => { e.stopPropagation(); toggleTheater(); }}
-                  className={`${styles.controlBtn} ${styles.theaterBtn} ${isTheater ? styles.theaterActiveBtn : ''}`}
-                  title={isTheater ? 'Exit Theater Mode (T)' : 'Theater Mode (T)'}
-                  aria-label={isTheater ? 'Exit Theater Mode' : 'Toggle Theater Mode'}
-                >
-                  <Layout size={18} />
-                </button>
-
-                <button
-                  type="button"
-                  onClick={(e) => { e.stopPropagation(); toggleFullscreen(); }}
-                  className={styles.controlBtn}
-                  title="Fullscreen (F)"
-                  aria-label="Toggle Fullscreen"
-                >
-                  {isFullscreen ? <Minimize size={18} /> : <Maximize size={18} />}
-                </button>
               </div>
+
+              {/* 7. Fullscreen Button */}
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); toggleFullscreen(); }}
+                className={styles.controlBtn}
+                title="Fullscreen (F)"
+                aria-label="Toggle Fullscreen"
+              >
+                {isFullscreen ? <Minimize size={20} /> : <Maximize size={20} />}
+              </button>
             </div>
           </div>
 
