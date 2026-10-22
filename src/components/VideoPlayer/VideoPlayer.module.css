@@ -28,15 +28,15 @@
 /* Dynamic Ambient Glow Behind Player (bleeds outside borders according to video) */
 .ambientGlowCanvas {
   position: absolute;
-  top: -5%;
-  left: -4%;
-  width: 108%;
-  height: 110%;
-  border-radius: 28px;
-  filter: blur(52px) saturate(1.8) brightness(1.2);
-  opacity: 0.85;
+  top: -3.5%;
+  left: -2.5%;
+  width: 105%;
+  height: 107%;
+  border-radius: 24px;
+  filter: blur(54px) saturate(1.1) brightness(0.85);
+  opacity: 0.32;
   pointer-events: none;
-  z-index: 1;
+  z-index: 0;
   transform: translateZ(0);
   transition: opacity 0.4s ease;
 }

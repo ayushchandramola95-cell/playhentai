@@ -1142,7 +1142,7 @@ export default function VideoPlayer({
     if (!ctx) return;
     try {
       if (video && video.readyState >= 2) {
-        ctx.drawImage(video, 0, 0, 32, 18);
+        ctx.drawImage(video, 0, 0, 32, 21);
       }
     } catch {
       // Ignore cross-origin error if video CDN doesn't provide CORS
@@ -1167,7 +1167,7 @@ export default function VideoPlayer({
           const ctx = canvas.getContext('2d', { alpha: false, willReadFrequently: false });
           if (ctx) {
             try {
-              ctx.drawImage(video, 0, 0, 32, 18);
+              ctx.drawImage(video, 0, 0, 32, 21);
             } catch {
               // Ignore cross-origin error if video CDN doesn't provide CORS
             }
@@ -1195,7 +1195,7 @@ export default function VideoPlayer({
           ref={ambientCanvasRef}
           className={styles.ambientGlowCanvas}
           width={32}
-          height={18}
+          height={21}
           aria-hidden="true"
         />
       )}
