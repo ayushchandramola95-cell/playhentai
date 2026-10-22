@@ -583,7 +583,7 @@ export default async function WatchPage({ params }: WatchPageProps) {
     rating: e.rating,
   }));
 
-  // Prune activeEpisode to prevent sending raw_provider_payload & metadata_locks
+  // Prune activeEpisode to prevent sending massive raw scraper dumps while strictly preserving media playback fields
   const prunedActiveEpisode = {
     id: activeEpisode.id,
     episode_number: activeEpisode.episode_number,
@@ -596,10 +596,11 @@ export default async function WatchPage({ params }: WatchPageProps) {
     release_date: activeEpisode.release_date,
     created_at: activeEpisode.created_at,
     season_id: activeEpisode.season_id,
-    storyboard: activeEpisode.storyboard,
-    video_qualities: activeEpisode.video_qualities,
-    subtitle_key: activeEpisode.subtitle_key,
-    subtitle_url: activeEpisode.subtitle_url,
+    storyboard: activeEpisode.storyboard || activeEpisode.raw_provider_payload?.storyboard || null,
+    video_qualities: activeEpisode.video_qualities || activeEpisode.raw_provider_payload?.video_qualities || null,
+    subtitles: activeEpisode.subtitles || activeEpisode.raw_provider_payload?.subtitles || null,
+    subtitle_key: activeEpisode.subtitle_key || activeEpisode.raw_provider_payload?.subtitle_key || activeEpisode.subtitles?.en?.key || activeEpisode.raw_provider_payload?.subtitles?.en?.key || null,
+    subtitle_url: activeEpisode.subtitle_url || activeEpisode.raw_provider_payload?.subtitle_url || activeEpisode.subtitles?.en?.url || activeEpisode.raw_provider_payload?.subtitles?.en?.url || null,
     views_count: activeEpisode.views_count,
     likes_count: activeEpisode.likes_count,
     dislikes_count: activeEpisode.dislikes_count,

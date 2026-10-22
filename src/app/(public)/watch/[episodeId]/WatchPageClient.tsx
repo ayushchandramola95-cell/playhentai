@@ -744,7 +744,7 @@ export default function WatchPageClient({
               storyboard={activeEpisode.storyboard || activeEpisode.raw_provider_payload?.storyboard}
               videoQualities={activeEpisode.video_qualities || activeEpisode.raw_provider_payload?.video_qualities}
               subtitleUrl={(() => {
-                const directUrl = activeEpisode.subtitles?.en?.url || activeEpisode.raw_provider_payload?.subtitles?.en?.url;
+                const directUrl = activeEpisode.subtitle_url || activeEpisode.subtitles?.en?.url || activeEpisode.raw_provider_payload?.subtitles?.en?.url;
                 if (directUrl && typeof directUrl === 'string' && directUrl.trim() !== '') {
                   let u = directUrl.trim();
                   if (u.includes('dmfrlqgigpmty.cloudfront.net')) {
