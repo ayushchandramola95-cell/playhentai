@@ -320,6 +320,7 @@ export default function VideoPlayer({
   const previewVideoRef = useRef<HTMLVideoElement>(null);
   const displayCanvasRef = useRef<HTMLCanvasElement>(null);
   const storyboardLayerRef = useRef<HTMLDivElement>(null);
+  const [hasHoveredScrubber, setHasHoveredScrubber] = useState<boolean>(false);
 
   // In-memory Canvas Frame Cache (key: snapped second, value: 160x90 canvas snapshot)
   const frameCacheRef = useRef<Map<number, HTMLCanvasElement>>(new Map());
@@ -369,6 +370,7 @@ export default function VideoPlayer({
     setAutoplayCountdown(null);
     viewLoggedRef.current = false;
     hasPrefetchedNextRef.current = false;
+    setHasHoveredScrubber(false);
 
     // Reset frame cache & seek throttling
     frameCacheRef.current.clear();
@@ -758,6 +760,11 @@ export default function VideoPlayer({
     if (!video || !isFinite(targetSec)) {
       isSeekingRef.current = false;
       return;
+    }
+    // Lazy attach src if not already loaded
+    if (!video.src || video.src === '') {
+      video.src = currentVideoSrc || videoUrl;
+      video.load();
     }
     isSeekingRef.current = true;
     try {
@@ -1158,6 +1165,9 @@ export default function VideoPlayer({
     // Draw initial frame if ready
     drawAmbientFrame();
 
+    // Do NOT run continuous RAF loop when video is paused or idle
+    if (!isPlaying) return;
+
     let animId: number;
     let lastRender = 0;
 
@@ -1473,6 +1483,7 @@ export default function VideoPlayer({
               <div 
                 ref={progressBarRef}
                 className={styles.timelineContainer}
+                onMouseEnter={() => { if (!hasHoveredScrubber) setHasHoveredScrubber(true); }}
                 onMouseMove={handleProgressBarMouseMove}
                 onMouseLeave={handleProgressBarMouseLeave}
               >
@@ -1498,11 +1509,11 @@ export default function VideoPlayer({
                     )}
                     <video
                       ref={previewVideoRef}
-                      src={videoUrl}
+                      src={hasHoveredScrubber && (!storyboard || storyboard.status !== 'completed') ? (currentVideoSrc || videoUrl) : undefined}
                       className={styles.hoverThumbnailVideo}
                       muted
                       playsInline
-                      preload="auto"
+                      preload="none"
                       crossOrigin="anonymous"
                       onSeeked={handlePreviewSeeked}
                     />

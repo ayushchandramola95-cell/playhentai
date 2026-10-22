@@ -11,14 +11,33 @@ import {
 } from 'lucide-react';
 import { getR2Url } from '@/utils/r2';
 import { getEpisodeWatchUrl } from '@/utils/episodeUrl';
+import dynamic from 'next/dynamic';
 import VideoPlayer from '@/components/VideoPlayer/VideoPlayer';
-import CommentSection from '@/components/CommentSection/CommentSection';
 import SimilarTitles from '@/components/SimilarTitles/SimilarTitles';
 import RankedTabWidget from '@/components/RankedTabWidget/RankedTabWidget';
 import FavoriteToggle from '@/components/FavoriteToggle/FavoriteToggle';
 import RateSeriesButton from '@/components/RateSeriesButton/RateSeriesButton';
-import DownloadModal from '@/components/DownloadModal/DownloadModal';
 import styles from './watch.module.css';
+
+const CommentSection = dynamic(() => import('@/components/CommentSection/CommentSection'), {
+  ssr: false,
+  loading: () => (
+    <div style={{
+      minHeight: '160px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      color: '#64748b',
+      fontSize: '0.88rem'
+    }}>
+      Loading discussion...
+    </div>
+  )
+});
+
+const DownloadModal = dynamic(() => import('@/components/DownloadModal/DownloadModal'), {
+  ssr: false
+});
 
 interface WatchPageClientProps {
   activeEpisode: any;

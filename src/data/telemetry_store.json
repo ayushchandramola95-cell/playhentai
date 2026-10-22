@@ -3,7 +3,7 @@
     "ph_702s9689_1792614438478": {
       "sessionId": "ph_702s9689_1792614438478",
       "firstSeen": 1792614441720,
-      "lastSeen": 1792685821994,
+      "lastSeen": 1792692516102,
       "durationSeconds": 15308,
       "pageViews": 3,
       "maxScrollDepth": 100,
@@ -136,13 +136,13 @@
     "/series/cyberpunk-odyssey": 28,
     "/watch/overflow-ep-1": 2,
     "/series/todo-no-tsumari": 2,
-    "/watch/todo-no-tsumari-episode-1": 306
+    "/watch/todo-no-tsumari-episode-1": 308
   },
   "scrollCounts": {
-    "depth25": 166,
-    "depth50": 122,
-    "depth75": 112,
-    "depth100": 98
+    "depth25": 168,
+    "depth50": 124,
+    "depth75": 114,
+    "depth100": 100
   },
   "deviceCounts": {
     "desktop": 71,

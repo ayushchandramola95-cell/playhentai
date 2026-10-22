@@ -535,23 +535,93 @@ export default async function WatchPage({ params }: WatchPageProps) {
     })
     .slice(0, 10);
 
+  // Prune seriesDetails to strictly UI-relevant fields to save dozens of KB from RSC Flight serialization
+  const prunedSeriesDetails = seriesDetails ? {
+    id: seriesDetails.id,
+    title: seriesDetails.title,
+    slug: seriesDetails.slug,
+    description: seriesDetails.description,
+    poster_image_key: seriesDetails.poster_image_key,
+    cover_image_key: seriesDetails.cover_image_key,
+    studio: seriesDetails.studio,
+    release_year: seriesDetails.release_year,
+    rating: seriesDetails.rating,
+    status: seriesDetails.status,
+    content_rating: seriesDetails.content_rating,
+    tags: seriesDetails.tags || [],
+    views: seriesDetails.views || 0,
+    views_count: seriesDetails.views_count || 0,
+    seasons: (seriesDetails.seasons || []).map((sn: any) => ({
+      id: sn.id,
+      title: sn.title,
+      season_number: sn.season_number,
+      series_id: sn.series_id,
+      episodes: (sn.episodes || []).map((e: any) => ({
+        id: e.id,
+        episode_number: e.episode_number,
+        title: e.title,
+        thumbnail_key: e.thumbnail_key,
+        duration_seconds: e.duration_seconds,
+        season_id: e.season_id,
+        is_published: e.is_published,
+      })),
+    })),
+  } : null;
+
+  // Prune seasonEpisodes
+  const prunedSeasonEpisodes = (seasonEpisodes || []).map((e: any) => ({
+    id: e.id,
+    episode_number: e.episode_number,
+    title: e.title,
+    thumbnail_key: e.thumbnail_key,
+    duration_seconds: e.duration_seconds,
+    video_key: e.video_key,
+    season_id: e.season_id,
+    is_published: e.is_published,
+    views: e.views,
+    views_count: e.views_count,
+    rating: e.rating,
+  }));
+
+  // Prune activeEpisode to prevent sending raw_provider_payload & metadata_locks
+  const prunedActiveEpisode = {
+    id: activeEpisode.id,
+    episode_number: activeEpisode.episode_number,
+    title: activeEpisode.title,
+    description: activeEpisode.description,
+    duration_seconds: activeEpisode.duration_seconds,
+    video_key: activeEpisode.video_key,
+    thumbnail_key: activeEpisode.thumbnail_key,
+    thumbnail: activeEpisode.thumbnail,
+    release_date: activeEpisode.release_date,
+    created_at: activeEpisode.created_at,
+    season_id: activeEpisode.season_id,
+    storyboard: activeEpisode.storyboard,
+    video_qualities: activeEpisode.video_qualities,
+    subtitle_key: activeEpisode.subtitle_key,
+    subtitle_url: activeEpisode.subtitle_url,
+    views_count: activeEpisode.views_count,
+    likes_count: activeEpisode.likes_count,
+    dislikes_count: activeEpisode.dislikes_count,
+  };
+
   return (
     <>
       <JsonLd data={showVideoSchema ? [videoJsonLd, tvEpisodeJsonLd, breadcrumbJsonLd] : [tvEpisodeJsonLd, breadcrumbJsonLd]} />
       <WatchPageClient
-        activeEpisode={activeEpisode}
-        seasonEpisodes={seasonEpisodes}
+        activeEpisode={prunedActiveEpisode}
+        seasonEpisodes={prunedSeasonEpisodes}
         seasonTitle={seasonTitle}
-        seriesDetails={seriesDetails}
+        seriesDetails={prunedSeriesDetails}
         seriesTitle={seriesTitle}
         seriesSlug={seriesSlug}
         similarSeries={similarSeries}
         popularSeries={popularSeries}
         newSeries={newSeries}
         isDbEmpty={isDbEmpty}
-        prevEpisode={prevEpisode}
-        nextEpisode={nextEpisode}
-        allSeasons={seriesDetails?.seasons || []}
+        prevEpisode={prevEpisode ? { id: prevEpisode.id, episode_number: prevEpisode.episode_number } : null}
+        nextEpisode={nextEpisode ? { id: nextEpisode.id, episode_number: nextEpisode.episode_number } : null}
+        allSeasons={prunedSeriesDetails?.seasons || []}
       />
     </>
   );
