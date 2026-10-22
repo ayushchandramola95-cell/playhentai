@@ -11,22 +11,7 @@ export function getR2Url(
 
   let cleanKey = key.trim();
 
-  // The primary, high-performance R2 CDN is media.hentaikage.cc
-  // Note: dmfrlqgigpmty.cloudfront.net was an old AWS S3 distribution that returns 403 Access Denied on new R2 media.
-  const baseUrl = (process.env.NEXT_PUBLIC_R2_PUBLIC_URL && !process.env.NEXT_PUBLIC_R2_PUBLIC_URL.includes('cloudfront.net'))
-    ? process.env.NEXT_PUBLIC_R2_PUBLIC_URL
-    : 'https://media.hentaikage.cc';
-  const sanitizedBase = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
-
-  // Automatically migrate any legacy CloudFront or .r2.dev URLs to media.hentaikage.cc
-  if (cleanKey.includes('dmfrlqgigpmty.cloudfront.net/')) {
-    cleanKey = cleanKey.replace(/^https?:\/\/dmfrlqgigpmty\.cloudfront\.net\//, '');
-  }
-  if (cleanKey.includes('.r2.dev/')) {
-    cleanKey = cleanKey.replace(/^https?:\/\/[^/]+\.r2\.dev\//, '');
-  }
-
-  // If the key is already a full external URL (e.g. Unsplash, GCP, etc.)
+  // If the key is already a full external URL (e.g. AWS S3, CloudFront, Cloudflare R2, Unsplash, etc.)
   if (cleanKey.startsWith('http://') || cleanKey.startsWith('https://')) {
     try {
       const parsed = new URL(cleanKey);
@@ -38,6 +23,17 @@ export function getR2Url(
     } catch {
       return cleanKey;
     }
+  }
+
+  // Support both AWS S3 CDN and Cloudflare R2 CDN endpoints
+  const baseUrl =
+    process.env.NEXT_PUBLIC_S3_PUBLIC_URL ||
+    process.env.NEXT_PUBLIC_R2_PUBLIC_URL ||
+    'https://media.hentaikage.cc';
+  const sanitizedBase = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+
+  if (cleanKey.includes('.r2.dev/')) {
+    cleanKey = cleanKey.replace(/^https?:\/\/[^/]+\.r2\.dev\//, '');
   }
 
   if (cleanKey.startsWith('data:')) {

@@ -35,7 +35,28 @@ export function getStorageClient(): StorageClientConfig {
   const awsKey = process.env.AWS_ACCESS_KEY_ID || process.env.CLOUDFLARE_R2_ACCESS_KEY_ID;
   const awsSecret = process.env.AWS_SECRET_ACCESS_KEY || process.env.CLOUDFLARE_R2_SECRET_ACCESS_KEY;
 
-  // 1. Check if explicit Cloudflare R2 endpoint is specified
+  // 1. If explicit AWS S3 is requested or configured
+  const preferS3 =
+    process.env.STORAGE_PROVIDER === 's3' ||
+    process.env.USE_S3 === 'true' ||
+    Boolean(process.env.AWS_S3_BUCKET_NAME && process.env.AWS_ACCESS_KEY_ID);
+
+  if (preferS3 && awsKey && awsSecret) {
+    return {
+      s3: new S3Client({
+        region: awsRegion,
+        credentials: {
+          accessKeyId: awsKey,
+          secretAccessKey: awsSecret,
+        },
+      }),
+      bucket: awsBucket,
+      publicUrl,
+      provider: 'aws-s3',
+    };
+  }
+
+  // 2. Check if explicit Cloudflare R2 endpoint is specified
   if (process.env.CLOUDFLARE_R2_ENDPOINT && process.env.CLOUDFLARE_R2_BUCKET_NAME) {
     return {
       s3: new S3Client({
@@ -52,7 +73,7 @@ export function getStorageClient(): StorageClientConfig {
     };
   }
 
-  // 2. Check standard AWS S3 credentials
+  // 3. Check standard AWS S3 credentials
   if (awsKey && awsSecret) {
     return {
       s3: new S3Client({
@@ -68,7 +89,7 @@ export function getStorageClient(): StorageClientConfig {
     };
   }
 
-  // 3. Fallback to default IAM role / AWS environment
+  // 4. Fallback to default IAM role / AWS environment
   return {
     s3: new S3Client({ region: awsRegion }),
     bucket: awsBucket,

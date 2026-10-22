@@ -43,9 +43,18 @@ const getCachedResolvedEpisode = unstable_cache(
   async (episodeId: string) => {
     return await getLocalResolvedEpisode(episodeId);
   },
-  ['watch-episode-resolved-cache-v3'],
-  { revalidate: 120, tags: ['watch_episode', 'episodes_catalog'] }
+  ['watch-episode-resolved-cache-v4'],
+  { revalidate: 60, tags: ['watch_episode', 'episodes_catalog'] }
 );
+
+async function getResolvedEpisodeSafe(episodeId: string) {
+  try {
+    const cached = await getCachedResolvedEpisode(episodeId);
+    if (cached?.activeEpisode) return cached;
+  } catch {}
+  // If cache missed or cached a transient null, perform live lookup from local catalog
+  return await getLocalResolvedEpisode(episodeId);
+}
 
 function formatIso8601Duration(seconds?: number): string {
   const total = Math.max(1, Math.floor(seconds || 1440));
@@ -84,7 +93,7 @@ export async function generateMetadata({ params }: WatchPageProps): Promise<Meta
   ];
 
   try {
-    const resolved = await getCachedResolvedEpisode(episodeId);
+    const resolved = await getResolvedEpisodeSafe(episodeId);
     if (resolved?.activeEpisode) {
       const ep = resolved.activeEpisode;
       const series = resolved.seriesDetails || {};
@@ -241,7 +250,7 @@ export default async function WatchPage({ params }: WatchPageProps) {
 
   const [allSeriesList, resolved] = await Promise.all([
     getCachedMinimalSeriesList(),
-    getCachedResolvedEpisode(episodeId)
+    getResolvedEpisodeSafe(episodeId)
   ]);
 
   if (!resolved || !resolved.activeEpisode) {

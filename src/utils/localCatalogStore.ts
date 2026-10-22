@@ -28,6 +28,14 @@ function ensureDataDirectory() {
 function writeStoreToDisk(data: LocalCatalogData) {
   try {
     ensureDataDirectory();
+    // Safety check: Never overwrite an existing populated file with an empty series array!
+    if (!data.series || data.series.length === 0) {
+      const existing = loadStoreFromDisk();
+      if (existing && existing.series && existing.series.length > 0) {
+        console.warn('[LocalStore] Safety safeguard: Refused to overwrite existing populated disk store with 0 series.');
+        return;
+      }
+    }
     const tempFile = `${STORE_FILE}.tmp.${Date.now()}`;
     fs.writeFileSync(tempFile, JSON.stringify(data, null, 2), 'utf-8');
     fs.renameSync(tempFile, STORE_FILE);
@@ -54,7 +62,12 @@ function loadStoreFromDisk(): LocalCatalogData | null {
 function getSupabaseClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ybtbdtgtryrxrhuchlkw.supabase.co';
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_HLX-SCL51o2H254WH-gN0Q_HPpNwKo5';
-  return createSupabaseClient(supabaseUrl, supabaseKey);
+  return createSupabaseClient(supabaseUrl, supabaseKey, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  });
 }
 
 let activeSyncPromise: Promise<LocalCatalogData> | null = null;
@@ -87,6 +100,20 @@ export async function syncLocalCatalogWithSupabase(): Promise<LocalCatalogData> 
       if (sErr) console.warn('[LocalStore] Error fetching series:', sErr.message);
       if (seaErr) console.warn('[LocalStore] Error fetching seasons:', seaErr.message);
       if (epErr) console.warn('[LocalStore] Error fetching episodes:', epErr.message);
+
+      // If Supabase returned errors or empty series data, DO NOT overwrite healthy cache
+      if (sErr || seaErr || epErr || !seriesData || seriesData.length === 0) {
+        const errDetails = [sErr?.message, seaErr?.message, epErr?.message].filter(Boolean).join(', ') || 'Incomplete data';
+        console.warn(`[LocalStore] Sync aborted (${errDetails}). Preserving existing local cache.`);
+        if (memoryCatalog && memoryCatalog.series && memoryCatalog.series.length > 0) {
+          return memoryCatalog;
+        }
+        const disk = loadStoreFromDisk();
+        if (disk && disk.series && disk.series.length > 0) {
+          memoryCatalog = disk;
+          return disk;
+        }
+      }
 
       const existingStore = memoryCatalog || loadStoreFromDisk();
       const currentCollections = memoryCatalog?.collections || existingStore?.collections || [];
@@ -121,9 +148,12 @@ export async function syncLocalCatalogWithSupabase(): Promise<LocalCatalogData> 
       return snapshot;
     } catch (err) {
       console.error('[LocalStore] Fatal error syncing with Supabase:', err);
-      if (memoryCatalog) return memoryCatalog;
+      if (memoryCatalog && memoryCatalog.series && memoryCatalog.series.length > 0) return memoryCatalog;
       const disk = loadStoreFromDisk();
-      if (disk) return disk;
+      if (disk && disk.series && disk.series.length > 0) {
+        memoryCatalog = disk;
+        return disk;
+      }
       return {
         lastSyncedAt: new Date().toISOString(),
         series: [],
