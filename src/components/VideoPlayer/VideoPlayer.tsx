@@ -266,29 +266,32 @@ export default function VideoPlayer({
 
     let isMounted = true;
     const fetchSubtitles = async () => {
+      let resolvedSubUrl = subtitleUrl;
+      if (resolvedSubUrl.includes('dmfrlqgigpmty.cloudfront.net')) {
+        resolvedSubUrl = resolvedSubUrl.replace('dmfrlqgigpmty.cloudfront.net', 'media.hentaikage.cc');
+      }
+
+      // Always try via proxy first (bypasses browser cross-origin CORS blocking and converts ASS/SSA/SRT to WebVTT)
       try {
-        // Attempt direct fetch first
-        let res = await fetch(subtitleUrl);
-        if (!res.ok) {
-          res = await fetch(`/api/subtitles/proxy?url=${encodeURIComponent(subtitleUrl)}`);
+        const proxyRes = await fetch(`/api/subtitles/proxy?url=${encodeURIComponent(resolvedSubUrl)}`);
+        if (proxyRes.ok && isMounted) {
+          const text = await proxyRes.text();
+          setSubtitleCues(parseSubtitleText(text));
+          return;
         }
-        if (res.ok) {
+      } catch (proxyErr) {
+        console.warn('[VideoPlayer] Subtitle proxy failed, attempting direct fetch:', proxyErr);
+      }
+
+      // Fallback: direct fetch if proxy is unavailable
+      try {
+        const res = await fetch(resolvedSubUrl);
+        if (res.ok && isMounted) {
           const text = await res.text();
-          if (isMounted) {
-            setSubtitleCues(parseSubtitleText(text));
-          }
+          setSubtitleCues(parseSubtitleText(text));
         }
-      } catch {
-        // Fallback to internal proxy if browser CORS blocks external asset
-        try {
-          const proxyRes = await fetch(`/api/subtitles/proxy?url=${encodeURIComponent(subtitleUrl)}`);
-          if (proxyRes.ok && isMounted) {
-            const text = await proxyRes.text();
-            setSubtitleCues(parseSubtitleText(text));
-          }
-        } catch (proxyErr) {
-          console.warn('[VideoPlayer] Failed to load subtitles:', proxyErr);
-        }
+      } catch (err) {
+        console.warn('[VideoPlayer] Direct subtitle fetch also failed:', err);
       }
     };
 
@@ -1221,7 +1224,11 @@ export default function VideoPlayer({
         {hasSubtitles && subtitleUrl && (
           <track
             kind="subtitles"
-            src={subtitleUrl}
+            src={`/api/subtitles/proxy?url=${encodeURIComponent(
+              subtitleUrl.includes('dmfrlqgigpmty.cloudfront.net')
+                ? subtitleUrl.replace('dmfrlqgigpmty.cloudfront.net', 'media.hentaikage.cc')
+                : subtitleUrl
+            )}`}
             srcLang="en"
             label="English"
             default={false}
@@ -1591,7 +1598,7 @@ export default function VideoPlayer({
               </div>
 
               {/* 5. Closed Captions [CC] Toggle Button */}
-              {hasSubtitles && (
+              {hasSubtitles ? (
                 <button
                   type="button"
                   onClick={(e) => {
@@ -1601,6 +1608,17 @@ export default function VideoPlayer({
                   className={`${styles.ccBtn} ${isCcActive ? styles.ccActiveBtn : ''}`}
                   title={isCcActive ? 'Closed Captions: ON (C)' : 'Closed Captions: OFF (C)'}
                   aria-label="Toggle Closed Captions"
+                >
+                  <span>CC</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={(e) => e.stopPropagation()}
+                  className={`${styles.ccBtn} ${styles.ccDisabledBtn}`}
+                  title="No subtitles available for this episode"
+                  aria-label="No subtitles available"
+                  disabled
                 >
                   <span>CC</span>
                 </button>

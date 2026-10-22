@@ -725,12 +725,26 @@ export default function WatchPageClient({
               storyboard={activeEpisode.storyboard || activeEpisode.raw_provider_payload?.storyboard}
               videoQualities={activeEpisode.video_qualities || activeEpisode.raw_provider_payload?.video_qualities}
               subtitleUrl={(() => {
-                const rawKey = activeEpisode.subtitle_key || activeEpisode.raw_provider_payload?.subtitle_key;
-                if (rawKey && rawKey.trim() !== '') return getR2Url(rawKey);
-                const rawSubObj = activeEpisode.subtitles?.en?.url || activeEpisode.raw_provider_payload?.subtitles?.en?.url;
-                if (rawSubObj) return getR2Url(rawSubObj);
-                const rawSubKey = activeEpisode.subtitles?.en?.key || activeEpisode.raw_provider_payload?.subtitles?.en?.key;
-                if (rawSubKey) return getR2Url(rawSubKey);
+                const directUrl = activeEpisode.subtitles?.en?.url || activeEpisode.raw_provider_payload?.subtitles?.en?.url;
+                if (directUrl && typeof directUrl === 'string' && directUrl.trim() !== '') {
+                  let u = directUrl.trim();
+                  if (u.includes('dmfrlqgigpmty.cloudfront.net')) {
+                    u = u.replace('dmfrlqgigpmty.cloudfront.net', 'media.hentaikage.cc');
+                  }
+                  return u;
+                }
+                const rawKey = activeEpisode.subtitle_key || activeEpisode.raw_provider_payload?.subtitle_key || activeEpisode.subtitles?.en?.key || activeEpisode.raw_provider_payload?.subtitles?.en?.key;
+                if (rawKey && typeof rawKey === 'string' && rawKey.trim() !== '') {
+                  let clean = rawKey.trim();
+                  if (clean.includes('dmfrlqgigpmty.cloudfront.net')) {
+                    clean = clean.replace('dmfrlqgigpmty.cloudfront.net', 'media.hentaikage.cc');
+                  }
+                  if (clean.startsWith('http://') || clean.startsWith('https://')) {
+                    return clean;
+                  }
+                  const rawPath = clean.startsWith('/') ? clean.slice(1) : clean;
+                  return `https://media.hentaikage.cc/${rawPath}`;
+                }
                 return null;
               })()}
             />

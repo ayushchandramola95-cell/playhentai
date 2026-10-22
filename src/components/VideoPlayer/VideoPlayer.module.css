@@ -569,6 +569,19 @@
   background: #e11d48 !important;
 }
 
+.ccDisabledBtn {
+  opacity: 0.38 !important;
+  cursor: not-allowed !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  color: #94a3b8 !important;
+}
+
+.ccDisabledBtn:hover {
+  background: transparent !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  transform: none !important;
+}
+
 /* Settings Button Container & Popup (Image 2) */
 .settingsMenuContainer {
   position: relative;
