@@ -1,29 +1,19 @@
 {
   "sessions": {
-    "ph_fbk26s9r_1792252388116": {
-      "sessionId": "ph_fbk26s9r_1792252388116",
-      "firstSeen": 1792252388786,
-      "lastSeen": 1792263238679,
-      "durationSeconds": 2847,
-      "pageViews": 13,
+    "ph_702s9689_1792614438478": {
+      "sessionId": "ph_702s9689_1792614438478",
+      "firstSeen": 1792614441720,
+      "lastSeen": 1792685821994,
+      "durationSeconds": 15308,
+      "pageViews": 3,
       "maxScrollDepth": 100,
       "device": "desktop",
       "hasAdBlocker": false,
       "hasWatchedVideo": true,
       "visitedRoutes": [
         "/",
-        "/watch/oujo-onna-kishi-w-dogehin-roshutsu-chijoku-no-misemono-dorei-episode-1",
-        "/series/oushun-jogakuen-no-danyuu",
-        "/genres",
-        "/studios",
-        "/uncensored",
-        "/login",
-        "/watch/mock-ep-1",
-        "/watch/oushun-jogakuen-no-danyuu-episode-1",
-        "/faq",
-        "/nonexistent-404-test",
-        "/series/cyberpunk-odyssey",
-        "/watch/overflow-ep-1"
+        "/series/todo-no-tsumari",
+        "/watch/todo-no-tsumari-episode-1"
       ],
       "country": "IN",
       "region": "Asia & Pacific",
@@ -31,30 +21,104 @@
       "os": "Windows",
       "referrer": "http://localhost:3004/"
     },
-    "ph_oi8yf9h2_1792389120851": {
-      "sessionId": "ph_oi8yf9h2_1792389120851",
-      "firstSeen": 1792389123132,
-      "lastSeen": 1792441666215,
-      "durationSeconds": 6815,
-      "pageViews": 3,
+    "ph_k3s6gbm9_1792662449025": {
+      "sessionId": "ph_k3s6gbm9_1792662449025",
+      "firstSeen": 1792662449411,
+      "lastSeen": 1792662452256,
+      "durationSeconds": 3,
+      "pageViews": 1,
       "maxScrollDepth": 0,
       "device": "desktop",
       "hasAdBlocker": false,
       "hasWatchedVideo": true,
       "visitedRoutes": [
-        "/",
-        "/watch/mock-ep-1",
-        "/watch/oushun-jogakuen-no-danyuu-episode-1"
+        "/watch/todo-no-tsumari-episode-1"
       ],
       "country": "IN",
       "region": "Asia & Pacific",
       "browser": "Chrome",
       "os": "Windows",
-      "referrer": "http://localhost:3004/"
+      "referrer": "http://localhost:3004/watch/todo-no-tsumari-episode-1"
+    },
+    "ph_ej9y7jfy_1792678690397": {
+      "sessionId": "ph_ej9y7jfy_1792678690397",
+      "firstSeen": 1792678691196,
+      "lastSeen": 1792678697844,
+      "durationSeconds": 8,
+      "pageViews": 1,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": true,
+      "visitedRoutes": [
+        "/watch/todo-no-tsumari-episode-1"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Chrome",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/watch/todo-no-tsumari-episode-1"
+    },
+    "ph_jxtpcefb_1792679964888": {
+      "sessionId": "ph_jxtpcefb_1792679964888",
+      "firstSeen": 1792679965162,
+      "lastSeen": 1792679971749,
+      "durationSeconds": 7,
+      "pageViews": 1,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": true,
+      "visitedRoutes": [
+        "/watch/todo-no-tsumari-episode-1"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Chrome",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/watch/todo-no-tsumari-episode-1"
+    },
+    "ph_wpfw3fq9_1792680177191": {
+      "sessionId": "ph_wpfw3fq9_1792680177191",
+      "firstSeen": 1792680177542,
+      "lastSeen": 1792680181127,
+      "durationSeconds": 4,
+      "pageViews": 1,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": true,
+      "visitedRoutes": [
+        "/watch/todo-no-tsumari-episode-1"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Chrome",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/watch/todo-no-tsumari-episode-1"
+    },
+    "ph_vm8cn6a0_1792681617835": {
+      "sessionId": "ph_vm8cn6a0_1792681617835",
+      "firstSeen": 1792681618632,
+      "lastSeen": 1792681624204,
+      "durationSeconds": 7,
+      "pageViews": 1,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": true,
+      "visitedRoutes": [
+        "/watch/todo-no-tsumari-episode-1"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Chrome",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/watch/todo-no-tsumari-episode-1"
     }
   },
   "routeVisits": {
-    "/": 588,
+    "/": 590,
     "/series/imaizumin-chi-wa-douyara-gal-no-tamariba-ni-natteru-rashii": 2,
     "/login": 145,
     "/series/reginetta-san-no-bouken": 14,
@@ -70,23 +134,25 @@
     "/faq": 2,
     "/nonexistent-404-test": 2,
     "/series/cyberpunk-odyssey": 28,
-    "/watch/overflow-ep-1": 2
+    "/watch/overflow-ep-1": 2,
+    "/series/todo-no-tsumari": 2,
+    "/watch/todo-no-tsumari-episode-1": 306
   },
   "scrollCounts": {
-    "depth25": 30,
-    "depth50": 11,
-    "depth75": 5,
-    "depth100": 4
+    "depth25": 166,
+    "depth50": 122,
+    "depth75": 112,
+    "depth100": 98
   },
   "deviceCounts": {
-    "desktop": 65,
+    "desktop": 71,
     "mobile": 0,
     "tablet": 0
   },
   "adBlockCounts": {
     "blocked": 0,
-    "notBlocked": 65
+    "notBlocked": 71
   },
-  "totalWatchEvents": 2,
-  "lastCleaned": 1792423672661
+  "totalWatchEvents": 3,
+  "lastCleaned": 1792678691196
 }
