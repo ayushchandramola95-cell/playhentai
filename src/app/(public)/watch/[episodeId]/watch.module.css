@@ -1,7 +1,7 @@
 .container {
   max-width: 1780px;
   margin: 0 auto;
-  padding: 0.75rem 1.75rem 3.5rem;
+  padding: 1.15rem 1.75rem 3.5rem;
   width: 100%;
   position: relative;
   min-height: 80vh;
@@ -10,7 +10,7 @@
 
 .theatreContainer {
   max-width: 1820px;
-  padding: 0.75rem 1.5rem 3.5rem;
+  padding: 1.15rem 1.5rem 3.5rem;
 }
 
 /* Lights Off / Cinema Mode Backdrop */
@@ -108,7 +108,7 @@
 .theatreLayout .playerCol,
 .theatreLayout .sidebarColDesktop {
   width: 100%;
-  max-width: min(100%, max(1200px, calc((100vh - 100px) * 16 / 10.5)));
+  max-width: min(100%, max(1200px, calc((100vh - 100px) * 16 / 9)));
   margin: 0 auto;
 }
 
@@ -155,10 +155,10 @@
   display: none;
 }
 
-/* Increased Video Box Height (16 / 10.5 aspect ratio, height increased only) */
+/* Native 16:9 Video Box (edge-to-edge video, zero black bars) */
 .videoWrapper {
   width: 100%;
-  aspect-ratio: 16 / 10.5;
+  aspect-ratio: 16 / 9;
   border-radius: 14px;
   overflow: visible; /* Allows ambient video light to diffuse outside */
   background: transparent;
@@ -169,9 +169,9 @@
 
 .theatreVideoWrapper {
   width: 100%;
-  aspect-ratio: 16 / 10.5;
+  aspect-ratio: 16 / 9;
   max-height: calc(100vh - 100px);
-  max-width: min(100%, calc((100vh - 100px) * 16 / 10.5));
+  max-width: min(100%, calc((100vh - 100px) * 16 / 9));
   margin: 0 auto;
   border-radius: 14px;
   overflow: visible;
@@ -180,8 +180,8 @@
 
 .theatreEpisodeNavRow {
   width: 100%;
-  max-width: min(100%, calc((100vh - 100px) * 16 / 10.5));
-  margin: -0.25rem auto 0;
+  max-width: min(100%, calc((100vh - 100px) * 16 / 9));
+  margin: 0.35rem auto 0;
 }
 
 .exitTheatreBtn {
@@ -218,7 +218,7 @@
   align-items: center;
   width: 100%;
   gap: 0.75rem;
-  margin-top: -0.25rem;
+  margin-top: 0.35rem;
   position: relative;
   z-index: 10;
 }
