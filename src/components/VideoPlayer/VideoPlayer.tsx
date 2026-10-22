@@ -69,6 +69,10 @@ export default function VideoPlayer({
   // Buffer progress ahead
   const [bufferedPercent, setBufferedPercent] = useState<number>(0);
 
+  // Dynamic Ambient Lighting Mode & Canvas Ref
+  const [isAmbientMode, setIsAmbientMode] = useState<boolean>(true);
+  const ambientCanvasRef = useRef<HTMLCanvasElement>(null);
+
   // Settings Menu Popup State (Image 2)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [settingsView, setSettingsView] = useState<'main' | 'captions' | 'quality' | 'speed' | 'server'>('main');
@@ -1128,6 +1132,54 @@ export default function VideoPlayer({
   const cleanTitle = title
     ? title.replace(/^(Episode|Ep)\s*\d+[\s:\-]*\s*/i, '').trim()
     : '';
+  // Dynamic Ambient Lighting: Sample video frame to canvas at ~10-12fps
+  const drawAmbientFrame = () => {
+    if (!isAmbientMode || isFullscreen) return;
+    const video = videoRef.current;
+    const canvas = ambientCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d', { alpha: false, willReadFrequently: false });
+    if (!ctx) return;
+    try {
+      if (video && video.readyState >= 2) {
+        ctx.drawImage(video, 0, 0, 32, 18);
+      }
+    } catch {
+      // Ignore cross-origin error if video CDN doesn't provide CORS
+    }
+  };
+
+  useEffect(() => {
+    if (!isAmbientMode || isFullscreen) return;
+
+    // Draw initial frame if ready
+    drawAmbientFrame();
+
+    let animId: number;
+    let lastRender = 0;
+
+    const renderGlow = (now: number) => {
+      if (now - lastRender > 90) {
+        lastRender = now;
+        const video = videoRef.current;
+        const canvas = ambientCanvasRef.current;
+        if (video && canvas && video.readyState >= 2 && !video.paused && !video.ended) {
+          const ctx = canvas.getContext('2d', { alpha: false, willReadFrequently: false });
+          if (ctx) {
+            try {
+              ctx.drawImage(video, 0, 0, 32, 18);
+            } catch {
+              // Ignore cross-origin error if video CDN doesn't provide CORS
+            }
+          }
+        }
+      }
+      animId = requestAnimationFrame(renderGlow);
+    };
+
+    animId = requestAnimationFrame(renderGlow);
+    return () => cancelAnimationFrame(animId);
+  }, [isAmbientMode, isFullscreen, isPlaying]);
 
   return (
     <div
@@ -1137,19 +1189,35 @@ export default function VideoPlayer({
       onMouseLeave={() => isPlaying && !showShortcutsModal && setShowControls(false)}
       className={`${styles.playerContainer} ${isTheater ? styles.theaterMode : ''}`}
     >
-      <video
-        ref={videoRef}
-        src={currentVideoSrc}
-        onPlay={() => setHasStartedPlaying(true)}
-        onTimeUpdate={handleTimeUpdate}
-        onLoadedMetadata={handleLoadedMetadata}
-        onProgress={updateBufferedProgress}
-        onError={handleVideoError}
-        onEnded={handleVideoEnded}
-        className={styles.videoElement}
-        preload="metadata"
-        playsInline
-      >
+      {/* Dynamic Ambient Glow Behind Player (bleeds outside borders according to video) */}
+      {isAmbientMode && !isFullscreen && (
+        <canvas
+          ref={ambientCanvasRef}
+          className={styles.ambientGlowCanvas}
+          width={32}
+          height={18}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Inner Player Shell with 14px curvature & shadow */}
+      <div className={styles.playerShell}>
+        <video
+          ref={videoRef}
+          src={currentVideoSrc}
+          crossOrigin="anonymous"
+          onPlay={() => setHasStartedPlaying(true)}
+          onTimeUpdate={handleTimeUpdate}
+          onLoadedMetadata={handleLoadedMetadata}
+          onLoadedData={drawAmbientFrame}
+          onSeeked={drawAmbientFrame}
+          onProgress={updateBufferedProgress}
+          onError={handleVideoError}
+          onEnded={handleVideoEnded}
+          className={styles.videoElement}
+          preload="metadata"
+          playsInline
+        >
         {hasSubtitles && subtitleUrl && (
           <track
             kind="subtitles"
@@ -1624,11 +1692,11 @@ export default function VideoPlayer({
                         {/* Ambient Mode */}
                         <div 
                           className={styles.settingsMenuItem} 
-                          onClick={() => onToggleCinema?.()}
+                          onClick={() => setIsAmbientMode(prev => !prev)}
                         >
                           <span className={styles.settingsMenuLabel}>Ambient Mode</span>
                           <span className={styles.settingsMenuValue}>
-                            {isLightsOff ? 'On' : 'Off'}
+                            {isAmbientMode ? 'On' : 'Off'}
                           </span>
                         </div>
 
@@ -1802,6 +1870,7 @@ export default function VideoPlayer({
           </div>
 
         </div>
+      </div>
     </div>
   );
 }

@@ -2,12 +2,12 @@
   position: relative;
   width: 100%;
   height: 100%;
-  background: #000000;
+  background: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 8px;
-  overflow: hidden;
+  border-radius: 14px;
+  overflow: visible; /* Allows dynamic ambient light to bleed outside borders */
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent !important;
@@ -25,8 +25,39 @@
   outline: none !important;
 }
 
+/* Dynamic Ambient Glow Behind Player (bleeds outside borders according to video) */
+.ambientGlowCanvas {
+  position: absolute;
+  top: -5%;
+  left: -4%;
+  width: 108%;
+  height: 110%;
+  border-radius: 28px;
+  filter: blur(52px) saturate(1.8) brightness(1.2);
+  opacity: 0.85;
+  pointer-events: none;
+  z-index: 1;
+  transform: translateZ(0);
+  transition: opacity 0.4s ease;
+}
+
+/* Inner Player Shell with rounded corners & overflow clipping */
+.playerShell {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #000000;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(255, 255, 255, 0.09);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .theaterMode {
-  border-radius: 8px;
+  border-radius: 14px;
   box-shadow: none;
 }
 
@@ -52,11 +83,11 @@
   pointer-events: none;
 }
 
-/* Controls Overlay */
+/* Controls Overlay - Softened transparent scrim (no double blackening) */
 .controlsOverlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.85) 0%, transparent 40%, transparent 60%, rgba(0, 0, 0, 0.65) 100%);
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.42) 0%, transparent 22%);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -147,7 +178,7 @@
 /* Bottom Controls - Single Line Cinema Layout (Image 1 Specs) */
 .bottomControls {
   padding: 0.85rem 1.25rem 1.1rem;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.88) 0%, rgba(0, 0, 0, 0.45) 60%, transparent 100%);
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.58) 0%, rgba(0, 0, 0, 0.2) 50%, transparent 100%);
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
