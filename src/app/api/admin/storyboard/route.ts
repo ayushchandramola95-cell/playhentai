@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { verifyAdmin } from '@/utils/supabase/admin';
-import { getLocalCatalog } from '@/utils/localCatalogStore';
+import { getLocalCatalog, updateLocalEpisodeStoryboard } from '@/utils/localCatalogStore';
 import { processEpisodeStoryboard } from '@/utils/storyboardGenerator';
+import { deleteStoragePrefix } from '@/utils/s3Storage';
 
 /**
  * GET: Returns summary statistics and list of all episodes with their storyboard history.
@@ -87,5 +88,38 @@ export async function POST(request: Request) {
   } catch (err: any) {
     console.error('[StoryboardAPI] POST Error:', err);
     return NextResponse.json({ error: err.message || 'Generation failed' }, { status: 500 });
+  }
+}
+
+/**
+ * DELETE: Deletes storyboard sprite sheets and VTT from S3 and resets metadata in catalog.
+ */
+export async function DELETE(request: Request) {
+  try {
+    await verifyAdmin();
+    const { searchParams } = new URL(request.url);
+    const episodeId = searchParams.get('episodeId');
+
+    if (!episodeId) {
+      return NextResponse.json({ error: 'Missing episodeId parameter.' }, { status: 400 });
+    }
+
+    // Delete all storyboard assets from S3 Sydney
+    await deleteStoragePrefix(`storyboards/${episodeId}/`);
+
+    // Reset status in local catalog store and Supabase
+    await updateLocalEpisodeStoryboard(episodeId, {
+      status: 'missing',
+      updated_at: new Date().toISOString(),
+    });
+
+    return NextResponse.json({
+      success: true,
+      episodeId,
+      message: 'Storyboard successfully removed from S3 storage and catalog.',
+    });
+  } catch (err: any) {
+    console.error('[StoryboardAPI] DELETE Error:', err);
+    return NextResponse.json({ error: err.message || 'Deletion failed' }, { status: 500 });
   }
 }

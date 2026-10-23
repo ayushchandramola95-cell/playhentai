@@ -3483,8 +3483,13 @@ export default function AdminEpisodesPage() {
                                     )}
                                   </div>
 
-                                  {/* Episode Info */}
-                                  <div className={styles.episodeMetaBlock}>
+                                  {/* Episode Info - Clickable to open Fullscreen Episode Studio */}
+                                  <div 
+                                    className={styles.episodeMetaBlock}
+                                    onClick={() => setMetaModalEpisode(ep)}
+                                    title="Click to open Fullscreen Episode Studio"
+                                    style={{ cursor: 'pointer' }}
+                                  >
                                     <div className={styles.episodeTitleRow}>
                                       <span className={styles.episodeNumberPill}>
                                         {isOva ? `OVA ${ep.episode_number}` : `Ep ${ep.episode_number}`}
@@ -7712,6 +7717,7 @@ export default function AdminEpisodesPage() {
         episodeNumber={metaModalEpisode?.episode_number}
         seriesTitle={metaModalEpisode?.seasons?.series?.title}
         seasonTitle={metaModalEpisode?.seasons?.title}
+        onEpisodeUpdated={() => fetchInitialData()}
       />
 
       {/* Replace / Swap Video Stream Modal */}

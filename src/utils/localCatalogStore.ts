@@ -1041,6 +1041,40 @@ export async function resetLocalEpisodeQualities(episodeId: string, qualitiesDat
   return null;
 }
 
+/**
+ * Removes an individual rendition ('720p' or '480p') from an episode's video qualities in memory, on disk, and in Supabase.
+ */
+export async function removeLocalEpisodeQuality(episodeId: string, qualityKey: '720p' | '480p'): Promise<any> {
+  const catalog = await getLocalCatalog();
+  const episode = catalog.episodes.find((e: any) => e.id === episodeId);
 
+  if (episode) {
+    const q = { ...(episode.video_qualities || episode.raw_provider_payload?.video_qualities || {}) };
+    delete q[qualityKey];
+    q.updated_at = new Date().toISOString();
+    episode.video_qualities = q;
+    writeStoreToDisk(catalog);
 
+    (async () => {
+      try {
+        const supabase = getSupabaseClient();
+        const { data: row } = await supabase.from('episodes').select('raw_provider_payload').eq('id', episodeId).single();
+        const updatedPayload = { ...(row?.raw_provider_payload || {}) };
+        if (updatedPayload.video_qualities) {
+          const uq = { ...updatedPayload.video_qualities };
+          delete uq[qualityKey];
+          uq.updated_at = new Date().toISOString();
+          updatedPayload.video_qualities = uq;
+        }
+        await supabase.from('episodes').update({
+          raw_provider_payload: updatedPayload
+        }).eq('id', episodeId);
+      } catch (err: any) {
+        console.warn(`[VideoQualitiesSupabaseDelete] Failed to sync ${episodeId} delete to Supabase:`, err.message);
+      }
+    })().catch(() => {});
 
+    return episode;
+  }
+  return null;
+}

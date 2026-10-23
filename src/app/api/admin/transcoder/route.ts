@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { verifyAdmin } from '@/utils/supabase/admin';
-import { getLocalCatalog, resetLocalEpisodeQualities } from '@/utils/localCatalogStore';
+import { getLocalCatalog, resetLocalEpisodeQualities, removeLocalEpisodeQuality } from '@/utils/localCatalogStore';
 import { transcodeEpisode, probeEpisode } from '@/utils/videoTranscoder';
-import { deleteStoragePrefix } from '@/utils/s3Storage';
+import { deleteStoragePrefix, deleteStorageObject } from '@/utils/s3Storage';
 
 export const dynamic = 'force-dynamic';
 
@@ -224,11 +224,35 @@ export async function POST(request: Request) {
       });
     }
 
+    if (action === 'delete_rendition') {
+      const { quality } = body;
+      if (!quality || (quality !== '720p' && quality !== '480p')) {
+        return NextResponse.json({ error: 'Valid quality parameter ("720p" or "480p") is required.' }, { status: 400 });
+      }
+
+      // Delete object from S3 Sydney
+      const key = `videos/${episodeId}/${quality}.mp4`;
+      await deleteStorageObject(key);
+
+      // Remove rendition from catalog
+      await removeLocalEpisodeQuality(episodeId, quality);
+
+      return NextResponse.json({
+        success: true,
+        episodeId,
+        quality,
+        message: `Successfully deleted ${quality} rendition from AWS S3 & metadata.`,
+      });
+    }
+
     if (action === 'transcode_single') {
+      const generate720p = options.generate720p !== undefined ? Boolean(options.generate720p) : true;
+      const generate480p = options.generate480p !== undefined ? Boolean(options.generate480p) : true;
+
       const qualities = await transcodeEpisode(episodeId, {
         only1080p: options.only1080p !== false, // default true
-        generate720p: options.generate720p !== false,
-        generate480p: options.generate480p !== false,
+        generate720p,
+        generate480p,
         threads: options.threads || 4,
         crf720: options.crf720 || 22,
         crf480: options.crf480 || 24,

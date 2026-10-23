@@ -121,6 +121,17 @@ export async function GET(request: Request) {
       format: subtitleKey ? (subtitleKey.endsWith('.vtt') ? 'WebVTT (.vtt)' : subtitleKey.endsWith('.srt') ? 'SubRip (.srt)' : 'External Subtitle') : 'Burned-in Hardsubs (In-Video)',
     };
 
+    // 5.1 Build storyboard sheet URLs for visual gallery inspection
+    const sheetCount = sb?.sheet_count || 0;
+    const storyboardSheets: string[] = [];
+    if (sb?.status === 'completed' && sheetCount > 0) {
+      for (let i = 0; i < sheetCount; i++) {
+        const pad = String(i).padStart(2, '0');
+        const key = `storyboards/${episode.id}/sheet_${pad}.webp`;
+        storyboardSheets.push(getR2Url(key));
+      }
+    }
+
     const assembledMeta = {
       ...probe,
       videoKey: episode.video_key,
@@ -130,15 +141,23 @@ export async function GET(request: Request) {
       episode: {
         id: episode.id,
         title: episode.title,
+        description: episode.description || '',
+        release_date: episode.release_date || null,
         episode_number: episode.episode_number,
         duration_seconds: episode.duration_seconds,
         is_published: episode.is_published,
+        season_id: episode.season_id,
         season_title: season?.title || `Season ${season?.season_number || 1}`,
+        series_id: series?.id || null,
         series_title: series?.title || 'Unknown Series',
         series_slug: series?.slug || null,
+        thumbnail_options: episode.thumbnail_options || [],
       },
       renditions,
-      storyboard: storyboardInfo,
+      storyboard: {
+        ...storyboardInfo,
+        sheets: storyboardSheets,
+      },
       subtitles: subtitlesInfo,
     };
 
