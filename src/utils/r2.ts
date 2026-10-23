@@ -11,7 +11,7 @@ export function getR2Url(
 
   let cleanKey = key.trim();
 
-  // If the key is already a full external URL (e.g. AWS S3, CloudFront, Cloudflare R2, Unsplash, etc.)
+  // If the key is already a full external URL (e.g. AWS S3, CloudFront)
   if (cleanKey.startsWith('http://') || cleanKey.startsWith('https://')) {
     try {
       const parsed = new URL(cleanKey);
@@ -25,11 +25,11 @@ export function getR2Url(
     }
   }
 
-  // Support both AWS S3 CDN and Cloudflare R2 CDN endpoints
+  // AWS S3 + CloudFront CDN endpoint
   const baseUrl =
     process.env.NEXT_PUBLIC_S3_PUBLIC_URL ||
-    process.env.NEXT_PUBLIC_R2_PUBLIC_URL ||
-    'https://media.hentaikage.cc';
+    'https://dmfrlqgigpmty.cloudfront.net';
+
   const sanitizedBase = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
 
   if (cleanKey.includes('.r2.dev/')) {

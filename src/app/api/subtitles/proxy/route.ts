@@ -19,33 +19,13 @@ export async function GET(request: Request) {
 
     const decodedUrl = decodeURIComponent(targetUrl);
 
-    // CloudFront dmfrlqgigpmty.cloudfront.net returns 403 Forbidden for subtitles.
-    // Automatically route to confirmed working media host media.hentaikage.cc
     let fetchUrl = decodedUrl;
-    if (fetchUrl.includes('dmfrlqgigpmty.cloudfront.net')) {
-      fetchUrl = fetchUrl.replace('dmfrlqgigpmty.cloudfront.net', 'media.hentaikage.cc');
-    }
 
-    let res = await fetch(fetchUrl, {
+    const res = await fetch(fetchUrl, {
       headers: {
         'Accept': 'text/vtt, text/plain, */*',
       },
     });
-
-    // If initial upstream failed, attempt fallback to media.hentaikage.cc
-    if (!res.ok && !fetchUrl.includes('media.hentaikage.cc')) {
-      try {
-        const parsed = new URL(fetchUrl);
-        const fallbackUrl = `https://media.hentaikage.cc${parsed.pathname}`;
-        const fallbackRes = await fetch(fallbackUrl, {
-          headers: { 'Accept': 'text/vtt, text/plain, */*' },
-        });
-        if (fallbackRes.ok) {
-          res = fallbackRes;
-          fetchUrl = fallbackUrl;
-        }
-      } catch {}
-    }
 
     if (!res.ok) {
       return NextResponse.json(

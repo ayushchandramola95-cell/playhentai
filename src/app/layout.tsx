@@ -161,8 +161,8 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${geistSans.variable} ${lato.variable}`} suppressHydrationWarning>
       <head>
-        <link rel="preconnect" href="https://media.hentaikage.cc" crossOrigin="anonymous" />
-        <link rel="dns-prefetch" href="https://media.hentaikage.cc" />
+        <link rel="preconnect" href="https://dmfrlqgigpmty.cloudfront.net" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://dmfrlqgigpmty.cloudfront.net" />
         <link rel="preconnect" href="https://media.playhentai.live" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://media.playhentai.live" />
         <link rel="search" type="application/opensearchdescription+xml" href="/opensearch.xml" title="HentaiKage" />

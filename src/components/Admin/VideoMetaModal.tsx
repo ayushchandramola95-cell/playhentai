@@ -32,10 +32,47 @@ export default function VideoMetaModal({
 }: VideoMetaModalProps) {
   const [loading, setLoading] = useState<boolean>(true);
   const [reprobing, setReprobing] = useState<boolean>(false);
+  const [isTranscoding, setIsTranscoding] = useState<boolean>(false);
+  const [transcodeSuccess, setTranscodeSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [meta, setMeta] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<'specs' | 'renditions' | 'storyboard' | 'json'>('specs');
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+
+  const handleTranscodeSingle = async () => {
+    if (!episodeId) return;
+    setIsTranscoding(true);
+    setError(null);
+    setTranscodeSuccess(null);
+    try {
+      const res = await fetch('/api/admin/transcoder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'transcode_single',
+          episodeId,
+          options: {
+            only1080p: false,
+            generate720p: true,
+            generate480p: true,
+            threads: 4,
+            crf720: 22,
+            crf480: 24,
+          }
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to transcode episode into 720p and 480p renditions.');
+      }
+      setTranscodeSuccess('✓ Transcoding complete! 720p & 480p renditions generated & live on CDN.');
+      await fetchMeta(true);
+    } catch (err: any) {
+      setError(err.message || 'Error transcoding video stream.');
+    } finally {
+      setIsTranscoding(false);
+    }
+  };
 
   useEffect(() => {
     if (!isOpen || !episodeId) return;
@@ -478,15 +515,55 @@ export default function VideoMetaModal({
                         All resolutions available for seamless client switching during playback.
                       </p>
                     </div>
-                    <Link
-                      href="/admin/transcoder"
-                      className={styles.btnPrimary}
-                      style={{ fontSize: '0.76rem', padding: '0.35rem 0.75rem' }}
-                    >
-                      <Sliders size={12} />
-                      <span>Open Transcoder Studio</span>
-                    </Link>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
+                      <button
+                        type="button"
+                        onClick={handleTranscodeSingle}
+                        disabled={isTranscoding || loading}
+                        className={styles.btnPrimary}
+                        style={{
+                          fontSize: '0.76rem',
+                          padding: '0.35rem 0.75rem',
+                          background: isTranscoding ? '#6366f1' : 'linear-gradient(135deg, #a855f7 0%, #ec4899 100%)',
+                          border: 'none',
+                          color: '#ffffff',
+                          cursor: isTranscoding ? 'not-allowed' : 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.4rem',
+                        }}
+                      >
+                        {isTranscoding ? <RefreshCw size={12} className={styles.spinner} /> : <Zap size={12} />}
+                        <span>{isTranscoding ? 'Transcoding 720p & 480p...' : '⚡ Generate 720p & 480p Now'}</span>
+                      </button>
+                      <Link
+                        href="/admin/transcoder"
+                        className={styles.btnSecondary}
+                        style={{ fontSize: '0.76rem', padding: '0.35rem 0.75rem' }}
+                      >
+                        <Sliders size={12} />
+                        <span>Transcoder Studio</span>
+                      </Link>
+                    </div>
                   </div>
+
+                  {transcodeSuccess && (
+                    <div style={{
+                      padding: '0.65rem 1rem',
+                      background: 'rgba(16, 185, 129, 0.12)',
+                      border: '1px solid rgba(16, 185, 129, 0.3)',
+                      borderRadius: '8px',
+                      color: '#34d399',
+                      fontSize: '0.82rem',
+                      fontWeight: 700,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                    }}>
+                      <CheckCircle2 size={15} />
+                      <span>{transcodeSuccess}</span>
+                    </div>
+                  )}
 
                   <div className={styles.renditionGrid}>
                     {/* 1080p Master Card */}
@@ -574,14 +651,16 @@ export default function VideoMetaModal({
                                 </button>
                               </>
                             ) : (
-                              <Link
-                                href="/admin/transcoder"
+                              <button
+                                type="button"
+                                onClick={handleTranscodeSingle}
+                                disabled={isTranscoding}
                                 className={styles.btnRenditionAction}
-                                style={{ background: 'rgba(56, 189, 248, 0.12)', color: '#38bdf8' }}
+                                style={{ background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8', border: '1px solid rgba(56, 189, 248, 0.35)', cursor: isTranscoding ? 'not-allowed' : 'pointer' }}
                               >
-                                <Zap size={11} />
-                                <span>Generate in Transcoder</span>
-                              </Link>
+                                {isTranscoding ? <RefreshCw size={11} className={styles.spinner} /> : <Zap size={11} />}
+                                <span>{isTranscoding ? 'Encoding...' : '⚡ Generate 720p Now'}</span>
+                              </button>
                             )}
                           </div>
                         </div>
@@ -634,14 +713,16 @@ export default function VideoMetaModal({
                                 </button>
                               </>
                             ) : (
-                              <Link
-                                href="/admin/transcoder"
+                              <button
+                                type="button"
+                                onClick={handleTranscodeSingle}
+                                disabled={isTranscoding}
                                 className={styles.btnRenditionAction}
-                                style={{ background: 'rgba(245, 158, 11, 0.12)', color: '#fbbf24' }}
+                                style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#fbbf24', border: '1px solid rgba(245, 158, 11, 0.35)', cursor: isTranscoding ? 'not-allowed' : 'pointer' }}
                               >
-                                <Zap size={11} />
-                                <span>Generate in Transcoder</span>
-                              </Link>
+                                {isTranscoding ? <RefreshCw size={11} className={styles.spinner} /> : <Zap size={11} />}
+                                <span>{isTranscoding ? 'Encoding...' : '⚡ Generate 480p Now'}</span>
+                              </button>
                             )}
                           </div>
                         </div>
@@ -778,9 +859,26 @@ export default function VideoMetaModal({
               <span>Watch</span>
             </Link>
 
+            <button
+              type="button"
+              onClick={handleTranscodeSingle}
+              disabled={isTranscoding || loading}
+              className={styles.btnPrimary}
+              style={{
+                background: isTranscoding ? '#6366f1' : 'linear-gradient(135deg, #a855f7 0%, #ec4899 100%)',
+                border: 'none',
+                color: '#fff',
+                cursor: isTranscoding ? 'not-allowed' : 'pointer'
+              }}
+              title="Transcode this single video into 720p and 480p renditions"
+            >
+              {isTranscoding ? <RefreshCw size={13} className={styles.spinner} /> : <Zap size={13} />}
+              <span>{isTranscoding ? 'Transcoding...' : '⚡ Transcode (720p/480p)'}</span>
+            </button>
+
             <Link
               href="/admin/transcoder"
-              className={styles.btnPrimary}
+              className={styles.btnSecondary}
             >
               <Sliders size={13} />
               <span>Transcoder Studio</span>

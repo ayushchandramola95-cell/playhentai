@@ -22,9 +22,9 @@ export interface StorageClientConfig {
  */
 export function getStorageClient(): StorageClientConfig {
   const publicUrl =
-    process.env.NEXT_PUBLIC_R2_PUBLIC_URL ||
     process.env.NEXT_PUBLIC_S3_PUBLIC_URL ||
-    'https://media.hentaikage.cc';
+    process.env.NEXT_PUBLIC_R2_PUBLIC_URL ||
+    'https://dmfrlqgigpmty.cloudfront.net';
 
   const awsBucket =
     process.env.AWS_S3_BUCKET_NAME ||
@@ -35,41 +35,25 @@ export function getStorageClient(): StorageClientConfig {
   const awsKey = process.env.AWS_ACCESS_KEY_ID || process.env.CLOUDFLARE_R2_ACCESS_KEY_ID;
   const awsSecret = process.env.AWS_SECRET_ACCESS_KEY || process.env.CLOUDFLARE_R2_SECRET_ACCESS_KEY;
 
-  // 1. If explicit AWS S3 is requested or configured
-  const preferS3 =
-    process.env.STORAGE_PROVIDER === 's3' ||
-    process.env.USE_S3 === 'true' ||
-    Boolean(process.env.AWS_S3_BUCKET_NAME && process.env.AWS_ACCESS_KEY_ID);
+  // 1. Standard AWS S3 Client
+  if (awsKey && awsSecret) {
+    const s3Config: any = {
+      region: awsRegion,
+      credentials: {
+        accessKeyId: awsKey,
+        secretAccessKey: awsSecret,
+      },
+    };
+    // Only use custom endpoint if explicitly configured for S3 compatible endpoints
+    if (process.env.AWS_S3_ENDPOINT) {
+      s3Config.endpoint = process.env.AWS_S3_ENDPOINT;
+    }
 
-  if (preferS3 && awsKey && awsSecret) {
     return {
-      s3: new S3Client({
-        region: awsRegion,
-        credentials: {
-          accessKeyId: awsKey,
-          secretAccessKey: awsSecret,
-        },
-      }),
+      s3: new S3Client(s3Config),
       bucket: awsBucket,
       publicUrl,
       provider: 'aws-s3',
-    };
-  }
-
-  // 2. Check if explicit Cloudflare R2 endpoint is specified
-  if (process.env.CLOUDFLARE_R2_ENDPOINT && process.env.CLOUDFLARE_R2_BUCKET_NAME) {
-    return {
-      s3: new S3Client({
-        region: 'auto',
-        endpoint: process.env.CLOUDFLARE_R2_ENDPOINT,
-        credentials: {
-          accessKeyId: process.env.CLOUDFLARE_R2_ACCESS_KEY_ID || awsKey || '',
-          secretAccessKey: process.env.CLOUDFLARE_R2_SECRET_ACCESS_KEY || awsSecret || '',
-        },
-      }),
-      bucket: process.env.CLOUDFLARE_R2_BUCKET_NAME,
-      publicUrl,
-      provider: 'cloudflare-r2',
     };
   }
 

@@ -746,23 +746,17 @@ export default function WatchPageClient({
               subtitleUrl={(() => {
                 const directUrl = activeEpisode.subtitle_url || activeEpisode.subtitles?.en?.url || activeEpisode.raw_provider_payload?.subtitles?.en?.url;
                 if (directUrl && typeof directUrl === 'string' && directUrl.trim() !== '') {
-                  let u = directUrl.trim();
-                  if (u.includes('dmfrlqgigpmty.cloudfront.net')) {
-                    u = u.replace('dmfrlqgigpmty.cloudfront.net', 'media.hentaikage.cc');
-                  }
-                  return u;
+                  return directUrl.trim();
                 }
                 const rawKey = activeEpisode.subtitle_key || activeEpisode.raw_provider_payload?.subtitle_key || activeEpisode.subtitles?.en?.key || activeEpisode.raw_provider_payload?.subtitles?.en?.key;
                 if (rawKey && typeof rawKey === 'string' && rawKey.trim() !== '') {
-                  let clean = rawKey.trim();
-                  if (clean.includes('dmfrlqgigpmty.cloudfront.net')) {
-                    clean = clean.replace('dmfrlqgigpmty.cloudfront.net', 'media.hentaikage.cc');
-                  }
+                  const clean = rawKey.trim();
                   if (clean.startsWith('http://') || clean.startsWith('https://')) {
                     return clean;
                   }
                   const rawPath = clean.startsWith('/') ? clean.slice(1) : clean;
-                  return `https://media.hentaikage.cc/${rawPath}`;
+                  const cdnBase = process.env.NEXT_PUBLIC_S3_PUBLIC_URL || 'https://dmfrlqgigpmty.cloudfront.net';
+                  return `${cdnBase.replace(/\/$/, '')}/${rawPath}`;
                 }
                 return null;
               })()}

@@ -267,9 +267,6 @@ export default function VideoPlayer({
     let isMounted = true;
     const fetchSubtitles = async () => {
       let resolvedSubUrl = subtitleUrl;
-      if (resolvedSubUrl.includes('dmfrlqgigpmty.cloudfront.net')) {
-        resolvedSubUrl = resolvedSubUrl.replace('dmfrlqgigpmty.cloudfront.net', 'media.hentaikage.cc');
-      }
 
       // Always try via proxy first (bypasses browser cross-origin CORS blocking and converts ASS/SSA/SRT to WebVTT)
       try {
@@ -429,18 +426,7 @@ export default function VideoPlayer({
         setIsPlaying(true);
       }).catch((err) => {
         console.error('Playback error:', err);
-        if (currentVideoSrc && currentVideoSrc.includes('dmfrlqgigpmty.cloudfront.net')) {
-          const fallback = currentVideoSrc.replace('dmfrlqgigpmty.cloudfront.net', 'media.hentaikage.cc');
-          console.log('[VideoPlayer] Retrying with media.hentaikage.cc:', fallback);
-          setCurrentVideoSrc(fallback);
-          setTimeout(() => {
-            if (videoRef.current) {
-              videoRef.current.play().then(() => setIsPlaying(true)).catch(() => {});
-            }
-          }, 300);
-        } else {
-          handleVideoError();
-        }
+        handleVideoError();
       });
     }
   };
@@ -709,20 +695,6 @@ export default function VideoPlayer({
     const video = videoRef.current;
     const mediaErr = video?.error;
     console.warn('[VideoPlayer] Video error encountered:', mediaErr?.code, mediaErr?.message, currentVideoSrc);
-
-    // If currently using CloudFront and it fails (e.g. 403 Forbidden), automatically fallback to media.hentaikage.cc
-    if (currentVideoSrc && currentVideoSrc.includes('dmfrlqgigpmty.cloudfront.net')) {
-      const fallbackUrl = currentVideoSrc.replace('dmfrlqgigpmty.cloudfront.net', 'media.hentaikage.cc');
-      console.log('[VideoPlayer] Seamlessly falling back to media.hentaikage.cc:', fallbackUrl);
-      setCurrentVideoSrc(fallbackUrl);
-      setPlaybackError(null);
-      setTimeout(() => {
-        if (videoRef.current) {
-          videoRef.current.load();
-        }
-      }, 50);
-      return;
-    }
 
     // If current quality failed (e.g. unplayable container or codec), try fallback to next quality (e.g. 720p or 480p)
     const currentQualityIndex = availableQualities.findIndex((q) => q.keyName === selectedQuality);
@@ -1234,11 +1206,7 @@ export default function VideoPlayer({
         {hasSubtitles && subtitleUrl && (
           <track
             kind="subtitles"
-            src={`/api/subtitles/proxy?url=${encodeURIComponent(
-              subtitleUrl.includes('dmfrlqgigpmty.cloudfront.net')
-                ? subtitleUrl.replace('dmfrlqgigpmty.cloudfront.net', 'media.hentaikage.cc')
-                : subtitleUrl
-            )}`}
+            src={`/api/subtitles/proxy?url=${encodeURIComponent(subtitleUrl)}`}
             srcLang="en"
             label="English"
             default={false}
@@ -1273,9 +1241,7 @@ export default function VideoPlayer({
             onClick={(e) => {
               e.stopPropagation();
               setPlaybackError(null);
-              if (currentVideoSrc && currentVideoSrc.includes('dmfrlqgigpmty.cloudfront.net')) {
-                setCurrentVideoSrc(currentVideoSrc.replace('dmfrlqgigpmty.cloudfront.net', 'media.hentaikage.cc'));
-              } else if (videoRef.current) {
+              if (videoRef.current) {
                 videoRef.current.load();
                 videoRef.current.play().catch(() => {});
               }
