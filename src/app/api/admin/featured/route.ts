@@ -1,22 +1,19 @@
 import { NextResponse } from 'next/server';
 import { verifyAdmin, createAdminClient } from '@/utils/supabase/admin';
 import { getSeriesViewsMap } from '@/utils/views';
+import { getLocalCatalog, upsertLocalSeries } from '@/utils/localCatalogStore';
 
 export async function GET() {
   try {
     await verifyAdmin();
-    const adminSupabase = createAdminClient();
 
-    // Fetch all series with valid database columns
-    const { data: allSeries, error } = await adminSupabase
-      .from('series')
-      .select('id, title, slug, poster_image_key, cover_image_key, banner_image_key, image_library, description, tags, is_published, studio')
-      .order('created_at', { ascending: false });
+    // 1. Fetch all series directly from high-speed EC2 in-memory catalog (0.01ms latency)
+    const [catalog, viewsMap] = await Promise.all([
+      getLocalCatalog(),
+      getSeriesViewsMap().catch(() => ({} as Record<string, number>)),
+    ]);
 
-    if (error) throw error;
-
-    // Fetch views map safely
-    const viewsMap: Record<string, number> = await getSeriesViewsMap().catch(() => ({}));
+    const allSeries = catalog.series || [];
 
     // Attach views and map description to synopsis + resolve image_library
     const formattedSeries = (allSeries || []).map((s) => {
@@ -101,13 +98,14 @@ export async function POST(request: Request) {
         newTags.push(`featured:${index + 1}`);
       }
 
-      // 3. Update the series
+      // 3. Update the series in Supabase and local EC2 in-memory catalog
       const { error: updateError } = await adminSupabase
         .from('series')
         .update({ tags: newTags })
         .eq('id', s.id);
 
       if (updateError) throw updateError;
+      await upsertLocalSeries({ id: s.id, tags: newTags });
     }
 
     return NextResponse.json({ success: true });

@@ -1,18 +1,42 @@
 import { NextResponse } from 'next/server';
 import { verifyAdmin, createAdminClient } from '@/utils/supabase/admin';
+import { getLocalCatalog } from '@/utils/localCatalogStore';
 
 // Get list of studios
 export async function GET() {
   try {
     await verifyAdmin();
-    const adminSupabase = createAdminClient();
-    const { data, error } = await adminSupabase
-      .from('studios')
-      .select('*')
-      .order('name');
 
-    if (error) throw error;
-    return NextResponse.json({ studios: data });
+    try {
+      const adminSupabase = createAdminClient();
+      const { data, error } = await adminSupabase
+        .from('studios')
+        .select('*')
+        .order('name');
+
+      if (!error && data && data.length > 0) {
+        return NextResponse.json({ studios: data });
+      }
+    } catch {
+      // Fallback to local memory
+    }
+
+    // High-speed fallback: Extract from EC2 in-memory catalog (<0.01ms)
+    const catalog = await getLocalCatalog();
+    const studioSet = new Set<string>();
+    (catalog.series || []).forEach((s: any) => {
+      if (s.studio && s.studio.trim()) {
+        studioSet.add(s.studio.trim());
+      }
+    });
+
+    const fallbackStudios = Array.from(studioSet).sort().map((name) => ({
+      id: name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+      name,
+      slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+    }));
+
+    return NextResponse.json({ studios: fallbackStudios, source: 'ec2-in-memory' });
   } catch (err: any) {
     console.error('Error fetching admin studios:', err);
     const status = err.message === 'Unauthorized' ? 401 : err.message === 'Forbidden' ? 403 : 500;

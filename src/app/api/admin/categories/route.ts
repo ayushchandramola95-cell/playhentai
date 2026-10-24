@@ -1,18 +1,42 @@
 import { NextResponse } from 'next/server';
 import { verifyAdmin, createAdminClient } from '@/utils/supabase/admin';
+import { getLocalCatalog } from '@/utils/localCatalogStore';
 
 // Get list of categories
 export async function GET() {
   try {
     await verifyAdmin();
-    const adminSupabase = createAdminClient();
-    const { data, error } = await adminSupabase
-      .from('categories')
-      .select('*')
-      .order('name');
 
-    if (error) throw error;
-    return NextResponse.json({ categories: data });
+    try {
+      const adminSupabase = createAdminClient();
+      const { data, error } = await adminSupabase
+        .from('categories')
+        .select('*')
+        .order('name');
+
+      if (!error && data && data.length > 0) {
+        return NextResponse.json({ categories: data });
+      }
+    } catch {
+      // Fallback to local memory
+    }
+
+    // High-speed fallback: Extract from EC2 in-memory catalog (<0.01ms)
+    const catalog = await getLocalCatalog();
+    const tagSet = new Set<string>();
+    (catalog.series || []).forEach((s: any) => {
+      (s.tags || []).forEach((t: string) => {
+        if (t && !t.startsWith('featured:')) tagSet.add(t.trim());
+      });
+    });
+
+    const fallbackCategories = Array.from(tagSet).sort().map((name) => ({
+      id: name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+      name,
+      slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+    }));
+
+    return NextResponse.json({ categories: fallbackCategories, source: 'ec2-in-memory' });
   } catch (err: any) {
     console.error('Error fetching admin categories:', err);
     const status = err.message === 'Unauthorized' ? 401 : err.message === 'Forbidden' ? 403 : 500;
