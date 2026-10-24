@@ -173,6 +173,33 @@
   background: rgba(236, 72, 153, 0.5);
 }
 
+.navSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin-bottom: 0.65rem;
+}
+
+.navSectionTitle {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.5rem 0.85rem 0.25rem;
+  user-select: none;
+}
+
+.sidebarCollapsed .navSectionTitle {
+  display: none;
+}
+
+.sidebarCollapsed .navSection {
+  margin-bottom: 0.4rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding-bottom: 0.4rem;
+}
+
 .navItem {
   display: flex;
   align-items: center;
