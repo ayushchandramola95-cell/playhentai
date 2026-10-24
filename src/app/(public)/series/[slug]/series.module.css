@@ -56,13 +56,20 @@
   margin-bottom: 1.5rem;
   font-size: 0.85rem;
   color: var(--text-muted, #94a3b8);
-  flex-wrap: wrap;
+  white-space: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.breadcrumbs::-webkit-scrollbar {
+  display: none;
 }
 
 .breadcrumbs a {
   color: var(--text-muted, #94a3b8);
   text-decoration: none;
   transition: color 0.2s ease;
+  flex-shrink: 0;
 }
 
 .breadcrumbs a:hover {
@@ -71,6 +78,7 @@
 
 .crumbDivider {
   color: rgba(255, 255, 255, 0.25);
+  flex-shrink: 0;
 }
 
 .breadcrumbActive {
@@ -80,6 +88,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 /* Main Layout Grid */
@@ -405,10 +414,6 @@
   mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 50%, rgba(0, 0, 0, 0) 100%);
 }
 
-.synopsisFadeOverlay {
-  display: none;
-}
-
 .readMoreToggleBtn {
   align-self: flex-start;
   display: inline-flex;
@@ -556,12 +561,40 @@
   margin: 0;
 }
 
+.aboutCollapsed {
+  max-height: 220px;
+  overflow: hidden;
+  position: relative;
+}
+
 .aboutFadeOverlay {
-  display: none;
+  display: block;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 50px;
+  background: linear-gradient(to bottom, transparent, var(--surface, #121722));
+  pointer-events: none;
 }
 
 .aboutReadMoreBtn {
-  display: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: none;
+  border: none;
+  color: #a855f7;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0.65rem 0 0 0;
+  margin-top: 0.25rem;
+  transition: color 0.15s ease;
+}
+
+.aboutReadMoreBtn:hover {
+  color: #ec4899;
 }
 
 /* Frequently Asked Questions */
@@ -913,19 +946,17 @@
     height: 11px;
   }
 
-  /* Dynamic Watch CTA (Row 2 on Mobile) - Full width wrapper */
+  /* Dynamic Watch CTA (Mobile) - Full width auto-flow */
   .dynamicWatchCtaWrap {
     grid-column: 1 / -1;
-    grid-row: 2;
     width: 100%;
     margin-top: 0.15rem;
     margin-bottom: 0;
   }
 
-  /* Action Buttons Toolbar (Row 3 on Mobile) - 3 Equal Compact Buttons */
+  /* Action Buttons Toolbar (Mobile) - 3 Equal Compact Buttons */
   .posterActionGroup {
     grid-column: 1 / -1;
-    grid-row: 3;
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
     gap: 0.35rem;
@@ -954,10 +985,9 @@
     white-space: nowrap !important;
   }
 
-  /* Single-row Sliding Genre Tags (Row 4 on Mobile) */
+  /* Single-row Sliding Genre Tags (Mobile) */
   .discoveryTagsRow {
     grid-column: 1 / -1;
-    grid-row: 4;
     display: flex !important;
     flex-wrap: nowrap !important;
     overflow-x: auto !important;
@@ -984,10 +1014,9 @@
     border: 1px solid rgba(255, 255, 255, 0.08) !important;
   }
 
-  /* Synopsis Box (Row 5 on Mobile) */
+  /* Synopsis Box (Mobile) */
   .synopsisBox {
     grid-column: 1 / -1;
-    grid-row: 5;
     width: 100%;
     padding: 0.75rem 0.85rem;
     border-radius: 8px;
@@ -1052,8 +1081,8 @@
     margin-bottom: 0.65rem;
   }
 
-  .aboutCollapsedMobile {
-    max-height: 110px;
+  .aboutCollapsed {
+    max-height: 120px;
     overflow: hidden;
   }
 

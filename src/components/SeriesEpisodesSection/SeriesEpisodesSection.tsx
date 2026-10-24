@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { getR2Url } from '@/utils/r2';
 import { getEpisodeWatchUrl } from '@/utils/episodeUrl';
+import { getClientWatchHistory } from '@/utils/watchHistoryClient';
 import styles from './SeriesEpisodesSection.module.css';
 
 export interface EpisodeItem {
@@ -96,49 +97,34 @@ export default function SeriesEpisodesSection({
     Record<string, { percentage: number; completed: boolean }>
   >({});
 
-  // Load Watch Progress from local / API
+  // Load Watch Progress from deduplicated client history provider
   useEffect(() => {
+    let isMounted = true;
     const loadProgress = async () => {
       try {
-        const res = await fetch('/api/watch-history');
-        if (res.ok) {
-          const data = await res.json();
-          if (Array.isArray(data.history)) {
-            const map: Record<string, { percentage: number; completed: boolean }> = {};
-            data.history.forEach((item: any) => {
-              if (item.episode_id) {
-                map[item.episode_id] = {
-                  percentage: item.watched_percentage || 0,
-                  completed: item.completed || (item.watched_percentage && item.watched_percentage >= 90),
-                };
-              }
-            });
-            setWatchProgressMap(map);
-          }
+        const historyList = await getClientWatchHistory();
+        if (isMounted && Array.isArray(historyList)) {
+          const map: Record<string, { percentage: number; completed: boolean }> = {};
+          historyList.forEach((item: any) => {
+            const epId = item.episode_id || item.episodeId;
+            if (epId) {
+              map[epId] = {
+                percentage: item.watched_percentage || item.percentage || 0,
+                completed: item.completed || (item.watched_percentage && item.watched_percentage >= 90) || (item.percentage && item.percentage >= 90) || false,
+              };
+            }
+          });
+          setWatchProgressMap(map);
         }
       } catch (err) {
-        // Guest fallback: check local storage if available
-        try {
-          const localHistory = JSON.parse(localStorage.getItem('hentaikage_guest_history') || '[]');
-          if (Array.isArray(localHistory)) {
-            const map: Record<string, { percentage: number; completed: boolean }> = {};
-            localHistory.forEach((item: any) => {
-              if (item.episodeId) {
-                map[item.episodeId] = {
-                  percentage: item.percentage || 0,
-                  completed: item.completed || false,
-                };
-              }
-            });
-            setWatchProgressMap(map);
-          }
-        } catch {
-          // ignore
-        }
+        console.error('Error loading watch progress:', err);
       }
     };
 
     loadProgress();
+    return () => {
+      isMounted = false;
+    };
   }, [seriesSlug]);
 
   // Current active season object

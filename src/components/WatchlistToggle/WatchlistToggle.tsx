@@ -15,8 +15,16 @@ export default function WatchlistToggle({ seriesId, variant = 'default' }: Watch
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   
-  const [inWatchlist, setInWatchlist] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [inWatchlist, setInWatchlist] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      const cached = JSON.parse(localStorage.getItem('user_watchlist') || '[]');
+      return Array.isArray(cached) && cached.includes(seriesId);
+    } catch {
+      return false;
+    }
+  });
+  const [loading, setLoading] = useState(false);
   const [toggling, setToggling] = useState(false);
 
   useEffect(() => {
@@ -27,21 +35,33 @@ export default function WatchlistToggle({ seriesId, variant = 'default' }: Watch
       return;
     }
 
+    let isMounted = true;
     const checkStatus = async () => {
       try {
-        const res = await fetch(`/api/watchlist?series_id=${seriesId}`);
-        if (res.ok) {
+        const res = await fetch(`/api/watchlist?series_id=${encodeURIComponent(seriesId)}`);
+        if (res.ok && isMounted) {
           const data = await res.json();
-          setInWatchlist(data.inWatchlist);
+          setInWatchlist(Boolean(data.inWatchlist));
+          try {
+            const cached: string[] = JSON.parse(localStorage.getItem('user_watchlist') || '[]');
+            if (data.inWatchlist && !cached.includes(seriesId)) {
+              localStorage.setItem('user_watchlist', JSON.stringify([...cached, seriesId]));
+            } else if (!data.inWatchlist && cached.includes(seriesId)) {
+              localStorage.setItem('user_watchlist', JSON.stringify(cached.filter(id => id !== seriesId)));
+            }
+          } catch {}
         }
       } catch (err) {
         console.error('Error fetching watchlist status:', err);
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
 
     checkStatus();
+    return () => {
+      isMounted = false;
+    };
   }, [seriesId, user, authLoading]);
 
   const handleToggle = async () => {
@@ -61,6 +81,14 @@ export default function WatchlistToggle({ seriesId, variant = 'default' }: Watch
       if (res.ok) {
         const data = await res.json();
         setInWatchlist(data.inWatchlist);
+        try {
+          const cached: string[] = JSON.parse(localStorage.getItem('user_watchlist') || '[]');
+          if (data.inWatchlist && !cached.includes(seriesId)) {
+            localStorage.setItem('user_watchlist', JSON.stringify([...cached, seriesId]));
+          } else if (!data.inWatchlist && cached.includes(seriesId)) {
+            localStorage.setItem('user_watchlist', JSON.stringify(cached.filter(id => id !== seriesId)));
+          }
+        } catch {}
       }
     } catch (err) {
       console.error('Error toggling watchlist:', err);
@@ -68,15 +96,6 @@ export default function WatchlistToggle({ seriesId, variant = 'default' }: Watch
       setToggling(false);
     }
   };
-
-  if (loading || authLoading) {
-    return (
-      <button className={styles.watchlistBtn} disabled>
-        <div className={styles.loadingSpinner} />
-        <span>Loading...</span>
-      </button>
-    );
-  }
 
   return (
     <button 

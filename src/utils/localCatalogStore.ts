@@ -244,6 +244,31 @@ export async function upsertLocalSeries(seriesItem: any) {
   writeStoreToDisk(catalog);
 }
 
+export async function submitLocalSeriesRating(seriesId: string, ratingScore: number): Promise<{ newRating: number; newVoteCount: number } | null> {
+  const catalog = await getLocalCatalog();
+  const series = catalog.series.find(s => s.id === seriesId);
+  if (!series) return null;
+
+  const currentRating = typeof series.rating === 'number' && series.rating > 0 ? series.rating : ratingScore;
+  const currentVotes = typeof series.vote_count === 'number' && series.vote_count > 0 ? series.vote_count : 1;
+  const newVotes = currentVotes + 1;
+  const newRating = Number(((currentRating * currentVotes + ratingScore) / newVotes).toFixed(1));
+
+  series.rating = newRating;
+  series.vote_count = newVotes;
+  catalog.lastSyncedAt = new Date().toISOString();
+  writeStoreToDisk(catalog);
+
+  // Background update Supabase if configured
+  try {
+    const supabase = getSupabaseClient();
+    supabase.from('series').update({ rating: newRating, vote_count: newVotes }).eq('id', seriesId).then(() => {}).catch(() => {});
+  } catch {}
+
+  return { newRating, newVoteCount: newVotes };
+}
+
+
 export async function deleteLocalSeries(seriesId: string) {
   const catalog = await getLocalCatalog();
   catalog.series = catalog.series.filter(s => s.id !== seriesId);

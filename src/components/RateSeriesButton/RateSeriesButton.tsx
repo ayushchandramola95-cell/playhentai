@@ -60,7 +60,15 @@ export default function RateSeriesButton({
 
   const handleRate = async (score: number) => {
     setSubmitting(true);
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    try {
+      await fetch('/api/series/rate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ seriesId, rating: score }),
+      });
+    } catch (err) {
+      console.warn('Rating background sync failed, saved locally:', err);
+    }
     localStorage.setItem(`rate-${seriesId}`, score.toString());
     setSavedRating(score);
     setSubmitting(false);

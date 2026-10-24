@@ -35,13 +35,16 @@ export default function AboutSectionBox({
   const hasContent = sections.length > 0 || Boolean(aboutTextLegacy && aboutTextLegacy.trim());
   if (!hasContent) return null;
 
+  const totalLength = sections.reduce((acc, s) => acc + s.content.length, 0) || aboutTextLegacy.length;
+  const isLong = sections.length > 1 || totalLength > 320;
+
   return (
     <section className={styles.aboutSection}>
       <div className={`${styles.aboutCard} glass`}>
         <h2 className={styles.aboutHeading}>About {title}</h2>
 
         <div className={styles.aboutContentWrap}>
-          <div className={`${styles.aboutSectionsList} ${!expanded ? styles.aboutCollapsedMobile : ''}`}>
+          <div className={`${styles.aboutSectionsList} ${isLong && !expanded ? styles.aboutCollapsed : ''}`}>
             {sections.length > 0 ? (
               sections.map((sec) => (
                 <div key={sec.key} className={styles.aboutSectionItem}>
@@ -54,18 +57,20 @@ export default function AboutSectionBox({
             )}
           </div>
 
-          {!expanded && <div className={styles.aboutFadeOverlay} />}
+          {isLong && !expanded && <div className={styles.aboutFadeOverlay} />}
         </div>
 
-        <button
-          type="button"
-          onClick={() => setExpanded(!expanded)}
-          className={styles.aboutReadMoreBtn}
-          aria-expanded={expanded}
-        >
-          <span>{expanded ? 'Show less' : 'Read more details'}</span>
-          {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-        </button>
+        {isLong && (
+          <button
+            type="button"
+            onClick={() => setExpanded(!expanded)}
+            className={styles.aboutReadMoreBtn}
+            aria-expanded={expanded}
+          >
+            <span>{expanded ? 'Show less' : 'Read more details'}</span>
+            {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+          </button>
+        )}
       </div>
     </section>
   );

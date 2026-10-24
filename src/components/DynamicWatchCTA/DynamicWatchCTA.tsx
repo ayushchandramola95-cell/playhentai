@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { Play, RotateCcw } from 'lucide-react';
 import { getEpisodeWatchUrl } from '@/utils/episodeUrl';
+import { getClientWatchHistory } from '@/utils/watchHistoryClient';
 import styles from './DynamicWatchCTA.module.css';
 
 interface EpisodeItem {
@@ -73,42 +74,11 @@ export default function DynamicWatchCTA({
   });
 
   useEffect(() => {
+    let isMounted = true;
     const evaluateWatchStatus = async () => {
       try {
-        let historyList: any[] = [];
-
-        // 1. Fetch from backend API
-        const res = await fetch('/api/watch-history');
-        if (res.ok) {
-          const data = await res.json();
-          if (Array.isArray(data.history)) {
-            historyList = data.history;
-          }
-        }
-
-        // 2. Fallback to localStorage guest history
-        if (historyList.length === 0) {
-          try {
-            const localHist = JSON.parse(
-              localStorage.getItem('hentaikage_guest_history') ||
-                localStorage.getItem('user_history') ||
-                '[]'
-            );
-            if (Array.isArray(localHist)) {
-              historyList = localHist.map((h) => ({
-                episode_id: h.episode_id || h.episodeId || h.id,
-                last_position_seconds: h.last_position_seconds || h.position || 0,
-                duration_seconds: h.duration_seconds || h.duration || 1440,
-                watched_percentage: h.watched_percentage || h.percentage || 0,
-                completed: h.completed || (h.percentage && h.percentage >= 90) || false,
-              }));
-            }
-          } catch {
-            // ignore
-          }
-        }
-
-        if (allEpisodes.length === 0 || historyList.length === 0) {
+        const historyList = await getClientWatchHistory();
+        if (!isMounted || allEpisodes.length === 0 || !Array.isArray(historyList) || historyList.length === 0) {
           return;
         }
 
@@ -186,6 +156,9 @@ export default function DynamicWatchCTA({
     };
 
     evaluateWatchStatus();
+    return () => {
+      isMounted = false;
+    };
   }, [allEpisodes, firstEp, seriesSlug]);
 
   const targetWatchUrl = getEpisodeWatchUrl(

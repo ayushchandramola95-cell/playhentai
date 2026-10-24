@@ -24,7 +24,6 @@ export default function SynopsisBox({ description }: SynopsisBoxProps) {
         >
           {text || 'No detailed description available.'}
         </p>
-        {!expanded && isLong && <div className={styles.synopsisFadeOverlay} />}
       </div>
 
       {isLong && (

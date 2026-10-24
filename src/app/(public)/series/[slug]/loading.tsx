@@ -16,11 +16,13 @@ export default function SeriesLoading() {
             <div className={styles.seriesActionBtnSkeleton} />
             <div className={styles.seriesActionBtnSkeleton} />
           </div>
+          <div style={{ marginTop: '0.45rem', width: '100%', height: '36px', borderRadius: '8px', background: 'rgba(255,255,255,0.06)' }} />
         </div>
 
-        {/* Right Column: Title, Metadata, Badges & Synopsis */}
+        {/* Right Column: Title, Metadata, Badges, CTA, Tags & Synopsis */}
         <div className={styles.seriesInfoCol}>
           <div className={styles.badgeRow}>
+            <div className={styles.badgeSkeleton} />
             <div className={styles.badgeSkeleton} />
             <div className={styles.badgeSkeleton} />
           </div>
@@ -29,21 +31,22 @@ export default function SeriesLoading() {
           <div className={styles.subtitleSkeleton} />
           <div className={styles.ratingRowSkeleton} />
 
-          {/* Synopsis Skeleton Lines */}
-          <div className={styles.synopsisSkeleton}>
-            <div className={styles.textLineLong} />
-            <div className={styles.textLineLong} />
-            <div className={styles.textLineMed} />
-            <div className={styles.textLineShort} />
-          </div>
+          {/* Primary CTA Skeleton (Matches DynamicWatchCTA) */}
+          <div style={{ height: '48px', width: '100%', maxWidth: '360px', borderRadius: '10px', background: 'rgba(255,255,255,0.07)', margin: '0.65rem 0' }} />
 
-          {/* Tag Pills Skeleton */}
+          {/* Tag Pills Skeleton (Placed above Synopsis matching real page) */}
           <div className={styles.tagsRowSkeleton}>
             <div className={styles.tagPillSkeleton} />
             <div className={styles.tagPillSkeleton} />
             <div className={styles.tagPillSkeleton} />
             <div className={styles.tagPillSkeleton} />
-            <div className={styles.tagPillSkeleton} />
+          </div>
+
+          {/* Synopsis Skeleton Lines */}
+          <div className={styles.synopsisSkeleton}>
+            <div className={styles.textLineLong} />
+            <div className={styles.textLineLong} />
+            <div className={styles.textLineMed} />
           </div>
         </div>
       </div>
