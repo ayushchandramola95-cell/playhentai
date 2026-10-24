@@ -1,11 +1,33 @@
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { createClient } from './server';
 
+import { getCurrentUserFromCookies } from '../authStore';
+
 /**
  * Verifies that the current request session belongs to an administrator.
- * Returns the supabase client instance and user details if authorized, or throws an error.
+ * Checks fast local EC2 self-hosted session first (<0.02ms), falling back to Supabase.
  */
 export async function verifyAdmin() {
+  // 1. Fast local self-hosted EC2 auth check
+  try {
+    const localUser = await getCurrentUserFromCookies();
+    if (localUser && localUser.role === 'admin' && !localUser.banned) {
+      const supabase = await createClient();
+      return {
+        supabase,
+        user: {
+          id: localUser.id,
+          email: localUser.email,
+          user_metadata: { username: localUser.username, role: localUser.role },
+          role: localUser.role,
+        } as any,
+      };
+    }
+  } catch (err) {
+    // Continue to Supabase fallback
+  }
+
+  // 2. Fallback to Supabase
   const supabase = await createClient();
 
   const { data: { user }, error: authError } = await supabase.auth.getUser();

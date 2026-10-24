@@ -5,6 +5,7 @@ import { getSeriesViewsMap } from '@/utils/views';
 import { resolveSeriesMetrics, resolveEpisodeMetrics } from '@/utils/fakeMetricsStore';
 import { MOCK_SERIES, MOCK_SERIES_DETAILS } from '@/utils/mockData';
 import { tagToSlug } from '@/utils/constants';
+import { triggerDebouncedCatalogBackup, restoreCatalogFromS3 } from './s3DatabaseBackup';
 
 const DATA_DIR = path.join(process.cwd(), 'src', 'data');
 const STORE_FILE = path.join(DATA_DIR, 'local_catalog.json');
@@ -39,6 +40,8 @@ function writeStoreToDisk(data: LocalCatalogData) {
     const tempFile = `${STORE_FILE}.tmp.${Date.now()}`;
     fs.writeFileSync(tempFile, JSON.stringify(data, null, 2), 'utf-8');
     fs.renameSync(tempFile, STORE_FILE);
+    // Automatically trigger debounced S3 Sydney backup
+    triggerDebouncedCatalogBackup();
   } catch (err) {
     console.error('Error writing local catalog store to disk:', err);
   }
@@ -196,6 +199,17 @@ export async function getLocalCatalog(): Promise<LocalCatalogData> {
       );
     }
     return memoryCatalog;
+  }
+
+  // Cold-boot S3 Restore Fallback: If local disk and memory are empty, restore from AWS S3 Sydney
+  try {
+    const s3Data = await restoreCatalogFromS3();
+    if (s3Data && Array.isArray(s3Data.series) && s3Data.series.length > 0) {
+      memoryCatalog = s3Data as LocalCatalogData;
+      return memoryCatalog;
+    }
+  } catch (err: any) {
+    console.warn('[LocalStore] S3 cold-boot restore check skipped:', err.message);
   }
 
   return await syncLocalCatalogWithSupabase();

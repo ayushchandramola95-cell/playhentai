@@ -3,8 +3,8 @@
     "ph_702s9689_1792614438478": {
       "sessionId": "ph_702s9689_1792614438478",
       "firstSeen": 1792614441720,
-      "lastSeen": 1792692516102,
-      "durationSeconds": 15308,
+      "lastSeen": 1792771382558,
+      "durationSeconds": 85647,
       "pageViews": 3,
       "maxScrollDepth": 100,
       "device": "desktop",
@@ -115,12 +115,33 @@
       "browser": "Chrome",
       "os": "Windows",
       "referrer": "http://localhost:3004/watch/todo-no-tsumari-episode-1"
+    },
+    "ph_omxfo2l1_1792783854824": {
+      "sessionId": "ph_omxfo2l1_1792783854824",
+      "firstSeen": 1792783855439,
+      "lastSeen": 1792785319582,
+      "durationSeconds": 99,
+      "pageViews": 3,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": false,
+      "visitedRoutes": [
+        "/login",
+        "/",
+        "/debug"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Chrome",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/login?redirectTo=/admin"
     }
   },
   "routeVisits": {
-    "/": 590,
+    "/": 604,
     "/series/imaizumin-chi-wa-douyara-gal-no-tamariba-ni-natteru-rashii": 2,
-    "/login": 145,
+    "/login": 227,
     "/series/reginetta-san-no-bouken": 14,
     "/watch/reginetta-san-no-bouken-episode-1": 10,
     "/watch/inaka-ni-wa-kore-kurai-shika-goraku-ga-nai-episode-1": 10,
@@ -136,23 +157,24 @@
     "/series/cyberpunk-odyssey": 28,
     "/watch/overflow-ep-1": 2,
     "/series/todo-no-tsumari": 2,
-    "/watch/todo-no-tsumari-episode-1": 308
+    "/watch/todo-no-tsumari-episode-1": 311,
+    "/debug": 2
   },
   "scrollCounts": {
-    "depth25": 168,
-    "depth50": 124,
-    "depth75": 114,
-    "depth100": 100
+    "depth25": 171,
+    "depth50": 127,
+    "depth75": 117,
+    "depth100": 103
   },
   "deviceCounts": {
-    "desktop": 71,
+    "desktop": 72,
     "mobile": 0,
     "tablet": 0
   },
   "adBlockCounts": {
     "blocked": 0,
-    "notBlocked": 71
+    "notBlocked": 72
   },
   "totalWatchEvents": 3,
-  "lastCleaned": 1792678691196
+  "lastCleaned": 1792771382411
 }

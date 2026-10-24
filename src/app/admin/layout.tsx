@@ -12,20 +12,41 @@ export const metadata = {
   },
 };
 
+import { getCurrentUserFromCookies } from '@/utils/authStore';
+
 export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // 1. Fast local self-hosted EC2 session check (<0.02ms)
+  try {
+    const localUser = await getCurrentUserFromCookies();
+    if (localUser && localUser.role === 'admin' && !localUser.banned) {
+      const username = localUser.username || localUser.email.split('@')[0] || 'Admin';
+      return (
+        <div className={styles.adminLayout}>
+          <AdminSidebar username={username} />
+          <main className={styles.mainContent}>
+            <div className={styles.contentBody}>
+              {children}
+            </div>
+          </main>
+        </div>
+      );
+    }
+  } catch (err) {
+    // Proceed to Supabase fallback
+  }
+
+  // 2. Fallback to Supabase authentication
   const supabase = await createClient();
   
-  // 1. Get authenticated user session
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) {
     redirect('/login?redirectTo=/admin');
   }
 
-  // 2. Fetch custom user profile role
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
     .select('role, username')

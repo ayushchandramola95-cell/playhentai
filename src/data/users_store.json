@@ -1,0 +1,13 @@
+[
+  {
+    "id": "66abdbfa-e142-48cf-9704-349c4d394d02",
+    "email": "ayushchandramola95@gmail.com",
+    "username": "AdminAyush",
+    "passwordHash": "8d4c5dd4639b4e2929ef18e68769373a9c638b4cf7449ab164035958cb8de0ad07107d897b14d86b3fc4d962ff1eb3503256157b0406ec92344bb190faaa2b73",
+    "salt": "8cc834d00c0a997936e3466b3c4541a7",
+    "role": "admin",
+    "banned": false,
+    "createdAt": "2026-10-24T14:57:40.398Z",
+    "updatedAt": "2026-10-24T14:57:40.399Z"
+  }
+]

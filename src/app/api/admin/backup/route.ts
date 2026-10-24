@@ -1,6 +1,14 @@
 import { NextResponse } from 'next/server';
 import { getLocalCatalog } from '@/utils/localCatalogStore';
-import { createAdminClient } from '@/utils/supabase/admin';
+import { createAdminClient, verifyAdmin } from '@/utils/supabase/admin';
+import {
+  backupCatalogToS3,
+  restoreCatalogFromS3,
+  backupUsersToS3,
+  restoreUsersFromS3,
+  listS3Backups,
+} from '@/utils/s3DatabaseBackup';
+import { getLocalUsers } from '@/utils/authStore';
 
 export const dynamic = 'force-dynamic';
 
@@ -8,6 +16,13 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const exportType = searchParams.get('type') || 'json';
+
+    // Fast check for S3 backups list
+    if (exportType === 's3_list') {
+      await verifyAdmin();
+      const backups = await listS3Backups();
+      return NextResponse.json({ success: true, backups });
+    }
 
     const catalog = await getLocalCatalog();
     const seriesList = catalog.series || [];
@@ -30,6 +45,7 @@ export async function GET(request: Request) {
 
     // Case 1: Lightweight Metadata Stats
     if (exportType === 'stats') {
+      const users = await getLocalUsers();
       const approxSizeBytes = JSON.stringify({ seriesList, seasonsList, episodesList }).length;
       return NextResponse.json({
         success: true,
@@ -39,6 +55,7 @@ export async function GET(request: Request) {
         episodesCount: episodesList.length,
         collectionsCount: collectionsList.length,
         settingsCount: settingsList.length,
+        usersCount: users.length,
         approxSizeBytes,
         approxSizeFormatted: `${(approxSizeBytes / (1024 * 1024)).toFixed(2)} MB`,
       });
@@ -149,5 +166,52 @@ export async function GET(request: Request) {
       { success: false, error: 'Database backup export failed', details: err?.message },
       { status: 500 }
     );
+  }
+}
+
+export async function POST(request: Request) {
+  try {
+    await verifyAdmin();
+    const body = await request.json();
+    const { action } = body;
+
+    if (action === 'backup_all_to_s3') {
+      const [catalogRes, usersRes] = await Promise.all([
+        backupCatalogToS3(),
+        backupUsersToS3(),
+      ]);
+
+      return NextResponse.json({
+        success: true,
+        message: `Catalog (${catalogRes.sizeMb} MB) and Users (${usersRes.count} users) backed up to AWS S3 Sydney.`,
+        catalog: catalogRes,
+        users: usersRes,
+      });
+    }
+
+    if (action === 'restore_all_from_s3') {
+      const [restoredCatalog, restoredUsers] = await Promise.all([
+        restoreCatalogFromS3(),
+        restoreUsersFromS3(),
+      ]);
+
+      return NextResponse.json({
+        success: true,
+        message: 'Cold-boot restore completed from AWS S3 Sydney.',
+        seriesCount: restoredCatalog?.series?.length || 0,
+        episodesCount: restoredCatalog?.episodes?.length || 0,
+        usersCount: Array.isArray(restoredUsers) ? restoredUsers.length : (restoredUsers?.users?.length || 0),
+      });
+    }
+
+    if (action === 'list_s3_backups') {
+      const backups = await listS3Backups();
+      return NextResponse.json({ success: true, backups });
+    }
+
+    return NextResponse.json({ error: 'Unknown action' }, { status: 400 });
+  } catch (err: any) {
+    const status = err.message === 'Unauthorized' ? 401 : err.message === 'Forbidden' ? 403 : 500;
+    return NextResponse.json({ error: err.message || 'Operation failed' }, { status });
   }
 }
