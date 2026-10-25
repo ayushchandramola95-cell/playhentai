@@ -62,44 +62,47 @@ export function getR2Url(
 function getFallbackUrl(type: string): string {
   let width = 300;
   let height = 450;
-  let text = 'No Image';
+  let label = 'POSTER PREVIEW';
 
   switch (type) {
     case 'cover':
       width = 640;
       height = 360;
-      text = 'Cover Placeholder';
+      label = 'COVER PREVIEW';
       break;
     case 'banner':
       width = 1200;
       height = 400;
-      text = 'Banner Placeholder';
+      label = 'BANNER PREVIEW';
       break;
     case 'thumbnail':
       width = 480;
       height = 270;
-      text = 'Episode Preview';
+      label = 'EPISODE PREVIEW';
       break;
     case 'video':
       return '';
     case 'avatar':
-      width = 100;
-      height = 100;
-      return `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 100 100" fill="%231e293b"><circle cx="50" cy="40" r="20" fill="%2394a3b8"/><path d="M20,80 C20,60 30,55 50,55 C70,55 80,60 80,80 Z" fill="%2394a3b8"/><rect width="100" height="100" fill="none" stroke="%23334155" stroke-width="4"/></svg>`;
+      return `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100" fill="%231a1a1a"><circle cx="50" cy="40" r="22" fill="%232e2e2e"/><path d="M16,84 C16,62 30,56 50,56 C70,56 84,62 84,84 Z" fill="%232e2e2e"/><rect width="100" height="100" fill="none" stroke="%232e2e2e" stroke-width="2"/></svg>`;
   }
 
-  // Create an elegant SVG placeholder representing the missing layout aspect ratios
+  // Clean, minimalist flat design card (pure matte, no gradients, no glowing effects, no cyberpunk mesh)
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
-    <rect width="100%" height="100%" fill="%230f172a" />
-    <rect x="2" y="2" width="calc(100% - 4px)" height="calc(100% - 4px)" fill="none" stroke="%231e293b" stroke-width="2" rx="8" />
-    <defs>
-      <radialGradient id="grad" cx="50%" cy="50%" r="50%">
-        <stop offset="0%" stop-color="%231e293b" stop-opacity="1" />
-        <stop offset="100%" stop-color="%230f172a" stop-opacity="1" />
-      </radialGradient>
-    </defs>
-    <rect x="4" y="4" width="calc(100% - 8px)" height="calc(100% - 8px)" fill="url(%23grad)" rx="6" />
-    <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="16" font-weight="bold" fill="%2364748b">${text}</text>
+    <!-- Flat Solid Background -->
+    <rect width="100%" height="100%" fill="%23141414" />
+    <rect x="0" y="0" width="${width}" height="${height}" fill="none" stroke="%23242424" stroke-width="2" />
+
+    <!-- Center Icon Box -->
+    <g transform="translate(${Math.round(width / 2)}, ${Math.round(height / 2 - 20)})">
+      <rect x="-24" y="-24" width="48" height="48" rx="8" fill="%231f1f1f" stroke="%232e2e2e" stroke-width="1.5" />
+      <!-- Minimalist TV / Film Play Icon -->
+      <rect x="-12" y="-8" width="24" height="17" rx="3" fill="none" stroke="%23888888" stroke-width="1.75" />
+      <polygon points="-3,-3 6,0.5 -3,4" fill="%23888888" />
+    </g>
+
+    <!-- Clean Flat Typography -->
+    <text x="50%" y="${Math.round(height / 2 + 26)}" dominant-baseline="middle" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="700" letter-spacing="1.5" fill="%23d4d4d4">HENTAIKAGE</text>
+    <text x="50%" y="${Math.round(height / 2 + 44)}" dominant-baseline="middle" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="500" letter-spacing="0.5" fill="%23737373">${label}</text>
   </svg>`;
 
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;

@@ -157,9 +157,8 @@
   position: absolute;
   top: 8px;
   right: 8px;
-  background: rgba(15, 23, 42, 0.8);
-  backdrop-filter: blur(6px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #0f172a;
+  border: 1px solid #1e293b;
   color: #eab308;
   font-size: 0.65rem;
   font-weight: 800;
@@ -182,8 +181,7 @@
   bottom: 0;
   left: 0;
   right: 0;
-  background: rgba(99, 102, 241, 0.85); /* Solid translucent Indigo/Purple */
-  backdrop-filter: blur(4px);
+  background: #4f46e5;
   padding: 0.45rem 0.6rem;
   text-align: center;
   z-index: 5;
@@ -276,7 +274,8 @@
   transition: opacity 0.2s ease, visibility 0.2s ease;
   display: flex;
   gap: 0.85rem;
-  backdrop-filter: blur(8px);
+  background: #11141c;
+  border: 1px solid #1f2533;
 }
 
 .episodeCard:hover .popover {

@@ -1,26 +1,5 @@
 {
   "sessions": {
-    "ph_702s9689_1792614438478": {
-      "sessionId": "ph_702s9689_1792614438478",
-      "firstSeen": 1792614441720,
-      "lastSeen": 1792771382558,
-      "durationSeconds": 85647,
-      "pageViews": 3,
-      "maxScrollDepth": 100,
-      "device": "desktop",
-      "hasAdBlocker": false,
-      "hasWatchedVideo": true,
-      "visitedRoutes": [
-        "/",
-        "/series/todo-no-tsumari",
-        "/watch/todo-no-tsumari-episode-1"
-      ],
-      "country": "IN",
-      "region": "Asia & Pacific",
-      "browser": "Chrome",
-      "os": "Windows",
-      "referrer": "http://localhost:3004/"
-    },
     "ph_omxfo2l1_1792783854824": {
       "sessionId": "ph_omxfo2l1_1792783854824",
       "firstSeen": 1792783855439,
@@ -45,10 +24,10 @@
     "ph_a5m8dicr_1792926895857": {
       "sessionId": "ph_a5m8dicr_1792926895857",
       "firstSeen": 1792926896273,
-      "lastSeen": 1792943690210,
-      "durationSeconds": 16020,
-      "pageViews": 4,
-      "maxScrollDepth": 0,
+      "lastSeen": 1792948693093,
+      "durationSeconds": 16905,
+      "pageViews": 22,
+      "maxScrollDepth": 25,
       "device": "desktop",
       "hasAdBlocker": false,
       "hasWatchedVideo": true,
@@ -56,7 +35,47 @@
         "/",
         "/search",
         "/favorites",
-        "/watch/overflow-episode-1"
+        "/watch/overflow-episode-1",
+        "/upcoming",
+        "/ongoing",
+        "/completed",
+        "/recent/series",
+        "/studios",
+        "/playlists",
+        "/recent/episodes",
+        "/categories",
+        "/genres",
+        "/random",
+        "/faq",
+        "/studios/bunny-walker",
+        "/playlists/uncensored-legends",
+        "/watchlist",
+        "/history",
+        "/settings",
+        "/terms",
+        "/genres/vanilla"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Chrome",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/"
+    },
+    "ph_fkfu8s9a_1792948968006": {
+      "sessionId": "ph_fkfu8s9a_1792948968006",
+      "firstSeen": 1792948968438,
+      "lastSeen": 1792949242087,
+      "durationSeconds": 188,
+      "pageViews": 4,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": true,
+      "visitedRoutes": [
+        "/",
+        "/upcoming",
+        "/playlists/uncensored-legends",
+        "/watchlist"
       ],
       "country": "IN",
       "region": "Asia & Pacific",
@@ -66,7 +85,7 @@
     }
   },
   "routeVisits": {
-    "/": 615,
+    "/": 619,
     "/series/imaizumin-chi-wa-douyara-gal-no-tamariba-ni-natteru-rashii": 2,
     "/login": 227,
     "/series/reginetta-san-no-bouken": 14,
@@ -74,12 +93,12 @@
     "/watch/inaka-ni-wa-kore-kurai-shika-goraku-ga-nai-episode-1": 10,
     "/watch/oujo-onna-kishi-w-dogehin-roshutsu-chijoku-no-misemono-dorei-episode-1": 3,
     "/series/oushun-jogakuen-no-danyuu": 5,
-    "/genres": 3,
-    "/studios": 4,
+    "/genres": 5,
+    "/studios": 8,
     "/uncensored": 5,
     "/watch/mock-ep-1": 8,
     "/watch/oushun-jogakuen-no-danyuu-episode-1": 477,
-    "/faq": 2,
+    "/faq": 8,
     "/nonexistent-404-test": 2,
     "/series/cyberpunk-odyssey": 28,
     "/watch/overflow-ep-1": 2,
@@ -87,24 +106,39 @@
     "/watch/todo-no-tsumari-episode-1": 311,
     "/debug": 2,
     "/search": 5,
-    "/favorites": 13,
-    "/watch/overflow-episode-1": 357
+    "/favorites": 17,
+    "/watch/overflow-episode-1": 377,
+    "/upcoming": 5,
+    "/ongoing": 3,
+    "/completed": 3,
+    "/recent/series": 7,
+    "/playlists": 19,
+    "/recent/episodes": 5,
+    "/categories": 5,
+    "/random": 7,
+    "/studios/bunny-walker": 4,
+    "/playlists/uncensored-legends": 43,
+    "/watchlist": 10,
+    "/history": 2,
+    "/settings": 6,
+    "/terms": 20,
+    "/genres/vanilla": 4
   },
   "scrollCounts": {
-    "depth25": 171,
+    "depth25": 173,
     "depth50": 127,
     "depth75": 117,
     "depth100": 103
   },
   "deviceCounts": {
-    "desktop": 73,
+    "desktop": 74,
     "mobile": 0,
     "tablet": 0
   },
   "adBlockCounts": {
     "blocked": 0,
-    "notBlocked": 73
+    "notBlocked": 74
   },
-  "totalWatchEvents": 4,
-  "lastCleaned": 1792926896273
+  "totalWatchEvents": 5,
+  "lastCleaned": 1792948500004
 }

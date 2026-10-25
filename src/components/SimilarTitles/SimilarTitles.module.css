@@ -110,9 +110,8 @@
   top: calc(50% - 14px);
   transform: translateY(-50%);
   z-index: 20;
-  background: rgba(13, 18, 31, 0.85);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: #11141c;
+  border: 1px solid #222938;
   color: #ffffff;
   width: 40px;
   height: 40px;

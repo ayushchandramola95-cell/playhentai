@@ -15,12 +15,12 @@
   --accent-rgb: 245, 158, 11;
   
   --border: #e2e8f0;
-  --border-glow: rgba(124, 58, 237, 0.1);
-  --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.05), 0 4px 6px -4px rgb(0 0 0 / 0.05);
-  --glass-bg: rgba(255, 255, 255, 0.7);
-  --glass-border: rgba(226, 232, 240, 0.6);
-  --glow-opacity: 0.04;
+  --border-glow: transparent;
+  --shadow: 0 2px 4px rgb(0 0 0 / 0.05);
+  --shadow-lg: 0 4px 8px rgb(0 0 0 / 0.05);
+  --glass-bg: #ffffff;
+  --glass-border: #e2e8f0;
+  --glow-opacity: 0;
 
   /* Hero Section Variables (Universal Dark style) */
   --hero-title-color: #ffffff;
@@ -29,8 +29,8 @@
   --hero-btn-bg: #7c3aed;
   --hero-btn-color: #ffffff;
   --hero-btn-hover-bg: #6d28d9;
-  --hero-watchlist-bg: rgba(255, 255, 255, 0.12);
-  --hero-watchlist-border: rgba(255, 255, 255, 0.25);
+  --hero-watchlist-bg: #1e1e1e;
+  --hero-watchlist-border: #333333;
   --hero-watchlist-color: #ffffff;
   --hero-bg-color: #080808;
   --hero-bg-rgb-raw: 8, 8, 8;
@@ -65,12 +65,12 @@
   --accent-rgb: 245, 158, 11;
   
   --border: #1f1f1f;
-  --border-glow: rgba(124, 58, 237, 0.14);
-  --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.5), 0 2px 4px -2px rgb(0 0 0 / 0.5);
-  --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.7), 0 8px 10px -6px rgb(0 0 0 / 0.7);
-  --glass-bg: rgba(17, 17, 17, 0.82);
-  --glass-border: rgba(31, 31, 31, 0.7);
-  --glow-opacity: 0.09;
+  --border-glow: transparent;
+  --shadow: 0 2px 6px rgb(0 0 0 / 0.4);
+  --shadow-lg: 0 8px 16px rgb(0 0 0 / 0.6);
+  --glass-bg: #111111;
+  --glass-border: #1f1f1f;
+  --glow-opacity: 0;
 
   /* Hero Section Variables */
   --hero-title-color: #ffffff;
@@ -79,8 +79,8 @@
   --hero-btn-bg: #7c3aed;
   --hero-btn-color: #ffffff;
   --hero-btn-hover-bg: #6d28d9;
-  --hero-watchlist-bg: rgba(255, 255, 255, 0.08);
-  --hero-watchlist-border: rgba(255, 255, 255, 0.18);
+  --hero-watchlist-bg: #1e1e1e;
+  --hero-watchlist-border: #333333;
   --hero-watchlist-color: #ffffff;
   --hero-bg-color: #080808;
   --hero-bg-rgb-raw: 8, 8, 8;
@@ -91,10 +91,14 @@
 }
 
 /* Base Reset & Configuration */
-* {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   padding: 0;
   margin: 0;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
 * {
@@ -149,29 +153,30 @@ body {
   display: none !important;
 }
 
-/* Glassmorphism / Surface Class Utilities (Refined to Deep Matte) */
+/* Flat Surface Utility (Pure Flat Matte, No Glassmorphism, No Glow) */
 .glass {
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
 }
 
-/* Interactive Card Hover Effect (Smooth Whole-Card Float) */
+/* Interactive Card Hover Effect (Clean Flat Accent) */
 .card-hover {
-  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, box-shadow 0.28s ease;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
   will-change: transform;
 }
 
 .card-hover:hover {
-  transform: translateY(-6px);
-  border-color: rgba(255, 255, 255, 0.22) !important;
-  box-shadow: 
-    0 14px 28px -4px rgba(0, 0, 0, 0.8),
-    0 0 0 1px rgba(255, 255, 255, 0.08) !important;
+  transform: translateY(-4px);
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5) !important;
   z-index: 15;
 }
 
 .card-hover:active {
-  transform: translateY(-2px);
+  transform: translateY(-1px);
   opacity: 0.95;
 }
 

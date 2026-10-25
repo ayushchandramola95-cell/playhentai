@@ -564,12 +564,7 @@
     gap: 2.5rem;
   }
   .sidebar {
-    position: static;
-    order: -1;
-    background: #11141f;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 12px;
-    padding: 1.25rem;
+    display: none;
   }
   .pageTitle {
     font-size: 2rem;

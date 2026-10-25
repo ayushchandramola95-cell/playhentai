@@ -312,7 +312,6 @@
   padding: 0.15rem 0.45rem;
   border-radius: 4px;
   z-index: 3;
-  backdrop-filter: blur(4px);
 }
 
 .clockIcon {
@@ -391,7 +390,6 @@
   font-weight: 700;
   padding: 0.15rem 0.45rem;
   border-radius: 4px;
-  backdrop-filter: blur(4px);
   z-index: 3;
 }
 

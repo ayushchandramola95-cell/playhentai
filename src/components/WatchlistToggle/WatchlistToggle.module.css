@@ -47,10 +47,9 @@
 }
 
 .heroVariant {
-  background: var(--hero-watchlist-bg);
-  border-color: var(--hero-watchlist-border);
-  color: var(--hero-watchlist-color);
-  backdrop-filter: blur(8px);
+  background: #1c1c1c;
+  border-color: #333333;
+  color: #ffffff;
   width: auto;
   padding: 0.75rem 1.5rem;
   border-radius: 9px;

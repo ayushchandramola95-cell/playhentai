@@ -84,10 +84,8 @@
   position: absolute;
   top: 8px;
   right: 8px;
-  background: rgba(10, 14, 22, 0.82);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.88);
+  border: 1px solid #2a2a2a;
   color: #ffffff;
   font-size: 0.72rem;
   font-weight: 700;
@@ -196,9 +194,8 @@
   pointer-events: none;
   padding: 1rem;
   transition: opacity 0.2s ease, visibility 0.2s ease;
-  display: flex;
-  gap: 0.85rem;
-  backdrop-filter: blur(12px);
+  background: #11141c;
+  border: 1px solid #222938;
 }
 
 /* Hide series detail hover popover on Mobile & Touch Devices */

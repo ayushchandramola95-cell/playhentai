@@ -4,13 +4,11 @@
   gap: 0.95rem;
   padding: 0.65rem 0.85rem;
   border-radius: 14px;
-  background: rgba(18, 14, 30, 0.65);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #141720;
+  border: 1px solid #1f2533;
   text-decoration: none !important;
   color: inherit;
-  transition: transform 0.22s cubic-bezier(0.25, 0.8, 0.25, 1), border-color 0.2s ease, background 0.2s ease, box-shadow 0.22s ease;
+  transition: transform 0.22s cubic-bezier(0.25, 0.8, 0.25, 1), border-color 0.2s ease, background 0.2s ease;
   position: relative;
   overflow: hidden;
   min-width: 0;
@@ -18,9 +16,9 @@
 
 .compactCard:hover {
   transform: translateY(-2px);
-  background: rgba(26, 20, 44, 0.85);
-  border-color: rgba(124, 58, 237, 0.45);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45), 0 0 16px rgba(124, 58, 237, 0.15);
+  background: #191e2b;
+  border-color: #2e384d;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 .posterWrapper {

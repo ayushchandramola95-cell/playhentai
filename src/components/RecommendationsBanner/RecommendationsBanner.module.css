@@ -12,10 +12,8 @@
   padding: 2.5rem;
   border-radius: 20px;
   margin-top: 4.5rem;
-  background: rgba(18, 23, 34, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: #121722;
+  border: 1px solid #1f283a;
 }
 
 .recIconWrapper {
