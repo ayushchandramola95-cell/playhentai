@@ -1,6 +1,4 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabase/server';
-import { createAdminClient } from '@/utils/supabase/admin';
 import {
   createLocalUser,
   createSessionToken,
@@ -40,34 +38,7 @@ export async function POST(request: Request) {
       role: 'user',
     });
 
-    // 3. Mirror to Supabase if configured (non-blocking fallback)
-    try {
-      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://hentaikage.cc';
-      const redirectTo = `${siteUrl}/api/auth/callback`;
-      const supabase = await createClient();
-      const { data } = await supabase.auth.signUp({
-        email: cleanEmail,
-        password,
-        options: {
-          emailRedirectTo: redirectTo,
-          data: { username: cleanUsername },
-        },
-      });
-
-      if (data?.user) {
-        const adminSupabase = createAdminClient();
-        await adminSupabase.from('profiles').upsert({
-          id: data.user.id,
-          username: cleanUsername,
-          role: 'user',
-          updated_at: new Date().toISOString(),
-        });
-      }
-    } catch (err: any) {
-      console.warn('[Signup] Supabase mirroring non-fatal warning:', err.message);
-    }
-
-    // 4. Issue local EC2 session token
+    // 3. Issue local EC2 session token
     const token = createSessionToken(localUser);
     const response = NextResponse.json({
       success: true,

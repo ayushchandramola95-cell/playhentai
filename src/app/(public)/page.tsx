@@ -1,12 +1,10 @@
 import React from 'react';
+import ReactDOM from 'react-dom';
 import Link from 'next/link';
 import Image from 'next/image';
-import fs from 'fs';
-import path from 'path';
 import { getSiteSettings } from '@/utils/siteSettings';
-import { Play, Star, Eye, Calendar, Sparkles, Award, Clock, Flame, ChevronRight } from 'lucide-react';
+import { Play, Star, Eye, Sparkles, Flame, ChevronRight } from 'lucide-react';
 import { unstable_cache } from 'next/cache';
-import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import HeroCarousel from '@/components/HeroCarousel/HeroCarousel';
 import SeriesCard, { SeriesItem } from '@/components/SeriesCard/SeriesCard';
 import HorizontalScrollRow from '@/components/HorizontalScrollRow/HorizontalScrollRow';
@@ -17,7 +15,7 @@ import JsonLd from '@/components/JsonLd/JsonLd';
 import RecommendationsBanner from '@/components/RecommendationsBanner/RecommendationsBanner';
 import PwaInstallBanner from '@/components/PwaInstallBanner/PwaInstallBanner';
 import styles from './page.module.css';
-import { MOCK_SERIES, MOCK_EPISODES, MOCK_SERIES_DETAILS } from '@/utils/mockData';
+import { MOCK_SERIES, MOCK_EPISODES } from '@/utils/mockData';
 import { getR2Url } from '@/utils/r2';
 import { getEpisodeWatchUrl } from '@/utils/episodeUrl';
 import { getSeriesViewsMap, getEpisodeViewsMap } from '@/utils/views';
@@ -42,10 +40,6 @@ const FEATURED_STUDIOS = [
 ];
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://hentaikage.cc';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ybtbdtgtryrxrhuchlkw.supabase.co';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_HLX-SCL51o2H254WH-gN0Q_HPpNwKo5';
-const publicSupabaseClient = createSupabaseClient(supabaseUrl, supabaseAnonKey);
 
 const HOME_DESCRIPTION = 'Watch free hentai anime online in 1080p HD with English subtitles. Stream uncensored episodes, 3D releases, and trending series on mobile & desktop without ads.';
 
@@ -82,10 +76,11 @@ export const metadata = {
 
 import { getLocalCatalog } from '@/utils/localCatalogStore';
 
-// Local Catalog Query with Zero Egress and Sub-Millisecond Speed
-const getCachedCatalogData = async () => {
-  try {
-    const catalog = await getLocalCatalog();
+// Local Catalog Query with 120s Next.js Data Cache, Zero Egress, and Sub-Millisecond Speed
+const getCachedCatalogData = unstable_cache(
+  async () => {
+    try {
+      const catalog = await getLocalCatalog();
       const viewsMap: Record<string, number> = await getSeriesViewsMap().catch(() => ({}));
       const episodeViewsMap: Record<string, number> = await getEpisodeViewsMap().catch(() => ({}));
 
@@ -178,7 +173,10 @@ const getCachedCatalogData = async () => {
       console.error('Error fetching catalog data from local store:', err);
       return { dbSeries: [], dbEpisodes: [], isDbEmpty: true };
     }
-  };
+  },
+  ['homepage-catalog-cache-v1'],
+  { revalidate: 120, tags: ['catalog', 'homepage'] }
+);
 
 function getLocalSettings(): Record<string, string> {
   const defaultSettings: Record<string, string> = { 
@@ -248,16 +246,8 @@ function toCleanSeriesCard(s: any): SeriesItem {
 }
 
 export default async function HomePage() {
-  // 1. Fetch site settings (merging local JSON file + Supabase key-value rows)
+  // 1. Fetch site settings directly from local memory store (0ms latency, zero egress)
   const settingsMap = getLocalSettings();
-  try {
-    const { data: rows } = await publicSupabaseClient.from('site_settings').select('key, value');
-    if (rows && rows.length > 0) {
-      rows.forEach((r: { key: string; value: string }) => {
-        if (r.key && r.value) settingsMap[r.key] = r.value;
-      });
-    }
-  } catch (e) {}
 
   const heroSource = settingsMap.hero_banner_source || 'featured_tags';
   const slideLimit = parseInt(settingsMap.hero_banner_slide_count || '8', 10) || 8;
@@ -553,61 +543,56 @@ export default async function HomePage() {
     });
   }
 
-  // Transform recent episodes list cleanly from DB based on release_date
+  // Transform recent episodes list cleanly from DB based on release_date (early slice for optimal speed)
   let processedEpisodes: any[] = [];
   if (dbEpisodes && dbEpisodes.length > 0) {
-    processedEpisodes = dbEpisodes
-      .map(ep => {
-        const season = Array.isArray(ep.seasons) ? ep.seasons[0] : ep.seasons;
-        const seriesObj = season ? (Array.isArray(season.series) ? season.series[0] : season.series) : null;
-        const seriesTitle = seriesObj?.title || ep.title || '';
-        const epTitle = ep.title || `Episode ${ep.episode_number}`;
-        const fullTitle = seriesObj?.title ? `${seriesObj.title} - ${epTitle}` : epTitle;
-        const isUncensored = (seriesObj?.tags || []).some((t: string) => t.toLowerCase() === 'uncensored');
-        const isSubbed = (seriesObj?.tags || []).some((t: string) => 
-          ['subbed', 'sub', 'english sub', 'eng sub', 'english subtitles'].includes(t.toLowerCase())
-        ) || epTitle.toLowerCase().includes('sub') || !(seriesObj?.tags || []).some((t: string) => t.toLowerCase() === 'raw');
-        const seriesStatus = (seriesObj?.status || '').toLowerCase();
-        
-        // Exclude upcoming series or preview/trailer episodes from Recent Episodes section
-        const isPreviewOrUpcoming = 
-          seriesStatus === 'upcoming' ||
-          epTitle.toLowerCase().includes('preview') ||
-          epTitle.toLowerCase().includes('[preview]') ||
-          epTitle.toLowerCase().includes('trailer') ||
-          epTitle.toLowerCase().includes('[pv]');
+    const collected: any[] = [];
+    for (const ep of dbEpisodes) {
+      if (collected.length >= 20) break;
+      const season = Array.isArray(ep.seasons) ? ep.seasons[0] : ep.seasons;
+      const seriesObj = season ? (Array.isArray(season.series) ? season.series[0] : season.series) : null;
+      const epTitle = ep.title || `Episode ${ep.episode_number}`;
+      const seriesStatus = (seriesObj?.status || '').toLowerCase();
+      
+      // Exclude upcoming series or preview/trailer episodes from Recent Episodes section
+      const isPreviewOrUpcoming = 
+        seriesStatus === 'upcoming' ||
+        epTitle.toLowerCase().includes('preview') ||
+        epTitle.toLowerCase().includes('[preview]') ||
+        epTitle.toLowerCase().includes('trailer') ||
+        epTitle.toLowerCase().includes('[pv]');
 
-        if (isPreviewOrUpcoming) return null;
+      if (isPreviewOrUpcoming) continue;
 
-        const effectiveDateStr = ep.release_date || ep.created_at;
-        const epTime = effectiveDateStr ? new Date(effectiveDateStr).getTime() : 0;
-        const isNew = epTime > 0 ? (Date.now() - epTime < 14 * 86400 * 1000 && epTime <= Date.now()) : false;
+      const seriesTitle = seriesObj?.title || ep.title || '';
+      const fullTitle = seriesObj?.title ? `${seriesObj.title} - ${epTitle}` : epTitle;
+      const isUncensored = (seriesObj?.tags || []).some((t: string) => t.toLowerCase() === 'uncensored');
+      const isSubbed = (seriesObj?.tags || []).some((t: string) => 
+        ['subbed', 'sub', 'english sub', 'eng sub', 'english subtitles'].includes(t.toLowerCase())
+      ) || epTitle.toLowerCase().includes('sub') || !(seriesObj?.tags || []).some((t: string) => t.toLowerCase() === 'raw');
 
-        return {
-          id: ep.id,
-          title: seriesTitle,
-          fullTitle,
-          showSlug: seriesObj?.slug || '',
-          episode_number: ep.episode_number,
-          thumbnail: ep.thumbnail_key || seriesObj?.poster_image_key,
-          duration: Math.floor((ep.duration_seconds || 1440) / 60) + ' min',
-          release_date: ep.release_date,
-          created_at: ep.created_at,
-          effectiveDate: epTime,
-          isNew,
-          isUncensored,
-          isSubbed,
-          views: ep.views > 0 ? ep.views : resolveEpisodeMetrics(ep.id, ep.views || 0, null, ep.episode_number || 1).views
-        };
-      })
-      .filter(Boolean);
+      const effectiveDateStr = ep.release_date || ep.created_at;
+      const epTime = effectiveDateStr ? new Date(effectiveDateStr).getTime() : 0;
+      const isNew = epTime > 0 ? (Date.now() - epTime < 14 * 86400 * 1000 && epTime <= Date.now()) : false;
 
-    processedEpisodes.sort((a, b) => {
-      if (b.effectiveDate !== a.effectiveDate) {
-        return b.effectiveDate - a.effectiveDate;
-      }
-      return (b.episode_number || 0) - (a.episode_number || 0);
-    });
+      collected.push({
+        id: ep.id,
+        title: seriesTitle,
+        fullTitle,
+        showSlug: seriesObj?.slug || '',
+        episode_number: ep.episode_number,
+        thumbnail: ep.thumbnail_key || seriesObj?.poster_image_key,
+        duration: Math.floor((ep.duration_seconds || 1440) / 60) + ' min',
+        release_date: ep.release_date,
+        created_at: ep.created_at,
+        effectiveDate: epTime,
+        isNew,
+        isUncensored,
+        isSubbed,
+        views: ep.views > 0 ? ep.views : resolveEpisodeMetrics(ep.id, ep.views || 0, null, ep.episode_number || 1).views
+      });
+    }
+    processedEpisodes = collected;
   } else {
     // Fallback to Mock Episodes ONLY if DB has zero episodes
     processedEpisodes = MOCK_EPISODES.map(ep => {
@@ -679,6 +664,23 @@ export default async function HomePage() {
     'Yuri': '🌺',
     'Monster Girl': '🐉',
     'Elf': '🏹',
+  };
+
+  const websiteJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    'name': 'HentaiKage',
+    'alternateName': ['Hentai Kage', 'hentaikage.cc'],
+    'url': SITE_URL,
+    'description': HOME_DESCRIPTION,
+    'potentialAction': {
+      '@type': 'SearchAction',
+      'target': {
+        '@type': 'EntryPoint',
+        'urlTemplate': `${SITE_URL}/search?q={search_term_string}`
+      },
+      'query-input': 'required name=search_term_string'
+    }
   };
 
   const trendingSeriesForSchema = activeSeries.slice(0, 12);
@@ -819,7 +821,7 @@ export default async function HomePage() {
     s => (s.status || '').toLowerCase() !== 'upcoming' && !s.is_upcoming
   );
   const shuffledRandomSeries = [...availableRandomSeries].sort(() => 0.5 - Math.random());
-  const lightweightRandomPool = shuffledRandomSeries.slice(0, 36).map(toCleanSeriesCard);
+  const lightweightRandomPool = shuffledRandomSeries.slice(0, 18).map(toCleanSeriesCard);
   // --------------------------------------------------------------------------
   // Uncensored Hentai Section: Fetches uncensored items sorted by recent release date
   // Uses portrait poster cards, view count pill on thumbnail, and studio underneath
@@ -956,15 +958,16 @@ export default async function HomePage() {
   const firstCoverKey = firstFeatured?.episode_thumbnail || firstFeatured?.cover_image_key || firstFeatured?.poster_image_key || firstFeatured?.banner_image_key;
   const firstCoverUrl = firstCoverKey ? getR2Url(firstCoverKey, 'cover') : null;
 
+  if (firstBannerUrl) {
+    ReactDOM.preload(firstBannerUrl, { as: 'image', fetchPriority: 'high' });
+  }
+  if (firstCoverUrl) {
+    ReactDOM.preload(firstCoverUrl, { as: 'image', fetchPriority: 'high' });
+  }
+
   return (
     <div className={styles.container}>
-      {firstBannerUrl && (
-        <link rel="preload" as="image" href={firstBannerUrl} fetchPriority="high" media="(min-width: 769px)" />
-      )}
-      {firstCoverUrl && (
-        <link rel="preload" as="image" href={firstCoverUrl} fetchPriority="high" media="(max-width: 768px)" />
-      )}
-      <JsonLd data={[itemListJsonLd, brandImageJsonLd, faqJsonLd, siteNavJsonLd]} />
+      <JsonLd data={[websiteJsonLd, itemListJsonLd, brandImageJsonLd, faqJsonLd, siteNavJsonLd]} />
 
       {/* Primary SEO H1 Heading Section */}
       <section className={styles.seoHeroHeader} aria-label="Welcome to HentaiKage">
@@ -1039,8 +1042,8 @@ export default async function HomePage() {
                     <Link href={watchUrl} title={ep.fullTitle || ep.title}>{ep.title}</Link>
                   </h3>
                   <div className={styles.episodeMetaRow}>
-                    <div className={styles.episodeViewsRow}>
-                      <Eye size={12} className={styles.eyeIcon} />
+                    <div className={styles.episodeViewsRow} aria-label={`${ep.views || 0} views`}>
+                      <Eye size={12} className={styles.eyeIcon} aria-hidden="true" />
                       <span>
                         {ep.views !== undefined && ep.views !== null
                           ? (ep.views >= 1000 ? (ep.views / 1000).toFixed(1) + 'K' : ep.views)
@@ -1257,12 +1260,11 @@ export default async function HomePage() {
         <div className={styles.seoContentWrapper}>
           
           {/* Main Title and Expanded Intro Block */}
-          <div className={styles.introContent} style={{ background: 'rgba(15, 15, 15, 0.65)', border: '1px solid rgba(245, 158, 11, 0.15)', boxShadow: '0 8px 32px rgba(245, 158, 11, 0.04)' }}>
+          <div className={`${styles.introContent} ${styles.quickHubContainer}`}>
             <h2 className={styles.mainTitle}>HentaiKage — Hentai Anime &amp; Adult Animation</h2>
             
             <p className={styles.introText}>
-
-              Welcome to <strong>HentaiKage</strong>, the premier online database and high-definition streaming platform for adult animation and hentai series. Our library catalogs an extensive range of premium uncensored hentai anime titles, ensuring you can discover legendary classics alongside the latest 3D CGI releases. We systematically organize our content by <Link href="/categories" style={{ color: '#f59e0b', textDecoration: 'underline' }}>genres</Link>, <Link href="/categories" style={{ color: '#f59e0b', textDecoration: 'underline' }}>tags</Link>, <Link href="/studios" style={{ color: '#f59e0b', textDecoration: 'underline' }}>production studios</Link>, and <Link href="/categories" style={{ color: '#f59e0b', textDecoration: 'underline' }}>release years</Link> to deliver a seamless, high-performance browsing experience.
+              Welcome to <strong>HentaiKage</strong>, the premier online database and high-definition streaming platform for adult animation and hentai series. Our library catalogs an extensive range of premium uncensored hentai anime titles, ensuring you can discover legendary classics alongside the latest 3D CGI releases. We systematically organize our content by <Link href="/categories" className={styles.quickHubLinkGold}>genres</Link>, <Link href="/categories" className={styles.quickHubLinkGold}>tags</Link>, <Link href="/studios" className={styles.quickHubLinkGold}>production studios</Link>, and <Link href="/categories" className={styles.quickHubLinkGold}>release years</Link> to deliver a seamless, high-performance browsing experience.
             </p>
             
             <p className={styles.introText}>
@@ -1274,23 +1276,23 @@ export default async function HomePage() {
             </p>
 
             {/* Quick Links Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '0.8rem', marginTop: '0.8rem' }}>
-              <Link href="/uncensored" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '8px', padding: '0.6rem 0.8rem', color: '#f59e0b', fontSize: '0.8rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.4rem', textDecoration: 'none' }} className="card-hover">
+            <div className={styles.quickHubGrid}>
+              <Link href="/uncensored" className={`${styles.quickHubLink} ${styles.quickHubLinkGold}`}>
                 ✨ Uncensored Hentai
               </Link>
-              <Link href="/3d" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '8px', padding: '0.6rem 0.8rem', color: '#f59e0b', fontSize: '0.8rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.4rem', textDecoration: 'none' }} className="card-hover">
+              <Link href="/3d" className={`${styles.quickHubLink} ${styles.quickHubLinkGold}`}>
                 🎥 3D CGI Animation
               </Link>
-              <Link href="/categories" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '8px', padding: '0.6rem 0.8rem', color: '#ffffff', fontSize: '0.8rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.4rem', textDecoration: 'none' }} className="card-hover">
+              <Link href="/categories" className={styles.quickHubLink}>
                 📂 Browse All Genres
               </Link>
-              <Link href="/studios" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '8px', padding: '0.6rem 0.8rem', color: '#ffffff', fontSize: '0.8rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.4rem', textDecoration: 'none' }} className="card-hover">
+              <Link href="/studios" className={styles.quickHubLink}>
                 🏢 Production Studios
               </Link>
-              <Link href="/trending" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '8px', padding: '0.6rem 0.8rem', color: '#ffffff', fontSize: '0.8rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.4rem', textDecoration: 'none' }} className="card-hover">
+              <Link href="/trending" className={styles.quickHubLink}>
                 🔥 Trending Catalog
               </Link>
-              <Link href="/playlists" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '8px', padding: '0.6rem 0.8rem', color: '#ffffff', fontSize: '0.8rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.4rem', textDecoration: 'none' }} className="card-hover">
+              <Link href="/playlists" className={styles.quickHubLink}>
                 🎵 Custom Playlists
               </Link>
             </div>

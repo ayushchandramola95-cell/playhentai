@@ -1,5 +1,5 @@
 import React from 'react';
-import { createClient } from '@/utils/supabase/server';
+import { getCurrentUserFromCookies, getUserWatchHistory } from '@/utils/authStore';
 import { getLocalEpisodesWithSeriesHierarchy } from '@/utils/localCatalogStore';
 import HistoryClient from '@/components/HistoryClient/HistoryClient';
 
@@ -15,26 +15,20 @@ export const metadata = {
   },
 };
 
+export const revalidate = 0; // Dynamic user route
+
 export default async function HistoryPage() {
-  const supabase = await createClient();
   let parsedHistory: any[] = [];
   let user = null;
 
   try {
-    const { data: { user: authUser } } = await supabase.auth.getUser();
-    user = authUser;
+    user = await getCurrentUserFromCookies();
 
     if (user) {
-      // 1. Fetch watch history rows for this user
-      const { data, error } = await supabase
-        .from('watch_history')
-        .select('*')
-        .eq('profile_id', user.id)
-        .order('updated_at', { ascending: false });
+      const historyEntries = await getUserWatchHistory(user.id);
 
-      if (!error && data && data.length > 0) {
-        // 2. Fetch all matching episodes if available
-        const episodeIds = data.map((d) => d.episode_id).filter(Boolean);
+      if (historyEntries.length > 0) {
+        const episodeIds = historyEntries.map((d) => d.episode_id).filter(Boolean);
         let episodesMap: Record<string, any> = {};
 
         if (episodeIds.length > 0) {
@@ -47,8 +41,7 @@ export default async function HistoryPage() {
           });
         }
 
-        // 3. Map each history log safely with full fallbacks
-        parsedHistory = data.map((item) => {
+        parsedHistory = historyEntries.map((item) => {
           const dbEp = episodesMap[item.episode_id];
 
           const episode_title = dbEp?.title || `Episode ${item.episode_id}`;
@@ -59,11 +52,11 @@ export default async function HistoryPage() {
           const duration_seconds = dbEp?.duration_seconds || item.duration_seconds || 1400;
 
           return {
-            id: item.id || item.episode_id,
+            id: item.episode_id,
             episode_id: item.episode_id,
             last_position_seconds: item.last_position_seconds || 0,
             watched_percentage: item.watched_percentage || 0,
-            completed: !!item.completed,
+            completed: Boolean(item.completed),
             updated_at: item.updated_at,
             episode_title,
             episode_number,
@@ -79,5 +72,7 @@ export default async function HistoryPage() {
     console.error('Error fetching watch history:', err);
   }
 
-  return <HistoryClient initialHistory={parsedHistory} user={user} />;
+  const clientUser = user ? { id: user.id, email: user.email, username: user.username, role: user.role } : null;
+
+  return <HistoryClient initialHistory={parsedHistory} user={clientUser} />;
 }

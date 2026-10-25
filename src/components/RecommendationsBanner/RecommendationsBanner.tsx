@@ -1,26 +1,15 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { Award } from 'lucide-react';
-import { createClient } from '@/utils/supabase/client';
-import styles from '@/app/(public)/page.module.css';
+import { useAuth } from '@/contexts/AuthContext';
+import styles from './RecommendationsBanner.module.css';
 
 export default function RecommendationsBanner() {
-  const [user, setUser] = useState<any>(null);
-  const [isClient, setIsClient] = useState(false);
+  const { user, loading } = useAuth();
 
-  useEffect(() => {
-    setIsClient(true);
-    try {
-      const supabase = createClient();
-      supabase.auth.getUser().then(({ data }) => {
-        if (data?.user) setUser(data.user);
-      }).catch(() => {});
-    } catch (e) {}
-  }, []);
-
-  if (isClient && user) {
+  if (!loading && user) {
     return (
       <section className={`${styles.section} ${styles.recommendationBanner} glass`}>
         <div className={styles.recIconWrapper}>
@@ -30,7 +19,7 @@ export default function RecommendationsBanner() {
           <h3>Welcome Back!</h3>
           <p>Quickly access your saved bookmarks in Watchlist or resume watching from your Watch History.</p>
         </div>
-        <div style={{ display: 'flex', gap: '0.8rem', flexWrap: 'wrap' }}>
+        <div className={styles.btnGroup}>
           <Link href="/watchlist" prefetch={false} className={styles.recBtn}>
             My Watchlist
           </Link>

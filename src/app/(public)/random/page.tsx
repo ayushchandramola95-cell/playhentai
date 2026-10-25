@@ -1,4 +1,5 @@
 import React from 'react';
+import { unstable_cache } from 'next/cache';
 import { getLocalAllPublishedSeries } from '@/utils/localCatalogStore';
 import { MOCK_SERIES } from '@/utils/mockData';
 import RandomizerPortal from './RandomizerPortal';
@@ -56,23 +57,49 @@ export async function generateMetadata({ searchParams }: PageProps) {
 
 export const revalidate = 120;
 
-const getCachedRandomizerSeries = async () => {
-  try {
-    const dbSeries = await getLocalAllPublishedSeries();
-    return { dbSeries, isDbEmpty: dbSeries.length === 0 };
-  } catch (err) {
-    console.error('Error fetching local series for randomizer:', err);
-  }
+const getCachedRandomizerSeries = unstable_cache(
+  async () => {
+    try {
+      const dbSeries = await getLocalAllPublishedSeries();
+      return { dbSeries, isDbEmpty: dbSeries.length === 0 };
+    } catch (err) {
+      console.error('Error fetching local series for randomizer:', err);
+    }
 
-  return { dbSeries: [], isDbEmpty: true };
-};
+    return { dbSeries: [], isDbEmpty: true };
+  },
+  ['random-page-series-cache-v1'],
+  { revalidate: 120, tags: ['random_page_series', 'catalog_series'] }
+);
+
+function sanitizeRandomizerSeries(series: any[]) {
+  return series.map((s) => ({
+    id: s.id,
+    title: s.title,
+    slug: s.slug,
+    description: s.description ? s.description.slice(0, 200) : '',
+    poster_image_key: s.poster_image_key,
+    cover_image_key: s.cover_image_key,
+    poster_position: s.poster_position,
+    content_rating: s.content_rating,
+    tags: s.tags || [],
+    category: s.category || '',
+    status: s.status || '',
+    release_year: s.release_year || s.releaseYear,
+    studio: s.studio || '',
+    views_count: s.views_count,
+    views: s.views,
+    rating: s.rating,
+  }));
+}
 
 export default async function RandomPage() {
   const { dbSeries, isDbEmpty } = await getCachedRandomizerSeries();
   const rawList = isDbEmpty ? MOCK_SERIES : dbSeries;
-  const seriesList = rawList.filter(
+  const filteredList = rawList.filter(
     (s: any) => (s.status || '').toLowerCase() !== 'upcoming' && !s.is_upcoming
   );
+  const seriesList = sanitizeRandomizerSeries(filteredList);
 
   const breadcrumbJsonLd = {
     '@context': 'https://schema.org',

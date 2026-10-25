@@ -170,22 +170,23 @@ export async function DELETE(request: Request) {
     const episodeIds = (episodes || []).map(e => e.id);
 
     if (episodeIds.length > 0) {
-      // 2. Delete user logs / relations referencing these episodes
-      await adminSupabase.from('watch_history').delete().in('episode_id', episodeIds);
-      await adminSupabase.from('episode_views').delete().in('episode_id', episodeIds);
-      await adminSupabase.from('comments').delete().in('episode_id', episodeIds);
-      
-      // 3. Delete episodes themselves
-      await adminSupabase.from('episodes').delete().in('id', episodeIds);
+      // 2. Delete relations and episodes if Supabase is available
+      try {
+        await adminSupabase.from('watch_history').delete().in('episode_id', episodeIds);
+        await adminSupabase.from('episode_views').delete().in('episode_id', episodeIds);
+        await adminSupabase.from('comments').delete().in('episode_id', episodeIds);
+        await adminSupabase.from('episodes').delete().in('id', episodeIds);
+      } catch (_) {}
     }
 
-    // 4. Finally, delete the season record itself
-    const { error } = await adminSupabase
-      .from('seasons')
-      .delete()
-      .eq('id', id);
+    // 4. Finally, delete the season record itself if Supabase is available
+    try {
+      await adminSupabase
+        .from('seasons')
+        .delete()
+        .eq('id', id);
+    } catch (_) {}
 
-    if (error) throw error;
     try {
       await deleteLocalSeason(id);
     } catch (localErr) {

@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
-import { createClient } from '@/utils/supabase/server';
-import { createAdminClient } from '@/utils/supabase/admin';
+import { getCurrentUserFromCookies } from '@/utils/authStore';
+import { getLocalCatalog } from '@/utils/localCatalogStore';
 
 export const dynamic = 'force-dynamic';
 
@@ -93,7 +93,6 @@ export async function GET(request: Request) {
 // POST: Add new comment from Watch Page
 export async function POST(request: Request) {
   try {
-    const supabase = await createClient();
     const payload = await request.json().catch(() => null);
 
     if (!payload || !payload.episode_id || (!payload.content?.trim() && !payload.gif_url)) {
@@ -102,65 +101,41 @@ export async function POST(request: Request) {
 
     const { episode_id, content, gif_url } = payload;
 
-    // Detect user session if authenticated
+    // Detect user session if authenticated from EC2 memory / cookie session
     let username = 'Anonymous Visitor';
     let role = 'user';
     let profileId = `guest-${Date.now()}`;
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await getCurrentUserFromCookies();
       if (user) {
         profileId = user.id;
-        username = user.email?.split('@')[0] || 'User';
-
-        const { data: pData } = await supabase
-          .from('profiles')
-          .select('username, role')
-          .eq('id', user.id)
-          .single();
-
-        if (pData?.username) username = pData.username;
-        if (pData?.role) role = pData.role;
+        username = user.username || user.email?.split('@')[0] || 'User';
+        role = user.role || 'user';
       }
-    } catch (authErr) {
+    } catch {
       // Guest comment allowed
     }
 
-    // Look up parent episode and series details for rich metadata
+    // Look up parent episode and series details from in-memory catalog
     let seriesTitle = 'General Discussion';
     let seriesSlug: string | null = null;
     let episodeTitle = 'Episode 1';
     let posterKey: string | null = null;
 
     try {
-      const adminSupabase = createAdminClient();
-      const { data: epData } = await adminSupabase
-        .from('episodes')
-        .select(`
-          id,
-          title,
-          episode_number,
-          seasons (
-            id,
-            title,
-            series (
-              id,
-              title,
-              slug,
-              poster_image_key
-            )
-          )
-        `)
-        .eq('id', episode_id)
-        .single();
-
-      if (epData) {
-        episodeTitle = epData.title ? `Ep ${epData.episode_number}: ${epData.title}` : `Episode ${epData.episode_number}`;
-        const s = (epData.seasons as any)?.series;
-        if (s) {
-          seriesTitle = s.title;
-          seriesSlug = s.slug;
-          posterKey = s.poster_image_key;
+      const catalog = await getLocalCatalog();
+      const ep = catalog.episodes.find(e => e.id === episode_id);
+      if (ep) {
+        episodeTitle = ep.title ? `Ep ${ep.episode_number}: ${ep.title}` : `Episode ${ep.episode_number}`;
+        const season = catalog.seasons.find(s => s.id === ep.season_id);
+        if (season) {
+          const series = catalog.series.find(sr => sr.id === season.series_id);
+          if (series) {
+            seriesTitle = series.title;
+            seriesSlug = series.slug;
+            posterKey = series.poster_image_key;
+          }
         }
       }
     } catch (metaErr) {

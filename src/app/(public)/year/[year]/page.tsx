@@ -4,7 +4,6 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { Calendar, ChevronLeft, ChevronRight, ListOrdered } from 'lucide-react';
 import { unstable_cache } from 'next/cache';
-import { createClient } from '@supabase/supabase-js';
 import SeriesCard from '@/components/SeriesCard/SeriesCard';
 import JsonLd from '@/components/JsonLd/JsonLd';
 import { getR2Url } from '@/utils/r2';
@@ -204,7 +203,22 @@ export default async function YearPage({ params, searchParams }: YearPageProps) 
 
       <div className={styles.seriesGrid}>
         {paginatedSeries.map((item: any) => (
-          <SeriesCard key={item.id} item={item} />
+          <SeriesCard
+            key={item.id}
+            item={{
+              id: item.id,
+              title: item.title,
+              slug: item.slug,
+              poster_image_key: item.poster_image_key,
+              views: item.views || item.total_views,
+              episode_count: item.episode_count,
+              tags: item.tags,
+              release_year: item.release_year,
+              studio: item.studio,
+              rating: item.rating,
+              status: item.status,
+            }}
+          />
         ))}
       </div>
 

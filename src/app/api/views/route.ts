@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { revalidateTag } from 'next/cache';
-import { createClient } from '@/utils/supabase/server';
 import { createAdminClient } from '@/utils/supabase/admin';
+import { getCurrentUserFromCookies } from '@/utils/authStore';
 import { getLocalCatalog } from '@/utils/localCatalogStore';
 import { getTelemetryStore } from '@/app/api/telemetry/route';
 
@@ -672,32 +672,23 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const supabase = await createClient();
-    const adminSupabase = createAdminClient();
-    
     // Parse payload
     const { episode_id } = await request.json();
     if (!episode_id) {
       return NextResponse.json({ error: 'Missing episode_id' }, { status: 400 });
     }
 
-    // Get optional user session (views can be registered by guests)
-    const { data: { user } } = await supabase.auth.getUser();
+    // Get optional user session from EC2 memory / cookie session
+    const user = await getCurrentUserFromCookies();
 
     // Exclude admin/developer views from skewing public episode metrics
-    if (user) {
-      const { data: profile } = await adminSupabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single();
-      if (profile?.role === 'admin') {
-        return NextResponse.json({ success: true, skipped: 'admin_developer_session' });
-      }
+    if (user?.role === 'admin') {
+      return NextResponse.json({ success: true, skipped: 'admin_developer_session' });
     }
 
-    // Insert view record into database using adminSupabase
+    // Optional legacy log to episode_views if Supabase admin is available
     try {
+      const adminSupabase = createAdminClient();
       await adminSupabase
         .from('episode_views')
         .insert({
@@ -706,7 +697,7 @@ export async function POST(request: Request) {
           viewed_at: new Date().toISOString()
         });
     } catch (insertErr) {
-      console.warn('Episode view log fallback:', insertErr);
+      // Non-fatal: platform views run on in-memory / local telemetry store
     }
 
     return NextResponse.json({ success: true });

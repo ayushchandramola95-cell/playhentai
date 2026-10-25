@@ -1,4 +1,6 @@
 import React, { Suspense } from 'react';
+import Link from 'next/link';
+import { unstable_cache } from 'next/cache';
 import { getLocalAllPublishedSeries } from '@/utils/localCatalogStore';
 import { MOCK_SERIES } from '@/utils/mockData';
 import BrowseHub from '@/components/BrowseHub/BrowseHub';
@@ -69,29 +71,50 @@ export async function generateMetadata({ searchParams }: PageProps) {
   };
 }
 
-// Zero-Egress Local 3D Query
-const getCached3DSeries = async () => {
-  try {
-    const dbSeries = await getLocalAllPublishedSeries();
-    return { dbSeries, isDbEmpty: dbSeries.length === 0 };
-  } catch (err) {
-    console.error('Error fetching series for 3D page:', err);
-  }
+// Zero-Egress Cached Local 3D Query
+const getCached3DSeries = unstable_cache(
+  async () => {
+    try {
+      const dbSeries = await getLocalAllPublishedSeries();
+      return { dbSeries, isDbEmpty: dbSeries.length === 0 };
+    } catch (err) {
+      console.error('Error fetching series for 3D page:', err);
+    }
 
-  return { dbSeries: [], isDbEmpty: true };
-};
+    return { dbSeries: [], isDbEmpty: true };
+  },
+  ['threed-page-series-cache-v1'],
+  { revalidate: 120, tags: ['3d_page_series', 'catalog_series'] }
+);
+
+function sanitizeBrowseSeries(series: any[]) {
+  return series.map((s) => ({
+    id: s.id,
+    title: s.title,
+    slug: s.slug,
+    description: s.description || '',
+    poster_image_key: s.poster_image_key,
+    cover_image_key: s.cover_image_key,
+    tags: s.tags || [],
+    category: s.category || '',
+    studio: s.studio || '',
+    releaseYear: s.releaseYear || s.release_year,
+    release_year: s.release_year || s.releaseYear,
+    status: s.status || '',
+    content_rating: s.content_rating || '',
+    views: s.views,
+    rating: s.rating,
+  }));
+}
 
 export default async function ThreeDPage({ searchParams }: PageProps) {
   const params = await searchParams;
-  const pageParam = params.page;
-  const currentPage = pageParam ? parseInt(pageParam, 10) || 1 : 1;
-  const ITEMS_PER_PAGE = 24;
 
   const { dbSeries, isDbEmpty } = await getCached3DSeries();
   const activeSeries = isDbEmpty ? MOCK_SERIES : dbSeries;
 
   // Filter series using strict tag / category constraints on the server side
-  const threedSeries = activeSeries.filter(isThreeDSeries);
+  const threedSeries = sanitizeBrowseSeries(activeSeries.filter(isThreeDSeries));
 
   const breadcrumbJsonLd = {
     '@context': 'https://schema.org',
@@ -122,7 +145,7 @@ export default async function ThreeDPage({ searchParams }: PageProps) {
 
       {/* Breadcrumbs */}
       <nav className={styles.breadcrumbs} aria-label="Breadcrumbs">
-        <a href="/">Home</a>
+        <Link href="/">Home</Link>
         <span className={styles.crumbDivider}>/</span>
         <span className={styles.activeCrumb}>3D</span>
       </nav>
@@ -131,11 +154,11 @@ export default async function ThreeDPage({ searchParams }: PageProps) {
       <div className={styles.headerSection}>
         <div className={styles.headerTopMeta}>
           <span className={styles.threeDHighlightPill}>
-            <Box size={13} className={styles.threeDIconPill} /> 3D & CGI CATALOG
+            <Box size={13} className={styles.threeDIconPill} /> 3D &amp; CGI CATALOG
           </span>
         </div>
         <div className={styles.titleRow}>
-          <h1 className={styles.mainTitle}>3D Hentai & CGI Animations</h1>
+          <h1 className={styles.mainTitle}>3D Hentai &amp; CGI Animations</h1>
         </div>
         <p className={styles.subtext}>
           Browse our collection of 3D hentai anime and CGI animation series with English subtitles, including complete series, new releases, and popular titles.
@@ -156,7 +179,7 @@ export default async function ThreeDPage({ searchParams }: PageProps) {
       {/* Informative SEO Section at the Bottom */}
       <section className={styles.seoSection}>
         <div className={styles.seoCard}>
-          <h2>Watch 3D Hentai Anime & CGI Animations in HD Online</h2>
+          <h2>Watch 3D Hentai Anime &amp; CGI Animations in HD Online</h2>
           <p>
             Welcome to the ultimate 3D hentai and CGI animation collection on HentaiKage. Explore high-framerate, beautifully rendered 3D hentai animations with English subtitles in crystal-clear 1080p and 4K HD. Discover complete series, character models, trending 3D creators, and virtual studio releases curated for an immersive streaming experience.
           </p>
@@ -166,7 +189,7 @@ export default async function ThreeDPage({ searchParams }: PageProps) {
               <p>Experience ultra-detailed 3D models, smooth physics animations, and high-fidelity rendering produced by top creators and studios.</p>
             </div>
             <div className={styles.seoFeature}>
-              <h3>English Subtitles & High Bitrate</h3>
+              <h3>English Subtitles &amp; High Bitrate</h3>
               <p>Every release includes synchronized English subtitles, detailed chapter metadata, voice acting details, and fast buffer-free playback.</p>
             </div>
             <div className={styles.seoFeature}>

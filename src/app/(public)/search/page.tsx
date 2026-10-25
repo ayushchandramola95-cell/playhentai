@@ -2,7 +2,6 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { unstable_cache } from 'next/cache';
-import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { Search, Play, HelpCircle } from 'lucide-react';
 import { getR2Url } from '@/utils/r2';
 import { MOCK_SERIES } from '@/utils/mockData';
@@ -109,8 +108,23 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
 
           {activeResults.length > 0 ? (
             <div className={styles.seriesGrid}>
-              {activeResults.map((item) => (
-                <SeriesCard key={item.id} item={item} />
+              {activeResults.map((item: any) => (
+                <SeriesCard
+                  key={item.id}
+                  item={{
+                    id: item.id,
+                    title: item.title,
+                    slug: item.slug,
+                    poster_image_key: item.poster_image_key,
+                    views: item.views || item.total_views,
+                    episode_count: item.episode_count,
+                    tags: item.tags,
+                    release_year: item.release_year,
+                    studio: item.studio,
+                    rating: item.rating,
+                    status: item.status,
+                  }}
+                />
               ))}
             </div>
           ) : (

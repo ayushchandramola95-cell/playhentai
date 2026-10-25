@@ -15,17 +15,19 @@ export default function WatchlistToggle({ seriesId, variant = 'default' }: Watch
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   
-  const [inWatchlist, setInWatchlist] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    try {
-      const cached = JSON.parse(localStorage.getItem('user_watchlist') || '[]');
-      return Array.isArray(cached) && cached.includes(seriesId);
-    } catch {
-      return false;
-    }
-  });
+  const [inWatchlist, setInWatchlist] = useState(false);
   const [loading, setLoading] = useState(false);
   const [toggling, setToggling] = useState(false);
+
+  // Sync initial watchlist state from localStorage safely on client mount (prevents SSR hydration mismatch)
+  useEffect(() => {
+    try {
+      const cached = JSON.parse(localStorage.getItem('user_watchlist') || '[]');
+      if (Array.isArray(cached) && cached.includes(seriesId)) {
+        setInWatchlist(true);
+      }
+    } catch {}
+  }, [seriesId]);
 
   useEffect(() => {
     if (authLoading) return;

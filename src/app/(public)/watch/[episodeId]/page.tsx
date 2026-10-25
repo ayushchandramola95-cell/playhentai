@@ -3,7 +3,6 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { unstable_cache } from 'next/cache';
-import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { getR2Url } from '@/utils/r2';
 import { MOCK_SERIES, MOCK_SERIES_DETAILS } from '@/utils/mockData';
 import { getSeriesViewsMap } from '@/utils/views';
@@ -14,10 +13,6 @@ import { buildSeoTitle, buildSeoDescription } from '@/utils/seoTitle';
 import styles from './watch.module.css';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://hentaikage.cc';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ybtbdtgtryrxrhuchlkw.supabase.co';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_HLX-SCL51o2H254WH-gN0Q_HPpNwKo5';
-const publicSupabaseClient = createSupabaseClient(supabaseUrl, supabaseAnonKey);
 
 const MOCK_EPISODES: Record<string, any> = {
   'mock-ep-1': { id: 'mock-ep-1', episode_number: 1, title: 'The Ghost Run', description: 'A high-stakes data heist goes sideways when a digital phantom intercepts the netrunner\'s neural connection.', duration_seconds: 1440, video_key: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4', series_title: 'Cyberpunk Odyssey', slug: 'cyberpunk-odyssey', next_episode_id: 'mock-ep-2' },

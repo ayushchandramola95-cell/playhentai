@@ -3,7 +3,6 @@ import Link from 'next/link';
 import { Metadata } from 'next';
 import { CheckCircle2, ChevronLeft, ChevronRight, Activity, Calendar } from 'lucide-react';
 import { unstable_cache } from 'next/cache';
-import { createClient } from '@supabase/supabase-js';
 import SeriesCard from '@/components/SeriesCard/SeriesCard';
 import JsonLd from '@/components/JsonLd/JsonLd';
 import { MOCK_SERIES } from '@/utils/mockData';
@@ -195,7 +194,22 @@ export default async function StatusCatalog({ status, searchParams }: StatusCata
       {/* Series Grid */}
       <div className={styles.seriesGrid}>
         {paginatedSeries.map((item: any) => (
-          <SeriesCard key={item.id} item={item} />
+          <SeriesCard
+            key={item.id}
+            item={{
+              id: item.id,
+              title: item.title,
+              slug: item.slug,
+              poster_image_key: item.poster_image_key,
+              views: item.views || item.total_views,
+              episode_count: item.episode_count,
+              tags: item.tags,
+              release_year: item.release_year,
+              studio: item.studio,
+              rating: item.rating,
+              status: item.status,
+            }}
+          />
         ))}
       </div>
 

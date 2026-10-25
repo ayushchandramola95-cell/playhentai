@@ -1,35 +1,36 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabase/server';
-import { createAdminClient } from '@/utils/supabase/admin';
+import {
+  getCurrentUserFromCookies,
+  getUserFavorites,
+  toggleUserFavorite,
+  batchAddUserFavorites,
+  removeUserFavorite,
+  clearUserFavorites,
+} from '@/utils/authStore';
+import { getLocalAllPublishedSeries } from '@/utils/localCatalogStore';
 import { getSeriesViewsMap } from '@/utils/views';
 
 export async function GET(request: Request) {
   try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
+    const user = await getCurrentUserFromCookies();
     const { searchParams } = new URL(request.url);
     const seriesId = searchParams.get('series_id');
     const idsParam = searchParams.get('ids');
 
-    // If guest or client specifically requests details for a list of series IDs (e.g. from local storage)
+    // 1. If IDs specified (guest local storage lookup or batch check)
     if (idsParam) {
       const ids = idsParam.split(',').map((id) => id.trim()).filter(Boolean);
       if (ids.length === 0) {
         return NextResponse.json({ favorites: [] });
       }
 
-      const adminSupabase = createAdminClient();
-      const [seriesRes, viewsMap] = await Promise.all([
-        adminSupabase
-          .from('series')
-          .select('*, seasons(is_published, episodes(is_published))')
-          .in('id', ids),
+      const [allSeries, viewsMap] = await Promise.all([
+        getLocalAllPublishedSeries(),
         getSeriesViewsMap('all').catch(() => ({} as Record<string, number>))
       ]);
 
-      const seriesList = seriesRes.data || [];
-      const sorted = [...seriesList].sort((a, b) => {
+      const matching = allSeries.filter((s) => ids.includes(s.id));
+      const sorted = [...matching].sort((a, b) => {
         const idxA = ids.indexOf(a.id);
         const idxB = ids.indexOf(b.id);
         return idxA - idxB;
@@ -38,24 +39,24 @@ export async function GET(request: Request) {
       const formattedFavorites = sorted.map((s) => ({
         id: s.id,
         series_id: s.id,
-        created_at: s.created_at,
+        created_at: s.created_at || new Date().toISOString(),
         series: {
           ...s,
-          views: viewsMap[s.id] || 0,
+          views: viewsMap[s.id] || s.views || 0,
         },
       }));
 
       return NextResponse.json({ favorites: formattedFavorites });
     }
 
+    // 2. Unauthenticated user check
     if (!user) {
       return NextResponse.json({ isFavorite: false, favorites: [] });
     }
 
-    const userFavs: string[] = Array.isArray(user.user_metadata?.favorites)
-      ? user.user_metadata.favorites
-      : [];
+    const userFavs = await getUserFavorites(user.id);
 
+    // 3. Single series favorite check
     if (seriesId) {
       const isFavorite = userFavs.includes(seriesId);
       return NextResponse.json({ isFavorite });
@@ -65,35 +66,26 @@ export async function GET(request: Request) {
       return NextResponse.json({ favorites: [] });
     }
 
-    // Fetch full series details for these IDs along with views map
-    const adminSupabase = createAdminClient();
-    const [seriesRes, viewsMap] = await Promise.all([
-      adminSupabase
-        .from('series')
-        .select('*, seasons(is_published, episodes(is_published))')
-        .in('id', userFavs),
+    // 4. Return full favorite series list for user
+    const [allSeries, viewsMap] = await Promise.all([
+      getLocalAllPublishedSeries(),
       getSeriesViewsMap('all').catch(() => ({} as Record<string, number>))
     ]);
 
-    if (seriesRes.error || !seriesRes.data) {
-      console.error('Error fetching favorite series:', seriesRes.error);
-      return NextResponse.json({ favorites: [] });
-    }
-
-    // Sort matching order of favorites (newest first)
-    const sorted = [...seriesRes.data].sort((a, b) => {
+    const matching = allSeries.filter((s) => userFavs.includes(s.id));
+    const sorted = [...matching].sort((a, b) => {
       const idxA = userFavs.indexOf(a.id);
       const idxB = userFavs.indexOf(b.id);
-      return idxB - idxA;
+      return idxA - idxB;
     });
 
     const formattedFavorites = sorted.map((s) => ({
       id: s.id,
       series_id: s.id,
-      created_at: s.created_at,
+      created_at: s.created_at || new Date().toISOString(),
       series: {
         ...s,
-        views: viewsMap[s.id] || 0,
+        views: viewsMap[s.id] || s.views || 0,
       },
     }));
 
@@ -106,57 +98,26 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
+    const user = await getCurrentUserFromCookies();
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await request.json();
     const { series_id, series_ids } = body;
 
-    const currentFavs: string[] = Array.isArray(user.user_metadata?.favorites)
-      ? [...user.user_metadata.favorites]
-      : [];
-
-    let updatedFavs = [...currentFavs];
-    let isFavorite = false;
-
-    // Support batch merge (e.g. sync local favorites upon login)
+    // Batch add (e.g. sync local storage favorites on user login)
     if (Array.isArray(series_ids) && series_ids.length > 0) {
-      for (const id of series_ids) {
-        if (typeof id === 'string' && id && !updatedFavs.includes(id)) {
-          updatedFavs.push(id);
-        }
-      }
-      isFavorite = true;
-    } else if (series_id) {
-      const idx = updatedFavs.indexOf(series_id);
-      if (idx > -1) {
-        updatedFavs.splice(idx, 1);
-        isFavorite = false;
-      } else {
-        updatedFavs.push(series_id);
-        isFavorite = true;
-      }
-    } else {
-      return NextResponse.json({ error: 'Missing series_id' }, { status: 400 });
+      const updated = await batchAddUserFavorites(user.id, series_ids);
+      return NextResponse.json({ isFavorite: true, favorites: updated });
     }
 
-    const adminSupabase = createAdminClient();
-    const { error: updateError } = await adminSupabase.auth.admin.updateUserById(user.id, {
-      user_metadata: {
-        ...user.user_metadata,
-        favorites: updatedFavs,
-      },
-    });
-
-    if (updateError) {
-      console.error('Error updating user favorites metadata:', updateError);
-      return NextResponse.json({ error: updateError.message }, { status: 500 });
+    if (series_id) {
+      const result = await toggleUserFavorite(user.id, series_id);
+      return NextResponse.json(result);
     }
 
-    return NextResponse.json({ isFavorite, favorites: updatedFavs });
+    return NextResponse.json({ error: 'Missing series_id' }, { status: 400 });
   } catch (err: any) {
     console.error('Error in POST /api/favorites:', err);
     return NextResponse.json({ error: err.message || 'Server Error' }, { status: 500 });
@@ -165,9 +126,8 @@ export async function POST(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
+    const user = await getCurrentUserFromCookies();
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -175,28 +135,17 @@ export async function DELETE(request: Request) {
     const seriesId = searchParams.get('series_id');
     const clearAll = searchParams.get('all') === 'true';
 
-    let updatedFavs: string[] = [];
-
-    if (!clearAll && seriesId) {
-      const currentFavs: string[] = Array.isArray(user.user_metadata?.favorites)
-        ? user.user_metadata.favorites
-        : [];
-      updatedFavs = currentFavs.filter((id) => id !== seriesId);
+    if (clearAll) {
+      await clearUserFavorites(user.id);
+      return NextResponse.json({ success: true, favorites: [] });
     }
 
-    const adminSupabase = createAdminClient();
-    const { error: updateError } = await adminSupabase.auth.admin.updateUserById(user.id, {
-      user_metadata: {
-        ...user.user_metadata,
-        favorites: updatedFavs,
-      },
-    });
-
-    if (updateError) {
-      return NextResponse.json({ error: updateError.message }, { status: 500 });
+    if (seriesId) {
+      const updated = await removeUserFavorite(user.id, seriesId);
+      return NextResponse.json({ success: true, favorites: updated });
     }
 
-    return NextResponse.json({ success: true, favorites: updatedFavs });
+    return NextResponse.json({ error: 'Missing parameters' }, { status: 400 });
   } catch (err: any) {
     console.error('Error in DELETE /api/favorites:', err);
     return NextResponse.json({ error: err.message || 'Server Error' }, { status: 500 });

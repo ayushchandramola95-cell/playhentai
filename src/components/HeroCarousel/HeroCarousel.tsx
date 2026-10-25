@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Play, ChevronLeft, ChevronRight, Star, Eye, Layers, CheckCircle2, Heart, Sparkles } from 'lucide-react';
 import WatchlistToggle from '../WatchlistToggle/WatchlistToggle';
 import { getR2Url } from '@/utils/r2';
+import { tagToSlug } from '@/utils/constants';
 import styles from './HeroCarousel.module.css';
 
 function formatViews(views?: number): string {
@@ -375,7 +376,7 @@ export default function HeroCarousel({ activeSeries, isDbEmpty, autoplaySpeed = 
                   .map(tag => (
                     <Link 
                       key={tag} 
-                      href={`/tag/${encodeURIComponent(tag.toLowerCase().replace(/\s+/g, '-'))}`}
+                      href={`/categories/${tagToSlug(tag)}`}
                       className={styles.tagChip}
                     >
                       {tag}

@@ -23,11 +23,11 @@ export async function GET(request: Request) {
       );
     }
 
-    const activeResults = await getCachedSearchAutocomplete(query);
+    const activeResults = await searchLocalSeries(query, 10);
 
     return NextResponse.json(
       { series: activeResults },
-      { headers: { 'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=600' } }
+      { headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600' } }
     );
   } catch (err: any) {
     console.error('Error in search api:', err);

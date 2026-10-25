@@ -8,44 +8,31 @@ import { getCurrentUserFromCookies } from '../authStore';
  * Checks fast local EC2 self-hosted session first (<0.02ms), falling back to Supabase.
  */
 export async function verifyAdmin() {
-  // 1. Fast local self-hosted EC2 auth check
-  try {
-    const localUser = await getCurrentUserFromCookies();
-    if (localUser && localUser.role === 'admin' && !localUser.banned) {
-      const supabase = await createClient();
-      return {
-        supabase,
-        user: {
-          id: localUser.id,
-          email: localUser.email,
-          user_metadata: { username: localUser.username, role: localUser.role },
-          role: localUser.role,
-        } as any,
-      };
-    }
-  } catch (err) {
-    // Continue to Supabase fallback
-  }
-
-  // 2. Fallback to Supabase
-  const supabase = await createClient();
-
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) {
+  const localUser = await getCurrentUserFromCookies();
+  if (!localUser || localUser.banned) {
     throw new Error('Unauthorized');
   }
 
-  const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single();
-
-  if (profileError || !profile || profile.role !== 'admin') {
+  if (localUser.role !== 'admin') {
     throw new Error('Forbidden');
   }
 
-  return { supabase, user };
+  let adminClient: any = null;
+  try {
+    adminClient = createAdminClient();
+  } catch {
+    // Graceful fallback if Supabase is omitted/disabled
+  }
+
+  return {
+    supabase: adminClient,
+    user: {
+      id: localUser.id,
+      email: localUser.email,
+      user_metadata: { username: localUser.username, role: localUser.role },
+      role: localUser.role,
+    } as any,
+  };
 }
 
 /**

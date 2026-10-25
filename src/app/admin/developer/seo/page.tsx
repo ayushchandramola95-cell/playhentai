@@ -10,10 +10,7 @@ import {
   ArrowUpRight, Zap, CheckSquare, Hash, Download,
   ShieldCheck, Film, Wand2, BarChart2
 } from 'lucide-react';
-import { createClient } from '@/utils/supabase/client';
 import styles from './seo.module.css';
-
-const supabase = createClient();
 
 // Helper to calculate pixel width of text approximately
 function getTextWidth(text: string): number {
@@ -95,12 +92,10 @@ export default function DeveloperSeoPage() {
   const loadInitialData = async () => {
     setIsLoading(true);
     try {
-      const { data: dbSeries } = await supabase
-        .from('series')
-        .select('*')
-        .order('title', { ascending: true });
-      
-      if (dbSeries) {
+      const sRes = await fetch('/api/admin/series');
+      if (sRes.ok) {
+        const sData = await sRes.json();
+        const dbSeries = (sData.series || []).sort((a: any, b: any) => (a.title || '').localeCompare(b.title || ''));
         setSeriesList(dbSeries);
         if (dbSeries.length > 0) {
           setSelectedSeriesId(dbSeries[0].id);
@@ -236,10 +231,11 @@ export default function DeveloperSeoPage() {
         const studioName = s.studio || 'Studio';
         const autoDesc = `Watch ${s.title} online in HD with English subtitles. Top rated ${topTag} series produced by ${studioName}. Stream high quality anime on HentaiKage.`;
         
-        await supabase
-          .from('series')
-          .update({ meta_description: autoDesc })
-          .eq('id', s.id);
+        await fetch('/api/admin/series', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: s.id, meta_description: autoDesc }),
+        });
         
         filledCount++;
       }
@@ -266,12 +262,16 @@ export default function DeveloperSeoPage() {
         meta_description: overrideMode === 'custom' ? overrideDescription : null
       };
 
-      const { error } = await supabase
-        .from('series')
-        .update(updates)
-        .eq('id', activeSeries.id);
+      const res = await fetch('/api/admin/series', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: activeSeries.id, ...updates }),
+      });
 
-      if (error) throw error;
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Failed to save SEO overrides');
+      }
 
       setSeriesList(prev => prev.map(s => {
         if (s.id === activeSeries.id) {

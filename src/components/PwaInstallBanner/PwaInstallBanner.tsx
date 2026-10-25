@@ -16,7 +16,7 @@ export default function PwaInstallBanner() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isVisible, setIsVisible] = useState(false);
   const [isIos, setIsIos] = useState(false);
-  const [showIosTip, setShowIosTip] = useState(false);
+  const [installTip, setInstallTip] = useState<string | null>(null);
 
   useEffect(() => {
     // Check if dismissed within the last 7 days
@@ -67,10 +67,11 @@ export default function PwaInstallBanner() {
         setDeferredPrompt(null);
       }
     } else if (isIos) {
-      setShowIosTip(true);
-      setTimeout(() => setShowIosTip(false), 6000);
+      setInstallTip('💡 Tap the Share icon in Safari, then tap "Add to Home Screen".');
+      setTimeout(() => setInstallTip(null), 6000);
     } else {
-      alert('To install HentaiKage as an app: Click your browser menu (⋮ or Share) and select "Install app" or "Add to Home Screen".');
+      setInstallTip('💡 Tap your browser menu (⋮ or Share) and select "Install app" or "Add to Home Screen".');
+      setTimeout(() => setInstallTip(null), 6000);
     }
   };
 
@@ -144,9 +145,9 @@ export default function PwaInstallBanner() {
           </button>
         </div>
 
-        {showIosTip && (
+        {installTip && (
           <div className={styles.iosTooltip}>
-            💡 Tap the <strong>Share</strong> icon in Safari, then tap <strong>&quot;Add to Home Screen&quot;</strong>.
+            {installTip}
           </div>
         )}
       </div>

@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import { unstable_cache } from 'next/cache';
 import { Flame, Star, Filter, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
 import SeriesCard from '@/components/SeriesCard/SeriesCard';
 import TrendingGenreSelect from './TrendingGenreSelect';
@@ -10,6 +11,7 @@ import { GENRES } from '@/utils/constants';
 import { getSeriesViewsMap } from '@/utils/views';
 import { getR2Url } from '@/utils/r2';
 import JsonLd from '@/components/JsonLd/JsonLd';
+import { getLocalAllPublishedSeries } from '@/utils/localCatalogStore';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://hentaikage.cc';
 
@@ -66,26 +68,71 @@ function getFirstEpisodeId(series: any, isDbEmpty: boolean): string | null {
   return series.firstEpisodeId || null;
 }
 
-import { getLocalAllPublishedSeries } from '@/utils/localCatalogStore';
-
-const getCachedTrendingSeriesData = async (timeframe: '7d' | '30d' | 'all') => {
-  try {
-    const viewsMap = await getSeriesViewsMap(timeframe);
-    const all = await getLocalAllPublishedSeries();
-    if (all && all.length > 0) {
-      const seriesList = all.map(s => ({
-        ...s,
-        views: viewsMap[s.id] !== undefined ? viewsMap[s.id] : (s.views || 0)
-      }));
-      return { seriesList, isDbEmpty: false };
+const getCachedTrendingSeriesData = unstable_cache(
+  async (timeframe: '7d' | '30d' | 'all') => {
+    try {
+      const viewsMap = await getSeriesViewsMap(timeframe);
+      const all = await getLocalAllPublishedSeries();
+      if (all && all.length > 0) {
+        const seriesList = all.map(s => ({
+          ...s,
+          views: viewsMap[s.id] !== undefined ? viewsMap[s.id] : (s.views || 0)
+        }));
+        return { seriesList, isDbEmpty: false };
+      }
+    } catch (err) {
+      console.error('Error fetching trending series:', err);
     }
-  } catch (err) {
-    console.error('Error fetching trending series:', err);
-  }
 
-  return { seriesList: [], isDbEmpty: true };
-};
+    return { seriesList: [], isDbEmpty: true };
+  },
+  ['trending-series-data-cache-v2'],
+  { revalidate: 120, tags: ['trending_page_series', 'catalog_series'] }
+);
 
+const getCachedUniqueGenres = unstable_cache(
+  async () => {
+    try {
+      const all = await getLocalAllPublishedSeries();
+      const allGenreSet = new Set<string>(GENRES.map(g => g.toLowerCase()));
+      (all || []).forEach((s: any) => {
+        (s.tags || []).forEach((t: string) => {
+          const cleanTag = t.trim().toLowerCase();
+          if (cleanTag && cleanTag !== 'featured' && !cleanTag.startsWith('featured:')) {
+            allGenreSet.add(cleanTag);
+          }
+        });
+      });
+      return ['all', ...Array.from(allGenreSet).sort()];
+    } catch {
+      return ['all', ...GENRES.map(g => g.toLowerCase()).sort()];
+    }
+  },
+  ['trending-unique-genres-cache-v2'],
+  { revalidate: 3600, tags: ['catalog_genres'] }
+);
+
+function sanitizeTrendingCard(item: any) {
+  return {
+    id: item.id,
+    title: item.title,
+    slug: item.slug,
+    description: item.description || '',
+    poster_image_key: item.poster_image_key,
+    cover_image_key: item.cover_image_key,
+    poster_position: item.poster_position,
+    tags: item.tags || [],
+    category: item.category || '',
+    studio: item.studio || '',
+    release_year: item.release_year || item.releaseYear,
+    releaseYear: item.releaseYear || item.release_year,
+    status: item.status || '',
+    content_rating: item.content_rating || '',
+    views: item.views || 0,
+    rating: item.rating,
+    firstEpisodeId: item.firstEpisodeId || null,
+  };
+}
 
 export default async function TrendingPage({
   searchParams,
@@ -101,32 +148,17 @@ export default async function TrendingPage({
   const page = parseInt(params.page || '1', 10);
   const pageSize = 24; // 4 rows x 6 columns
 
-  const { seriesList, isDbEmpty } = await getCachedTrendingSeriesData(timeframe);
+  const [{ seriesList, isDbEmpty }, genresList] = await Promise.all([
+    getCachedTrendingSeriesData(timeframe),
+    getCachedUniqueGenres()
+  ]);
 
   const rawList = isDbEmpty ? MOCK_SERIES : seriesList;
-
-  // Dynamically extract all unique genres from database catalog & constants
-  const allGenreSet = new Set<string>(GENRES.map(g => g.toLowerCase()));
-  rawList.forEach((s: any) => {
-    (s.tags || []).forEach((t: string) => {
-      const cleanTag = t.trim().toLowerCase();
-      if (cleanTag && cleanTag !== 'featured' && !cleanTag.startsWith('featured:')) {
-        allGenreSet.add(cleanTag);
-      }
-    });
-  });
-  const genresList = ['all', ...Array.from(allGenreSet).sort()];
 
   // Hydrate series items
   let processedList = rawList.map((s, idx) => ({
     ...s,
-    views: isDbEmpty 
-      ? (timeframe === '7d' 
-          ? Math.max(85, 1420 - idx * 160) 
-          : timeframe === '30d' 
-            ? Math.max(320, 5400 - idx * 620) 
-            : Math.max(1200, 18500 - idx * 2400))
-      : (s.views || 0),
+    views: s.views || 0,
     rating: s.rating,
     firstEpisodeId: getFirstEpisodeId(s, isDbEmpty)
   }));
@@ -152,7 +184,8 @@ export default async function TrendingPage({
   const totalCount = processedList.length;
   const totalPages = Math.ceil(totalCount / pageSize) || 1;
   const startIndex = (page - 1) * pageSize;
-  const paginatedItems = processedList.slice(startIndex, startIndex + pageSize);
+  const paginatedRaw = processedList.slice(startIndex, startIndex + pageSize);
+  const paginatedItems = paginatedRaw.map(sanitizeTrendingCard);
 
   const breadcrumbJsonLd = {
     '@context': 'https://schema.org',
@@ -183,6 +216,13 @@ export default async function TrendingPage({
     <div className={styles.container}>
       <JsonLd data={[breadcrumbJsonLd, itemListJsonLd]} />
       <div className="ambient-glow" />
+
+      {/* Breadcrumbs */}
+      <nav className={styles.breadcrumbs} aria-label="Breadcrumbs">
+        <Link href="/">Home</Link>
+        <span className={styles.crumbDivider}>/</span>
+        <span className={styles.activeCrumb}>Trending</span>
+      </nav>
 
       {/* Header Banner */}
       <div className={styles.headerBanner}>

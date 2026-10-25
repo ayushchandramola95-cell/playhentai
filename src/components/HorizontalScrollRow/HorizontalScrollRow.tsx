@@ -12,6 +12,7 @@ interface HorizontalScrollRowProps {
   subtitleColor?: string;
   viewAllHref?: string;
   viewAllText?: string;
+  headerAction?: React.ReactNode;
   children: React.ReactNode;
   className?: string;
 }
@@ -22,6 +23,7 @@ export default function HorizontalScrollRow({
   subtitleColor,
   viewAllHref,
   viewAllText = 'See all',
+  headerAction,
   children,
   className = '',
 }: HorizontalScrollRowProps) {
@@ -100,6 +102,7 @@ export default function HorizontalScrollRow({
           </div>
 
           <div className={styles.headerControls}>
+            {headerAction}
             {viewAllHref && (
               <Link href={viewAllHref} prefetch={false} className={styles.viewAllBtn}>
                 <span>{viewAllText}</span>

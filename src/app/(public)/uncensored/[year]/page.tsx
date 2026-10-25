@@ -2,6 +2,7 @@ import React, { Suspense } from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
+import { unstable_cache } from 'next/cache';
 import { ShieldCheck, Calendar, Sparkles } from 'lucide-react';
 import { getLocalAllPublishedSeries } from '@/utils/localCatalogStore';
 import BrowseHub from '@/components/BrowseHub/BrowseHub';
@@ -79,6 +80,40 @@ export async function generateMetadata({ params, searchParams }: UncensoredYearP
   };
 }
 
+const getCachedUncensoredCatalog = unstable_cache(
+  async () => {
+    try {
+      const all = await getLocalAllPublishedSeries();
+      return all.filter(isUncensoredSeries);
+    } catch (err) {
+      console.error('Error fetching uncensored year catalog:', err);
+      return [];
+    }
+  },
+  ['uncensored-year-catalog-cache-v1'],
+  { revalidate: 120, tags: ['uncensored_page_series', 'catalog_series'] }
+);
+
+function sanitizeBrowseSeries(series: any[]) {
+  return series.map((s) => ({
+    id: s.id,
+    title: s.title,
+    slug: s.slug,
+    description: s.description || '',
+    poster_image_key: s.poster_image_key,
+    cover_image_key: s.cover_image_key,
+    tags: s.tags || [],
+    category: s.category || '',
+    studio: s.studio || '',
+    releaseYear: s.releaseYear || s.release_year,
+    release_year: s.release_year || s.releaseYear,
+    status: s.status || '',
+    content_rating: s.content_rating || '',
+    views: s.views,
+    rating: s.rating,
+  }));
+}
+
 export default async function UncensoredYearPage({ params, searchParams }: UncensoredYearPageProps) {
   const { year } = await params;
   if (!/^\d{4}$/.test(year)) {
@@ -86,10 +121,7 @@ export default async function UncensoredYearPage({ params, searchParams }: Uncen
   }
 
   const yearNum = parseInt(year, 10);
-  const allPublished = await getLocalAllPublishedSeries();
-
-  // All uncensored series
-  const allUncensored = allPublished.filter(isUncensoredSeries);
+  const allUncensored = await getCachedUncensoredCatalog();
 
   // Distinct uncensored years for navigation pills
   const yearSet = new Set<number>();
@@ -102,10 +134,11 @@ export default async function UncensoredYearPage({ params, searchParams }: Uncen
   const availableYears = Array.from(yearSet).sort((a, b) => b - a);
 
   // Filter series for the target year
-  const filteredSeries = allUncensored.filter((s: any) => {
+  const rawFilteredSeries = allUncensored.filter((s: any) => {
     const sYear = s.release_year || s.releaseYear;
     return sYear === yearNum;
   });
+  const filteredSeries = sanitizeBrowseSeries(rawFilteredSeries);
 
   const canonicalPath = `/uncensored/${year}`;
   const h1Text = `Uncensored Hentai Anime (${year})`;
@@ -145,9 +178,9 @@ export default async function UncensoredYearPage({ params, searchParams }: Uncen
 
       {/* Breadcrumbs */}
       <nav className={styles.breadcrumbs} aria-label="Breadcrumbs">
-        <a href="/">Home</a>
+        <Link href="/">Home</Link>
         <span className={styles.crumbDivider}>/</span>
-        <a href="/uncensored">Uncensored</a>
+        <Link href="/uncensored">Uncensored</Link>
         <span className={styles.crumbDivider}>/</span>
         <span className={styles.activeCrumb}>{year}</span>
       </nav>

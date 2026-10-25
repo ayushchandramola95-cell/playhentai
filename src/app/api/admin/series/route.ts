@@ -20,14 +20,18 @@ export async function GET() {
 
     // Fallback to Supabase only if local catalog is empty
     if (seriesData.length === 0) {
-      const adminSupabase = createAdminClient();
-      const [{ data: sData, error }, { data: epData }] = await Promise.all([
-        adminSupabase.from('series').select('*').order('created_at', { ascending: false }),
-        adminSupabase.from('episodes').select('id, seasons(series(id))').order('created_at', { ascending: false }),
-      ]);
-      if (!error && sData) {
-        seriesData = sData;
-        episodesData = epData || [];
+      try {
+        const adminSupabase = createAdminClient();
+        const [{ data: sData, error }, { data: epData }] = await Promise.all([
+          adminSupabase.from('series').select('*').order('created_at', { ascending: false }),
+          adminSupabase.from('episodes').select('id, seasons(series(id))').order('created_at', { ascending: false }),
+        ]);
+        if (!error && sData) {
+          seriesData = sData;
+          episodesData = epData || [];
+        }
+      } catch (_) {
+        // Supabase is optional/disabled
       }
     }
 
@@ -194,14 +198,20 @@ export async function PUT(request: Request) {
       }
     }
 
-    const { data, error } = await adminSupabase
-      .from('series')
-      .update(updateObj)
-      .eq('id', payload.id)
-      .select()
-      .single();
-
-    if (error) throw error;
+    let updatedSeries: any = { id: payload.id, ...updateObj };
+    try {
+      const { data, error } = await adminSupabase
+        .from('series')
+        .update(updateObj)
+        .eq('id', payload.id)
+        .select()
+        .single();
+      if (!error && data) {
+        updatedSeries = { ...updatedSeries, ...data };
+      }
+    } catch (_) {
+      // Supabase is optional/disabled - updating in-memory & disk local catalog
+    }
 
     if (payload.update_initial_season_title) {
       try {
@@ -231,18 +241,18 @@ export async function PUT(request: Request) {
     }
 
     if (payload.tags !== undefined && Array.isArray(payload.tags)) {
-      await syncTagsToCategories(payload.tags, adminSupabase);
+      try { await syncTagsToCategories(payload.tags, adminSupabase); } catch {}
     }
     if (payload.studio !== undefined && payload.studio) {
-      await syncStudioToDatabase(payload.studio, adminSupabase);
+      try { await syncStudioToDatabase(payload.studio, adminSupabase); } catch {}
     }
     try {
-      await upsertLocalSeries(data);
+      await upsertLocalSeries(updatedSeries);
     } catch (localErr) {
       console.warn('Local store series update fallback:', localErr);
     }
     revalidateAllCatalogTags();
-    return NextResponse.json({ success: true, series: data });
+    return NextResponse.json({ success: true, series: updatedSeries });
   } catch (err: any) {
     console.error('Error updating series:', err);
     const status = err.message === 'Unauthorized' ? 401 : err.message === 'Forbidden' ? 403 : 500;
@@ -329,19 +339,15 @@ export async function DELETE(request: Request) {
       });
     }
 
-    // 7. Delete associative categories relations
-    await adminSupabase.from('series_categories').delete().eq('series_id', id);
+    // 7. Delete associative categories relations & series record if Supabase is available
+    try {
+      await adminSupabase.from('series_categories').delete().eq('series_id', id);
+      await adminSupabase.from('watchlist').delete().eq('series_id', id);
+      await adminSupabase.from('series').delete().eq('id', id);
+    } catch (_) {
+      // Supabase is optional/disabled
+    }
 
-    // 8. Delete watchlist associations
-    await adminSupabase.from('watchlist').delete().eq('series_id', id);
-
-    // 9. Finally, delete the series record itself
-    const { error } = await adminSupabase
-      .from('series')
-      .delete()
-      .eq('id', id);
-
-    if (error) throw error;
     try {
       await deleteLocalSeries(id);
     } catch (localErr) {

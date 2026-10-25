@@ -1,5 +1,6 @@
 import React, { Suspense } from 'react';
 import Link from 'next/link';
+import { unstable_cache } from 'next/cache';
 import { ShieldCheck, Calendar } from 'lucide-react';
 import { getLocalAllPublishedSeries } from '@/utils/localCatalogStore';
 import BrowseHub from '@/components/BrowseHub/BrowseHub';
@@ -70,29 +71,50 @@ export async function generateMetadata({ searchParams }: PageProps) {
   };
 }
 
-// Zero-Egress Local Uncensored Query
-const getCachedUncensoredSeries = async () => {
-  try {
-    const dbSeries = await getLocalAllPublishedSeries();
-    return { dbSeries, isDbEmpty: dbSeries.length === 0 };
-  } catch (err) {
-    console.error('Error fetching series for uncensored page:', err);
-  }
+// Zero-Egress Cached Local Uncensored Query
+const getCachedUncensoredSeries = unstable_cache(
+  async () => {
+    try {
+      const dbSeries = await getLocalAllPublishedSeries();
+      return { dbSeries, isDbEmpty: dbSeries.length === 0 };
+    } catch (err) {
+      console.error('Error fetching series for uncensored page:', err);
+    }
 
-  return { dbSeries: [], isDbEmpty: true };
-};
+    return { dbSeries: [], isDbEmpty: true };
+  },
+  ['uncensored-page-series-cache-v1'],
+  { revalidate: 120, tags: ['uncensored_page_series', 'catalog_series'] }
+);
+
+function sanitizeBrowseSeries(series: any[]) {
+  return series.map((s) => ({
+    id: s.id,
+    title: s.title,
+    slug: s.slug,
+    description: s.description || '',
+    poster_image_key: s.poster_image_key,
+    cover_image_key: s.cover_image_key,
+    tags: s.tags || [],
+    category: s.category || '',
+    studio: s.studio || '',
+    releaseYear: s.releaseYear || s.release_year,
+    release_year: s.release_year || s.releaseYear,
+    status: s.status || '',
+    content_rating: s.content_rating || '',
+    views: s.views,
+    rating: s.rating,
+  }));
+}
 
 export default async function UncensoredPage({ searchParams }: PageProps) {
   const params = await searchParams;
-  const pageParam = params.page;
-  const currentPage = pageParam ? parseInt(pageParam, 10) || 1 : 1;
-  const ITEMS_PER_PAGE = 24;
 
   const { dbSeries, isDbEmpty } = await getCachedUncensoredSeries();
   const activeSeries = isDbEmpty ? MOCK_SERIES : dbSeries;
 
   // Filter series using strict genre (category) & tag constraints
-  const uncensoredSeries = activeSeries.filter(isUncensoredSeries);
+  const uncensoredSeries = sanitizeBrowseSeries(activeSeries.filter(isUncensoredSeries));
 
   // Distinct uncensored years for quick navigation
   const yearSet = new Set<number>();
@@ -133,7 +155,7 @@ export default async function UncensoredPage({ searchParams }: PageProps) {
 
       {/* Breadcrumbs */}
       <nav className={styles.breadcrumbs} aria-label="Breadcrumbs">
-        <a href="/">Home</a>
+        <Link href="/">Home</Link>
         <span className={styles.crumbDivider}>/</span>
         <span className={styles.activeCrumb}>Uncensored</span>
       </nav>
@@ -195,7 +217,7 @@ export default async function UncensoredPage({ searchParams }: PageProps) {
               <p>Experience explicit anime series presented in their authentic, unpixelated form with crystal-clear 1080p and 4K HD video streams.</p>
             </div>
             <div className={styles.seoFeature}>
-              <h3>English Subtitles & Dubs</h3>
+              <h3>English Subtitles &amp; Dubs</h3>
               <p>All series feature accurate English subtitles, detailed synopses, voice cast info, and studio credits for seamless viewing.</p>
             </div>
             <div className={styles.seoFeature}>

@@ -1,7 +1,7 @@
 import React, { Suspense } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
-import { TrendingUp, Play, ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
+import { unstable_cache } from 'next/cache';
+import { TrendingUp, ChevronLeft, ChevronRight } from 'lucide-react';
 import { getLocalRecentSeries } from '@/utils/localCatalogStore';
 import { getR2Url } from '@/utils/r2';
 import { MOCK_SERIES } from '@/utils/mockData';
@@ -55,27 +55,52 @@ export const metadata = {
   },
 };
 
-const getCachedRecentSeriesData = async () => {
-  let siteSortMode = 'latest_episode';
+const getCachedRecentSeriesData = unstable_cache(
+  async () => {
+    let siteSortMode = 'latest_episode';
 
-  try {
-    const fileContent = getSiteSettings();
-    if (fileContent.latest_series_sort_mode) {
-      siteSortMode = fileContent.latest_series_sort_mode;
+    try {
+      const fileContent = getSiteSettings();
+      if (fileContent.latest_series_sort_mode) {
+        siteSortMode = fileContent.latest_series_sort_mode;
+      }
+    } catch (fErr) {}
+
+    try {
+      const dbSeries = await getLocalRecentSeries(siteSortMode);
+      if (dbSeries && dbSeries.length > 0) {
+        return { dbSeries, isDbEmpty: false, siteSortMode };
+      }
+    } catch (err) {
+      console.error('Error fetching local recent series:', err);
     }
-  } catch (fErr) {}
 
-  try {
-    const dbSeries = await getLocalRecentSeries(siteSortMode);
-    if (dbSeries && dbSeries.length > 0) {
-      return { dbSeries, isDbEmpty: false, siteSortMode };
-    }
-  } catch (err) {
-    console.error('Error fetching local recent series:', err);
-  }
+    return { dbSeries: [], isDbEmpty: true, siteSortMode };
+  },
+  ['recent-series-page-cache-v1'],
+  { revalidate: 120, tags: ['recent_series_page', 'catalog_series'] }
+);
 
-  return { dbSeries: [], isDbEmpty: true, siteSortMode };
-};
+function sanitizeSeriesCard(item: any) {
+  return {
+    id: item.id,
+    title: item.title,
+    slug: item.slug,
+    description: item.description || '',
+    poster_image_key: item.poster_image_key,
+    cover_image_key: item.cover_image_key,
+    poster_position: item.poster_position,
+    tags: item.tags || [],
+    category: item.category || '',
+    studio: item.studio || '',
+    release_year: item.release_year || item.releaseYear,
+    releaseYear: item.releaseYear || item.release_year,
+    status: item.status || '',
+    content_rating: item.content_rating || '',
+    views: item.views || 0,
+    rating: item.rating,
+  };
+}
 
 export default async function RecentSeriesPage({
   searchParams,
@@ -138,28 +163,11 @@ export default async function RecentSeriesPage({
     }
   });
 
-  // Calculate Pagination
   const totalItems = filtered.length;
-  const totalPages = Math.max(1, Math.ceil(totalItems / ITEMS_PER_PAGE));
-  const validPage = Math.min(currentPage, totalPages);
-  const startIndex = (validPage - 1) * ITEMS_PER_PAGE;
-  const currentSeries = filtered.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-
-  // Helper for pagination query string preservation
-  const buildPageUrl = (page: number) => {
-    const p = new URLSearchParams();
-    p.set('page', page.toString());
-    if (searchQuery) p.set('q', searchQuery);
-    if (sortModeOverride) p.set('sort', sortModeOverride);
-    if (selectedGenre) p.set('genre', selectedGenre);
-    return `/recent/series?${p.toString()}`;
-  };
-
-  // Generate Page Numbers Array
-  const pageNumbers: number[] = [];
-  for (let i = 1; i <= totalPages; i++) {
-    pageNumbers.push(i);
-  }
+  const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE) || 1;
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedRaw = filtered.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  const paginated = paginatedRaw.map(sanitizeSeriesCard);
 
   const breadcrumbJsonLd = {
     '@context': 'https://schema.org',
@@ -173,10 +181,10 @@ export default async function RecentSeriesPage({
   const itemListJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
-    'name': 'Latest Added Hentai Series on HentaiKage',
+    'name': 'Recent Hentai Anime Series on HentaiKage',
     'url': `${SITE_URL}/recent/series`,
-    'numberOfItems': currentSeries.length,
-    'itemListElement': currentSeries.map((item: any, idx: number) => ({
+    'numberOfItems': paginated.length,
+    'itemListElement': paginated.map((item: any, idx: number) => ({
       '@type': 'ListItem',
       'position': startIndex + idx + 1,
       'name': item.title,
@@ -194,26 +202,12 @@ export default async function RecentSeriesPage({
       <div className="ambient-glow-2" />
 
       <section className={styles.section}>
-        {/* Back Link */}
-        <div style={{ marginBottom: '1.5rem' }}>
-          <Link 
-            href="/" 
-            style={{ 
-              display: 'inline-flex', 
-              alignItems: 'center', 
-              gap: '0.4rem', 
-              fontSize: '0.9rem', 
-              color: 'var(--foreground-muted)', 
-              textDecoration: 'none',
-              fontWeight: 500,
-              transition: 'color 0.2s ease'
-            }}
-            className="hover-primary"
-          >
-            <ArrowLeft size={16} />
-            <span>Back to Home</span>
-          </Link>
-        </div>
+        {/* Breadcrumbs */}
+        <nav className={styles.breadcrumbs} aria-label="Breadcrumbs">
+          <Link href="/">Home</Link>
+          <span className={styles.crumbDivider}>/</span>
+          <span className={styles.activeCrumb}>Series</span>
+        </nav>
 
         <div className={styles.sectionHeader}>
           <div className={styles.headerLeft}>
@@ -231,66 +225,55 @@ export default async function RecentSeriesPage({
           <RecentFilterBar type="series" />
         </Suspense>
 
-        {currentSeries.length === 0 ? (
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '4rem 2rem',
-            textAlign: 'center',
-            background: 'rgba(255, 255, 255, 0.02)',
-            border: '1px solid var(--border)',
-            borderRadius: '12px',
-            marginTop: '1rem'
-          }} className="glass">
-            <TrendingUp size={48} style={{ color: 'var(--primary)', marginBottom: '1rem', opacity: 0.8 }} />
-            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.5rem' }}>No Series Found</h3>
-            <p style={{ color: 'var(--foreground-muted)', maxWidth: '400px', fontSize: '0.9rem' }}>
-              No series matched your filter criteria. Try adjusting your search query or clearing active filters.
-            </p>
-          </div>
-        ) : (
+        {/* Series Grid */}
+        {paginated.length > 0 ? (
           <div className={styles.seriesGrid}>
-            {currentSeries.map((item) => (
+            {paginated.map((item) => (
               <SeriesCard key={item.id} item={item} />
             ))}
           </div>
+        ) : (
+          <div className={styles.emptyState}>
+            <p>No series found matching your active search or filters.</p>
+          </div>
         )}
 
-        {/* Pagination Bar */}
+        {/* Pagination */}
         {totalPages > 1 && (
-          <div className={styles.paginationContainer}>
-            {/* Prev Button */}
-            <Link
-              href={validPage > 1 ? buildPageUrl(validPage - 1) : '#'}
-              className={`${styles.pageBtn} ${validPage <= 1 ? styles.pageBtnDisabled : ''}`}
-              aria-disabled={validPage <= 1}
-            >
-              <ChevronLeft size={18} />
-              <span>Prev</span>
-            </Link>
-
-            {/* Page Numbers */}
-            {pageNumbers.map((pageNum) => (
-              <Link
-                key={pageNum}
-                href={buildPageUrl(pageNum)}
-                className={`${styles.pageBtn} ${pageNum === validPage ? styles.pageBtnActive : ''}`}
+          <div className={styles.pagination}>
+            {currentPage > 1 ? (
+              <Link 
+                href={`/recent/series?page=${currentPage - 1}&q=${encodeURIComponent(searchQuery)}&sort=${effectiveSortMode}&genre=${selectedGenre}`}
+                className={styles.pageBtn}
               >
-                {pageNum}
+                <ChevronLeft size={16} />
+                <span>Prev</span>
               </Link>
-            ))}
+            ) : (
+              <span className={`${styles.pageBtn} ${styles.disabled}`}>
+                <ChevronLeft size={16} />
+                <span>Prev</span>
+              </span>
+            )}
 
-            {/* Next Button */}
-            <Link
-              href={validPage < totalPages ? buildPageUrl(validPage + 1) : '#'}
-              className={`${styles.pageBtn} ${validPage >= totalPages ? styles.pageBtnDisabled : ''}`}
-              aria-disabled={validPage >= totalPages}
-            >
-              <span>Next</span>
-              <ChevronRight size={18} />
-            </Link>
+            <span className={styles.pageInfo}>
+              Page {currentPage} of {totalPages}
+            </span>
+
+            {currentPage < totalPages ? (
+              <Link 
+                href={`/recent/series?page=${currentPage + 1}&q=${encodeURIComponent(searchQuery)}&sort=${effectiveSortMode}&genre=${selectedGenre}`}
+                className={styles.pageBtn}
+              >
+                <span>Next</span>
+                <ChevronRight size={16} />
+              </Link>
+            ) : (
+              <span className={`${styles.pageBtn} ${styles.disabled}`}>
+                <span>Next</span>
+                <ChevronRight size={16} />
+              </span>
+            )}
           </div>
         )}
       </section>

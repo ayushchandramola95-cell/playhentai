@@ -1,6 +1,9 @@
 import React, { Suspense } from 'react';
+import Link from 'next/link';
+import { unstable_cache } from 'next/cache';
 import { Layers } from 'lucide-react';
 import { getLocalAllPublishedSeries } from '@/utils/localCatalogStore';
+import { MOCK_SERIES } from '@/utils/mockData';
 import JsonLd from '@/components/JsonLd/JsonLd';
 import BrowseHub from '@/components/BrowseHub/BrowseHub';
 import { tagToSlug } from '@/utils/constants';
@@ -135,128 +138,66 @@ export async function generateMetadata({ searchParams }: PageProps) {
   };
 }
 
-// Zero-Egress Local Categories Query
-const getCachedCategoriesSeries = async () => {
-  try {
-    const dbSeries = await getLocalAllPublishedSeries();
-    return { dbSeries, isDbEmpty: dbSeries.length === 0 };
-  } catch (err) {
-    console.error('Error fetching local series for categories page:', err);
-  }
+// Zero-Egress Cached Local Categories Query
+const getCachedCategoriesSeries = unstable_cache(
+  async () => {
+    try {
+      const dbSeries = await getLocalAllPublishedSeries();
+      return { dbSeries, isDbEmpty: dbSeries.length === 0 };
+    } catch (err) {
+      console.error('Error fetching local series for categories page:', err);
+    }
+    return { dbSeries: [], isDbEmpty: true };
+  },
+  ['categories-page-series-cache-v1'],
+  { revalidate: 120, tags: ['categories_page_series', 'catalog_series'] }
+);
 
-  return { dbSeries: [], isDbEmpty: true };
-};
-
-// Rich Mock Data with assigned Genres, Studios, and Release Years matching images
-const MOCK_SERIES = [
-  {
-    id: 'mock-1',
-    title: 'Cyberpunk Odyssey',
-    slug: 'cyberpunk-odyssey',
-    description: 'In a neon-drenched metropolis, a rogue netrunner discovers a data anomaly that could rewrite the city\'s neural network and change everything.',
-    poster_image_key: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=500&auto=format&fit=crop&q=80',
-    tags: ['Sci-Fi', 'Action', 'Cyberpunk', 'Uncensored', '3D'],
-    category: 'Sci-Fi',
-    studio: 'PoRO',
-    releaseYear: 2024
-  },
-  {
-    id: 'mock-2',
-    title: 'Fantasy Chronicles: Runes',
-    slug: 'fantasy-chronicles-runes',
-    description: 'A young mage sets out on a journey across uncharted magical islands to unlock the secrets of ancient runic monuments.',
-    poster_image_key: 'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=500&auto=format&fit=crop&q=80',
-    tags: ['Fantasy', 'Adventure', 'Magic', 'Vanilla'],
-    category: 'Fantasy',
-    studio: 'Bunnywalker',
-    releaseYear: 2023
-  },
-  {
-    id: 'mock-3',
-    title: 'Neon Tokyo Noir',
-    slug: 'neon-tokyo-noir',
-    description: 'A detective investigates a series of unexplained disappearances in the neon-lit underbelly of Tokyo\'s futuristic nightlife districts.',
-    poster_image_key: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=500&auto=format&fit=crop&q=80',
-    tags: ['Action', 'Thriller', 'Mystery', 'Tsundere'],
-    category: 'Action',
-    studio: 'PoRO',
-    releaseYear: 2025
-  },
-  {
-    id: 'mock-4',
-    title: 'Celestial Guardians',
-    slug: 'celestial-guardians',
-    description: 'As dark rifts tear open across the skies, an elite band of winged guardians must reunite to defend the floating cities from primordial beasts.',
-    poster_image_key: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=500&auto=format&fit=crop&q=80',
-    tags: ['Fantasy', 'Action', 'Adventure', 'Super Power'],
-    category: 'Fantasy',
-    studio: 'Mary Jane',
-    releaseYear: 2026
-  },
-  {
-    id: 'mock-5',
-    title: 'Shadow Ninja Legend',
-    slug: 'shadow-ninja-legend',
-    description: 'A banished ninja warrior uncovers a secret scroll revealing the resurrection of an ancient shadow clan, forcing him to face his former masters.',
-    poster_image_key: 'https://images.unsplash.com/photo-1551269901-5c5e14c25df7?w=500&auto=format&fit=crop&q=80',
-    tags: ['Action', 'Adventure', 'Historical', 'Demons'],
-    category: 'Action',
-    studio: 'Studio Jack',
-    releaseYear: 2022
-  },
-  {
-    id: 'mock-6',
-    title: 'Retro Arcade Rider',
-    slug: 'retro-arcade-rider',
-    description: 'In a retro-futuristic world where virtual motorcycle racing determines social status, an underdog rider enters the legendary Grand Neon Prix.',
-    poster_image_key: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=500&auto=format&fit=crop&q=80',
-    tags: ['Sci-Fi', 'Sports', 'Racing', 'Vanilla'],
-    category: 'Sci-Fi',
-    studio: 'Bunnywalker',
-    releaseYear: 2026
-  }
-];
+function sanitizeBrowseSeries(series: any[]) {
+  return series.map((s) => ({
+    id: s.id,
+    title: s.title,
+    slug: s.slug,
+    description: s.description || '',
+    poster_image_key: s.poster_image_key,
+    cover_image_key: s.cover_image_key,
+    tags: s.tags || [],
+    category: s.category || '',
+    studio: s.studio || '',
+    releaseYear: s.releaseYear || s.release_year,
+    release_year: s.release_year || s.releaseYear,
+    status: s.status || '',
+    content_rating: s.content_rating || '',
+    views: s.views,
+    rating: s.rating,
+  }));
+}
 
 export default async function CategoriesPage({ searchParams }: PageProps) {
   const params = await searchParams;
   const genre = params.genre;
   const studio = params.studio;
   const year = params.year;
-  const pageParam = params.page;
-  const currentPage = pageParam ? parseInt(pageParam, 10) || 1 : 1;
-  const ITEMS_PER_PAGE = 25;
 
   const { dbSeries, isDbEmpty } = await getCachedCategoriesSeries();
-  const activeSeries = isDbEmpty ? MOCK_SERIES : dbSeries;
+  const rawSeries = isDbEmpty ? MOCK_SERIES : dbSeries;
+  const activeSeries = sanitizeBrowseSeries(rawSeries);
 
   const breadcrumbJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     'itemListElement': [
-      {
-        '@type': 'ListItem',
-        'position': 1,
-        'name': 'Home',
-        'item': SITE_URL,
-      },
-      {
-        '@type': 'ListItem',
-        'position': 2,
-        'name': 'Browse Library',
-        'item': `${SITE_URL}/categories`,
-      },
+      { '@type': 'ListItem', 'position': 1, 'name': 'Home', 'item': SITE_URL },
+      { '@type': 'ListItem', 'position': 2, 'name': 'Browse', 'item': `${SITE_URL}/categories` },
     ],
   };
-
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const pageSeries = activeSeries.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   const itemListJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
-    'name': 'Browse Hentai Anime Categories & Series on HentaiKage',
+    'name': 'Hentai Anime Complete Library & Browse Hub',
     'url': `${SITE_URL}/categories`,
-    'itemListElement': pageSeries.map((s: any, i: number) => ({
+    'itemListElement': activeSeries.slice(0, 24).map((s: any, i: number) => ({
       '@type': 'ListItem',
       'position': i + 1,
       'name': s.title,
@@ -265,18 +206,18 @@ export default async function CategoriesPage({ searchParams }: PageProps) {
   };
 
   let h1Text = 'Browse Hentai Anime';
-  let introText = 'Explore our complete catalog by genre, studio, tags, and release year.';
+  let introText = 'Browse all hentai anime series by genre, themes, animation studios, and release years. Stream complete episodes with English subtitles in 1080p HD.';
   let basePath = '/categories';
 
   if (genre && genre.toLowerCase() !== 'all' && genre.toLowerCase() !== 'all genres') {
     const formattedGenre = genre.charAt(0).toUpperCase() + genre.slice(1);
     h1Text = `${formattedGenre} Hentai Anime`;
-    const key = genre.toLowerCase().trim();
-    introText = GENRE_INTRODUCTIONS[key] || `Browse ${formattedGenre} hentai anime series on HentaiKage. Discover available episodes, popular titles, and new releases in the ${formattedGenre} category.`;
+    const genKey = genre.toLowerCase();
+    introText = GENRE_INTRODUCTIONS[genKey] || `Browse ${formattedGenre} hentai anime series and episodes on HentaiKage. Discover complete series, new releases, and popular titles.`;
     basePath = `/categories/${tagToSlug(genre)}`;
   } else if (studio) {
     h1Text = `${studio} Hentai Anime`;
-    introText = `Browse hentai anime from ${studio} on HentaiKage. Explore the studio's series, available episodes, genres, and related titles.`;
+    introText = `Browse hentai anime produced by ${studio} on HentaiKage. Explore all series, animation releases, and studio catalogs in 1080p HD.`;
     basePath = `/studios/${tagToSlug(studio)}`;
   } else if (year) {
     h1Text = `${year} Hentai Anime`;
@@ -291,7 +232,7 @@ export default async function CategoriesPage({ searchParams }: PageProps) {
 
       {/* Breadcrumbs */}
       <nav className={styles.breadcrumbs} aria-label="Breadcrumbs">
-        <a href="/">Home</a>
+        <Link href="/">Home</Link>
         <span className={styles.crumbDivider}>/</span>
         <span className={styles.activeCrumb}>Browse</span>
       </nav>

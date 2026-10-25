@@ -8,6 +8,15 @@ const USERS_FILE = path.join(DATA_DIR, 'users_store.json');
 const JWT_SECRET = process.env.SESSION_SECRET || 'hentaikage_secure_ec2_jwt_auth_secret_2026_s3_backed';
 const COOKIE_NAME = 'hk_session';
 
+export interface WatchHistoryEntry {
+  episode_id: string;
+  last_position_seconds: number;
+  duration_seconds: number;
+  watched_percentage: number;
+  completed: boolean;
+  updated_at: string;
+}
+
 export interface LocalUser {
   id: string;
   email: string;
@@ -19,6 +28,9 @@ export interface LocalUser {
   createdAt: string;
   updatedAt: string;
   lastLoginAt?: string;
+  favorites?: string[];
+  watchlist?: string[];
+  watchHistory?: WatchHistoryEntry[];
 }
 
 export interface UserSessionPayload {
@@ -344,4 +356,167 @@ export async function getCurrentUserFromCookies(): Promise<LocalUser | null> {
   }
 }
 
+// ============================================================================
+// USER LIBRARY DATA STORE (Favorites, Watchlist, Watch History in EC2 Memory/Disk)
+// ============================================================================
+
+export async function getUserFavorites(userId: string): Promise<string[]> {
+  const user = await findUserById(userId);
+  return user?.favorites || [];
+}
+
+export async function toggleUserFavorite(
+  userId: string,
+  seriesId: string
+): Promise<{ isFavorite: boolean; favorites: string[] }> {
+  const user = await findUserById(userId);
+  if (!user) throw new Error('User not found');
+
+  const current = user.favorites || [];
+  const idx = current.indexOf(seriesId);
+  let updated: string[];
+  let isFavorite: boolean;
+
+  if (idx > -1) {
+    updated = current.filter((id) => id !== seriesId);
+    isFavorite = false;
+  } else {
+    updated = [seriesId, ...current];
+    isFavorite = true;
+  }
+
+  await updateLocalUser(userId, { favorites: updated });
+  return { isFavorite, favorites: updated };
+}
+
+export async function batchAddUserFavorites(
+  userId: string,
+  seriesIds: string[]
+): Promise<string[]> {
+  const user = await findUserById(userId);
+  if (!user) throw new Error('User not found');
+
+  const current = user.favorites || [];
+  const set = new Set([...seriesIds, ...current]);
+  const updated = Array.from(set);
+
+  await updateLocalUser(userId, { favorites: updated });
+  return updated;
+}
+
+export async function removeUserFavorite(
+  userId: string,
+  seriesId: string
+): Promise<string[]> {
+  const user = await findUserById(userId);
+  if (!user) throw new Error('User not found');
+
+  const current = user.favorites || [];
+  const updated = current.filter((id) => id !== seriesId);
+  await updateLocalUser(userId, { favorites: updated });
+  return updated;
+}
+
+export async function clearUserFavorites(userId: string): Promise<boolean> {
+  const updated = await updateLocalUser(userId, { favorites: [] });
+  return Boolean(updated);
+}
+
+// Watchlist
+export async function getUserWatchlist(userId: string): Promise<string[]> {
+  const user = await findUserById(userId);
+  return user?.watchlist || [];
+}
+
+export async function toggleUserWatchlist(
+  userId: string,
+  seriesId: string
+): Promise<{ inWatchlist: boolean; watchlist: string[] }> {
+  const user = await findUserById(userId);
+  if (!user) throw new Error('User not found');
+
+  const current = user.watchlist || [];
+  const idx = current.indexOf(seriesId);
+  let updated: string[];
+  let inWatchlist: boolean;
+
+  if (idx > -1) {
+    updated = current.filter((id) => id !== seriesId);
+    inWatchlist = false;
+  } else {
+    updated = [seriesId, ...current];
+    inWatchlist = true;
+  }
+
+  await updateLocalUser(userId, { watchlist: updated });
+  return { inWatchlist, watchlist: updated };
+}
+
+export async function removeUserWatchlist(
+  userId: string,
+  seriesId: string
+): Promise<string[]> {
+  const user = await findUserById(userId);
+  if (!user) throw new Error('User not found');
+
+  const current = user.watchlist || [];
+  const updated = current.filter((id) => id !== seriesId);
+  await updateLocalUser(userId, { watchlist: updated });
+  return updated;
+}
+
+export async function clearUserWatchlist(userId: string): Promise<boolean> {
+  const updated = await updateLocalUser(userId, { watchlist: [] });
+  return Boolean(updated);
+}
+
+// Watch History
+export async function getUserWatchHistory(userId: string): Promise<WatchHistoryEntry[]> {
+  const user = await findUserById(userId);
+  return user?.watchHistory || [];
+}
+
+export async function upsertUserWatchHistory(
+  userId: string,
+  entry: Omit<WatchHistoryEntry, 'updated_at'>
+): Promise<WatchHistoryEntry> {
+  const user = await findUserById(userId);
+  if (!user) throw new Error('User not found');
+
+  const current = user.watchHistory || [];
+  const filtered = current.filter((h) => h.episode_id !== entry.episode_id);
+  const newEntry: WatchHistoryEntry = {
+    ...entry,
+    updated_at: new Date().toISOString(),
+  };
+
+  const updated = [newEntry, ...filtered];
+  await updateLocalUser(userId, { watchHistory: updated });
+  return newEntry;
+}
+
+export async function removeUserWatchHistory(
+  userId: string,
+  episodeId?: string
+): Promise<boolean> {
+  const user = await findUserById(userId);
+  if (!user) throw new Error('User not found');
+
+  if (!episodeId) {
+    await updateLocalUser(userId, { watchHistory: [] });
+    return true;
+  }
+
+  const current = user.watchHistory || [];
+  const updated = current.filter((h) => h.episode_id !== episodeId);
+  await updateLocalUser(userId, { watchHistory: updated });
+  return true;
+}
+
+export async function clearUserWatchHistory(userId: string): Promise<boolean> {
+  const updated = await updateLocalUser(userId, { watchHistory: [] });
+  return Boolean(updated);
+}
+
 export { COOKIE_NAME };
+

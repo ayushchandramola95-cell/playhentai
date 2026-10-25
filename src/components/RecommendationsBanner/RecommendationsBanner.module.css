@@ -1,0 +1,131 @@
+.section {
+  max-width: 1680px;
+  margin: 2.2rem auto 0;
+  padding: 0 2rem;
+  width: 100%;
+}
+
+.recommendationBanner {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  padding: 2.5rem;
+  border-radius: 20px;
+  margin-top: 4.5rem;
+  background: rgba(18, 23, 34, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.recIconWrapper {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  background: rgba(var(--primary-rgb), 0.1);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(var(--primary-rgb), 0.15);
+  flex-shrink: 0;
+}
+
+.recContent {
+  flex: 1;
+  text-align: left;
+}
+
+.recContent h3 {
+  font-size: 1.3rem;
+  font-weight: 800;
+  margin-bottom: 0.4rem;
+  color: #ffffff;
+}
+
+.recContent p {
+  font-size: 0.95rem;
+  color: var(--foreground-secondary, #94a3b8);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.btnGroup {
+  display: flex;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.recBtn {
+  background: var(--primary);
+  color: #ffffff;
+  padding: 0.8rem 1.6rem;
+  border-radius: 30px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.recBtnOutline {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--foreground-primary, #ffffff);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.recBtn:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+
+@media (max-width: 768px) {
+  .section {
+    padding: 0 0.85rem !important;
+    margin: 1.5rem auto 0 !important;
+  }
+
+  .recommendationBanner {
+    flex-direction: column !important;
+    text-align: center !important;
+    padding: 1.5rem 1rem !important;
+    gap: 1rem !important;
+    margin-top: 2rem !important;
+    border-radius: 14px !important;
+  }
+
+  .recIconWrapper {
+    width: 48px !important;
+    height: 48px !important;
+    border-radius: 12px !important;
+  }
+
+  .recContent {
+    text-align: center !important;
+  }
+
+  .recContent h3 {
+    font-size: 1.15rem !important;
+  }
+
+  .recContent p {
+    font-size: 0.82rem !important;
+  }
+
+  .btnGroup {
+    width: 100%;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .recBtn {
+    width: 100% !important;
+    text-align: center !important;
+    font-size: 0.84rem !important;
+    padding: 0.65rem 1.2rem !important;
+  }
+}

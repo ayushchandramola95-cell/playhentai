@@ -21,101 +21,6 @@
       "os": "Windows",
       "referrer": "http://localhost:3004/"
     },
-    "ph_k3s6gbm9_1792662449025": {
-      "sessionId": "ph_k3s6gbm9_1792662449025",
-      "firstSeen": 1792662449411,
-      "lastSeen": 1792662452256,
-      "durationSeconds": 3,
-      "pageViews": 1,
-      "maxScrollDepth": 0,
-      "device": "desktop",
-      "hasAdBlocker": false,
-      "hasWatchedVideo": true,
-      "visitedRoutes": [
-        "/watch/todo-no-tsumari-episode-1"
-      ],
-      "country": "IN",
-      "region": "Asia & Pacific",
-      "browser": "Chrome",
-      "os": "Windows",
-      "referrer": "http://localhost:3004/watch/todo-no-tsumari-episode-1"
-    },
-    "ph_ej9y7jfy_1792678690397": {
-      "sessionId": "ph_ej9y7jfy_1792678690397",
-      "firstSeen": 1792678691196,
-      "lastSeen": 1792678697844,
-      "durationSeconds": 8,
-      "pageViews": 1,
-      "maxScrollDepth": 0,
-      "device": "desktop",
-      "hasAdBlocker": false,
-      "hasWatchedVideo": true,
-      "visitedRoutes": [
-        "/watch/todo-no-tsumari-episode-1"
-      ],
-      "country": "IN",
-      "region": "Asia & Pacific",
-      "browser": "Chrome",
-      "os": "Windows",
-      "referrer": "http://localhost:3004/watch/todo-no-tsumari-episode-1"
-    },
-    "ph_jxtpcefb_1792679964888": {
-      "sessionId": "ph_jxtpcefb_1792679964888",
-      "firstSeen": 1792679965162,
-      "lastSeen": 1792679971749,
-      "durationSeconds": 7,
-      "pageViews": 1,
-      "maxScrollDepth": 0,
-      "device": "desktop",
-      "hasAdBlocker": false,
-      "hasWatchedVideo": true,
-      "visitedRoutes": [
-        "/watch/todo-no-tsumari-episode-1"
-      ],
-      "country": "IN",
-      "region": "Asia & Pacific",
-      "browser": "Chrome",
-      "os": "Windows",
-      "referrer": "http://localhost:3004/watch/todo-no-tsumari-episode-1"
-    },
-    "ph_wpfw3fq9_1792680177191": {
-      "sessionId": "ph_wpfw3fq9_1792680177191",
-      "firstSeen": 1792680177542,
-      "lastSeen": 1792680181127,
-      "durationSeconds": 4,
-      "pageViews": 1,
-      "maxScrollDepth": 0,
-      "device": "desktop",
-      "hasAdBlocker": false,
-      "hasWatchedVideo": true,
-      "visitedRoutes": [
-        "/watch/todo-no-tsumari-episode-1"
-      ],
-      "country": "IN",
-      "region": "Asia & Pacific",
-      "browser": "Chrome",
-      "os": "Windows",
-      "referrer": "http://localhost:3004/watch/todo-no-tsumari-episode-1"
-    },
-    "ph_vm8cn6a0_1792681617835": {
-      "sessionId": "ph_vm8cn6a0_1792681617835",
-      "firstSeen": 1792681618632,
-      "lastSeen": 1792681624204,
-      "durationSeconds": 7,
-      "pageViews": 1,
-      "maxScrollDepth": 0,
-      "device": "desktop",
-      "hasAdBlocker": false,
-      "hasWatchedVideo": true,
-      "visitedRoutes": [
-        "/watch/todo-no-tsumari-episode-1"
-      ],
-      "country": "IN",
-      "region": "Asia & Pacific",
-      "browser": "Chrome",
-      "os": "Windows",
-      "referrer": "http://localhost:3004/watch/todo-no-tsumari-episode-1"
-    },
     "ph_omxfo2l1_1792783854824": {
       "sessionId": "ph_omxfo2l1_1792783854824",
       "firstSeen": 1792783855439,
@@ -136,10 +41,32 @@
       "browser": "Chrome",
       "os": "Windows",
       "referrer": "http://localhost:3004/login?redirectTo=/admin"
+    },
+    "ph_a5m8dicr_1792926895857": {
+      "sessionId": "ph_a5m8dicr_1792926895857",
+      "firstSeen": 1792926896273,
+      "lastSeen": 1792943690210,
+      "durationSeconds": 16020,
+      "pageViews": 4,
+      "maxScrollDepth": 0,
+      "device": "desktop",
+      "hasAdBlocker": false,
+      "hasWatchedVideo": true,
+      "visitedRoutes": [
+        "/",
+        "/search",
+        "/favorites",
+        "/watch/overflow-episode-1"
+      ],
+      "country": "IN",
+      "region": "Asia & Pacific",
+      "browser": "Chrome",
+      "os": "Windows",
+      "referrer": "http://localhost:3004/"
     }
   },
   "routeVisits": {
-    "/": 604,
+    "/": 615,
     "/series/imaizumin-chi-wa-douyara-gal-no-tamariba-ni-natteru-rashii": 2,
     "/login": 227,
     "/series/reginetta-san-no-bouken": 14,
@@ -158,7 +85,10 @@
     "/watch/overflow-ep-1": 2,
     "/series/todo-no-tsumari": 2,
     "/watch/todo-no-tsumari-episode-1": 311,
-    "/debug": 2
+    "/debug": 2,
+    "/search": 5,
+    "/favorites": 13,
+    "/watch/overflow-episode-1": 357
   },
   "scrollCounts": {
     "depth25": 171,
@@ -167,14 +97,14 @@
     "depth100": 103
   },
   "deviceCounts": {
-    "desktop": 72,
+    "desktop": 73,
     "mobile": 0,
     "tablet": 0
   },
   "adBlockCounts": {
     "blocked": 0,
-    "notBlocked": 72
+    "notBlocked": 73
   },
-  "totalWatchEvents": 3,
-  "lastCleaned": 1792771382411
+  "totalWatchEvents": 4,
+  "lastCleaned": 1792926896273
 }

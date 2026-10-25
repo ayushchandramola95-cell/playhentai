@@ -250,8 +250,27 @@ export default async function StudioDetailPage({ params }: StudioDetailPageProps
 
         {studio.series.length > 0 ? (
           <div className={styles.seriesGrid}>
-            {studio.series.map((item) => (
-              <SeriesCard key={item.id} item={item} />
+            {studio.series.map((item: any) => (
+              <SeriesCard
+                key={item.id}
+                item={{
+                  id: item.id,
+                  title: item.title,
+                  slug: item.slug,
+                  description: item.description || '',
+                  poster_image_key: item.poster_image_key,
+                  cover_image_key: item.cover_image_key,
+                  poster_position: item.poster_position,
+                  tags: item.tags || [],
+                  category: item.category || '',
+                  studio: item.studio || studio.name,
+                  release_year: item.release_year || item.releaseYear,
+                  releaseYear: item.releaseYear || item.release_year,
+                  status: item.status || '',
+                  views: item.views || 0,
+                  rating: item.rating,
+                }}
+              />
             ))}
           </div>
         ) : (

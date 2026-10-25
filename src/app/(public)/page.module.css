@@ -54,13 +54,6 @@
   font-weight: 400;
 }
 
-.heroSection {
-  width: 100%;
-  position: relative;
-  background: var(--background, #080808);
-  margin: 0;
-  padding: 0;
-}
 
 @media (max-width: 1024px) {
   .seoHeroHeader {
@@ -130,34 +123,6 @@
 }
 
 
-.sectionHeader {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  margin-bottom: 1.5rem;
-}
-
-.sectionIcon {
-  color: var(--primary);
-}
-
-.sectionHeader h2 {
-  font-size: 1.4rem;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-}
-
-.demoBadge {
-  font-size: 0.65rem;
-  font-weight: 800;
-  color: var(--accent);
-  background: rgba(var(--accent-rgb), 0.1);
-  border: 1px solid rgba(var(--accent-rgb), 0.2);
-  padding: 0.2rem 0.6rem;
-  border-radius: 4px;
-  letter-spacing: 0.05em;
-  margin-left: 0.5rem;
-}
 
 /* Recent Episodes Grid (Responsive, sleek compact card proportions) */
 .episodeGrid {
@@ -464,46 +429,6 @@
   text-decoration: none !important;
 }
 
-.seriesCard {
-  display: flex;
-  flex-direction: column;
-  border-radius: 12px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  position: relative;
-  aspect-ratio: 2 / 3;
-  transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
-}
-
-.seriesCard .cardImageLink {
-  height: 100%;
-}
-
-.seriesCard:hover {
-  transform: translateY(-4px);
-  border-color: rgba(255, 255, 255, 0.22);
-  box-shadow: 
-    0 14px 28px -6px rgba(0, 0, 0, 0.85),
-    0 0 0 1px rgba(255, 255, 255, 0.12);
-  z-index: 50;
-}
-
-.seriesImageWrapper {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  border-radius: 11px;
-  background: var(--surface-hover);
-}
-
-.seriesCard:hover .cardImageOverlay {
-  opacity: 1;
-}
-
-.seriesCard:hover .cardPlayIcon {
-  transform: scale(1);
-}
 
 .categoriesGrid {
   display: grid;
@@ -753,10 +678,6 @@
     gap: 0.85rem 0.6rem !important;
   }
 
-  .episodeGrid .episodeCard:nth-child(n+13) {
-    display: none;
-  }
-
   .episodeCard {
     border-radius: 8px !important;
   }
@@ -844,146 +765,6 @@
   }
 }
 
-/* Hover Summary Popover Styling */
-.popover {
-  position: absolute;
-  top: 50%;
-  left: 105%;
-  transform: translateY(-50%);
-  width: 320px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-  z-index: 100;
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-  padding: 1rem;
-  transition: opacity 0.2s ease, visibility 0.2s ease;
-  display: flex;
-  gap: 0.85rem;
-  backdrop-filter: blur(8px);
-}
-
-.seriesCard:hover .popover {
-  opacity: 1;
-  visibility: visible;
-}
-
-.popoverPosterWrapper {
-  position: relative;
-  width: 80px;
-  height: 120px;
-  flex-shrink: 0;
-  border-radius: 6px;
-  overflow: hidden;
-  border: 1px solid var(--border);
-}
-
-.popoverPoster {
-  object-fit: cover;
-}
-
-.popoverContent {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  flex-grow: 1;
-  text-align: left;
-}
-
-.popoverTitle {
-  font-size: 0.95rem;
-  font-weight: 800;
-  color: var(--primary);
-  margin: 0;
-  line-height: 1.3;
-}
-
-.popoverSynopsis {
-  font-size: 0.72rem;
-  color: var(--foreground-secondary);
-  line-height: 1.45;
-  margin: 0;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.popoverMeta {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.72rem;
-  color: var(--foreground-secondary);
-}
-
-.metaYear {
-  color: var(--accent, #a855f7);
-  font-weight: 700;
-}
-
-.metaDivider {
-  color: var(--border);
-}
-
-.metaRating {
-  display: flex;
-  align-items: center;
-  gap: 0.2rem;
-  color: #eab308;
-}
-
-.popoverStar {
-  fill: currentColor;
-}
-
-.popoverBadges {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.72rem;
-  color: var(--foreground-secondary);
-}
-
-.studioBadge {
-  background: #22c55e;
-  color: #ffffff;
-  font-size: 0.65rem;
-  font-weight: 800;
-  padding: 0.12rem 0.4rem;
-  border-radius: 4px;
-  text-transform: uppercase;
-}
-
-.popoverTags {
-  display: flex;
-  gap: 0.25rem;
-  flex-wrap: wrap;
-}
-
-.genreBadge {
-  background: #22c55e;
-  color: #ffffff;
-  font-size: 0.6rem;
-  font-weight: 800;
-  padding: 0.1rem 0.35rem;
-  border-radius: 4px;
-  text-transform: capitalize;
-}
-
-/* Bridge Gap to prevent mouse exit flickering */
-.popover::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: -15px;
-  width: 15px;
-}
 
 .introContent {
   background: rgba(15, 15, 15, 0.4);
@@ -1152,6 +933,63 @@
   padding: 0.8rem 1.25rem 1.1rem 1.25rem;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
   margin: 0;
+}
+
+.faqIcon {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #94a3b8;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s ease;
+  user-select: none;
+  line-height: 1;
+}
+
+.faqItem[open] .faqIcon {
+  transform: rotate(45deg);
+  color: #f59e0b;
+}
+
+/* Quick Navigation & Discovery Hub Classes */
+.quickHubContainer {
+  background: rgba(15, 15, 15, 0.65);
+  border: 1px solid rgba(245, 158, 11, 0.15);
+  box-shadow: 0 8px 32px rgba(245, 158, 11, 0.04);
+}
+
+.quickHubGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.8rem;
+  margin-top: 0.8rem;
+}
+
+.quickHubLink {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  padding: 0.6rem 0.8rem;
+  color: #ffffff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.quickHubLinkGold {
+  color: #f59e0b;
+}
+
+.quickHubLink:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.18);
+  transform: translateY(-2px);
+  text-decoration: none !important;
 }
 
 /* Expanded Tag Cloud & Studios Directory on Homepage (Flat Modern Matte) */

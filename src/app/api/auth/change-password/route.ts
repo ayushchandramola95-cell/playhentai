@@ -1,12 +1,11 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabase/server';
+import { getCurrentUserFromCookies, resetUserPassword } from '@/utils/authStore';
 
 export async function POST(request: Request) {
   try {
-    const supabase = await createClient();
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const user = await getCurrentUserFromCookies();
 
-    if (userError || !user) {
+    if (!user || user.banned) {
       return NextResponse.json({ error: 'Unauthorized. Please sign in to change your password.' }, { status: 401 });
     }
 
@@ -16,12 +15,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Password must be at least 8 characters long.' }, { status: 400 });
     }
 
-    const { error: updateError } = await supabase.auth.updateUser({
-      password: newPassword,
-    });
+    const success = await resetUserPassword(user.id, newPassword);
 
-    if (updateError) {
-      return NextResponse.json({ error: updateError.message }, { status: 400 });
+    if (!success) {
+      return NextResponse.json({ error: 'Failed to update password.' }, { status: 500 });
     }
 
     return NextResponse.json({ success: true, message: 'Password updated successfully.' });

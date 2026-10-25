@@ -1,5 +1,6 @@
 import React from 'react';
-import { createClient } from '@/utils/supabase/server';
+import { getCurrentUserFromCookies, getUserWatchlist } from '@/utils/authStore';
+import { getLocalAllPublishedSeries } from '@/utils/localCatalogStore';
 import { getSeriesViewsMap } from '@/utils/views';
 import WatchlistClient from '@/components/WatchlistClient/WatchlistClient';
 
@@ -15,41 +16,64 @@ export const metadata = {
   },
 };
 
+export const revalidate = 0; // Dynamic user route
+
+function sanitizeWatchlistSeries(s: any) {
+  return {
+    id: s.id,
+    title: s.title,
+    slug: s.slug,
+    description: s.description || '',
+    poster_image_key: s.poster_image_key,
+    cover_image_key: s.cover_image_key,
+    poster_position: s.poster_position,
+    tags: s.tags || [],
+    category: s.category || '',
+    studio: s.studio || '',
+    release_year: s.release_year || s.releaseYear,
+    releaseYear: s.releaseYear || s.release_year,
+    status: s.status || '',
+    content_rating: s.content_rating || '',
+    views: s.views || 0,
+    rating: s.rating,
+  };
+}
+
 export default async function WatchlistPage() {
-  const supabase = await createClient();
   let watchlistItems: any[] = [];
   let user = null;
 
   try {
-    const { data: { user: authUser } } = await supabase.auth.getUser();
-    user = authUser;
+    user = await getCurrentUserFromCookies();
 
     if (user) {
-      const [watchlistResult, viewsMap] = await Promise.all([
-        supabase
-          .from('watchlist')
-          .select('*, series(*)')
-          .eq('profile_id', user.id)
-          .order('created_at', { ascending: false }),
-        getSeriesViewsMap('all').catch(() => ({} as Record<string, number>))
-      ]);
+      const userWatchlistIds = await getUserWatchlist(user.id);
 
-      if (!watchlistResult.error && watchlistResult.data) {
-        watchlistItems = watchlistResult.data
-          .map((item) => {
-            if (!item.series) return null;
-            return {
-              ...item.series,
-              added_at: item.created_at,
-              views: viewsMap[item.series.id] || 0
-            };
-          })
-          .filter(Boolean);
+      if (userWatchlistIds.length > 0) {
+        const [allSeries, viewsMap] = await Promise.all([
+          getLocalAllPublishedSeries(),
+          getSeriesViewsMap('all').catch(() => ({} as Record<string, number>))
+        ]);
+
+        const matching = allSeries.filter((s) => userWatchlistIds.includes(s.id));
+        const sorted = [...matching].sort((a, b) => {
+          const idxA = userWatchlistIds.indexOf(a.id);
+          const idxB = userWatchlistIds.indexOf(b.id);
+          return idxA - idxB;
+        });
+
+        watchlistItems = sorted.map((s) => ({
+          ...sanitizeWatchlistSeries(s),
+          added_at: s.created_at || new Date().toISOString(),
+          views: viewsMap[s.id] || s.views || 0,
+        }));
       }
     }
   } catch (err) {
     console.error('Error fetching watchlist:', err);
   }
 
-  return <WatchlistClient initialSeries={watchlistItems} user={user} />;
+  const clientUser = user ? { id: user.id, email: user.email, username: user.username, role: user.role } : null;
+
+  return <WatchlistClient initialSeries={watchlistItems} user={clientUser} />;
 }

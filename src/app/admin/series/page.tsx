@@ -43,7 +43,6 @@ import {
   ChevronDown,
   ChevronUp
 } from 'lucide-react';
-import { createClient } from '@/utils/supabase/client';
 import FileUploader from '@/components/FileUploader/FileUploader';
 import { GENRES, STUDIOS, RELEASE_YEARS } from '@/utils/constants';
 import { getR2Url } from '@/utils/r2';

@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
-import { createAdminClient } from '@/utils/supabase/admin';
-
 export const dynamic = 'force-dynamic';
 
 export interface CountryMeta {
@@ -678,44 +676,7 @@ export async function GET() {
     // 9. Top Visited Routes
     const routeVisitMap: Record<string, number> = { ...store.routeVisits };
 
-    try {
-      const adminSupabase = createAdminClient();
-      const todayStartIso = todayStart.toISOString();
 
-      const [viewsRes, seriesRes, episodesRes, seasonsRes] = await Promise.all([
-        adminSupabase.from('episode_views').select('episode_id, viewed_at').gte('viewed_at', todayStartIso).limit(500),
-        adminSupabase.from('series').select('id, slug, title'),
-        adminSupabase.from('episodes').select('id, season_id'),
-        adminSupabase.from('seasons').select('id, series_id')
-      ]);
-
-      if (viewsRes.data && seriesRes.data && episodesRes.data && seasonsRes.data) {
-        const seasonToSeries = new Map<string, string>();
-        seasonsRes.data.forEach((sn: any) => seasonToSeries.set(sn.id, sn.series_id));
-
-        const epToSeries = new Map<string, string>();
-        episodesRes.data.forEach((ep: any) => {
-          const sId = seasonToSeries.get(ep.season_id);
-          if (sId) epToSeries.set(ep.id, sId);
-        });
-
-        const seriesSlugMap = new Map<string, string>();
-        seriesRes.data.forEach((s: any) => seriesSlugMap.set(s.id, s.slug));
-
-        viewsRes.data.forEach((v: any) => {
-          const sId = epToSeries.get(v.episode_id);
-          if (sId) {
-            const slug = seriesSlugMap.get(sId);
-            if (slug) {
-              const seriesRoute = `/series/${slug}`;
-              routeVisitMap[seriesRoute] = (routeVisitMap[seriesRoute] || 0) + 1;
-            }
-          }
-        });
-      }
-    } catch (dbErr) {
-      console.warn('Could not enrich route visits from database:', dbErr);
-    }
 
     const topRoutes = Object.entries(routeVisitMap)
       .map(([route, count]) => ({ route, count }))

@@ -9,7 +9,6 @@ import {
   List, Grid, FileText, CheckCircle2, SlidersHorizontal, HelpCircle
 } from 'lucide-react';
 import { GENRES, STUDIOS } from '@/utils/constants';
-import { createClient } from '@/utils/supabase/client';
 import adminStyles from '../admin.module.css';
 import styles from './filters.module.css';
 
@@ -94,8 +93,6 @@ export default function AdminFiltersPage() {
     setLoading(true);
     setError(null);
     try {
-      const supabase = createClient();
-
       // 1. Fetch categories (Genres/Tags)
       const catRes = await fetch('/api/admin/categories');
       const catData = await catRes.json();
@@ -121,11 +118,12 @@ export default function AdminFiltersPage() {
 
       // 4. Fetch Series for dynamic usage counting and merge previews
       try {
-        const { data: dbSeries } = await supabase
-          .from('series')
-          .select('id, title, slug, tags, studio, poster_image_key');
-        if (dbSeries) {
-          setSeriesList(dbSeries);
+        const sRes = await fetch('/api/admin/series');
+        if (sRes.ok) {
+          const sData = await sRes.json();
+          if (Array.isArray(sData.series)) {
+            setSeriesList(sData.series);
+          }
         }
       } catch (err) {
         console.error('Error fetching series for taxonomy usage:', err);
@@ -584,9 +582,11 @@ export default function AdminFiltersPage() {
 
         if (data.affectedSeriesCount > 0) {
           // Refresh series list for updated tags
-          const supabase = createClient();
-          const { data: dbSeries } = await supabase.from('series').select('id, title, slug, tags, studio, poster_image_key');
-          if (dbSeries) setSeriesList(dbSeries);
+          const sRes = await fetch('/api/admin/series');
+          if (sRes.ok) {
+            const sData = await sRes.json();
+            if (Array.isArray(sData.series)) setSeriesList(sData.series);
+          }
         }
       }
 

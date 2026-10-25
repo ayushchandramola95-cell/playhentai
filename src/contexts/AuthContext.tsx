@@ -1,7 +1,16 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User } from '@supabase/supabase-js';
+export interface AuthUser {
+  id: string;
+  email?: string;
+  user_metadata?: {
+    username?: string;
+    role?: string;
+    [key: string]: any;
+  };
+  role?: string;
+}
 
 interface Profile {
   id: string;
@@ -11,7 +20,7 @@ interface Profile {
 }
 
 interface AuthContextType {
-  user: User | null;
+  user: AuthUser | null;
   profile: Profile | null;
   loading: boolean;
   signOut: () => Promise<void>;
@@ -23,7 +32,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 

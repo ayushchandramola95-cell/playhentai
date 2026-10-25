@@ -111,7 +111,7 @@ export default function FavoriteToggle({
       : favs.filter((id) => id !== seriesId);
     writeLocalFavs(updated);
 
-    // If authenticated, persist to Supabase Auth metadata
+    // If authenticated, persist to in-project user database via API
     if (user) {
       setToggling(true);
       try {

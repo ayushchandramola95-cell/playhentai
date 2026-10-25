@@ -141,9 +141,27 @@ export default async function PlaylistDetailPage({ params }: PlaylistDetailPageP
 
         {collection.series.length > 0 ? (
           <div className={styles.seriesGrid}>
-            {collection.series.map((item) => (
-              <SeriesCard key={item.id} item={item} />
-            ))}
+            {collection.series.map((item: any) => {
+              const sanitized = {
+                id: item.id,
+                title: item.title,
+                slug: item.slug,
+                description: item.description || '',
+                poster_image_key: item.poster_image_key,
+                cover_image_key: item.cover_image_key,
+                poster_position: item.poster_position,
+                tags: item.tags || [],
+                category: item.category || '',
+                studio: item.studio || '',
+                release_year: item.release_year || item.releaseYear,
+                releaseYear: item.releaseYear || item.release_year,
+                status: item.status || '',
+                content_rating: item.content_rating || '',
+                views: item.views || 0,
+                rating: item.rating,
+              };
+              return <SeriesCard key={sanitized.id} item={sanitized} />;
+            })}
           </div>
         ) : (
           <div className={styles.emptyState}>

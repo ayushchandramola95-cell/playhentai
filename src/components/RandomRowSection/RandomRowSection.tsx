@@ -1,24 +1,23 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
-import Link from 'next/link';
-import { Shuffle, ChevronLeft, ChevronRight } from 'lucide-react';
-import SeriesCard from '@/components/SeriesCard/SeriesCard';
-import { useDragScroll } from '@/hooks/useDragScroll';
+import React, { useState } from 'react';
+import { Shuffle } from 'lucide-react';
+import SeriesCard, { SeriesItem } from '@/components/SeriesCard/SeriesCard';
+import HorizontalScrollRow from '@/components/HorizontalScrollRow/HorizontalScrollRow';
 import styles from './RandomRowSection.module.css';
 
 interface RandomRowSectionProps {
-  seriesPool: any[];
+  seriesPool: SeriesItem[];
 }
 
 export default function RandomRowSection({ seriesPool }: RandomRowSectionProps) {
-  const getCleanPool = (pool: any[]) => {
+  const getCleanPool = (pool: SeriesItem[]) => {
     return (pool || []).filter(
       (s: any) => (s?.status || '').toLowerCase() !== 'upcoming' && !s?.is_upcoming
     );
   };
 
-  const shuffleArray = (array: any[]) => {
+  const shuffleArray = (array: SeriesItem[]) => {
     const arr = [...array];
     for (let i = arr.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -27,145 +26,51 @@ export default function RandomRowSection({ seriesPool }: RandomRowSectionProps) 
     return arr;
   };
 
-  const [items, setItems] = useState<any[]>(() => {
+  const [items, setItems] = useState<SeriesItem[]>(() => {
     const clean = getCleanPool(seriesPool);
     return clean.length > 0 ? clean.slice(0, 15) : [];
   });
-  const scrollRef = useRef<HTMLDivElement>(null);
-  useDragScroll(scrollRef);
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(true);
-  const [activeIndex, setActiveIndex] = useState(0);
-
-  const totalDots = 5;
+  const [announcement, setAnnouncement] = useState('');
 
   const handleShuffle = () => {
     const clean = getCleanPool(seriesPool);
     if (clean.length > 0) {
       setItems(shuffleArray(clean).slice(0, 15));
-      if (scrollRef.current) {
-        scrollRef.current.scrollTo({ left: 0, behavior: 'smooth' });
-      }
-    }
-  };
-
-  const checkScroll = () => {
-    if (scrollRef.current) {
-      const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
-      setCanScrollLeft(scrollLeft > 5);
-      setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 5);
-
-      const maxScroll = scrollWidth - clientWidth;
-      if (maxScroll > 0) {
-        const ratio = Math.max(0, Math.min(1, scrollLeft / maxScroll));
-        const index = Math.min(Math.floor(ratio * totalDots), totalDots - 1);
-        setActiveIndex(index);
-      }
-    }
-  };
-
-  useEffect(() => {
-    let animId: number;
-    if (typeof window !== 'undefined') {
-      animId = requestAnimationFrame(checkScroll);
-    }
-    window.addEventListener('resize', checkScroll, { passive: true });
-    return () => {
-      if (animId) cancelAnimationFrame(animId);
-      window.removeEventListener('resize', checkScroll);
-    };
-  }, [items]);
-
-  const handleScroll = (direction: 'left' | 'right') => {
-    if (scrollRef.current) {
-      const scrollAmount = scrollRef.current.clientWidth * 0.75;
-      scrollRef.current.scrollBy({
-        left: direction === 'left' ? -scrollAmount : scrollAmount,
-        behavior: 'smooth',
-      });
-    }
-  };
-
-  const handleDotClick = (index: number) => {
-    if (scrollRef.current) {
-      const { scrollWidth, clientWidth } = scrollRef.current;
-      const maxScroll = scrollWidth - clientWidth;
-      const targetScroll = (index / (totalDots - 1)) * maxScroll;
-      scrollRef.current.scrollTo({
-        left: targetScroll,
-        behavior: 'smooth',
-      });
+      setAnnouncement(`Shuffled ${Math.min(15, clean.length)} random series`);
+      setTimeout(() => setAnnouncement(''), 3000);
     }
   };
 
   if (!items || items.length === 0) return null;
 
   return (
-    <div className={styles.sectionContainer}>
-      <div className={styles.headerRow}>
-        <div className={styles.headerTitles}>
-          <h2 className={styles.sectionTitle}>Random</h2>
-          <span className={styles.sectionSubtitle}>FEELIN' LUCKY</span>
-        </div>
-
-        <div className={styles.headerControls}>
+    <div className={styles.wrapper}>
+      {announcement && (
+        <span className={styles.srOnly} aria-live="polite">
+          {announcement}
+        </span>
+      )}
+      <HorizontalScrollRow
+        title="Random"
+        subtitle="FEELIN' LUCKY"
+        viewAllHref="/random"
+        viewAllText="ALL"
+        headerAction={
           <button
             type="button"
             onClick={handleShuffle}
             className={styles.shuffleBtn}
-            aria-label="Shuffle random series"
+            aria-label="Shuffle random series selection"
           >
             <Shuffle size={14} />
             <span>SHUFFLE</span>
           </button>
-          
-          <Link href="/random" className={styles.viewAllBtn}>
-            ALL
-          </Link>
-
-          <button
-            onClick={() => handleScroll('left')}
-            disabled={!canScrollLeft}
-            className={styles.arrowBtn}
-            aria-label="Previous slide"
-            type="button"
-          >
-            <ChevronLeft size={16} />
-          </button>
-
-          <button
-            onClick={() => handleScroll('right')}
-            disabled={!canScrollRight}
-            className={styles.arrowBtn}
-            aria-label="Next slide"
-            type="button"
-          >
-            <ChevronRight size={16} />
-          </button>
-        </div>
-      </div>
-
-      <div className={styles.scrollWrapper}>
-        <div className={styles.scrollContainer} ref={scrollRef} onScroll={checkScroll}>
-          {items.map((item) => (
-            <div key={item.id} className={styles.seriesItem}>
-              <SeriesCard item={item} />
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className={styles.indicatorRow}>
-        {Array.from({ length: totalDots }).map((_, idx) => (
-          <button
-            key={idx}
-            type="button"
-            className={`${styles.indicatorDash} ${idx === activeIndex ? styles.activeDash : ''}`}
-            onClick={() => handleDotClick(idx)}
-            aria-label={`Go to slide page ${idx + 1}`}
-          />
+        }
+      >
+        {items.map((item) => (
+          <SeriesCard key={item.id} item={item} />
         ))}
-      </div>
+      </HorizontalScrollRow>
     </div>
   );
 }

@@ -9,49 +9,53 @@ import { isFakeMetricsActive, getFakeMetricsConfig } from '@/utils/fakeMetricsSt
 async function fetchSeriesViewsMap(timeframe: '7d' | '30d' | 'all' = 'all'): Promise<Record<string, number>> {
   const viewsMap: Record<string, number> = {};
   try {
-    const adminSupabase = createAdminClient();
+    try {
+      const adminSupabase = createAdminClient();
 
-    let daysCount = 0;
-    if (timeframe === '7d') daysCount = 7;
-    else if (timeframe === '30d') daysCount = 30;
+      let daysCount = 0;
+      if (timeframe === '7d') daysCount = 7;
+      else if (timeframe === '30d') daysCount = 30;
 
-    let viewsQuery = adminSupabase.from('episode_views').select('episode_id, viewed_at');
-    if (daysCount > 0) {
-      const sinceDate = new Date();
-      sinceDate.setDate(sinceDate.getDate() - daysCount);
-      viewsQuery = viewsQuery.gte('viewed_at', sinceDate.toISOString());
-    }
-
-    // Fetch view logs, episodes, and seasons in parallel without failing nested joins
-    const [viewsResult, episodesResult, seasonsResult] = await Promise.all([
-      viewsQuery,
-      adminSupabase.from('episodes').select('id, season_id'),
-      adminSupabase.from('seasons').select('id, series_id')
-    ]);
-
-    const viewLogs = viewsResult.data || [];
-    const episodes = episodesResult.data || [];
-    const seasons = seasonsResult.data || [];
-
-    const episodeToSeason = new Map<string, string>();
-    episodes.forEach((ep: any) => {
-      if (ep.id && ep.season_id) episodeToSeason.set(ep.id, ep.season_id);
-    });
-
-    const seasonToSeries = new Map<string, string>();
-    seasons.forEach((sn: any) => {
-      if (sn.id && sn.series_id) seasonToSeries.set(sn.id, sn.series_id);
-    });
-
-    viewLogs.forEach((row: any) => {
-      if (!row.episode_id) return;
-      const seasonId = episodeToSeason.get(row.episode_id);
-      if (!seasonId) return;
-      const seriesId = seasonToSeries.get(seasonId);
-      if (seriesId) {
-        viewsMap[seriesId] = (viewsMap[seriesId] || 0) + 1;
+      let viewsQuery = adminSupabase.from('episode_views').select('episode_id, viewed_at');
+      if (daysCount > 0) {
+        const sinceDate = new Date();
+        sinceDate.setDate(sinceDate.getDate() - daysCount);
+        viewsQuery = viewsQuery.gte('viewed_at', sinceDate.toISOString());
       }
-    });
+
+      // Fetch view logs, episodes, and seasons in parallel without failing nested joins
+      const [viewsResult, episodesResult, seasonsResult] = await Promise.all([
+        viewsQuery,
+        adminSupabase.from('episodes').select('id, season_id'),
+        adminSupabase.from('seasons').select('id, series_id')
+      ]);
+
+      const viewLogs = viewsResult.data || [];
+      const episodes = episodesResult.data || [];
+      const seasons = seasonsResult.data || [];
+
+      const episodeToSeason = new Map<string, string>();
+      episodes.forEach((ep: any) => {
+        if (ep.id && ep.season_id) episodeToSeason.set(ep.id, ep.season_id);
+      });
+
+      const seasonToSeries = new Map<string, string>();
+      seasons.forEach((sn: any) => {
+        if (sn.id && sn.series_id) seasonToSeries.set(sn.id, sn.series_id);
+      });
+
+      viewLogs.forEach((row: any) => {
+        if (!row.episode_id) return;
+        const seasonId = episodeToSeason.get(row.episode_id);
+        if (!seasonId) return;
+        const seriesId = seasonToSeries.get(seasonId);
+        if (seriesId) {
+          viewsMap[seriesId] = (viewsMap[seriesId] || 0) + 1;
+        }
+      });
+    } catch (_) {
+      // Supabase is optional/disabled - platform runs on local telemetry and boosted metrics
+    }
 
     // If boosted metrics are active, overlay boosted views without altering real data
     if (isFakeMetricsActive()) {
@@ -63,8 +67,8 @@ async function fetchSeriesViewsMap(timeframe: '7d' | '30d' | 'all' = 'all'): Pro
         viewsMap[seriesId] = boosted + (viewsMap[seriesId] || 0);
       });
     }
-  } catch (err) {
-    console.error('Error in getSeriesViewsMap:', err);
+  } catch (_) {
+    // Non-fatal
   }
   return viewsMap;
 }
@@ -76,22 +80,21 @@ async function fetchSeriesViewsMap(timeframe: '7d' | '30d' | 'all' = 'all'): Pro
 async function fetchEpisodeViewsMap(): Promise<Record<string, number>> {
   const viewsMap: Record<string, number> = {};
   try {
-    const adminSupabase = createAdminClient();
-    const { data: viewsData, error } = await adminSupabase
-      .from('episode_views')
-      .select('episode_id');
+    try {
+      const adminSupabase = createAdminClient();
+      const { data: viewsData } = await adminSupabase
+        .from('episode_views')
+        .select('episode_id');
 
-    if (error) {
-      console.warn('Error fetching episode views map:', error);
-      return {};
+      (viewsData || []).forEach((row: any) => {
+        const episodeId = row.episode_id;
+        if (episodeId) {
+          viewsMap[episodeId] = (viewsMap[episodeId] || 0) + 1;
+        }
+      });
+    } catch (_) {
+      // Supabase is optional/disabled
     }
-
-    (viewsData || []).forEach((row: any) => {
-      const episodeId = row.episode_id;
-      if (episodeId) {
-        viewsMap[episodeId] = (viewsMap[episodeId] || 0) + 1;
-      }
-    });
 
     // If boosted metrics are active, overlay boosted views on episodes
     if (isFakeMetricsActive()) {
@@ -100,8 +103,8 @@ async function fetchEpisodeViewsMap(): Promise<Record<string, number>> {
         viewsMap[episodeId] = (data.views || 0) + (viewsMap[episodeId] || 0);
       });
     }
-  } catch (err) {
-    console.error('Error in getEpisodeViewsMap:', err);
+  } catch (_) {
+    // Non-fatal
   }
   return viewsMap;
 }

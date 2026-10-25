@@ -326,13 +326,134 @@
   composes: shimmerBase;
 }
 
-@media (max-width: 1024px) {
+/* =======================================
+   HOMEPAGE SKELETON
+   ======================================= */
+.homeSeoHeaderSkeleton {
+  width: 100%;
+  max-width: 1680px;
+  margin: 0 auto;
+  padding: 0.5rem 2rem 0.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.homeHeroSpotlightSkeleton {
+  width: 100%;
+  max-width: 1680px;
+  margin: 0 auto;
+  min-height: min(600px, 75vh);
+  border-radius: 14px;
+  composes: shimmerBase;
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 460px;
+  gap: 2.5rem;
+  padding: 2.5rem;
+  box-sizing: border-box;
+}
+
+.homeHeroLeftCol {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.homeHeroRightCol {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.homeHeroCardStack {
+  width: 100%;
+  max-width: 440px;
+  aspect-ratio: 16 / 9;
+  border-radius: 12px;
+  composes: shimmerBase;
+}
+
+.homeSectionSkeleton {
+  max-width: 1680px;
+  margin: 2.2rem auto 0;
+  padding: 0 2rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.homeSectionHeaderSkeleton {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.homeEpisodeGridSkeleton {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 1.25rem 0.85rem;
+}
+
+.homeEpisodeCardSkeleton {
+  display: flex;
+  flex-direction: column;
+  background: #0f131c;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.homeEpisodeThumbSkeleton {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  composes: shimmerBase;
+}
+
+.homeEpisodeContentSkeleton {
+  padding: 0.65rem 0.8rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.homeScrollRowSkeleton {
+  display: flex;
+  gap: 1rem;
+  overflow: hidden;
+}
+
+.homeScrollCardSkeleton {
+  flex: 0 0 calc((100% - 5rem) / 6);
+  aspect-ratio: 2 / 3;
+  border-radius: 8px;
+  composes: shimmerBase;
+}
+
+@media (max-width: 1200px) {
   .watchLayoutGrid {
     grid-template-columns: 1fr;
   }
   .seriesTopSection {
     grid-template-columns: 220px 1fr;
     gap: 1.5rem;
+  }
+  .homeHeroSpotlightSkeleton {
+    grid-template-columns: 1fr;
+    min-height: 480px;
+  }
+  .homeHeroRightCol {
+    display: none;
+  }
+  .homeEpisodeGridSkeleton {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .homeScrollCardSkeleton {
+    flex: 0 0 calc((100% - 3rem) / 4);
   }
 }
 
@@ -347,4 +468,23 @@
   .skeletonWrapper {
     padding: 1rem 1rem 3rem;
   }
+  .homeHeroSpotlightSkeleton {
+    min-height: 380px;
+    padding: 1.2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .homeSectionSkeleton {
+    padding: 0 0.85rem !important;
+    margin: 1.5rem auto 0 !important;
+  }
+  .homeEpisodeGridSkeleton {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0.85rem 0.6rem !important;
+  }
+  .homeScrollCardSkeleton {
+    flex: 0 0 135px;
+  }
 }
+

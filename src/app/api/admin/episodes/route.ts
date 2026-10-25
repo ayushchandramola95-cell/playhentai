@@ -364,22 +364,21 @@ export async function DELETE(request: Request) {
       });
     }
 
-    // 2. Delete user logs / relations referencing this episode
-    await adminSupabase.from('watch_history').delete().eq('episode_id', id);
-    await adminSupabase.from('episode_views').delete().eq('episode_id', id);
-    await adminSupabase.from('comments').delete().eq('episode_id', id);
-
-    // 3. Finally, delete the episode record itself
-    const { error } = await adminSupabase
-      .from('episodes')
-      .delete()
-      .eq('id', id);
-
-    if (error) throw error;
+    // 2. Delete relations and episode record if Supabase is available
+    try {
+      await adminSupabase.from('watch_history').delete().eq('episode_id', id);
+      await adminSupabase.from('episode_views').delete().eq('episode_id', id);
+      await adminSupabase.from('comments').delete().eq('episode_id', id);
+      await adminSupabase.from('episodes').delete().eq('id', id);
+    } catch (_) {
+      // Supabase is optional/disabled
+    }
 
     // Auto-sync series average runtime after deletion
     if (epData?.season_id) {
-      await syncSeriesAverageRuntime(epData.season_id, adminSupabase);
+      try {
+        await syncSeriesAverageRuntime(epData.season_id, adminSupabase);
+      } catch {}
     }
     try {
       await deleteLocalEpisode(id);

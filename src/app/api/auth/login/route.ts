@@ -1,11 +1,9 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabase/server';
 import {
   findUserByEmail,
   verifyPassword,
   updateLocalUser,
   createSessionToken,
-  createLocalUser,
   COOKIE_NAME,
 } from '@/utils/authStore';
 
@@ -51,56 +49,7 @@ export async function POST(request: Request) {
       }
     }
 
-    // 2. Fallback path: Authenticate with Supabase master
-    const supabase = await createClient();
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: cleanEmail,
-      password,
-    });
-
-    if (error || !data.user) {
-      return NextResponse.json({ error: error?.message || 'Invalid email or password' }, { status: 400 });
-    }
-
-    // 3. Transparent Migration: If authenticated via Supabase, import user into local EC2 database
-    let profileRole: 'admin' | 'user' = 'user';
-    let profileUsername = cleanEmail.split('@')[0];
-    try {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role, username')
-        .eq('id', data.user.id)
-        .single();
-      if (profile) {
-        if (profile.role === 'admin') profileRole = 'admin';
-        if (profile.username) profileUsername = profile.username;
-      }
-    } catch {
-      // Ignore profile fetch failure
-    }
-
-    let syncedUser = localUser;
-    if (!syncedUser) {
-      syncedUser = await createLocalUser({
-        email: cleanEmail,
-        username: profileUsername,
-        password,
-        role: profileRole,
-      });
-    }
-
-    const token = createSessionToken(syncedUser);
-    const response = NextResponse.json({ success: true, user: data.user });
-
-    response.cookies.set(COOKIE_NAME, token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 60 * 60 * 24 * 30,
-    });
-
-    return response;
+    return NextResponse.json({ error: 'Invalid email or password' }, { status: 400 });
   } catch (err: any) {
     console.error('Login error:', err);
     return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 });

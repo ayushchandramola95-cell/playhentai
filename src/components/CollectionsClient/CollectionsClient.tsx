@@ -135,7 +135,7 @@ export default function CollectionsClient({ collections }: CollectionsClientProp
 
       {/* Breadcrumbs */}
       <nav className={styles.breadcrumbs} aria-label="Breadcrumbs">
-        <a href="/">Home</a>
+        <Link href="/">Home</Link>
         <span className={styles.crumbDivider}>/</span>
         <span className={styles.activeCrumb}>{tabLabel}</span>
       </nav>
