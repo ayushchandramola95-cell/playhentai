@@ -35,9 +35,10 @@ export async function GET() {
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`;
 
   for (const route of staticRoutes) {
+    const locUrl = route.path ? `${baseUrl}${route.path}` : `${baseUrl}/`;
     xml += `
   <url>
-    <loc>${baseUrl}${route.path}</loc>
+    <loc>${locUrl}</loc>
     <lastmod>${now}</lastmod>
     <changefreq>${route.changefreq}</changefreq>
     <priority>${route.priority}</priority>

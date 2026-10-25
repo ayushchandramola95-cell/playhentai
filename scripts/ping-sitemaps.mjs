@@ -1,49 +1,20 @@
 #!/usr/bin/env node
 
 /**
- * HentaiKage Sitemap Ping Automation
- * Pings Google Search Console and Bing endpoints with current sitemaps.
+ * HentaiKage Search Engine Notification Utility
+ * Note: Google and Bing sunsetted legacy /ping endpoints in late 2023.
+ * Sitemaps are now automatically crawled via robots.txt and submitted via Google Search Console and IndexNow.
  */
 
-const BASE_URL = 'https://hentaikage.cc';
+import { execSync } from 'child_process';
 
-const sitemaps = [
-  `${BASE_URL}/sitemap.xml`,
-  `${BASE_URL}/sitemap-video.xml`
-];
+console.log('📡 [Sitemap & Indexing Automation]');
+console.log('ℹ️  Note: Google (404) & Bing (410) deprecated legacy /ping endpoints in Dec 2023.');
+console.log('ℹ️  Googlebot now discovers sitemaps automatically from robots.txt: https://hentaikage.cc/robots.txt');
+console.log('🚀 Running IndexNow for instant indexing on Bing, Yandex, Yahoo, and partners...\n');
 
-async function pingSitemaps() {
-  console.log('📡 [Sitemap Ping Automation] Starting search engine pings...\n');
-
-  for (const sitemap of sitemaps) {
-    console.log(`📌 Target: ${sitemap}`);
-
-    // Google Ping
-    const googlePingUrl = `https://www.google.com/ping?sitemap=${encodeURIComponent(sitemap)}`;
-    try {
-      console.log(`  ➡️ Pinging Googlebot...`);
-      const res = await fetch(googlePingUrl);
-      console.log(`     Status: ${res.status} ${res.statusText}`);
-    } catch (err) {
-      console.warn(`     Google ping error: ${err.message}`);
-    }
-
-    // Bing Ping
-    const bingPingUrl = `https://www.bing.com/ping?sitemap=${encodeURIComponent(sitemap)}`;
-    try {
-      console.log(`  ➡️ Pinging Bingbot...`);
-      const res = await fetch(bingPingUrl);
-      console.log(`     Status: ${res.status} ${res.statusText}`);
-    } catch (err) {
-      console.warn(`     Bing ping error: ${err.message}`);
-    }
-
-    console.log('');
-  }
-
-  console.log('🎉 Sitemap pings dispatched successfully!');
+try {
+  execSync('node scripts/index-now.mjs', { stdio: 'inherit' });
+} catch (err) {
+  console.error('Error running IndexNow:', err.message);
 }
-
-pingSitemaps().catch(err => {
-  console.error('Error during ping:', err);
-});
